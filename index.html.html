@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BES Open Day — May 14, 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0D1B2A;
+    --navy-light: #1A2E45;
+    --gold: #C49A3C;
+    --gold-light: #E8C97A;
+    --cream: #F7F4EE;
+    --cream-dark: #EDE9E0;
+    --white: #FFFFFF;
+    --muted: #7A7A72;
+    --text: #1C1C1A;
+    --green-wa: #25D366;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    color: var(--white);
+    padding: 72px 24px 64px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(196,154,60,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    border: 1px solid rgba(196,154,60,0.4);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+  }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(38px, 7vw, 68px);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 20px;
+    color: var(--white);
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .hero p {
+    font-size: 17px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.72);
+    max-width: 540px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+  }
+
+  .cta-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--green-wa);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 16px 32px;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.2s;
+    letter-spacing: 0.01em;
+  }
+
+  .cta-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  .wa-icon {
+    width: 22px;
+    height: 22px;
+    fill: #fff;
+    flex-shrink: 0;
+  }
+
+  .cta-sub {
+    display: block;
+    margin-top: 14px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+  }
+
+  /* ── DATE STRIP ── */
+  .date-strip {
+    background: var(--gold);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .date-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--navy);
+    letter-spacing: 0.04em;
+  }
+
+  .date-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* ── SECTION ── */
+  .section {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 56px 24px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .section h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(26px, 5vw, 38px);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--navy);
+    margin-bottom: 20px;
+  }
+
+  .section p {
+    font-size: 16px;
+    color: #4A4A44;
+    line-height: 1.75;
+    margin-bottom: 16px;
+  }
+
+  /* ── BENEFITS GRID ── */
+  .benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .benefit-card {
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .benefit-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--cream);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .benefit-icon svg { width: 20px; height: 20px; stroke: var(--gold); fill: none; }
+
+  .benefit-card h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .benefit-card p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+
+  /* ── COUNTRIES ── */
+  .countries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .country-tag {
+    background: var(--navy);
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 400;
+    padding: 6px 16px;
+    border-radius: 100px;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 48px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto 48px;
+  }
+
+  /* ── FORMAT ── */
+  .format-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  @media (max-width: 480px) {
+    .format-grid { grid-template-columns: 1fr; }
+  }
+
+  .format-card {
+    border-radius: 12px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+
+  .format-card.onsite {
+    background: var(--navy);
+    color: var(--white);
+  }
+
+  .format-card.virtual {
+    background: var(--cream-dark);
+    color: var(--navy);
+  }
+
+  .format-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.6;
+  }
+
+  .format-time {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 400;
+    margin-bottom: 6px;
+    line-height: 1;
+  }
+
+  .format-card.onsite .format-time { color: var(--gold-light); }
+  .format-card.virtual .format-time { color: var(--navy); }
+
+  .format-note { font-size: 13px; opacity: 0.7; }
+
+  /* ── FORM ── */
+  .form-section {
+    background: var(--navy);
+    color: var(--white);
+    padding: 64px 24px;
+  }
+
+  .form-inner {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .form-inner .section-label { color: var(--gold-light); }
+
+  .form-inner h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(24px, 5vw, 34px);
+    font-weight: 300;
+    color: var(--white);
+    margin-bottom: 10px;
+    line-height: 1.25;
+  }
+
+  .form-inner > p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+
+  .field select option { background: var(--navy-light); color: var(--white); }
+
+  .field input::placeholder { color: rgba(255,255,255,0.28); }
+
+  .field input:focus, .field select:focus {
+    border-color: rgba(196,154,60,0.6);
+    background: rgba(255,255,255,0.09);
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 100px;
+    background: var(--green-wa);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity 0.2s, transform 0.2s;
+    text-decoration: none;
+  }
+
+  .submit-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  .form-disclaimer {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  /* ── OR DIVIDER ── */
+  .or-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .or-row span { font-size: 12px; color: rgba(255,255,255,0.3); white-space: nowrap; }
+  .or-row::before, .or-row::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
+  }
+
+  /* ── JOIN COMMUNITY ── */
+  .join-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: transparent;
+    border: 1px solid rgba(37,211,102,0.4);
+    border-radius: 100px;
+    padding: 14px 24px;
+    color: #25D366;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .join-btn:hover { background: rgba(37,211,102,0.08); border-color: rgba(37,211,102,0.7); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--cream-dark);
+    padding: 32px 24px;
+    text-align: center;
+  }
+
+  footer p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  footer strong { color: var(--navy); font-weight: 500; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero > * { animation: fadeUp 0.6s ease both; }
+  .hero .badge { animation-delay: 0.1s; }
+  .hero h1 { animation-delay: 0.2s; }
+  .hero p { animation-delay: 0.3s; }
+  .hero a { animation-delay: 0.4s; }
+  .hero .cta-sub { animation-delay: 0.5s; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">Free Open Day · May 14, 2026</div>
+  <h1>Study Abroad.<br><em>Start Here.</em></h1>
+  <p>Get real answers, real guidance — and possibly walk away with an instant admission offer. One day. No cost. Zero obligation.</p>
+  <a href="https://chat.whatsapp.com/KIT5azfYWCk4PLdxKU2nSA" class="cta-primary" target="_blank" rel="noopener">
+    <svg class="wa-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    Join Our WhatsApp Community
+  </a>
+  <span class="cta-sub">Get updates, prep materials & reminders sent to your WhatsApp</span>
+</section>
+
+<!-- DATE STRIP -->
+<div class="date-strip">
+  <div class="date-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M5 1.5v3M11 1.5v3M2 7h12"/></svg>
+    Wednesday, May 14 · 2026
+  </div>
+  <div class="date-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 1.5"/></svg>
+    Onsite 10AM · Virtual 12PM
+  </div>
+  <div class="date-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 8.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/><path d="M13 13.5c0-2.485-2.239-4.5-5-4.5s-5 2.015-5 4.5"/></svg>
+    AP18 AMAC Plaza, Wuse Zone 3
+  </div>
+</div>
+
+<!-- WHAT TO EXPECT -->
+<div class="section">
+  <p class="section-label">What's Included</p>
+  <h2>Everything you need to get started — in one day</h2>
+  <p>Whether you're exploring options or ready to apply, the BES Open Day gives you direct access to university representatives, expert advisors, and same-day support.</p>
+
+  <div class="benefits">
+    <div class="benefit-card">
+      <div class="benefit-icon">
+        <svg viewBox="0 0 20 20" stroke-width="1.5"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zM3 18a7 7 0 0114 0"/></svg>
+      </div>
+      <h3>1-on-1 with University Reps</h3>
+      <p>Speak directly with official representatives from universities across multiple countries.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">
+        <svg viewBox="0 0 20 20" stroke-width="1.5"><path d="M4 4h12v12H4z"/><path d="M8 4v12M12 4v12M4 8h12M4 12h12"/></svg>
+      </div>
+      <h3>Document Review on the Spot</h3>
+      <p>Bring your documents and get them reviewed by our admissions specialists in real time.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">
+        <svg viewBox="0 0 20 20" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="10" cy="10" r="7"/></svg>
+      </div>
+      <h3>Same-Day Applications</h3>
+      <p>Submit your application and potentially receive an admission offer before you leave.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">
+        <svg viewBox="0 0 20 20" stroke-width="1.5"><path d="M4 10h12M10 4v12"/></svg>
+      </div>
+      <h3>Free Entry</h3>
+      <p>No cost, no commitment. Just bring your ambition and your questions.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- COUNTRIES -->
+<div class="section" style="padding-top: 0;">
+  <p class="section-label">Destinations</p>
+  <h2>Where do you want to study?</h2>
+  <p>We work with institutions across some of the most sought-after study destinations in the world.</p>
+  <div class="countries">
+    <span class="country-tag">🇺🇸 USA</span>
+    <span class="country-tag">🇬🇧 UK</span>
+    <span class="country-tag">🇨🇦 Canada</span>
+    <span class="country-tag">🇦🇺 Australia</span>
+    <span class="country-tag">🇩🇪 Germany</span>
+    <span class="country-tag">🇦🇪 UAE</span>
+    <span class="country-tag">+ More</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FORMAT -->
+<div class="section" style="padding-top: 0;">
+  <p class="section-label">Attendance Format</p>
+  <h2>Join us in person or online</h2>
+  <div class="format-grid">
+    <div class="format-card onsite">
+      <p class="format-label">Onsite</p>
+      <div class="format-time">10AM</div>
+      <p class="format-note">AP18 AMAC Plaza<br>Wuse Zone 3, Abuja</p>
+    </div>
+    <div class="format-card virtual">
+      <p class="format-label">Virtual</p>
+      <div class="format-time">12PM</div>
+      <p class="format-note">Link sent via<br>WhatsApp after registration</p>
+    </div>
+  </div>
+</div>
+
+<!-- FORM / CTA -->
+<section class="form-section">
+  <div class="form-inner">
+    <p class="section-label">Reserve Your Spot</p>
+    <h2>Spaces are limited.<br>Secure yours now.</h2>
+    <p>Drop your details below and we'll send everything you need to prepare directly to your WhatsApp.</p>
+
+    <!-- PRIMARY: WhatsApp Community Join -->
+    <a href="https://chat.whatsapp.com/KIT5azfYWCk4PLdxKU2nSA" class="submit-btn" target="_blank" rel="noopener">
+      <svg style="width:20px;height:20px;fill:#fff;flex-shrink:0;" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      Join WhatsApp Community — It's Free
+    </a>
+    <p class="form-disclaimer">By joining, you'll receive event details, reminders, and preparation materials via WhatsApp. No spam. Unsubscribe anytime.</p>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p><strong>Baseline Educational Services</strong><br>
+  AP18 AMAC Plaza, Wuse Zone 3, Abuja, Nigeria<br>
+  © 2026 BES. All rights reserved.</p>
+</footer>
+
+<script>
+function handleSubmit() {
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  if (!name || !phone) {
+    alert('Please fill in your name and WhatsApp number.');
+    return;
+  }
+  document.getElementById('form-container').style.display = 'none';
+  document.getElementById('success-msg').style.display = 'block';
+}
+</script>
+</body>
+</html>
