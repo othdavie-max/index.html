@@ -1,14 +1,10 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { CalendarCheck } from "lucide-react";
 import Link from "next/link";
 import { openWhatsApp } from "@/lib/whatsapp";
 
 export function MobileBottomBar() {
-  const pathname = usePathname();
-  if (pathname?.startsWith("/admin")) return null;
-
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 flex border-t border-navy-900/10 bg-white/95 backdrop-blur-lg sm:hidden">
       <button

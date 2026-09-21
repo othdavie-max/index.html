@@ -2,17 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Plus_Jakarta_Sans, Fraunces } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { WhatsAppButton } from "@/components/layout/whatsapp-button";
-import { MobileBottomBar } from "@/components/layout/mobile-bottom-bar";
+import { SiteChrome } from "@/components/layout/site-chrome";
 import { CursorFollower } from "@/components/layout/cursor-follower";
-import { ConsentBanner } from "@/components/layout/consent-banner";
 import { LoadingScreen } from "@/components/layout/loading-screen";
 import { SmoothScrollProvider } from "@/components/layout/smooth-scroll-provider";
 import { PageTransition } from "@/components/layout/page-transition";
 import { ToastProvider } from "@/components/ui/toast";
-import { ChatWidget } from "@/components/chat/chat-widget";
 import { GA_ID, META_PIXEL_ID } from "@/lib/analytics";
 import { siteSettings } from "@/data/site-settings";
 
@@ -116,15 +111,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-full focus:bg-navy-900 focus:px-4 focus:py-2 focus:text-white">
               Skip to content
             </a>
-            <Header />
-            <main id="main-content" className="flex-1 pb-16 sm:pb-0">
+            <SiteChrome>
               <PageTransition>{children}</PageTransition>
-            </main>
-            <Footer />
-            <WhatsAppButton />
-            <ChatWidget />
-            <MobileBottomBar />
-            <ConsentBanner />
+            </SiteChrome>
           </SmoothScrollProvider>
         </ToastProvider>
       </body>

@@ -1,13 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { openWhatsApp } from "@/lib/whatsapp";
 
 export function WhatsAppButton() {
-  const pathname = usePathname();
-  if (pathname?.startsWith("/admin")) return null;
-
   return (
     <motion.button
       type="button"

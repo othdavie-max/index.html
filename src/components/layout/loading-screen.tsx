@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
 function dismiss(setVisible: (v: boolean) => void) {
@@ -9,6 +10,7 @@ function dismiss(setVisible: (v: boolean) => void) {
 }
 
 export function LoadingScreen() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -16,7 +18,7 @@ export function LoadingScreen() {
     setMounted(true);
     const seen = sessionStorage.getItem("bes-intro-seen");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (seen || reducedMotion) return;
+    if (seen || reducedMotion || pathname?.startsWith("/admin")) return;
 
     setVisible(true);
     // sessionStorage is written only once the intro actually finishes (below),

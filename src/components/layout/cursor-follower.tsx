@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 
 export function CursorFollower() {
+  const pathname = usePathname();
   const [enabled, setEnabled] = useState(false);
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
@@ -24,7 +26,7 @@ export function CursorFollower() {
     return () => window.removeEventListener("mousemove", move);
   }, [x, y]);
 
-  if (!enabled) return null;
+  if (!enabled || pathname?.startsWith("/admin")) return null;
 
   return (
     <motion.div

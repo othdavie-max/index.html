@@ -28,9 +28,6 @@ export function Header() {
     setOpenMenu(null);
   }, [pathname]);
 
-  const isAdmin = pathname?.startsWith("/admin");
-  if (isAdmin) return null;
-
   return (
     <header
       className={cn(

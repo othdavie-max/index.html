@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, Send, ShieldCheck, X } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
@@ -16,7 +15,6 @@ const MAX_INPUT_LENGTH = 1000;
 const LEAD_PROMPT_AFTER_USER_MESSAGES = 3;
 
 export function ChatWidget() {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: "Hi! I'm the Baseline assistant. Ask me anything about studying abroad, or our services — I'll do my best to help, and can connect you with a real counsellor any time." },
@@ -31,10 +29,6 @@ export function ChatWidget() {
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, streaming]);
-
-  if (pathname?.startsWith("/admin")) return null;
-
-  const userMessageCount = messages.filter((m) => m.role === "user").length;
 
   async function sendMessage(text: string) {
     const nextMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
