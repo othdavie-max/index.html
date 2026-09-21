@@ -12,6 +12,7 @@ import { LoadingScreen } from "@/components/layout/loading-screen";
 import { SmoothScrollProvider } from "@/components/layout/smooth-scroll-provider";
 import { PageTransition } from "@/components/layout/page-transition";
 import { ToastProvider } from "@/components/ui/toast";
+import { ChatWidget } from "@/components/chat/chat-widget";
 import { GA_ID, META_PIXEL_ID } from "@/lib/analytics";
 import { siteSettings } from "@/data/site-settings";
 
@@ -121,6 +122,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </main>
             <Footer />
             <WhatsAppButton />
+            <ChatWidget />
             <MobileBottomBar />
             <ConsentBanner />
           </SmoothScrollProvider>
