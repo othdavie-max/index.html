@@ -52,10 +52,11 @@ export const viewport: Viewport = {
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
+  "@type": ["EducationalOrganization", "LocalBusiness"],
   name: siteSettings.companyName,
   url: siteUrl,
   logo: `${siteUrl}/logo.png`,
+  image: `${siteUrl}/logo.png`,
   address: {
     "@type": "PostalAddress",
     streetAddress: siteSettings.address,
@@ -70,6 +71,12 @@ const organizationJsonLd = {
   })),
   email: siteSettings.email,
   sameAs: Object.values(siteSettings.socials),
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    opens: "09:00",
+    closes: "17:00",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
