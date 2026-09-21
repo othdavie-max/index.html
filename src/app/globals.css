@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+:root {
+  /* PLACEHOLDER-safe brand tokens — from the brief, not invented */
+  --color-navy-950: #050e24;
+  --color-navy-900: #0a1f44;
+  --color-navy-700: #14346b;
+  --color-navy-100: #e6ecf6;
+  --color-red-500: #e03a3e;
+  --color-red-600: #c22a2f;
+  --color-white: #ffffff;
+  --color-offwhite: #f7f8fb;
+  --color-ink: #0b1220;
+  --color-muted: #5b6577;
+
+  --font-display: var(--font-jakarta);
+  --font-serif: var(--font-fraunces);
+  --font-body: var(--font-inter);
+
+  --header-height: 76px;
+}
+
+@theme inline {
+  --color-navy-950: var(--color-navy-950);
+  --color-navy-900: var(--color-navy-900);
+  --color-navy-700: var(--color-navy-700);
+  --color-navy-100: var(--color-navy-100);
+  --color-red-500: var(--color-red-500);
+  --color-red-600: var(--color-red-600);
+  --color-offwhite: var(--color-offwhite);
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-muted);
+
+  --font-display: var(--font-display);
+  --font-serif: var(--font-serif);
+  --font-body: var(--font-body);
+
+  --animate-marquee: marquee 32s linear infinite;
+  --animate-marquee-fast: marquee 18s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--color-red-500);
+  color: var(--color-white);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-serif-em {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+/* Reduced motion: kill non-essential animation globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-red-500);
+  outline-offset: 2px;
+}
