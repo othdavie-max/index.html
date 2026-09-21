@@ -1,11 +1,13 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
+    plugins: { "react-hooks": reactHooksPlugin },
     rules: {
       // Downgraded: this codebase uses setState-in-effect deliberately for
       // client-only mount flags, matchMedia/localStorage reads, and

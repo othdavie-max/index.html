@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
 import { FinalCta } from "@/components/home/final-cta";
+import { WorldMapLoader } from "@/components/destinations/world-map-loader";
 import { destinations } from "@/data/destinations";
 import { formatNaira } from "@/lib/utils";
 
@@ -23,7 +24,14 @@ export default function DestinationsPage() {
         description="Every destination offers something different. Compare tuition, intakes and post-study work before you decide."
       />
 
-      <section className="bg-white py-20 sm:py-28">
+      <section className="bg-white py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <p className="mb-6 text-center text-sm text-muted">Hover or tap a highlighted country for a quick preview, or click for the full picture.</p>
+          <WorldMapLoader />
+        </div>
+      </section>
+
+      <section className="bg-offwhite py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealGroup className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {destinations.map((d) => (
