@@ -115,6 +115,38 @@ body {
   text-underline-offset: 2px;
 }
 
+.blog-content h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-ink);
+  scroll-margin-top: 6rem;
+}
+.blog-content p {
+  margin-top: 1rem;
+  color: var(--color-muted);
+  line-height: 1.75;
+}
+.blog-content ul {
+  margin-top: 1rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+  color: var(--color-muted);
+}
+.blog-content li {
+  margin-top: 0.4rem;
+}
+.blog-content a {
+  color: var(--color-red-500);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.blog-content strong {
+  color: var(--color-ink);
+}
+
 :focus-visible {
   outline: 2px solid var(--color-red-500);
   outline-offset: 2px;
