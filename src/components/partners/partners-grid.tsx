@@ -31,7 +31,7 @@ export function PartnersGrid() {
             <RevealItem key={p.slug}>
               <Link
                 href={`/partners/${p.slug}`}
-                className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.2)]"
+                className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:shadow-[0_20px_40px_-15px_rgba(42,_24,_16,0.2)]"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink-900 text-xs font-bold text-white">

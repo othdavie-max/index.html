@@ -33,7 +33,7 @@ export default function ServicesPage() {
                 <RevealItem key={service.slug}>
                   <Link
                     href={`/services/${service.slug}`}
-                    className="group flex flex-col gap-6 rounded-2xl border border-ink-900/8 bg-offwhite p-7 transition-all duration-300 hover:border-gold-500/30 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.15)] sm:flex-row sm:items-center"
+                    className="group flex flex-col gap-6 rounded-2xl border border-ink-900/8 bg-offwhite p-7 transition-all duration-300 hover:border-gold-500/30 hover:shadow-[0_20px_40px_-15px_rgba(42, 24, 16,0.15)] sm:flex-row sm:items-center"
                   >
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-ink-900 text-white">
                       {Icon && <Icon size={24} />}

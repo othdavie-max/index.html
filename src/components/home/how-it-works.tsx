@@ -54,7 +54,7 @@ export function HowItWorks() {
                   <span
                     className={cn(
                       "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors duration-500",
-                      active === i ? "border-gold-500 bg-gold-500 text-white" : "border-white/20 text-white/60",
+                      active === i ? "border-gold-500 bg-gold-500 text-ink-900" : "border-white/20 text-white/60",
                     )}
                   >
                     {i + 1}

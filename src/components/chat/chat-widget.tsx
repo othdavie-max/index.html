@@ -124,7 +124,7 @@ export function ChatWidget() {
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
                     className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                      m.role === "user" ? "bg-gold-500 text-white" : "bg-offwhite text-ink-900"
+                      m.role === "user" ? "bg-gold-500 text-ink-900" : "bg-offwhite text-ink-900"
                     }`}
                   >
                     {m.content || (streaming && i === messages.length - 1 ? "…" : "")}
@@ -167,7 +167,7 @@ export function ChatWidget() {
                   type="submit"
                   disabled={streaming || !input.trim()}
                   aria-label="Send"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-500 text-white hover:bg-gold-600 disabled:opacity-50"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-500 text-ink-900 hover:bg-gold-600 disabled:opacity-50"
                 >
                   <Send size={16} />
                 </button>
@@ -245,9 +245,9 @@ function LeadPrompt({
           onChange={(e) => setValues((v) => ({ ...v, phone: e.target.value }))}
           className="rounded-lg border border-ink-900/12 bg-white px-3 py-2 text-xs outline-none focus:border-gold-500"
         />
-        {status === "error" && <p className="text-[11px] text-gold-500">Something went wrong. Please try again.</p>}
+        {status === "error" && <p className="text-[11px] text-danger-500">Something went wrong. Please try again.</p>}
         <div className="flex gap-2">
-          <button type="submit" disabled={status === "loading"} className="flex-1 rounded-full bg-gold-500 py-1.5 text-xs font-medium text-white hover:bg-gold-600 disabled:opacity-60">
+          <button type="submit" disabled={status === "loading"} className="flex-1 rounded-full bg-gold-500 py-1.5 text-xs font-medium text-ink-900 hover:bg-gold-600 disabled:opacity-60">
             {status === "loading" ? "Sending…" : "Share my details"}
           </button>
           <button type="button" onClick={onDismiss} className="rounded-full border border-ink-900/10 px-3 py-1.5 text-xs text-muted hover:bg-white">

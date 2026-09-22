@@ -8,7 +8,7 @@ export function Logo({ className, dark = false }: { className?: string; dark?: b
     <Link href="/" className={cn("inline-flex flex-col leading-none group", className)} aria-label="Baseline Educational Services — Home">
       <span
         className={cn(
- "font-display text-xl tracking-tight",
+          "font-display text-xl tracking-tight",
           dark ? "text-white" : "text-ink-900",
         )}
       >

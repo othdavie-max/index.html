@@ -124,7 +124,7 @@ export function DocumentUploadField({
           e.target.value = "";
         }}
       />
-      {error && <p className="mt-1.5 text-xs text-gold-500">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-danger-500">{error}</p>}
     </div>
   );
 }

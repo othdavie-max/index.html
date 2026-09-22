@@ -73,7 +73,7 @@ export function LeadCaptureForm({
           onChange={(e) => setValues((v) => ({ ...v, phone: e.target.value }))}
           className="rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm outline-none focus:border-gold-500"
         />
-        {error && <p className="text-xs text-gold-500">{error}</p>}
+        {error && <p className="text-xs text-danger-500">{error}</p>}
         <Button type="submit" disabled={status === "loading"} className="mt-1 justify-center" icon={status === "loading" ? <Loader2 size={16} className="animate-spin" /> : undefined}>
           {status === "loading" ? "Unlocking…" : "Unlock My Results"}
         </Button>

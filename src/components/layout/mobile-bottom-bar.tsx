@@ -17,7 +17,7 @@ export function MobileBottomBar() {
         </svg>
         WhatsApp
       </button>
-      <Link href="/book" className="flex flex-1 items-center justify-center gap-2 bg-gold-500 py-3.5 text-sm font-semibold text-white">
+      <Link href="/book" className="flex flex-1 items-center justify-center gap-2 bg-gold-500 py-3.5 text-sm font-semibold text-ink-900">
         <CalendarCheck size={18} />
         Book Free Consult
       </Link>

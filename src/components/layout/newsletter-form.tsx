@@ -45,7 +45,7 @@ export function NewsletterForm() {
         type="submit"
         disabled={status === "loading"}
         aria-label="Subscribe"
-        className="flex shrink-0 items-center justify-center rounded-full bg-gold-500 px-4 py-2.5 text-white transition-colors hover:bg-gold-600 disabled:opacity-60"
+        className="flex shrink-0 items-center justify-center rounded-full bg-gold-500 px-4 py-2.5 text-ink-900 transition-colors hover:bg-gold-600 disabled:opacity-60"
       >
         <Send size={16} />
       </button>

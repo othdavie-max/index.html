@@ -145,7 +145,7 @@ export function BookingTool() {
               type="button"
               onClick={() => setSelectedDate(d)}
               className={`flex shrink-0 flex-col items-center rounded-xl border px-3.5 py-2.5 text-xs transition-all ${
-                toDateKey(d) === toDateKey(selectedDate) ? "border-gold-500 bg-gold-500 text-white" : "border-ink-900/10 text-ink-900"
+                toDateKey(d) === toDateKey(selectedDate) ? "border-gold-500 bg-gold-500 text-ink-900" : "border-ink-900/10 text-ink-900"
               }`}
             >
               <span className="font-semibold">{d.toLocaleDateString("en-GB", { weekday: "short" })}</span>
@@ -173,7 +173,7 @@ export function BookingTool() {
                     taken
                       ? "cursor-not-allowed border-ink-900/5 bg-ink-900/5 text-muted/50 line-through"
                       : selectedTime === slot
-                        ? "border-gold-500 bg-gold-500 text-white"
+                        ? "border-gold-500 bg-gold-500 text-ink-900"
                         : "border-ink-900/10 text-ink-900 hover:border-gold-500/40"
                   }`}
                 >
@@ -213,7 +213,7 @@ export function BookingTool() {
             className={fieldClass}
           />
 
-          {error && <p className="text-xs text-gold-500">{error}</p>}
+          {error && <p className="text-xs text-danger-500">{error}</p>}
 
           <Button type="submit" size="lg" disabled={!selectedTime || status === "loading"} className="mt-1 justify-center">
             {status === "loading" ? "Booking…" : "Confirm Booking"}

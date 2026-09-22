@@ -60,11 +60,11 @@ export default function AdminLoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             className="rounded-xl border border-ink-900/12 px-4 py-3 text-sm outline-none focus:border-gold-500"
           />
-          {error && <p className="text-xs text-gold-500">{error}</p>}
+          {error && <p className="text-xs text-danger-500">{error}</p>}
           <button
             type="submit"
             disabled={status === "loading"}
-            className="mt-1 flex items-center justify-center gap-2 rounded-full bg-gold-500 py-3 text-sm font-medium text-white hover:bg-gold-600 disabled:opacity-60"
+            className="mt-1 flex items-center justify-center gap-2 rounded-full bg-gold-500 py-3 text-sm font-medium text-ink-900 hover:bg-gold-600 disabled:opacity-60"
           >
             {status === "loading" && <Loader2 size={16} className="animate-spin" />}
             Sign In

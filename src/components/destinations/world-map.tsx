@@ -183,7 +183,7 @@ export function WorldMap() {
 
               <Link
                 href={`/destinations/${selected.slug}`}
-                className="mt-8 flex items-center justify-center gap-2 rounded-full bg-gold-500 px-6 py-3 text-sm font-medium text-white hover:bg-gold-600"
+                className="mt-8 flex items-center justify-center gap-2 rounded-full bg-gold-500 px-6 py-3 text-sm font-medium text-ink-900 hover:bg-gold-600"
               >
                 Full country guide <ArrowUpRight size={16} />
               </Link>

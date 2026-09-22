@@ -30,7 +30,7 @@ export function ServicesSection() {
               <RevealItem key={service.slug} className="w-[280px] shrink-0 snap-start lg:w-auto">
                 <Link
                   href={`/services/${service.slug}`}
-                  className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.2)]"
+                  className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:shadow-[0_20px_40px_-15px_rgba(42,_24,_16,0.2)]"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500">
                     {Icon && <Icon size={22} />}

@@ -43,7 +43,7 @@ export function LoadingScreen() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
- className="font-display text-3xl text-white"
+            className="font-display text-3xl text-white"
           >
             Baseline<span className="text-gold-500">.</span>
           </motion.span>

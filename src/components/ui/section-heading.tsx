@@ -23,13 +23,13 @@ export function SectionHeading({
   return (
     <div className={cn(align === "center" ? "text-center mx-auto" : "text-left", "max-w-2xl", className)}>
       {eyebrow && (
-        <p className={cn("mb-3 text-xs font-semibold uppercase tracking-[0.2em]", dark ? "text-gold-500" : "text-gold-500")}>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gold-500">
           {eyebrow}
         </p>
       )}
       <h2
         className={cn(
- "font-display text-balance text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.1] tracking-tight",
+          "font-display text-balance text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.1] tracking-tight",
           dark ? "text-white" : "text-ink-900",
         )}
       >

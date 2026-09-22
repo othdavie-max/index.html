@@ -85,7 +85,7 @@ export function AdminShell({ children, email, role }: { children: React.ReactNod
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
-                    active ? "bg-gold-500 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                    active ? "bg-gold-500 text-ink-900" : "text-white/70 hover:bg-white/5 hover:text-white",
                   )}
                 >
                   <item.icon size={15} />

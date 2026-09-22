@@ -28,7 +28,7 @@ export function SuccessStoriesSection() {
                     </span>
                   </div>
                   {t.visaApproved && (
-                    <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[11px] font-semibold text-white">
+                    <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gold-500 px-2.5 py-1 text-[11px] font-semibold text-ink-900">
                       <ShieldCheck size={12} /> Visa Approved
                     </span>
                   )}
