@@ -60,7 +60,7 @@ export function WorldMap() {
   return (
     <div className="relative">
       {/* Desktop / tablet: interactive SVG map, with a card-list fallback if it fails to load */}
-      <div className={mapFailed || !geoData ? "hidden" : "hidden overflow-hidden rounded-3xl border border-navy-900/8 bg-navy-100/40 sm:block"}>
+      <div className={mapFailed || !geoData ? "hidden" : "hidden overflow-hidden rounded-3xl border border-ink-900/8 bg-ink-100/40 sm:block"}>
         {geoData && (
         <ComposableMap projection="geoEqualEarth" projectionConfig={{ scale: 155 }} className="w-full" style={{ height: "auto" }}>
           <Geographies geography={geoData}>
@@ -70,7 +70,7 @@ export function WorldMap() {
                 const code = name ? nameToCode[name] : undefined;
                 const destination = destinations.find((d) => d.code === code);
                 const isHovered = hoveredCode === code;
-                const fill = destination ? (isHovered ? "#C22A2F" : "#E03A3E") : isHovered ? "#B7C4DE" : "#C8D3E8";
+                const fill = destination ? (isHovered ? "#A3835F" : "#C4A57B") : isHovered ? "#D8CFC5" : "#E7E0D8";
                 return (
                   <Geography
                     key={geo.rsmKey}
@@ -103,10 +103,10 @@ export function WorldMap() {
 
         {hovered && (
           <div
-            className="pointer-events-none fixed z-30 w-64 rounded-xl border border-navy-900/10 bg-white p-4 shadow-xl"
+            className="pointer-events-none fixed z-30 w-64 rounded-xl border border-ink-900/10 bg-white p-4 shadow-xl"
             style={{ left: hovered.x + 16, top: hovered.y + 16 }}
           >
-            <p className="font-display text-sm font-bold text-navy-900">
+            <p className="font-display text-sm text-ink-900">
               {hovered.destination.flag} {hovered.destination.name}
             </p>
             <p className="mt-1 text-xs text-muted">
@@ -123,10 +123,10 @@ export function WorldMap() {
             <button
               key={d.code}
               onClick={() => setSelected(d)}
-              className="rounded-2xl border border-navy-900/8 bg-white p-5 text-left transition-colors hover:border-red-500/30"
+              className="rounded-2xl border border-ink-900/8 bg-white p-5 text-left transition-colors hover:border-gold-500/30"
             >
               <span className="text-3xl">{d.flag}</span>
-              <p className="mt-2 font-display text-base font-bold text-navy-900">{d.name}</p>
+              <p className="mt-2 font-display text-base text-ink-900">{d.name}</p>
               <p className="mt-1 text-xs text-muted">{d.heroTagline}</p>
             </button>
           ))}
@@ -139,10 +139,10 @@ export function WorldMap() {
           <button
             key={d.code}
             onClick={() => setSelected(d)}
-            className="w-56 shrink-0 snap-start rounded-2xl border border-navy-900/8 bg-white p-5 text-left"
+            className="w-56 shrink-0 snap-start rounded-2xl border border-ink-900/8 bg-white p-5 text-left"
           >
             <span className="text-3xl">{d.flag}</span>
-            <p className="mt-2 font-display text-base font-bold text-navy-900">{d.name}</p>
+              <p className="mt-2 font-display text-base text-ink-900">{d.name}</p>
             <p className="mt-1 text-xs text-muted">{d.heroTagline}</p>
           </button>
         ))}
@@ -156,7 +156,7 @@ export function WorldMap() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelected(null)}
-              className="fixed inset-0 z-40 bg-navy-950/50"
+              className="fixed inset-0 z-40 bg-ink-950/50"
             />
             <motion.div
               initial={{ x: "100%" }}
@@ -165,15 +165,15 @@ export function WorldMap() {
               transition={{ type: "spring", stiffness: 300, damping: 32 }}
               className="fixed inset-y-0 right-0 z-50 w-full max-w-sm overflow-y-auto bg-white p-6 shadow-2xl sm:p-8"
             >
-              <button onClick={() => setSelected(null)} aria-label="Close" className="rounded-full p-2 text-navy-900/50 hover:bg-navy-900/5">
+              <button onClick={() => setSelected(null)} aria-label="Close" className="rounded-full p-2 text-ink-900/50 hover:bg-ink-900/5">
                 <X size={18} />
               </button>
 
               <span className="mt-4 block text-5xl">{selected.flag}</span>
-              <h3 className="mt-3 font-display text-2xl font-bold text-navy-900">{selected.name}</h3>
+              <h3 className="mt-3 font-display text-2xl text-ink-900">{selected.name}</h3>
               <p className="mt-2 text-sm text-muted">{selected.summary}</p>
 
-              <dl className="mt-6 flex flex-col gap-4 border-t border-navy-900/8 pt-6 text-sm">
+              <dl className="mt-6 flex flex-col gap-4 border-t border-ink-900/8 pt-6 text-sm">
                 <Fact label="Tuition (est.)" value={`${formatNaira(selected.tuitionRangeNgnPerYear[0])} – ${formatNaira(selected.tuitionRangeNgnPerYear[1])}/yr`} />
                 <Fact label="Living costs (est.)" value={`${formatNaira(selected.livingCostsNgnPerYear[0])} – ${formatNaira(selected.livingCostsNgnPerYear[1])}/yr`} />
                 <Fact label="Intakes" value={selected.intakes.join(", ")} />
@@ -183,7 +183,7 @@ export function WorldMap() {
 
               <Link
                 href={`/destinations/${selected.slug}`}
-                className="mt-8 flex items-center justify-center gap-2 rounded-full bg-red-500 px-6 py-3 text-sm font-medium text-white hover:bg-red-600"
+                className="mt-8 flex items-center justify-center gap-2 rounded-full bg-gold-500 px-6 py-3 text-sm font-medium text-white hover:bg-gold-600"
               >
                 Full country guide <ArrowUpRight size={16} />
               </Link>
@@ -199,7 +199,7 @@ function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
-      <dd className="mt-0.5 font-medium text-navy-900">{value}</dd>
+      <dd className="mt-0.5 font-medium text-ink-900">{value}</dd>
     </div>
   );
 }

@@ -8,8 +8,8 @@ import { useToast } from "@/components/ui/toast";
 import { contactFormSchema, type ContactFormValues } from "@/lib/validations";
 
 const fieldClass =
-  "w-full rounded-xl border border-navy-900/12 bg-white px-4 py-3 text-sm text-navy-900 outline-none transition-colors focus:border-red-500";
-const errorClass = "mt-1 text-xs text-red-500";
+  "w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none transition-colors focus:border-gold-500";
+const errorClass = "mt-1 text-xs text-gold-500";
 
 export function ContactForm() {
   const { push } = useToast();

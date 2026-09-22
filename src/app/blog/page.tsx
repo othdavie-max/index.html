@@ -20,19 +20,19 @@ export default function BlogPage() {
 
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Link href={`/blog/${featured.slug}`} className="group mb-14 grid grid-cols-1 gap-6 rounded-3xl border border-navy-900/8 bg-offwhite p-6 sm:p-8 lg:grid-cols-2">
-            <div className="flex aspect-[16/10] items-center justify-center rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 lg:aspect-auto">
+          <Link href={`/blog/${featured.slug}`} className="group mb-14 grid grid-cols-1 gap-6 rounded-3xl border border-ink-900/8 bg-offwhite p-6 sm:p-8 lg:grid-cols-2">
+            <div className="flex aspect-[16/10] items-center justify-center rounded-2xl bg-gradient-to-br from-ink-900 to-ink-700 lg:aspect-auto">
               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">Featured</span>
             </div>
             <div className="flex flex-col justify-center">
-              <span className="text-xs font-semibold uppercase tracking-widest text-red-500">{featured.category}</span>
-              <h2 className="mt-2 font-display text-2xl font-bold text-navy-900 transition-colors group-hover:text-red-500">{featured.title}</h2>
+              <span className="text-xs font-semibold uppercase tracking-widest text-gold-500">{featured.category}</span>
+              <h2 className="mt-2 font-display text-2xl text-ink-900 transition-colors group-hover:text-gold-500">{featured.title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted">{featured.excerpt}</p>
               <div className="mt-4 flex items-center gap-3 text-xs text-muted">
                 <span className="flex items-center gap-1">
                   <Clock size={12} /> {featured.readingTimeMinutes} min read
                 </span>
-                <span className="flex items-center gap-1 font-medium text-red-500">
+                <span className="flex items-center gap-1 font-medium text-gold-500">
                   Read the article <ArrowRight size={12} />
                 </span>
               </div>

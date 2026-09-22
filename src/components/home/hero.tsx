@@ -27,10 +27,10 @@ export function Hero() {
     <section
       ref={ref}
       onMouseMove={onMouseMove}
-      className="relative overflow-hidden bg-navy-950 pb-16 pt-14 sm:pb-24 sm:pt-20"
+      className="relative overflow-hidden bg-ink-950 pb-16 pt-14 sm:pb-24 sm:pt-20"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(224,58,62,0.16),transparent_45%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_60%,rgba(20,52,107,0.5),transparent_50%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(196, 165, 123,0.16),transparent_45%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_60%,rgba(74, 66, 64, 0.5),transparent_50%)]" />
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
         <div>
@@ -43,14 +43,14 @@ export function Hero() {
             Study Abroad Consultants · Abuja, Nigeria
           </motion.div>
 
-          <h1 className="font-display text-balance text-[clamp(2.25rem,5.5vw,4rem)] font-bold leading-[1.05] tracking-tight text-white">
+          <h1 className="font-display text-balance text-[clamp(2.25rem,5.5vw,4rem)] leading-[1.05] tracking-tight text-white">
             {headline.map((line, i) => (
               <span key={line} className="block overflow-hidden">
                 <motion.span
                   initial={{ y: "110%" }}
                   animate={{ y: 0 }}
                   transition={{ duration: 0.7, delay: 0.15 + i * 0.09, ease: [0.22, 1, 0.36, 1] }}
-                  className={i === headline.length - 1 ? "inline-block font-serif-em font-normal text-red-400" : "inline-block"}
+                  className={i === headline.length - 1 ? "inline-block font-serif-em font-normal text-gold-500" : "inline-block"}
                 >
                   {line}
                 </motion.span>

@@ -10,9 +10,9 @@ export function QuizProgress({ step, total }: { step: number; total: number }) {
         </span>
         <span>{Math.round(pct)}%</span>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-navy-900/10">
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink-900/10">
         <motion.div
-          className="h-full rounded-full bg-red-500"
+          className="h-full rounded-full bg-gold-500"
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.4, ease: "easeOut" }}

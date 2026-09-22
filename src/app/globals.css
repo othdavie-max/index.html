@@ -1,32 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  /* PLACEHOLDER-safe brand tokens — from the brief, not invented */
-  --color-navy-950: #050e24;
-  --color-navy-900: #0a1f44;
-  --color-navy-700: #14346b;
-  --color-navy-100: #e6ecf6;
-  --color-red-500: #e03a3e;
-  --color-red-600: #c22a2f;
+  /* PLACEHOLDER-safe brand tokens — warm luxury palette (ivory / espresso / mahogany / gold) */
+  --color-ink-950: #1c1512;
+  --color-ink-900: #2a1810;
+  --color-ink-700: #4a4240;
+  --color-ink-100: #ede4dd;
+  --color-gold-500: #c4a57b;
+  --color-gold-600: #a3835f;
+  --color-danger-500: #c22a2f;
+  --color-danger-600: #a01f24;
   --color-white: #ffffff;
-  --color-offwhite: #f7f8fb;
-  --color-ink: #0b1220;
-  --color-muted: #5b6577;
+  --color-offwhite: #faf6f1;
+  --color-ink: #2a1810;
+  --color-muted: #7a6f68;
 
-  --font-display: var(--font-jakarta);
-  --font-serif: var(--font-fraunces);
-  --font-body: var(--font-inter);
+  --font-display: var(--font-cormorant);
+  --font-serif: var(--font-cormorant);
+  --font-body: var(--font-manrope);
 
   --header-height: 76px;
 }
 
 @theme inline {
-  --color-navy-950: var(--color-navy-950);
-  --color-navy-900: var(--color-navy-900);
-  --color-navy-700: var(--color-navy-700);
-  --color-navy-100: var(--color-navy-100);
-  --color-red-500: var(--color-red-500);
-  --color-red-600: var(--color-red-600);
+  --color-ink-950: var(--color-ink-950);
+  --color-ink-900: var(--color-ink-900);
+  --color-ink-700: var(--color-ink-700);
+  --color-ink-100: var(--color-ink-100);
+  --color-gold-500: var(--color-gold-500);
+  --color-gold-600: var(--color-gold-600);
+  --color-danger-500: var(--color-danger-500);
+  --color-danger-600: var(--color-danger-600);
   --color-offwhite: var(--color-offwhite);
   --color-ink: var(--color-ink);
   --color-muted: var(--color-muted);
@@ -53,13 +57,13 @@ html {
 }
 
 body {
-  background: var(--color-white);
+  background: var(--color-ink-100);
   color: var(--color-ink);
   font-family: var(--font-body);
 }
 
 ::selection {
-  background: var(--color-red-500);
+  background: var(--color-gold-500);
   color: var(--color-white);
 }
 
@@ -110,7 +114,7 @@ body {
   margin-top: 0.4rem;
 }
 .legal-content a {
-  color: var(--color-red-500);
+  color: var(--color-gold-500);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -139,7 +143,7 @@ body {
   margin-top: 0.4rem;
 }
 .blog-content a {
-  color: var(--color-red-500);
+  color: var(--color-gold-500);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -148,6 +152,6 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-red-500);
+  outline: 2px solid var(--color-gold-500);
   outline-offset: 2px;
 }

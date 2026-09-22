@@ -42,11 +42,11 @@ export function LeadCaptureForm({
   }
 
   return (
-    <div className="rounded-2xl border border-navy-900/10 bg-white p-6 sm:p-8">
-      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+    <div className="rounded-2xl border border-ink-900/10 bg-white p-6 sm:p-8">
+      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500">
         <Lock size={18} />
       </div>
-      <h3 className="mt-4 text-center font-display text-lg font-bold text-navy-900">{title}</h3>
+      <h3 className="mt-4 text-center font-display text-lg text-ink-900">{title}</h3>
       <p className="mt-1.5 text-center text-sm text-muted">{description}</p>
 
       <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3">
@@ -55,7 +55,7 @@ export function LeadCaptureForm({
           placeholder="Full name"
           value={values.name}
           onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
-          className="rounded-xl border border-navy-900/12 bg-white px-4 py-3 text-sm outline-none focus:border-red-500"
+          className="rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm outline-none focus:border-gold-500"
         />
         <input
           required
@@ -63,7 +63,7 @@ export function LeadCaptureForm({
           placeholder="Email address"
           value={values.email}
           onChange={(e) => setValues((v) => ({ ...v, email: e.target.value }))}
-          className="rounded-xl border border-navy-900/12 bg-white px-4 py-3 text-sm outline-none focus:border-red-500"
+          className="rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm outline-none focus:border-gold-500"
         />
         <input
           required
@@ -71,9 +71,9 @@ export function LeadCaptureForm({
           placeholder="WhatsApp number"
           value={values.phone}
           onChange={(e) => setValues((v) => ({ ...v, phone: e.target.value }))}
-          className="rounded-xl border border-navy-900/12 bg-white px-4 py-3 text-sm outline-none focus:border-red-500"
+          className="rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm outline-none focus:border-gold-500"
         />
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {error && <p className="text-xs text-gold-500">{error}</p>}
         <Button type="submit" disabled={status === "loading"} className="mt-1 justify-center" icon={status === "loading" ? <Loader2 size={16} className="animate-spin" /> : undefined}>
           {status === "loading" ? "Unlocking…" : "Unlock My Results"}
         </Button>

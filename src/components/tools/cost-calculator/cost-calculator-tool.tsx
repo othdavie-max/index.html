@@ -18,7 +18,7 @@ const toggleFields: { key: keyof CostCalculatorInput; label: string }[] = [
   { key: "includeSettlingIn", label: "Travel / Settling-In Money" },
 ];
 
-const selectClass = "w-full rounded-xl border border-navy-900/12 bg-white px-4 py-3 text-sm text-navy-900 outline-none focus:border-red-500";
+const selectClass = "w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none focus:border-gold-500";
 
 export function CostCalculatorTool() {
   const [input, setInput] = useState<CostCalculatorInput>({
@@ -49,7 +49,7 @@ export function CostCalculatorTool() {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
       <div className="lg:col-span-2">
-        <div className="flex flex-col gap-4 rounded-2xl border border-navy-900/10 bg-offwhite p-6">
+        <div className="flex flex-col gap-4 rounded-2xl border border-ink-900/10 bg-offwhite p-6">
           <Field label="Country">
             <select className={selectClass} value={input.country} onChange={(e) => update("country", e.target.value as CountryCode)}>
               {destinations.map((d) => (
@@ -93,7 +93,7 @@ export function CostCalculatorTool() {
               max={4}
               value={input.durationYears}
               onChange={(e) => update("durationYears", Number(e.target.value))}
-              className="w-full accent-red-500"
+              className="w-full accent-gold-500"
             />
           </Field>
 
@@ -101,12 +101,12 @@ export function CostCalculatorTool() {
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Include in estimate</p>
             <div className="flex flex-col gap-2">
               {toggleFields.map((f) => (
-                <label key={f.key} className="flex items-center gap-2.5 text-sm text-navy-900">
+                <label key={f.key} className="flex items-center gap-2.5 text-sm text-ink-900">
                   <input
                     type="checkbox"
                     checked={Boolean(input[f.key])}
                     onChange={(e) => update(f.key, e.target.checked as CostCalculatorInput[typeof f.key])}
-                    className="h-4 w-4 accent-red-500"
+                    className="h-4 w-4 accent-gold-500"
                   />
                   {f.label}
                 </label>
@@ -117,22 +117,22 @@ export function CostCalculatorTool() {
       </div>
 
       <div className="lg:col-span-3">
-        <div className="rounded-2xl border border-navy-900/10 bg-white p-6 sm:p-8">
+        <div className="rounded-2xl border border-ink-900/10 bg-white p-6 sm:p-8">
           <DonutChart data={breakdown.lineItems.map((i) => ({ label: i.label, value: i.totalNgn }))} total={breakdown.totalProgrammeNgn} />
 
-          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-navy-900/8 pt-6">
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-ink-900/8 pt-6">
             <div>
               <p className="text-xs text-muted">Per year (est.)</p>
-              <p className="font-display text-lg font-bold text-navy-900">{formatNaira(breakdown.totalPerYearNgn)}</p>
+              <p className="font-display text-lg text-ink-900">{formatNaira(breakdown.totalPerYearNgn)}</p>
             </div>
             <div>
               <p className="text-xs text-muted">Per year in {breakdown.currency} ≈ {formatCurrency(perYearLocal, breakdown.currency)}</p>
-              <p className="font-display text-lg font-bold text-navy-900">Full programme: {formatNaira(breakdown.totalProgrammeNgn)}</p>
+              <p className="font-display text-lg text-ink-900">Full programme: {formatNaira(breakdown.totalProgrammeNgn)}</p>
             </div>
           </div>
 
-          <div className="mt-6 flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-xs text-muted">
-            <ShieldAlert size={16} className="mt-0.5 shrink-0 text-red-500" />
+          <div className="mt-6 flex items-start gap-3 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-xs text-muted">
+            <ShieldAlert size={16} className="mt-0.5 shrink-0 text-gold-500" />
             Estimates only. Actual costs vary by university and city — use this as a planning starting point, not a
             quote.
           </div>

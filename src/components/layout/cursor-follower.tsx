@@ -31,7 +31,7 @@ export function CursorFollower() {
   return (
     <motion.div
       style={{ translateX: springX, translateY: springY }}
-      className="pointer-events-none fixed left-0 top-0 z-[999] h-5 w-5 rounded-full border border-red-500/60 mix-blend-difference"
+      className="pointer-events-none fixed left-0 top-0 z-[999] h-5 w-5 rounded-full border border-gold-500/60 mix-blend-difference"
       aria-hidden
     />
   );

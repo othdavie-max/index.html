@@ -39,15 +39,15 @@ export default function SuccessStoriesPage() {
               const destination = getDestination(t.country);
               return (
                 <RevealItem key={t.id}>
-                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-navy-900/8 bg-white p-5 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-navy-100 font-display text-sm font-bold text-navy-900">
+                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-ink-900/8 bg-white p-5 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink-100 font-display text-sm text-ink-900">
                       {t.photoPlaceholder}
                     </div>
-                    <p className="text-xs font-semibold text-navy-900">{t.name}</p>
+                    <p className="text-xs font-semibold text-ink-900">{t.name}</p>
                     <p className="text-[11px] text-muted">
                       {destination?.flag} {destination?.name}
                     </p>
-                    <span className="mt-1 flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-600">
+                    <span className="mt-1 flex items-center gap-1 rounded-full bg-gold-500/10 px-2 py-0.5 text-[10px] font-semibold text-gold-600">
                       <ShieldCheck size={10} /> Approved
                     </span>
                   </div>

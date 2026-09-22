@@ -102,7 +102,7 @@ export function MatcherQuiz() {
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="mt-8"
         >
-          <h2 className="font-display text-xl font-bold text-navy-900 sm:text-2xl">{current.question}</h2>
+          <h2 className="font-display text-xl text-ink-900 sm:text-2xl">{current.question}</h2>
 
           <div className="mt-6">
             {current.key === "level" && (
@@ -219,11 +219,11 @@ export function MatcherQuiz() {
                         update("preferredCountries", Array.from(list) as CountryCode[]);
                       }}
                       className={`rounded-xl border p-4 text-center transition-all duration-200 ${
-                        selected ? "border-red-500 bg-red-500/5 ring-1 ring-red-500" : "border-navy-900/10 bg-white hover:border-navy-900/30"
+                        selected ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500" : "border-ink-900/10 bg-white hover:border-ink-900/30"
                       }`}
                     >
                       <span className="text-2xl">{d.flag}</span>
-                      <p className="mt-1 text-xs font-medium text-navy-900">{d.name}</p>
+                      <p className="mt-1 text-xs font-medium text-ink-900">{d.name}</p>
                     </button>
                   );
                 })}

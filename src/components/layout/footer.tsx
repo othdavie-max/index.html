@@ -8,7 +8,7 @@ import { siteSettings } from "@/data/site-settings";
 
 export function Footer() {
   return (
-    <footer className="bg-navy-950 text-white/80">
+    <footer className="bg-ink-950 text-white/80">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-6">
           <div className="col-span-2">
@@ -19,15 +19,15 @@ export function Footer() {
             </p>
             <div className="mt-6 flex flex-col gap-2.5 text-sm">
               <a href={siteSettings.mapUrl} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2.5 hover:text-white">
-                <MapPin size={16} className="mt-0.5 shrink-0 text-red-500" />
+                <MapPin size={16} className="mt-0.5 shrink-0 text-gold-500" />
                 {siteSettings.address}
               </a>
               <a href={`mailto:${siteSettings.email}`} className="flex items-center gap-2.5 hover:text-white">
-                <Mail size={16} className="shrink-0 text-red-500" />
+                <Mail size={16} className="shrink-0 text-gold-500" />
                 {siteSettings.email}
               </a>
               <a href={`tel:${siteSettings.phones[0].replace(/\s/g, "")}`} className="flex items-center gap-2.5 hover:text-white">
-                <Phone size={16} className="shrink-0 text-red-500" />
+                <Phone size={16} className="shrink-0 text-gold-500" />
                 {siteSettings.phones[0]}
               </a>
             </div>
@@ -49,7 +49,7 @@ export function Footer() {
           <FooterCol title="Destinations" links={footerNav.destinations} />
 
           <div className="col-span-2 md:col-span-1">
-            <h3 className="font-display text-sm font-semibold text-white">Stay updated</h3>
+            <h3 className="font-display text-sm text-white">Stay updated</h3>
             <p className="mt-3 text-sm text-white/60">Intakes, scholarships and deadlines — straight to your inbox.</p>
             <div className="mt-4">
               <NewsletterForm />
@@ -75,7 +75,7 @@ export function Footer() {
 function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
-      <h3 className="font-display text-sm font-semibold text-white">{title}</h3>
+            <h3 className="font-display text-sm text-white">{title}</h3>
       <ul className="mt-3 flex flex-col gap-2.5">
         {links.map((l) => (
           <li key={l.href}>

@@ -5,7 +5,7 @@ import createGlobe from "cobe";
 import { destinations } from "@/data/destinations";
 
 const ABUJA: [number, number] = [9.06, 7.49];
-const RED: [number, number, number] = [0.878, 0.227, 0.243];
+const GOLD: [number, number, number] = [0.769, 0.647, 0.482];
 
 export function GlobeCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,14 +26,14 @@ export function GlobeCanvas() {
       ...destinations.map((d) => ({
         location: [d.mapCoords[1], d.mapCoords[0]] as [number, number],
         size: 0.06,
-        color: RED,
+        color: GOLD,
       })),
     ];
 
     const arcs = destinations.map((d) => ({
       from: ABUJA,
       to: [d.mapCoords[1], d.mapCoords[0]] as [number, number],
-      color: RED,
+      color: GOLD,
     }));
 
     let width = canvas.offsetWidth;
@@ -53,12 +53,12 @@ export function GlobeCanvas() {
       diffuse: 1.2,
       mapSamples: 14000,
       mapBrightness: 6,
-      baseColor: [0.09, 0.16, 0.32],
-      markerColor: RED,
-      glowColor: [0.13, 0.22, 0.42],
+      baseColor: [0.165, 0.094, 0.063],
+      markerColor: GOLD,
+      glowColor: [0.32, 0.25, 0.18],
       markers,
       arcs,
-      arcColor: RED,
+      arcColor: GOLD,
       arcWidth: 2,
       arcHeight: 0.35,
     });

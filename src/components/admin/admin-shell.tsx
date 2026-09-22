@@ -85,7 +85,7 @@ export function AdminShell({ children, email, role }: { children: React.ReactNod
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
-                    active ? "bg-red-500 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                    active ? "bg-gold-500 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
                   )}
                 >
                   <item.icon size={15} />
@@ -101,7 +101,7 @@ export function AdminShell({ children, email, role }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen bg-offwhite">
-      <aside className="hidden w-64 shrink-0 flex-col bg-navy-950 lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col bg-ink-950 lg:flex">
         <div className="px-5 py-6">
           <Logo dark />
         </div>
@@ -109,7 +109,7 @@ export function AdminShell({ children, email, role }: { children: React.ReactNod
         <div className="border-t border-white/10 p-4">
           <p className="truncate text-xs text-white/60">{email}</p>
           <p className="text-[10px] uppercase tracking-wide text-white/30">{role}</p>
-          <button onClick={logout} className="mt-2 flex items-center gap-1.5 text-xs text-white/60 hover:text-red-400">
+          <button onClick={logout} className="mt-2 flex items-center gap-1.5 text-xs text-white/60 hover:text-danger-500">
             <LogOut size={13} /> Sign out
           </button>
         </div>
@@ -118,7 +118,7 @@ export function AdminShell({ children, email, role }: { children: React.ReactNod
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <div className="relative flex w-64 flex-col bg-navy-950">
+          <div className="relative flex w-64 flex-col bg-ink-950">
             <div className="flex items-center justify-between px-5 py-6">
               <Logo dark />
               <button onClick={() => setMobileOpen(false)} className="text-white/60">
@@ -127,7 +127,7 @@ export function AdminShell({ children, email, role }: { children: React.ReactNod
             </div>
             {nav}
             <div className="border-t border-white/10 p-4">
-              <button onClick={logout} className="flex items-center gap-1.5 text-xs text-white/60 hover:text-red-400">
+              <button onClick={logout} className="flex items-center gap-1.5 text-xs text-white/60 hover:text-danger-500">
                 <LogOut size={13} /> Sign out
               </button>
             </div>
@@ -136,9 +136,9 @@ export function AdminShell({ children, email, role }: { children: React.ReactNod
       )}
 
       <div className="flex min-h-screen flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-navy-900/8 bg-white px-4 py-3 lg:hidden">
+        <div className="flex items-center justify-between border-b border-ink-900/8 bg-white px-4 py-3 lg:hidden">
           <Logo />
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="text-navy-900">
+          <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="text-ink-900">
             <Menu size={22} />
           </button>
         </div>

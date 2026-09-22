@@ -11,8 +11,8 @@ export function Badge({
   tone?: "navy" | "red" | "light";
 }) {
   const tones = {
-    navy: "bg-navy-100 text-navy-900",
-    red: "bg-red-500/10 text-red-600",
+    navy: "bg-ink-100 text-ink-900",
+    red: "bg-gold-500/10 text-gold-600",
     light: "bg-white/10 text-white border border-white/20",
   };
   return (

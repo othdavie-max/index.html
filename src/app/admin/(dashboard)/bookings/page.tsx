@@ -51,23 +51,23 @@ export default function BookingsAdminPage() {
 
   return (
     <div>
-      <h1 className="font-display text-xl font-bold text-navy-900">Bookings</h1>
+      <h1 className="font-display text-xl text-ink-900">Bookings</h1>
       <p className="mt-1 text-sm text-muted">
         Upcoming and past consultations. Availability (hours and slot length) is configured on the{" "}
-        <a href="/admin/settings" className="text-red-500 underline">
+        <a href="/admin/settings" className="text-gold-500 underline">
           Site Settings
         </a>{" "}
         page.
       </p>
 
       {!supabase ? (
-        <p className="mt-8 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view bookings.</p>
+        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view bookings.</p>
       ) : loading ? (
         <div className="mt-8 flex items-center gap-2 text-sm text-muted">
           <Loader2 size={14} className="animate-spin" /> Loading…
         </div>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-navy-900/8 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-ink-900/8 bg-white">
           <table className="w-full min-w-[850px] text-left text-sm">
             <thead className="bg-offwhite text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -81,22 +81,22 @@ export default function BookingsAdminPage() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className="border-t border-navy-900/6">
-                  <td className="px-4 py-3 text-xs text-navy-900">
+                <tr key={r.id} className="border-t border-ink-900/6">
+                  <td className="px-4 py-3 text-xs text-ink-900">
                     {new Date(`${r.scheduled_date}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · {r.scheduled_time}
                   </td>
-                  <td className="px-4 py-3 font-medium text-navy-900">{r.name}</td>
+                  <td className="px-4 py-3 font-medium text-ink-900">{r.name}</td>
                   <td className="px-4 py-3 text-xs text-muted">
                     {r.email}
                     <br />
                     {r.phone}
                   </td>
-                  <td className="px-4 py-3 text-xs text-navy-900">{consultationTypeLabels[r.consultation_type]}</td>
-                  <td className="px-4 py-3 text-xs text-navy-900">
+                  <td className="px-4 py-3 text-xs text-ink-900">{consultationTypeLabels[r.consultation_type]}</td>
+                  <td className="px-4 py-3 text-xs text-ink-900">
                     {r.destination ?? "—"} {r.level ? `/ ${r.level}` : ""}
                   </td>
                   <td className="px-4 py-3">
-                    <select value={r.status} onChange={(e) => updateStatus(r.id, e.target.value as BookingRow["status"])} className="rounded-lg border border-navy-900/12 bg-white px-2 py-1 text-xs">
+                    <select value={r.status} onChange={(e) => updateStatus(r.id, e.target.value as BookingRow["status"])} className="rounded-lg border border-ink-900/12 bg-white px-2 py-1 text-xs">
                       {statuses.map((s) => (
                         <option key={s} value={s}>
                           {s}

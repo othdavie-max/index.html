@@ -37,15 +37,15 @@ export function LoadingScreen() {
         <motion.div
           onClick={() => dismiss(setVisible)}
           exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
-          className="fixed inset-0 z-[300] flex cursor-pointer items-center justify-center bg-navy-950"
+          className="fixed inset-0 z-[300] flex cursor-pointer items-center justify-center bg-ink-950"
         >
           <motion.span
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="font-display text-3xl font-bold text-white"
+ className="font-display text-3xl text-white"
           >
-            Baseline<span className="text-red-500">.</span>
+            Baseline<span className="text-gold-500">.</span>
           </motion.span>
         </motion.div>
       )}

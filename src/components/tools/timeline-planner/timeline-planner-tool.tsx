@@ -12,7 +12,7 @@ import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { trackEvent } from "@/lib/analytics";
 import type { CountryCode, StudyLevel } from "@/types";
 
-const selectClass = "w-full rounded-xl border border-navy-900/12 bg-white px-4 py-3 text-sm text-navy-900 outline-none focus:border-red-500";
+const selectClass = "w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none focus:border-gold-500";
 
 function nextIntakeDates() {
   const now = new Date();
@@ -62,7 +62,7 @@ export function TimelinePlannerTool() {
 
   return (
     <div>
-      <div className="grid grid-cols-1 gap-4 rounded-2xl border border-navy-900/10 bg-offwhite p-6 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 rounded-2xl border border-ink-900/10 bg-offwhite p-6 sm:grid-cols-3">
         <div>
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Destination</label>
           <select className={selectClass} value={country} onChange={(e) => setCountry(e.target.value as CountryCode)}>
@@ -95,8 +95,8 @@ export function TimelinePlannerTool() {
       </div>
 
       {isTight && (
-        <div className="mt-6 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-navy-900">
-          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-500" />
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-gold-500/30 bg-gold-500/5 p-4 text-sm text-ink-900">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-gold-500" />
           <p>
             You&apos;re on a tight schedule — your intake is only {daysToIntake} days away. Some milestones below are
             already overdue. Let&apos;s talk about what&apos;s still realistic.
@@ -110,7 +110,7 @@ export function TimelinePlannerTool() {
           animate={{ scaleY: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           style={{ transformOrigin: "top" }}
-          className="absolute left-[7px] top-2 h-[calc(100%-1rem)] w-0.5 bg-navy-900/10"
+          className="absolute left-[7px] top-2 h-[calc(100%-1rem)] w-0.5 bg-ink-900/10"
         />
         <div className="flex flex-col gap-8">
           {timeline.map((t, i) => (
@@ -123,13 +123,13 @@ export function TimelinePlannerTool() {
               className="relative"
             >
               <span
-                className={`absolute -left-8 top-1 h-4 w-4 rounded-full border-2 border-white ${t.overdue ? "bg-red-500" : "bg-navy-900"}`}
+                className={`absolute -left-8 top-1 h-4 w-4 rounded-full border-2 border-white ${t.overdue ? "bg-gold-500" : "bg-ink-900"}`}
               />
-              <p className={`text-xs font-semibold uppercase tracking-wide ${t.overdue ? "text-red-500" : "text-muted"}`}>
+              <p className={`text-xs font-semibold uppercase tracking-wide ${t.overdue ? "text-gold-500" : "text-muted"}`}>
                 {t.dueDate.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                 {t.overdue && " · Overdue"}
               </p>
-              <p className="mt-1 font-display text-base font-bold text-navy-900">{t.label}</p>
+              <p className="mt-1 font-display text-base text-ink-900">{t.label}</p>
               <p className="mt-0.5 text-sm text-muted">{t.description}</p>
             </motion.div>
           ))}
@@ -151,7 +151,7 @@ export function TimelinePlannerTool() {
             <button
               type="button"
               onClick={() => setShowCapture(true)}
-              className="text-sm font-medium text-red-500 underline-offset-4 hover:underline"
+              className="text-sm font-medium text-gold-500 underline-offset-4 hover:underline"
             >
               Email me this timeline too →
             </button>

@@ -73,16 +73,16 @@ export function CrudPage({ config }: { config: CrudConfig }) {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-xl font-bold text-navy-900">{config.title}</h1>
+          <h1 className="font-display text-xl text-ink-900">{config.title}</h1>
           <p className="mt-1 text-sm text-muted">{config.description}</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-1.5 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600">
+        <button onClick={openCreate} className="flex items-center gap-1.5 rounded-full bg-gold-500 px-4 py-2 text-sm font-medium text-white hover:bg-gold-600">
           <Plus size={15} /> New
         </button>
       </div>
 
       {!supabase ? (
-        <p className="mt-8 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-muted">
+        <p className="mt-8 rounded-xl border border-danger-500/20 bg-danger-500/5 p-4 text-sm text-muted">
           Supabase isn&apos;t configured — connect it to manage {config.title.toLowerCase()}.
         </p>
       ) : loading ? (
@@ -92,7 +92,7 @@ export function CrudPage({ config }: { config: CrudConfig }) {
       ) : rows.length === 0 ? (
         <p className="mt-8 text-sm text-muted">No records yet. Click &quot;New&quot; to add one.</p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-navy-900/8 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-ink-900/8 bg-white">
           <table className="w-full min-w-[600px] text-left text-sm">
             <thead className="bg-offwhite text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -106,18 +106,18 @@ export function CrudPage({ config }: { config: CrudConfig }) {
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="border-t border-navy-900/6">
+                <tr key={row.id} className="border-t border-ink-900/6">
                   {config.listColumns.map((col) => (
-                    <td key={col} className="max-w-xs truncate px-4 py-3 text-navy-900">
+                    <td key={col} className="max-w-xs truncate px-4 py-3 text-ink-900">
                       {formatCell(row[col])}
                     </td>
                   ))}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => openEdit(row)} aria-label="Edit" className="rounded-lg p-1.5 text-navy-900/60 hover:bg-offwhite">
+                      <button onClick={() => openEdit(row)} aria-label="Edit" className="rounded-lg p-1.5 text-ink-900/60 hover:bg-offwhite">
                         <Pencil size={14} />
                       </button>
-                      <button onClick={() => handleDelete(row)} aria-label="Delete" className="rounded-lg p-1.5 text-red-500/70 hover:bg-red-500/10">
+                      <button onClick={() => handleDelete(row)} aria-label="Delete" className="rounded-lg p-1.5 text-danger-500/70 hover:bg-danger-500/10">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -130,7 +130,7 @@ export function CrudPage({ config }: { config: CrudConfig }) {
       )}
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
-        <h2 className="mb-4 font-display text-lg font-bold text-navy-900">{editing ? "Edit" : "New"} {config.title.replace(/s$/, "")}</h2>
+        <h2 className="mb-4 font-display text-lg text-ink-900">{editing ? "Edit" : "New"} {config.title.replace(/s$/, "")}</h2>
         <RecordForm
           fields={config.fields}
           initialValues={editing ?? defaultValues}

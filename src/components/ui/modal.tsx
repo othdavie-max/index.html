@@ -37,7 +37,7 @@ export function Modal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-navy-950/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink-950/70 p-4 backdrop-blur-sm"
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -55,7 +55,7 @@ export function Modal({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute right-4 top-4 rounded-full p-2 text-navy-900/60 hover:bg-navy-900/5 hover:text-navy-900"
+              className="absolute right-4 top-4 rounded-full p-2 text-ink-900/60 hover:bg-ink-900/5 hover:text-ink-900"
             >
               <X size={18} />
             </button>

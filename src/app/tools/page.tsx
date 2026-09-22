@@ -25,11 +25,11 @@ export default function ToolsPage() {
           <RevealGroup className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {tools.map((tool) => (
               <RevealItem key={tool.href}>
-                <div className="flex h-full flex-col rounded-2xl border border-navy-900/8 bg-offwhite p-7">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-900 text-white">
+                <div className="flex h-full flex-col rounded-2xl border border-ink-900/8 bg-offwhite p-7">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink-900 text-white">
                     <tool.icon size={22} />
                   </div>
-                  <h2 className="mt-5 font-display text-xl font-bold text-navy-900">{tool.title}</h2>
+                  <h2 className="mt-5 font-display text-xl text-ink-900">{tool.title}</h2>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{tool.description}</p>
                   <Button href={tool.href} variant="secondary" className="mt-6 justify-center">
                     Try it now

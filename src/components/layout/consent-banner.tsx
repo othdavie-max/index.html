@@ -30,9 +30,9 @@ export function ConsentBanner() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="fixed inset-x-4 bottom-20 z-[90] mx-auto max-w-xl rounded-2xl border border-navy-900/10 bg-white p-5 shadow-2xl sm:bottom-6"
+          className="fixed inset-x-4 bottom-20 z-[90] mx-auto max-w-xl rounded-2xl border border-ink-900/10 bg-white p-5 shadow-2xl sm:bottom-6"
         >
-          <p className="text-sm text-navy-900">
+          <p className="text-sm text-ink-900">
             We use cookies to improve your experience and understand how visitors use this site, in line with our{" "}
             <Link href="/cookie-policy" className="underline">
               Cookie Notice

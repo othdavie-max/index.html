@@ -19,7 +19,7 @@ export function PartnersGrid() {
     <>
       <Tabs tabs={filterTabs} defaultTab="all" onChange={setFilter} />
 
-      <p className="mt-6 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-muted sm:text-sm">
+      <p className="mt-6 rounded-xl border border-gold-500/20 bg-gold-500/5 p-3 text-xs text-muted sm:text-sm">
         PLACEHOLDER partner list shown below — replace with Baseline&apos;s confirmed partner universities and logos
         before launch.
       </p>
@@ -31,21 +31,21 @@ export function PartnersGrid() {
             <RevealItem key={p.slug}>
               <Link
                 href={`/partners/${p.slug}`}
-                className="group flex h-full flex-col rounded-2xl border border-navy-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.2)]"
+                className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.2)]"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-900 text-xs font-bold text-white">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink-900 text-xs font-bold text-white">
                     {p.logoPlaceholder}
                   </div>
-                  <ArrowUpRight size={18} className="text-navy-900/40 transition-colors group-hover:text-red-500" />
+                  <ArrowUpRight size={18} className="text-ink-900/40 transition-colors group-hover:text-gold-500" />
                 </div>
-                <h2 className="mt-4 font-display text-base font-bold text-navy-900">{p.name}</h2>
+                <h2 className="mt-4 font-display text-base text-ink-900">{p.name}</h2>
                 <p className="mt-1 text-xs text-muted">
                   {dest?.flag} {dest?.name}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {p.popularCourses.slice(0, 3).map((c) => (
-                    <span key={c} className="rounded-full bg-white px-2.5 py-1 text-[11px] text-navy-900">
+                    <span key={c} className="rounded-full bg-white px-2.5 py-1 text-[11px] text-ink-900">
                       {c}
                     </span>
                   ))}

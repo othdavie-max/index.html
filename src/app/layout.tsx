@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Plus_Jakarta_Sans, Fraunces } from "next/font/google";
+import { Manrope, Cormorant_Garamond } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { SiteChrome } from "@/components/layout/site-chrome";
@@ -11,9 +11,13 @@ import { ToastProvider } from "@/components/ui/toast";
 import { GA_ID, META_PIXEL_ID } from "@/lib/analytics";
 import { siteSettings } from "@/data/site-settings";
 
-const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"], weight: ["500", "600", "700", "800"] });
-const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], style: ["italic"], weight: ["400", "500"] });
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["300"],
+});
+const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.baselineeducationalservices.com";
 
@@ -47,7 +51,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0A1F44",
+  themeColor: "#2A1810",
 };
 
 const organizationJsonLd = {
@@ -81,7 +85,7 @@ const organizationJsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${fraunces.variable} ${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         {GA_ID && (
@@ -115,7 +119,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SmoothScrollProvider>
             <LoadingScreen />
             <CursorFollower />
-            <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-full focus:bg-navy-900 focus:px-4 focus:py-2 focus:text-white">
+            <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-full focus:bg-ink-900 focus:px-4 focus:py-2 focus:text-white">
               Skip to content
             </a>
             <SiteChrome>

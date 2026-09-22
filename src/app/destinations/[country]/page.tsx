@@ -58,10 +58,10 @@ export default async function DestinationDetailPage({ params }: PageProps<"/dest
           <RevealGroup className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {facts.map((f) => (
               <RevealItem key={f.key}>
-                <div className="h-full rounded-2xl border border-navy-900/8 bg-offwhite p-5">
-                  <f.icon size={20} className="text-red-500" />
+                <div className="h-full rounded-2xl border border-ink-900/8 bg-offwhite p-5">
+                  <f.icon size={20} className="text-gold-500" />
                   <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-muted">{f.label}</p>
-                  <p className="mt-1 font-display text-sm font-bold text-navy-900 sm:text-base">
+                  <p className="mt-1 font-display text-sm text-ink-900 sm:text-base">
                     {f.key === "tuition" &&
                       `${formatNaira(destination.tuitionRangeNgnPerYear[0])} – ${formatNaira(destination.tuitionRangeNgnPerYear[1])}/yr`}
                     {f.key === "living" &&
@@ -74,8 +74,8 @@ export default async function DestinationDetailPage({ params }: PageProps<"/dest
             ))}
           </RevealGroup>
 
-          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-xs text-muted sm:text-sm">
-            <ShieldAlert size={16} className="mt-0.5 shrink-0 text-red-500" />
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-gold-500/20 bg-gold-500/5 p-4 text-xs text-muted sm:text-sm">
+            <ShieldAlert size={16} className="mt-0.5 shrink-0 text-gold-500" />
             Figures above are estimates only and change over time. Confirm current tuition, visa fees and post-study
             work rules with us before making any decisions.
           </div>
@@ -87,7 +87,7 @@ export default async function DestinationDetailPage({ params }: PageProps<"/dest
           <SectionHeading eyebrow="Popular Courses" title="What students" emphasis="study here." />
           <div className="mt-8 flex flex-wrap gap-3">
             {destination.topCourses.map((c) => (
-              <span key={c} className="rounded-full bg-white px-4 py-2 text-sm font-medium text-navy-900 shadow-sm">
+              <span key={c} className="rounded-full bg-white px-4 py-2 text-sm font-medium text-ink-900 shadow-sm">
                 {c}
               </span>
             ))}
@@ -102,7 +102,7 @@ export default async function DestinationDetailPage({ params }: PageProps<"/dest
             <p className="mt-6 text-base leading-relaxed text-muted">{destination.visaNotes}</p>
             <p className="mt-4 text-sm text-muted">
               Requirements change and vary by applicant. We confirm the current process for you as part of our{" "}
-              <Link href="/services/visa-assistance" className="text-red-500 underline-offset-4 hover:underline">
+              <Link href="/services/visa-assistance" className="text-gold-500 underline-offset-4 hover:underline">
                 Visa Assistance
               </Link>{" "}
               service.

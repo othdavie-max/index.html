@@ -43,16 +43,16 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
 
       <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-500">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-500">
             {Icon && <Icon size={28} />}
           </div>
 
           <RevealGroup className="mt-10 flex flex-col gap-4">
             {service.highlights.map((h) => (
               <RevealItem key={h}>
-                <div className="flex items-start gap-3 rounded-xl border border-navy-900/8 bg-offwhite p-4">
-                  <Check size={18} className="mt-0.5 shrink-0 text-red-500" />
-                  <p className="text-sm text-navy-900 sm:text-base">{h}</p>
+                <div className="flex items-start gap-3 rounded-xl border border-ink-900/8 bg-offwhite p-4">
+                  <Check size={18} className="mt-0.5 shrink-0 text-gold-500" />
+                  <p className="text-sm text-ink-900 sm:text-base">{h}</p>
                 </div>
               </RevealItem>
             ))}

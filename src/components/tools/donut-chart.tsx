@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { formatNaira } from "@/lib/utils";
 
-const COLORS = ["#E03A3E", "#0A1F44", "#14346B", "#C22A2F", "#5B6577", "#8895AB", "#E6ECF6"];
+const COLORS = ["#C4A57B", "#2A1810", "#4A4240", "#8B6F47", "#7A6F68", "#A38F7E", "#EDE4DD"];
 
 export function DonutChart({ data, total }: { data: { label: string; value: number }[]; total: number }) {
   const radius = 70;
@@ -20,7 +20,7 @@ export function DonutChart({ data, total }: { data: { label: string; value: numb
     <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
       <div className="relative h-48 w-48 shrink-0">
         <svg viewBox="0 0 180 180" className="h-full w-full -rotate-90">
-          <circle cx="90" cy="90" r={radius} fill="none" stroke="#E6ECF6" strokeWidth="20" />
+          <circle cx="90" cy="90" r={radius} fill="none" stroke="#EDE4DD" strokeWidth="20" />
           {segments.map((seg, i) => (
             <motion.circle
               key={seg.label}
@@ -40,14 +40,14 @@ export function DonutChart({ data, total }: { data: { label: string; value: numb
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">Total (est.)</span>
-          <span className="font-display text-base font-bold text-navy-900">{formatNaira(total)}</span>
+          <span className="font-display text-base text-ink-900">{formatNaira(total)}</span>
         </div>
       </div>
 
       <ul className="flex flex-1 flex-col gap-2">
         {data.map((d, i) => (
           <li key={d.label} className="flex items-center justify-between gap-3 text-sm">
-            <span className="flex items-center gap-2 text-navy-900">
+            <span className="flex items-center gap-2 text-ink-900">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
               {d.label}
             </span>

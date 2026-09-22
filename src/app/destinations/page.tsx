@@ -38,25 +38,25 @@ export default function DestinationsPage() {
               <RevealItem key={d.code}>
                 <Link
                   href={`/destinations/${d.slug}`}
-                  className="group flex h-full flex-col rounded-2xl border border-navy-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.2)]"
+                  className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.2)]"
                 >
                   <div className="flex items-start justify-between">
                     <span className="text-4xl">{d.flag}</span>
-                    <ArrowUpRight size={18} className="text-navy-900/40 transition-colors group-hover:text-red-500" />
+                    <ArrowUpRight size={18} className="text-ink-900/40 transition-colors group-hover:text-gold-500" />
                   </div>
-                  <h2 className="mt-4 font-display text-xl font-bold text-navy-900">{d.name}</h2>
+                  <h2 className="mt-4 font-display text-xl text-ink-900">{d.name}</h2>
                   <p className="mt-1 text-sm text-muted">{d.heroTagline}</p>
 
-                  <div className="mt-5 grid grid-cols-2 gap-3 border-t border-navy-900/8 pt-4 text-xs">
+                  <div className="mt-5 grid grid-cols-2 gap-3 border-t border-ink-900/8 pt-4 text-xs">
                     <div>
                       <p className="text-muted">Tuition / year (est.)</p>
-                      <p className="mt-0.5 font-semibold text-navy-900">
+                      <p className="mt-0.5 font-semibold text-ink-900">
                         {formatNaira(d.tuitionRangeNgnPerYear[0])}–{formatNaira(d.tuitionRangeNgnPerYear[1])}
                       </p>
                     </div>
                     <div>
                       <p className="text-muted">Intakes</p>
-                      <p className="mt-0.5 font-semibold text-navy-900">{d.intakes.join(", ")}</p>
+                      <p className="mt-0.5 font-semibold text-ink-900">{d.intakes.join(", ")}</p>
                     </div>
                   </div>
                 </Link>

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { siteSettings as defaultSettings } from "@/data/site-settings";
 import type { Json } from "@/lib/supabase/types";
 
-const fieldClass = "w-full rounded-xl border border-navy-900/12 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-red-500";
+const fieldClass = "w-full rounded-xl border border-ink-900/12 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-gold-500";
 
 // A mutable, widened shape for the form — `siteSettings` itself is `as
 // const`, which would otherwise narrow every field to a literal type and
@@ -72,17 +72,17 @@ export default function SiteSettingsAdminPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-display text-xl font-bold text-navy-900">Site Settings</h1>
+      <h1 className="font-display text-xl text-ink-900">Site Settings</h1>
       <p className="mt-1 text-sm text-muted">Contact details, socials, and homepage stats configuration.</p>
 
       {!supabase && (
-        <p className="mt-6 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-muted">
+        <p className="mt-6 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">
           Supabase isn&apos;t configured — this page shows the code defaults from <code>src/data/site-settings.ts</code> but changes here won&apos;t
           persist until it is.
         </p>
       )}
 
-      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-navy-900/8 bg-white p-6">
+      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-ink-900/8 bg-white p-6">
         <Field label="Company Name">
           <input value={settings.companyName} onChange={(e) => update("companyName", e.target.value)} className={fieldClass} />
         </Field>
@@ -118,9 +118,9 @@ export default function SiteSettingsAdminPage() {
           </Field>
         </div>
 
-        <div className="border-t border-navy-900/8 pt-4">
-          <label className="flex items-center gap-2 text-sm font-medium text-navy-900">
-            <input type="checkbox" checked={settings.showStats} onChange={(e) => update("showStats", e.target.checked)} className="h-4 w-4 accent-red-500" />
+        <div className="border-t border-ink-900/8 pt-4">
+          <label className="flex items-center gap-2 text-sm font-medium text-ink-900">
+            <input type="checkbox" checked={settings.showStats} onChange={(e) => update("showStats", e.target.checked)} className="h-4 w-4 accent-gold-500" />
             Show stats strip on homepage
           </label>
           <p className="mt-1 text-xs text-muted">Only enable this once the figures below are real and verified — never ship placeholder numbers live.</p>
@@ -141,11 +141,11 @@ export default function SiteSettingsAdminPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 border-t border-navy-900/8 pt-4">
+        <div className="flex items-center gap-3 border-t border-ink-900/8 pt-4">
           <button
             onClick={save}
             disabled={!supabase || saving}
-            className="flex items-center gap-2 rounded-full bg-red-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-60"
+            className="flex items-center gap-2 rounded-full bg-gold-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-600 disabled:opacity-60"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? "Saving…" : "Save Changes"}

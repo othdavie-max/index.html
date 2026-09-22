@@ -73,29 +73,29 @@ export function DocumentUploadField({
   }
 
   return (
-    <div className="rounded-xl border border-navy-900/10 bg-white p-4">
+    <div className="rounded-xl border border-ink-900/10 bg-white p-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-navy-900">
+        <p className="text-sm font-medium text-ink-900">
           {requirement.label}
-          {requirement.required && <span className="ml-1 text-red-500">*</span>}
+          {requirement.required && <span className="ml-1 text-gold-500">*</span>}
         </p>
         {!requirement.required && <span className="text-[11px] text-muted">Optional</span>}
       </div>
 
       {value ? (
         <div className="mt-3 flex items-center justify-between rounded-lg bg-offwhite px-3 py-2">
-          <span className="flex items-center gap-2 text-xs text-navy-900">
-            <CheckCircle2 size={14} className="text-red-500" />
+          <span className="flex items-center gap-2 text-xs text-ink-900">
+            <CheckCircle2 size={14} className="text-gold-500" />
             <FileText size={14} /> {value.fileName}
           </span>
-          <button type="button" onClick={() => onChange(undefined)} aria-label="Remove file" className="text-navy-900/40 hover:text-red-500">
+          <button type="button" onClick={() => onChange(undefined)} aria-label="Remove file" className="text-ink-900/40 hover:text-gold-500">
             <X size={14} />
           </button>
         </div>
       ) : uploading ? (
         <div className="mt-3">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-navy-900/10">
-            <div className="h-full rounded-full bg-red-500 transition-all duration-200" style={{ width: `${progress}%` }} />
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink-900/10">
+            <div className="h-full rounded-full bg-gold-500 transition-all duration-200" style={{ width: `${progress}%` }} />
           </div>
           <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
             <Loader2 size={12} className="animate-spin" /> Uploading…
@@ -106,7 +106,7 @@ export function DocumentUploadField({
           type="button"
           onClick={() => inputRef.current?.click()}
           className={cn(
-            "mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-navy-900/20 py-3 text-xs text-muted hover:border-red-500/40 hover:text-navy-900",
+            "mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-ink-900/20 py-3 text-xs text-muted hover:border-gold-500/40 hover:text-ink-900",
           )}
         >
           <UploadCloud size={14} /> Upload PDF, JPG or PNG (max {MAX_FILE_SIZE_MB}MB)
@@ -124,7 +124,7 @@ export function DocumentUploadField({
           e.target.value = "";
         }}
       />
-      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-gold-500">{error}</p>}
     </div>
   );
 }

@@ -27,7 +27,7 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Share on ${l.label}`}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-100 text-navy-900 hover:bg-navy-900 hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-ink-100 text-ink-900 hover:bg-ink-900 hover:text-white"
         >
           <l.icon size={14} />
         </a>
@@ -35,7 +35,7 @@ export function ShareButtons({ url, title }: { url: string; title: string }) {
       <button
         onClick={copyLink}
         aria-label="Copy link"
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-100 text-navy-900 hover:bg-navy-900 hover:text-white"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-ink-100 text-ink-900 hover:bg-ink-900 hover:text-white"
       >
         {copied ? <Check size={14} /> : <Link2 size={14} />}
       </button>

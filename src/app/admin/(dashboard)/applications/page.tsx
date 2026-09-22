@@ -67,25 +67,25 @@ export default function ApplicationsAdminPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-xl font-bold text-navy-900">Applications</h1>
+          <h1 className="font-display text-xl text-ink-900">Applications</h1>
           <p className="mt-1 text-sm text-muted">Submitted applications and their documents.</p>
         </div>
         <button
           onClick={() => downloadCsv("baseline-applications.csv", rows.map(({ documents, academic_background, english_test, ...r }) => r))}
-          className="flex items-center gap-1.5 rounded-full border border-navy-900/10 px-4 py-2 text-sm font-medium text-navy-900 hover:bg-white"
+          className="flex items-center gap-1.5 rounded-full border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-900 hover:bg-white"
         >
           <Download size={14} /> Export CSV
         </button>
       </div>
 
       {!supabase ? (
-        <p className="mt-8 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view applications.</p>
+        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view applications.</p>
       ) : loading ? (
         <div className="mt-8 flex items-center gap-2 text-sm text-muted">
           <Loader2 size={14} className="animate-spin" /> Loading…
         </div>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-navy-900/8 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-ink-900/8 bg-white">
           <table className="w-full min-w-[800px] text-left text-sm">
             <thead className="bg-offwhite text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -99,14 +99,14 @@ export default function ApplicationsAdminPage() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className="border-t border-navy-900/6">
-                  <td className="px-4 py-3 font-mono text-xs text-navy-900">{r.reference_id}</td>
-                  <td className="px-4 py-3 text-navy-900">{r.full_name}</td>
-                  <td className="px-4 py-3 text-xs capitalize text-navy-900">{r.level}</td>
-                  <td className="px-4 py-3 text-xs text-navy-900">{r.destination_countries?.join(", ")}</td>
-                  <td className="px-4 py-3 text-xs text-navy-900">{r.status}</td>
+                <tr key={r.id} className="border-t border-ink-900/6">
+                  <td className="px-4 py-3 font-mono text-xs text-ink-900">{r.reference_id}</td>
+                  <td className="px-4 py-3 text-ink-900">{r.full_name}</td>
+                  <td className="px-4 py-3 text-xs capitalize text-ink-900">{r.level}</td>
+                  <td className="px-4 py-3 text-xs text-ink-900">{r.destination_countries?.join(", ")}</td>
+                  <td className="px-4 py-3 text-xs text-ink-900">{r.status}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => setActive(r)} className="text-xs font-medium text-red-500 hover:underline">
+                    <button onClick={() => setActive(r)} className="text-xs font-medium text-gold-500 hover:underline">
                       View
                     </button>
                   </td>
@@ -128,8 +128,8 @@ export default function ApplicationsAdminPage() {
         {active && (
           <div>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-lg font-bold text-navy-900">{active.full_name}</h2>
-              <button onClick={() => setActive(null)} className="text-navy-900/40 hover:text-navy-900">
+              <h2 className="font-display text-lg text-ink-900">{active.full_name}</h2>
+              <button onClick={() => setActive(null)} className="text-ink-900/40 hover:text-ink-900">
                 <X size={18} />
               </button>
             </div>
@@ -146,7 +146,7 @@ export default function ApplicationsAdminPage() {
 
             <div className="mt-4">
               <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Status</p>
-              <select value={active.status} onChange={(e) => updateStatus(active.id, e.target.value)} className="rounded-lg border border-navy-900/12 bg-white px-3 py-2 text-sm">
+              <select value={active.status} onChange={(e) => updateStatus(active.id, e.target.value)} className="rounded-lg border border-ink-900/12 bg-white px-3 py-2 text-sm">
                 {statuses.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -162,7 +162,7 @@ export default function ApplicationsAdminPage() {
                   <button
                     key={key}
                     onClick={() => openDocument(doc.path)}
-                    className="flex items-center justify-between rounded-lg border border-navy-900/10 px-3 py-2 text-left text-xs hover:bg-offwhite"
+                    className="flex items-center justify-between rounded-lg border border-ink-900/10 px-3 py-2 text-left text-xs hover:bg-offwhite"
                   >
                     <span>
                       {key}: {doc.fileName}
@@ -184,7 +184,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[11px] uppercase tracking-wide text-muted">{label}</p>
-      <p className="text-navy-900">{value}</p>
+      <p className="text-ink-900">{value}</p>
     </div>
   );
 }

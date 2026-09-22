@@ -49,8 +49,8 @@ export function Header() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-navy-900 transition-colors hover:bg-navy-900/5",
-                  pathname === item.href && "text-red-500",
+                  "flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:bg-ink-900/5",
+                  pathname === item.href && "text-gold-500",
                 )}
               >
                 {item.label}
@@ -66,14 +66,14 @@ export function Header() {
                     transition={{ duration: 0.18 }}
                     className="absolute left-0 top-full pt-2"
                   >
-                    <div className="w-80 rounded-2xl border border-navy-900/8 bg-white p-3 shadow-xl">
+                    <div className="w-80 rounded-2xl border border-ink-900/8 bg-white p-3 shadow-xl">
                       {item.children.map((child) => (
                         <Link
                           key={child.href}
                           href={child.href}
-                          className="block rounded-xl px-4 py-3 transition-colors hover:bg-navy-100"
+                          className="block rounded-xl px-4 py-3 transition-colors hover:bg-ink-100"
                         >
-                          <p className="text-sm font-semibold text-navy-900">{child.label}</p>
+                          <p className="text-sm font-semibold text-ink-900">{child.label}</p>
                           {child.description && <p className="mt-0.5 text-xs text-muted">{child.description}</p>}
                         </Link>
                       ))}
@@ -93,7 +93,7 @@ export function Header() {
 
         <button
           type="button"
-          className="rounded-full p-2 text-navy-900 lg:hidden"
+          className="rounded-full p-2 text-ink-900 lg:hidden"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
@@ -109,16 +109,16 @@ export function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden border-t border-navy-900/8 bg-white lg:hidden"
+            className="overflow-hidden border-t border-ink-900/8 bg-white lg:hidden"
           >
             <div className="flex flex-col gap-1 px-4 py-4">
               {primaryNav.map((item) => (
                 <div key={item.href}>
-                  <Link href={item.href} className="block rounded-lg px-3 py-2.5 text-base font-medium text-navy-900">
+                  <Link href={item.href} className="block rounded-lg px-3 py-2.5 text-base font-medium text-ink-900">
                     {item.label}
                   </Link>
                   {item.children && (
-                    <div className="ml-3 flex flex-col border-l border-navy-900/10 pl-3">
+                    <div className="ml-3 flex flex-col border-l border-ink-900/10 pl-3">
                       {item.children.map((child) => (
                         <Link key={child.href} href={child.href} className="rounded-lg px-3 py-2 text-sm text-muted">
                           {child.label}

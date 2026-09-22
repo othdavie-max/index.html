@@ -43,18 +43,18 @@ export function ToolsTeaser() {
             <RevealItem key={tool.href}>
               <Link
                 href={tool.href}
-                className="group flex h-full flex-col justify-between rounded-2xl border border-navy-900/8 bg-offwhite p-7 transition-all duration-300 hover:-translate-y-1 hover:border-red-500/30 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.2)]"
+                className="group flex h-full flex-col justify-between rounded-2xl border border-ink-900/8 bg-offwhite p-7 transition-all duration-300 hover:-translate-y-1 hover:border-gold-500/30 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.2)]"
               >
                 <div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-900 text-white">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink-900 text-white">
                     <tool.icon size={22} />
                   </div>
-                  <h3 className="mt-5 font-display text-xl font-bold text-navy-900">{tool.title}</h3>
+                  <h3 className="mt-5 font-display text-xl text-ink-900">{tool.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted">{tool.description}</p>
                 </div>
                 <div className="mt-6 flex items-center justify-between rounded-xl bg-white px-4 py-3">
-                  <span className="font-display text-sm font-bold text-red-500">{tool.preview}</span>
-                  <ArrowRight size={16} className="text-navy-900 transition-transform duration-300 group-hover:translate-x-1" />
+                  <span className="font-display text-sm text-gold-500">{tool.preview}</span>
+                  <ArrowRight size={16} className="text-ink-900 transition-transform duration-300 group-hover:translate-x-1" />
                 </div>
               </Link>
             </RevealItem>

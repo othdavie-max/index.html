@@ -15,7 +15,7 @@ export function Accordion({ items, className }: { items: AccordionItem[]; classN
   const [openId, setOpenId] = useState<string | null>(items[0]?.id ?? null);
 
   return (
-    <div className={cn("divide-y divide-navy-900/10 rounded-2xl border border-navy-900/10 bg-white", className)}>
+    <div className={cn("divide-y divide-ink-900/10 rounded-2xl border border-ink-900/10 bg-white", className)}>
       {items.map((item) => {
         const isOpen = openId === item.id;
         return (
@@ -26,8 +26,8 @@ export function Accordion({ items, className }: { items: AccordionItem[]; classN
               aria-expanded={isOpen}
               className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left"
             >
-              <span className="font-display text-base font-semibold text-navy-900 md:text-lg">{item.question}</span>
-              <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.25 }} className="shrink-0 text-red-500">
+              <span className="font-display text-base text-ink-900 md:text-lg">{item.question}</span>
+              <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.25 }} className="shrink-0 text-gold-500">
                 <ChevronDown size={20} />
               </motion.span>
             </button>

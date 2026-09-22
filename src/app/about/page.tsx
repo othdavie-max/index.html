@@ -59,7 +59,7 @@ export default function AboutPage() {
             <ul className="mt-5 flex flex-col gap-4">
               {whyChooseUs.map((item) => (
                 <li key={item} className="flex gap-3 text-sm leading-relaxed text-muted sm:text-base">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-500" />
                   {item}
                 </li>
               ))}
@@ -74,11 +74,11 @@ export default function AboutPage() {
           <RevealGroup className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((v) => (
               <RevealItem key={v.title}>
-                <div className="h-full rounded-2xl border border-navy-900/8 bg-white p-6 text-center">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+                <div className="h-full rounded-2xl border border-ink-900/8 bg-white p-6 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500">
                     <v.icon size={22} />
                   </div>
-                  <h3 className="mt-4 font-display text-base font-bold text-navy-900">{v.title}</h3>
+                  <h3 className="mt-4 font-display text-base text-ink-900">{v.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted">{v.description}</p>
                 </div>
               </RevealItem>
@@ -93,12 +93,12 @@ export default function AboutPage() {
           <RevealGroup className="mt-12 grid grid-cols-2 gap-5 md:grid-cols-4">
             {team.map((member) => (
               <RevealItem key={member.slug}>
-                <div className="rounded-2xl border border-navy-900/8 bg-offwhite p-6 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-navy-100 font-display text-lg font-bold text-navy-900">
+                <div className="rounded-2xl border border-ink-900/8 bg-offwhite p-6 text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-ink-100 font-display text-lg text-ink-900">
                     {member.photoPlaceholder}
                   </div>
-                  <p className="mt-3 font-display text-sm font-bold text-navy-900">{member.name}</p>
-                  <p className="mt-0.5 text-xs text-red-500">{member.role}</p>
+                  <p className="mt-3 font-display text-sm text-ink-900">{member.name}</p>
+                  <p className="mt-0.5 text-xs text-gold-500">{member.role}</p>
                   <p className="mt-2 text-xs leading-relaxed text-muted">{member.bio}</p>
                 </div>
               </RevealItem>
@@ -111,13 +111,13 @@ export default function AboutPage() {
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
           <div>
             <SectionHeading eyebrow="Our Office" title="Visit us in" emphasis="Abuja." />
-            <div className="mt-6 flex flex-col gap-4 text-sm text-navy-900 sm:text-base">
+            <div className="mt-6 flex flex-col gap-4 text-sm text-ink-900 sm:text-base">
               <p className="flex items-start gap-3">
-                <MapPin size={18} className="mt-0.5 shrink-0 text-red-500" />
+                <MapPin size={18} className="mt-0.5 shrink-0 text-gold-500" />
                 {siteSettings.address}
               </p>
               <p className="flex items-start gap-3">
-                <Clock size={18} className="mt-0.5 shrink-0 text-red-500" />
+                <Clock size={18} className="mt-0.5 shrink-0 text-gold-500" />
                 {siteSettings.hours}
               </p>
             </div>
@@ -125,12 +125,12 @@ export default function AboutPage() {
               href={siteSettings.mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-block text-sm font-semibold text-red-500 underline-offset-4 hover:underline"
+              className="mt-6 inline-block text-sm font-semibold text-gold-500 underline-offset-4 hover:underline"
             >
               Get directions →
             </a>
           </div>
-          <div className="flex aspect-video items-center justify-center rounded-2xl border border-navy-900/8 bg-navy-100 text-sm text-muted">
+          <div className="flex aspect-video items-center justify-center rounded-2xl border border-ink-900/8 bg-ink-100 text-sm text-muted">
             {/* PLACEHOLDER: embed a real Google Maps iframe or office photo gallery here */}
             Office photo / map embed placeholder
           </div>

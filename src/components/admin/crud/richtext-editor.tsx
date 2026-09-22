@@ -17,11 +17,11 @@ export function RichTextEditor({ value, onChange }: { value: string; onChange: (
 
   if (!editor) return null;
 
-  const buttonClass = (active: boolean) => `rounded p-1.5 ${active ? "bg-navy-900 text-white" : "text-navy-900/60 hover:bg-navy-900/5"}`;
+  const buttonClass = (active: boolean) => `rounded p-1.5 ${active ? "bg-ink-900 text-white" : "text-ink-900/60 hover:bg-ink-900/5"}`;
 
   return (
-    <div className="rounded-xl border border-navy-900/12 bg-white">
-      <div className="flex items-center gap-1 border-b border-navy-900/8 p-2">
+    <div className="rounded-xl border border-ink-900/12 bg-white">
+      <div className="flex items-center gap-1 border-b border-ink-900/8 p-2">
         <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={buttonClass(editor.isActive("bold"))}>
           <Bold size={14} />
         </button>

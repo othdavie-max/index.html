@@ -17,11 +17,11 @@ export function TeamPreview() {
         <RevealGroup className="mt-12 grid grid-cols-2 gap-5 md:grid-cols-4">
           {team.map((member) => (
             <RevealItem key={member.slug}>
-              <div className="rounded-2xl border border-navy-900/8 bg-white p-5 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-navy-100 font-display text-lg font-bold text-navy-900">
+              <div className="rounded-2xl border border-ink-900/8 bg-white p-5 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-ink-100 font-display text-lg text-ink-900">
                   {member.photoPlaceholder}
                 </div>
-                <p className="mt-3 font-display text-sm font-bold text-navy-900">{member.name}</p>
+                <p className="mt-3 font-display text-sm text-ink-900">{member.name}</p>
                 <p className="mt-0.5 text-xs text-muted">{member.role}</p>
               </div>
             </RevealItem>

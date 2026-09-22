@@ -12,7 +12,7 @@ import { trackEvent } from "@/lib/analytics";
 import { openWhatsApp } from "@/lib/whatsapp";
 import type { BookingFormValues } from "@/lib/validations";
 
-const fieldClass = "w-full rounded-xl border border-navy-900/12 bg-white px-4 py-3 text-sm text-navy-900 outline-none focus:border-red-500";
+const fieldClass = "w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none focus:border-gold-500";
 const typeIcons = { "video-call": Video, "phone-call": Phone, "in-person": MapPin } as const;
 
 function toDateKey(d: Date) {
@@ -90,10 +90,10 @@ export function BookingTool() {
   if (status === "done") {
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-md text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-500">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold-500/10 text-gold-500">
           <CheckCircle2 size={28} />
         </div>
-        <h2 className="mt-5 font-display text-2xl font-bold text-navy-900">You&apos;re booked in!</h2>
+        <h2 className="mt-5 font-display text-2xl text-ink-900">You&apos;re booked in!</h2>
         <p className="mt-2 text-sm text-muted">
           We&apos;ve sent a confirmation to {form.email}. See you{" "}
           {selectedDate.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })} at {selectedTime}.
@@ -127,7 +127,7 @@ export function BookingTool() {
                 type="button"
                 onClick={() => setConsultationType(type)}
                 className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-center text-xs font-medium transition-all ${
-                  consultationType === type ? "border-red-500 bg-red-500/5 text-red-600 ring-1 ring-red-500" : "border-navy-900/10 text-navy-900"
+                  consultationType === type ? "border-gold-500 bg-gold-500/5 text-gold-600 ring-1 ring-gold-500" : "border-ink-900/10 text-ink-900"
                 }`}
               >
                 <Icon size={16} />
@@ -145,7 +145,7 @@ export function BookingTool() {
               type="button"
               onClick={() => setSelectedDate(d)}
               className={`flex shrink-0 flex-col items-center rounded-xl border px-3.5 py-2.5 text-xs transition-all ${
-                toDateKey(d) === toDateKey(selectedDate) ? "border-red-500 bg-red-500 text-white" : "border-navy-900/10 text-navy-900"
+                toDateKey(d) === toDateKey(selectedDate) ? "border-gold-500 bg-gold-500 text-white" : "border-ink-900/10 text-ink-900"
               }`}
             >
               <span className="font-semibold">{d.toLocaleDateString("en-GB", { weekday: "short" })}</span>
@@ -171,10 +171,10 @@ export function BookingTool() {
                   onClick={() => setSelectedTime(slot)}
                   className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                     taken
-                      ? "cursor-not-allowed border-navy-900/5 bg-navy-900/5 text-muted/50 line-through"
+                      ? "cursor-not-allowed border-ink-900/5 bg-ink-900/5 text-muted/50 line-through"
                       : selectedTime === slot
-                        ? "border-red-500 bg-red-500 text-white"
-                        : "border-navy-900/10 text-navy-900 hover:border-red-500/40"
+                        ? "border-gold-500 bg-gold-500 text-white"
+                        : "border-ink-900/10 text-ink-900 hover:border-gold-500/40"
                   }`}
                 >
                   {slot}
@@ -186,7 +186,7 @@ export function BookingTool() {
       </div>
 
       <div className="lg:col-span-2">
-        <div className="flex flex-col gap-3 rounded-2xl border border-navy-900/10 bg-offwhite p-6">
+        <div className="flex flex-col gap-3 rounded-2xl border border-ink-900/10 bg-offwhite p-6">
           <input required placeholder="Full name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className={fieldClass} />
           <input required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className={fieldClass} />
           <input required type="tel" placeholder="Phone / WhatsApp" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} className={fieldClass} />
@@ -213,7 +213,7 @@ export function BookingTool() {
             className={fieldClass}
           />
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs text-gold-500">{error}</p>}
 
           <Button type="submit" size="lg" disabled={!selectedTime || status === "loading"} className="mt-1 justify-center">
             {status === "loading" ? "Booking…" : "Confirm Booking"}

@@ -32,7 +32,7 @@ export function FaqExplorer() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search questions…"
-          className="w-full rounded-full border border-navy-900/10 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-red-500"
+          className="w-full rounded-full border border-ink-900/10 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-gold-500"
         />
       </div>
 

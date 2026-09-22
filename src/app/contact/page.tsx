@@ -17,7 +17,7 @@ export default function ContactPage() {
 
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
-          <div className="rounded-2xl border border-navy-900/8 bg-offwhite p-6 sm:p-8">
+          <div className="rounded-2xl border border-ink-900/8 bg-offwhite p-6 sm:p-8">
             <ContactForm />
           </div>
 
@@ -27,7 +27,7 @@ export default function ContactPage() {
             <ContactRow icon={Mail} label="Email" value={siteSettings.email} href={`mailto:${siteSettings.email}`} />
             <ContactRow icon={Clock} label="Hours" value={siteSettings.hours} />
 
-            <div className="mt-4 flex aspect-video items-center justify-center rounded-2xl border border-navy-900/8 bg-navy-100 text-sm text-muted">
+            <div className="mt-4 flex aspect-video items-center justify-center rounded-2xl border border-ink-900/8 bg-ink-100 text-sm text-muted">
               {/* PLACEHOLDER: embed real Google Maps iframe */}
               Map embed placeholder
             </div>
@@ -50,13 +50,13 @@ function ContactRow({
   href?: string;
 }) {
   const content = (
-    <div className="flex items-start gap-4 rounded-2xl border border-navy-900/8 bg-white p-5">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+    <div className="flex items-start gap-4 rounded-2xl border border-ink-900/8 bg-white p-5">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500">
         <Icon size={18} />
       </div>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
-        <p className="mt-1 text-sm font-medium text-navy-900 sm:text-base">{value}</p>
+        <p className="mt-1 text-sm font-medium text-ink-900 sm:text-base">{value}</p>
       </div>
     </div>
   );

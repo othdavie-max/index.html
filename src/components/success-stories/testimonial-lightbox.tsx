@@ -16,7 +16,7 @@ export function TestimonialLightbox({ testimonial, onClose }: { testimonial: Tes
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-navy-950/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink-950/80 p-4 backdrop-blur-sm"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -40,19 +40,19 @@ export function TestimonialLightbox({ testimonial, onClose }: { testimonial: Tes
                 />
               </div>
             ) : (
-              <div className="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-navy-700 to-navy-950">
-                <span className="font-display text-5xl font-bold text-white/20">{testimonial.photoPlaceholder}</span>
+              <div className="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-ink-700 to-ink-950">
+                <span className="font-display text-5xl text-white/20">{testimonial.photoPlaceholder}</span>
               </div>
             )}
 
             <div className="p-6">
               {testimonial.visaApproved && (
-                <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-600">
+                <span className="mb-3 inline-flex items-center gap-1 rounded-full bg-gold-500/10 px-2.5 py-1 text-[11px] font-semibold text-gold-600">
                   <ShieldCheck size={12} /> Visa Approved
                 </span>
               )}
-              <p className="text-sm italic leading-relaxed text-navy-900">&ldquo;{testimonial.quote}&rdquo;</p>
-              <p className="mt-4 font-display text-sm font-bold text-navy-900">{testimonial.name}</p>
+              <p className="text-sm italic leading-relaxed text-ink-900">&ldquo;{testimonial.quote}&rdquo;</p>
+              <p className="mt-4 font-display text-sm text-ink-900">{testimonial.name}</p>
               <p className="text-xs text-muted">
                 {testimonial.course} · {testimonial.university} · {destination?.flag} {destination?.name}
               </p>

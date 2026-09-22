@@ -5,7 +5,7 @@ import { destinations } from "@/data/destinations";
 export function GlobeFallback() {
   return (
     <div className="relative mx-auto flex aspect-square w-full max-w-md items-center justify-center">
-      <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(224,58,62,0.35),transparent_55%),radial-gradient(circle_at_65%_70%,rgba(20,52,107,0.9),rgba(5,14,36,1)_70%)] shadow-[0_0_80px_-10px_rgba(224,58,62,0.4)]" />
+      <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(196, 165, 123,0.35),transparent_55%),radial-gradient(circle_at_65%_70%,rgba(74, 66, 64, 0.9),rgba(28, 21, 18, 1)_70%)] shadow-[0_0_80px_-10px_rgba(196, 165, 123,0.4)]" />
       <div className="relative grid grid-cols-3 gap-3 p-8">
         {destinations.map((d) => (
           <span

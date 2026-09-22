@@ -22,8 +22,8 @@ export function DestinationShowcase() {
           {destinations.map((d) => (
             <RevealItem key={d.code}>
               <motion.div whileHover="hover" initial="rest" animate="rest" className="group relative h-72 overflow-hidden rounded-2xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-navy-900 to-navy-950" />
-                <div className="absolute inset-0 opacity-40 [background:radial-gradient(circle_at_30%_20%,rgba(224,58,62,0.5),transparent_60%)]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-ink-900 to-ink-950" />
+                <div className="absolute inset-0 opacity-40 [background:radial-gradient(circle_at_30%_20%,rgba(196, 165, 123,0.5),transparent_60%)]" />
 
                 <div className="relative flex h-full flex-col justify-between p-6">
                   <div className="flex items-center justify-between">
@@ -37,7 +37,7 @@ export function DestinationShowcase() {
                   </div>
 
                   <div>
-                    <h3 className="font-display text-xl font-bold text-white">{d.name}</h3>
+                    <h3 className="font-display text-xl text-white">{d.name}</h3>
                     <p className="mt-1 text-sm text-white/60">{d.heroTagline}</p>
 
                     <motion.div

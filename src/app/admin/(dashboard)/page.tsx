@@ -47,42 +47,42 @@ export default function AdminOverviewPage() {
 
   return (
     <div>
-      <h1 className="font-display text-xl font-bold text-navy-900">Overview</h1>
+      <h1 className="font-display text-xl text-ink-900">Overview</h1>
       <p className="mt-1 text-sm text-muted">A snapshot of activity across the site.</p>
 
       {!supabase ? (
-        <p className="mt-8 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-muted">
+        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">
           Supabase isn&apos;t configured — connect it to see live counts and recent activity.
         </p>
       ) : (
         <>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {cards.map((c) => (
-              <Link key={c.label} href={c.href} className="rounded-2xl border border-navy-900/8 bg-white p-6 transition-shadow hover:shadow-md">
+              <Link key={c.label} href={c.href} className="rounded-2xl border border-ink-900/8 bg-white p-6 transition-shadow hover:shadow-md">
                 <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-500/10 text-gold-500">
                     <c.icon size={18} />
                   </div>
-                  <ArrowRight size={14} className="text-navy-900/30" />
+                  <ArrowRight size={14} className="text-ink-900/30" />
                 </div>
-                <p className="mt-4 font-display text-3xl font-bold text-navy-900">{c.value ?? "—"}</p>
+                <p className="mt-4 font-display text-3xl text-ink-900">{c.value ?? "—"}</p>
                 <p className="mt-1 text-sm text-muted">{c.label}</p>
               </Link>
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-navy-900/8 bg-white p-6">
-            <h2 className="font-display text-base font-bold text-navy-900">Recent Leads</h2>
+          <div className="mt-8 rounded-2xl border border-ink-900/8 bg-white p-6">
+            <h2 className="font-display text-base text-ink-900">Recent Leads</h2>
             <div className="mt-4 flex flex-col gap-3">
               {recentLeads.map((l) => (
-                <div key={l.id} className="flex items-center justify-between border-b border-navy-900/6 pb-3 text-sm last:border-0 last:pb-0">
+                <div key={l.id} className="flex items-center justify-between border-b border-ink-900/6 pb-3 text-sm last:border-0 last:pb-0">
                   <div>
-                    <p className="font-medium text-navy-900">{l.name}</p>
+                    <p className="font-medium text-ink-900">{l.name}</p>
                     <p className="text-xs text-muted">
                       {l.source} · {new Date(l.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <span className="rounded-full bg-navy-100 px-2.5 py-1 text-xs text-navy-900">{l.status}</span>
+                  <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs text-ink-900">{l.status}</span>
                 </div>
               ))}
               {recentLeads.length === 0 && <p className="text-sm text-muted">No leads yet.</p>}

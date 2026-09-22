@@ -95,7 +95,7 @@ export function ChatWidget() {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
         aria-label={open ? "Close chat assistant" : "Open chat assistant"}
-        className="fixed bottom-40 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-navy-900 text-white shadow-lg shadow-navy-900/30 sm:bottom-24 sm:right-6"
+        className="fixed bottom-40 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink-900 text-white shadow-lg shadow-ink-900/30 sm:bottom-24 sm:right-6"
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
       </motion.button>
@@ -107,11 +107,11 @@ export function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-x-4 bottom-[14.5rem] z-40 flex h-[70vh] max-h-[560px] flex-col overflow-hidden rounded-2xl border border-navy-900/10 bg-white shadow-2xl sm:inset-x-auto sm:bottom-[10.5rem] sm:right-6 sm:w-[380px]"
+            className="fixed inset-x-4 bottom-[14.5rem] z-40 flex h-[70vh] max-h-[560px] flex-col overflow-hidden rounded-2xl border border-ink-900/10 bg-white shadow-2xl sm:inset-x-auto sm:bottom-[10.5rem] sm:right-6 sm:w-[380px]"
           >
-            <div className="flex items-center justify-between bg-navy-900 px-4 py-3.5">
+            <div className="flex items-center justify-between bg-ink-900 px-4 py-3.5">
               <div>
-                <p className="font-display text-sm font-bold text-white">Baseline Assistant</p>
+                <p className="font-display text-sm text-white">Baseline Assistant</p>
                 <p className="text-[11px] text-white/50">Usually replies instantly</p>
               </div>
               <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white">
@@ -124,7 +124,7 @@ export function ChatWidget() {
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
                     className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                      m.role === "user" ? "bg-red-500 text-white" : "bg-offwhite text-navy-900"
+                      m.role === "user" ? "bg-gold-500 text-white" : "bg-offwhite text-ink-900"
                     }`}
                   >
                     {m.content || (streaming && i === messages.length - 1 ? "…" : "")}
@@ -147,11 +147,11 @@ export function ChatWidget() {
               )}
             </div>
 
-            <div className="border-t border-navy-900/8 px-4 py-2">
+            <div className="border-t border-ink-900/8 px-4 py-2">
               <button
                 type="button"
                 onClick={() => openWhatsApp("Hi Baseline, I've been chatting with your AI assistant and would like to speak with a human counsellor.", "ai-chat-widget")}
-                className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-full border border-navy-900/10 py-2 text-xs font-medium text-navy-900 hover:bg-offwhite"
+                className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-full border border-ink-900/10 py-2 text-xs font-medium text-ink-900 hover:bg-offwhite"
               >
                 Talk to a human on WhatsApp
               </button>
@@ -161,13 +161,13 @@ export function ChatWidget() {
                   onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT_LENGTH))}
                   placeholder="Ask a question…"
                   disabled={streaming}
-                  className="flex-1 rounded-full border border-navy-900/12 px-4 py-2.5 text-sm outline-none focus:border-red-500 disabled:opacity-60"
+                  className="flex-1 rounded-full border border-ink-900/12 px-4 py-2.5 text-sm outline-none focus:border-gold-500 disabled:opacity-60"
                 />
                 <button
                   type="submit"
                   disabled={streaming || !input.trim()}
                   aria-label="Send"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-500 text-white hover:bg-gold-600 disabled:opacity-50"
                 >
                   <Send size={16} />
                 </button>
@@ -217,9 +217,9 @@ function LeadPrompt({
   }
 
   return (
-    <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-3.5">
-      <p className="flex items-center gap-1.5 text-xs font-semibold text-navy-900">
-        <ShieldCheck size={13} className="text-red-500" /> Want a counsellor to follow up?
+    <div className="rounded-2xl border border-gold-500/20 bg-gold-500/5 p-3.5">
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-ink-900">
+        <ShieldCheck size={13} className="text-gold-500" /> Want a counsellor to follow up?
       </p>
       <form onSubmit={onSubmit} className="mt-2 flex flex-col gap-2">
         <input
@@ -227,7 +227,7 @@ function LeadPrompt({
           placeholder="Name"
           value={values.name}
           onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
-          className="rounded-lg border border-navy-900/12 bg-white px-3 py-2 text-xs outline-none focus:border-red-500"
+          className="rounded-lg border border-ink-900/12 bg-white px-3 py-2 text-xs outline-none focus:border-gold-500"
         />
         <input
           required
@@ -235,7 +235,7 @@ function LeadPrompt({
           placeholder="Email"
           value={values.email}
           onChange={(e) => setValues((v) => ({ ...v, email: e.target.value }))}
-          className="rounded-lg border border-navy-900/12 bg-white px-3 py-2 text-xs outline-none focus:border-red-500"
+          className="rounded-lg border border-ink-900/12 bg-white px-3 py-2 text-xs outline-none focus:border-gold-500"
         />
         <input
           required
@@ -243,14 +243,14 @@ function LeadPrompt({
           placeholder="WhatsApp number"
           value={values.phone}
           onChange={(e) => setValues((v) => ({ ...v, phone: e.target.value }))}
-          className="rounded-lg border border-navy-900/12 bg-white px-3 py-2 text-xs outline-none focus:border-red-500"
+          className="rounded-lg border border-ink-900/12 bg-white px-3 py-2 text-xs outline-none focus:border-gold-500"
         />
-        {status === "error" && <p className="text-[11px] text-red-500">Something went wrong. Please try again.</p>}
+        {status === "error" && <p className="text-[11px] text-gold-500">Something went wrong. Please try again.</p>}
         <div className="flex gap-2">
-          <button type="submit" disabled={status === "loading"} className="flex-1 rounded-full bg-red-500 py-1.5 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-60">
+          <button type="submit" disabled={status === "loading"} className="flex-1 rounded-full bg-gold-500 py-1.5 text-xs font-medium text-white hover:bg-gold-600 disabled:opacity-60">
             {status === "loading" ? "Sending…" : "Share my details"}
           </button>
-          <button type="button" onClick={onDismiss} className="rounded-full border border-navy-900/10 px-3 py-1.5 text-xs text-muted hover:bg-white">
+          <button type="button" onClick={onDismiss} className="rounded-full border border-ink-900/10 px-3 py-1.5 text-xs text-muted hover:bg-white">
             Not now
           </button>
         </div>

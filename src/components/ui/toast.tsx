@@ -40,16 +40,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               exit={{ opacity: 0, scale: 0.95 }}
               className={cn(
                 "pointer-events-auto flex items-start gap-3 rounded-xl border bg-white p-4 shadow-lg",
-                t.tone === "success" ? "border-navy-900/10" : "border-red-500/30",
+                t.tone === "success" ? "border-ink-900/10" : "border-danger-500/30",
               )}
             >
               {t.tone === "success" ? (
-                <CheckCircle2 className="mt-0.5 shrink-0 text-red-500" size={18} />
+                <CheckCircle2 className="mt-0.5 shrink-0 text-gold-500" size={18} />
               ) : (
-                <AlertCircle className="mt-0.5 shrink-0 text-red-500" size={18} />
+                <AlertCircle className="mt-0.5 shrink-0 text-danger-500" size={18} />
               )}
-              <p className="flex-1 text-sm text-navy-900">{t.message}</p>
-              <button onClick={() => dismiss(t.id)} aria-label="Dismiss" className="text-navy-900/40 hover:text-navy-900">
+              <p className="flex-1 text-sm text-ink-900">{t.message}</p>
+              <button onClick={() => dismiss(t.id)} aria-label="Dismiss" className="text-ink-900/40 hover:text-ink-900">
                 <X size={16} />
               </button>
             </motion.div>

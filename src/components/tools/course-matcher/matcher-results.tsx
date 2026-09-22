@@ -21,19 +21,19 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
   return (
     <div className="mx-auto max-w-2xl">
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-red-500">Your Top Match</p>
-        <h2 className="mt-2 font-display text-3xl font-bold text-navy-900">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gold-500">Your Top Match</p>
+        <h2 className="mt-2 font-display text-3xl text-ink-900">
           {topDestination.flag} {topDestination.name}
         </h2>
         <p className="mt-1 text-muted">{top.score}% match based on your answers</p>
       </div>
 
-      <div className="mt-6 h-3 w-full overflow-hidden rounded-full bg-navy-900/10">
+      <div className="mt-6 h-3 w-full overflow-hidden rounded-full bg-ink-900/10">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${top.score}%` }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="h-full rounded-full bg-red-500"
+          className="h-full rounded-full bg-gold-500"
         />
       </div>
 
@@ -66,14 +66,14 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
             {results.map((r, i) => {
               const d = getDestination(r.code)!;
               return (
-                <div key={r.code} className="flex items-center gap-4 rounded-xl border border-navy-900/8 bg-offwhite p-4">
-                  <span className="font-display text-lg font-bold text-navy-900/30">#{i + 1}</span>
+                <div key={r.code} className="flex items-center gap-4 rounded-xl border border-ink-900/8 bg-offwhite p-4">
+                  <span className="font-display text-lg text-ink-900/30">#{i + 1}</span>
                   <span className="text-2xl">{d.flag}</span>
                   <div className="flex-1">
-                    <p className="font-medium text-navy-900">{d.name}</p>
+                    <p className="font-medium text-ink-900">{d.name}</p>
                     <p className="text-xs text-muted">{d.topCourses.slice(0, 3).join(", ")}</p>
                   </div>
-                  <span className="font-display text-lg font-bold text-red-500">{r.score}%</span>
+                  <span className="font-display text-lg text-gold-500">{r.score}%</span>
                 </div>
               );
             })}
@@ -94,7 +94,7 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-navy-900"
+          className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-ink-900"
         >
           <RotateCcw size={12} /> Retake the quiz
         </button>

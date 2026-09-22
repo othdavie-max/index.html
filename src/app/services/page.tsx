@@ -33,17 +33,17 @@ export default function ServicesPage() {
                 <RevealItem key={service.slug}>
                   <Link
                     href={`/services/${service.slug}`}
-                    className="group flex flex-col gap-6 rounded-2xl border border-navy-900/8 bg-offwhite p-7 transition-all duration-300 hover:border-red-500/30 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.15)] sm:flex-row sm:items-center"
+                    className="group flex flex-col gap-6 rounded-2xl border border-ink-900/8 bg-offwhite p-7 transition-all duration-300 hover:border-gold-500/30 hover:shadow-[0_20px_40px_-15px_rgba(10,31,68,0.15)] sm:flex-row sm:items-center"
                   >
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-navy-900 text-white">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-ink-900 text-white">
                       {Icon && <Icon size={24} />}
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-red-500">0{i + 1}</p>
-                      <h2 className="mt-1 font-display text-xl font-bold text-navy-900">{service.name}</h2>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-gold-500">0{i + 1}</p>
+                      <h2 className="mt-1 font-display text-xl text-ink-900">{service.name}</h2>
                       <p className="mt-2 text-sm leading-relaxed text-muted">{service.description}</p>
                     </div>
-                    <ArrowRight className="hidden shrink-0 text-navy-900 transition-transform duration-300 group-hover:translate-x-1 sm:block" />
+                    <ArrowRight className="hidden shrink-0 text-ink-900 transition-transform duration-300 group-hover:translate-x-1 sm:block" />
                   </Link>
                 </RevealItem>
               );

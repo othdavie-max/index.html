@@ -55,26 +55,26 @@ export default function LeadsAdminPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-xl font-bold text-navy-900">Leads</h1>
+          <h1 className="font-display text-xl text-ink-900">Leads</h1>
           <p className="mt-1 text-sm text-muted">All leads from every source across the site.</p>
         </div>
         <button
           onClick={() => downloadCsv("baseline-leads.csv", filtered as unknown as Record<string, unknown>[])}
-          className="flex items-center gap-1.5 rounded-full border border-navy-900/10 px-4 py-2 text-sm font-medium text-navy-900 hover:bg-white"
+          className="flex items-center gap-1.5 rounded-full border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-900 hover:bg-white"
         >
           <Download size={14} /> Export CSV
         </button>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value as LeadSource | "all")} className="rounded-lg border border-navy-900/12 bg-white px-3 py-2 text-sm">
+        <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value as LeadSource | "all")} className="rounded-lg border border-ink-900/12 bg-white px-3 py-2 text-sm">
           {sources.map((s) => (
             <option key={s} value={s}>
               {s === "all" ? "All sources" : s}
             </option>
           ))}
         </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-navy-900/12 bg-white px-3 py-2 text-sm">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-ink-900/12 bg-white px-3 py-2 text-sm">
           <option value="all">All statuses</option>
           {statuses.map((s) => (
             <option key={s} value={s}>
@@ -85,13 +85,13 @@ export default function LeadsAdminPage() {
       </div>
 
       {!supabase ? (
-        <p className="mt-8 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view leads.</p>
+        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view leads.</p>
       ) : loading ? (
         <div className="mt-8 flex items-center gap-2 text-sm text-muted">
           <Loader2 size={14} className="animate-spin" /> Loading…
         </div>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-navy-900/8 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-ink-900/8 bg-white">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="bg-offwhite text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -105,20 +105,20 @@ export default function LeadsAdminPage() {
             </thead>
             <tbody>
               {filtered.map((lead) => (
-                <tr key={lead.id} className="border-t border-navy-900/6 align-top">
+                <tr key={lead.id} className="border-t border-ink-900/6 align-top">
                   <td className="px-4 py-3 text-xs text-muted">{new Date(lead.created_at).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 font-medium text-navy-900">{lead.name}</td>
+                  <td className="px-4 py-3 font-medium text-ink-900">{lead.name}</td>
                   <td className="px-4 py-3 text-xs text-muted">
                     {lead.email}
                     <br />
                     {lead.phone}
                   </td>
-                  <td className="px-4 py-3 text-xs text-navy-900">{lead.source}</td>
+                  <td className="px-4 py-3 text-xs text-ink-900">{lead.source}</td>
                   <td className="px-4 py-3">
                     <select
                       value={lead.status}
                       onChange={(e) => updateLead(lead.id, { status: e.target.value as LeadRow["status"] })}
-                      className="rounded-lg border border-navy-900/12 bg-white px-2 py-1 text-xs"
+                      className="rounded-lg border border-ink-900/12 bg-white px-2 py-1 text-xs"
                     >
                       {statuses.map((s) => (
                         <option key={s} value={s}>
@@ -133,7 +133,7 @@ export default function LeadsAdminPage() {
                       onBlur={(e) => updateLead(lead.id, { notes: e.target.value })}
                       rows={2}
                       placeholder="Add a note…"
-                      className="w-48 rounded-lg border border-navy-900/12 bg-white px-2 py-1 text-xs outline-none focus:border-red-500"
+                      className="w-48 rounded-lg border border-ink-900/12 bg-white px-2 py-1 text-xs outline-none focus:border-gold-500"
                     />
                   </td>
                 </tr>

@@ -24,11 +24,11 @@ export function ChoiceGrid<T extends string>({
           className={cn(
             "rounded-xl border p-4 text-left transition-all duration-200",
             value === opt.value
-              ? "border-red-500 bg-red-500/5 ring-1 ring-red-500"
-              : "border-navy-900/10 bg-white hover:border-navy-900/30",
+              ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500"
+              : "border-ink-900/10 bg-white hover:border-ink-900/30",
           )}
         >
-          <p className="font-medium text-navy-900">{opt.label}</p>
+          <p className="font-medium text-ink-900">{opt.label}</p>
           {opt.description && <p className="mt-1 text-xs text-muted">{opt.description}</p>}
         </button>
       ))}

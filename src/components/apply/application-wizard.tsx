@@ -15,8 +15,8 @@ import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { trackEvent } from "@/lib/analytics";
 
 const DRAFT_KEY = "bes-application-draft";
-const fieldClass = "w-full rounded-xl border border-navy-900/12 bg-white px-4 py-3 text-sm text-navy-900 outline-none focus:border-red-500";
-const errorClass = "mt-1 text-xs text-red-500";
+const fieldClass = "w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none focus:border-gold-500";
+const errorClass = "mt-1 text-xs text-gold-500";
 
 const stepFieldGroups: (keyof ApplicationFormValues)[][] = [
   ["fullName", "email", "phone", "dateOfBirth", "nationality"],
@@ -116,12 +116,12 @@ export function ApplicationWizard() {
     )}. Can we talk about next steps?`;
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-md text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-500">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold-500/10 text-gold-500">
           <CheckCircle2 size={30} />
         </div>
-        <h2 className="mt-5 font-display text-2xl font-bold text-navy-900">Application submitted!</h2>
+        <h2 className="mt-5 font-display text-2xl text-ink-900">Application submitted!</h2>
         <p className="mt-2 text-sm text-muted">
-          Your reference number is <span className="font-semibold text-navy-900">{referenceId}</span>. We&apos;ve emailed a
+          Your reference number is <span className="font-semibold text-ink-900">{referenceId}</span>. We&apos;ve emailed a
           copy of your submission — our team will review your documents and reach out with next steps.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -139,7 +139,7 @@ export function ApplicationWizard() {
   return (
     <div className="mx-auto max-w-2xl">
       <QuizProgress step={step} total={stepTitles.length} />
-      <h2 className="mt-6 font-display text-xl font-bold text-navy-900 sm:text-2xl">{stepTitles[step]}</h2>
+      <h2 className="mt-6 font-display text-xl text-ink-900 sm:text-2xl">{stepTitles[step]}</h2>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <AnimatePresence mode="wait">
@@ -200,7 +200,7 @@ export function ApplicationWizard() {
                             setValue("destinationCountries", next, { shouldValidate: true });
                           }}
                           className={`rounded-xl border p-3 text-center transition-all ${
-                            selected ? "border-red-500 bg-red-500/5 ring-1 ring-red-500" : "border-navy-900/10 bg-white"
+                            selected ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500" : "border-ink-900/10 bg-white"
                           }`}
                         >
                           <span className="text-lg">{d.flag}</span>
@@ -290,11 +290,11 @@ export function ApplicationWizard() {
             {step === 5 && (
               <div className="flex flex-col gap-5">
                 <ReviewSummary values={getValues()} documents={documents} />
-                <label className="flex items-start gap-3 rounded-xl border border-navy-900/10 bg-offwhite p-4 text-sm text-navy-900">
-                  <input type="checkbox" {...register("consent")} className="mt-0.5 h-4 w-4 accent-red-500" />
+                <label className="flex items-start gap-3 rounded-xl border border-ink-900/10 bg-offwhite p-4 text-sm text-ink-900">
+                  <input type="checkbox" {...register("consent")} className="mt-0.5 h-4 w-4 accent-gold-500" />
                   <span>
                     I consent to Baseline Educational Services processing this information in line with the{" "}
-                    <a href="/privacy-policy" className="text-red-500 underline-offset-4 hover:underline" target="_blank" rel="noopener noreferrer">
+                    <a href="/privacy-policy" className="text-gold-500 underline-offset-4 hover:underline" target="_blank" rel="noopener noreferrer">
                       Privacy Policy
                     </a>
                     , including sharing relevant documents with universities as part of my application.
@@ -338,7 +338,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 
 function ReviewSummary({ values, documents }: { values: ApplicationFormValues; documents: Record<string, UploadedDoc> }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-navy-900/10 bg-offwhite p-5 text-sm">
+    <div className="flex flex-col gap-3 rounded-xl border border-ink-900/10 bg-offwhite p-5 text-sm">
       <SummaryRow label="Name" value={values.fullName} />
       <SummaryRow label="Email" value={values.email} />
       <SummaryRow label="Phone" value={values.phone} />
@@ -354,9 +354,9 @@ function ReviewSummary({ values, documents }: { values: ApplicationFormValues; d
 
 function SummaryRow({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-navy-900/8 pb-2 last:border-0 last:pb-0">
+    <div className="flex justify-between gap-4 border-b border-ink-900/8 pb-2 last:border-0 last:pb-0">
       <span className="text-muted">{label}</span>
-      <span className="text-right font-medium text-navy-900">{value || "—"}</span>
+      <span className="text-right font-medium text-ink-900">{value || "—"}</span>
     </div>
   );
 }

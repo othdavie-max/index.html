@@ -36,7 +36,7 @@ export default async function PartnerDetailPage({ params }: PageProps<"/partners
             <Reveal>
               <div className="mt-5 flex flex-wrap gap-2">
                 {partner.popularCourses.map((c) => (
-                  <span key={c} className="rounded-full bg-navy-100 px-3 py-1.5 text-sm text-navy-900">
+                  <span key={c} className="rounded-full bg-ink-100 px-3 py-1.5 text-sm text-ink-900">
                     {c}
                   </span>
                 ))}
@@ -48,7 +48,7 @@ export default async function PartnerDetailPage({ params }: PageProps<"/partners
             <Reveal>
               <div className="mt-5 flex flex-wrap gap-2">
                 {partner.intakes.map((i) => (
-                  <span key={i} className="rounded-full bg-navy-100 px-3 py-1.5 text-sm text-navy-900">
+                  <span key={i} className="rounded-full bg-ink-100 px-3 py-1.5 text-sm text-ink-900">
                     {i}
                   </span>
                 ))}

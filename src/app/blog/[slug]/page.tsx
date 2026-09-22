@@ -78,15 +78,15 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             </div>
             <div className="blog-content" dangerouslySetInnerHTML={{ __html: html }} />
 
-            <div className="mt-10 flex items-center justify-between border-t border-navy-900/8 pt-6">
+            <div className="mt-10 flex items-center justify-between border-t border-ink-900/8 pt-6">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted">Share this article</span>
               <ShareButtons url={url} title={post.title} />
             </div>
 
-            <div className="mt-10 rounded-2xl bg-navy-900 p-6 text-center sm:p-8">
-              <p className="font-display text-lg font-bold text-white">Ready to talk it through?</p>
+            <div className="mt-10 rounded-2xl bg-ink-900 p-6 text-center sm:p-8">
+              <p className="font-display text-lg text-white">Ready to talk it through?</p>
               <p className="mt-1 text-sm text-white/60">Book a free consultation with a Baseline counsellor.</p>
-              <Link href="/book" className="mt-4 inline-block rounded-full bg-red-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-red-600">
+              <Link href="/book" className="mt-4 inline-block rounded-full bg-gold-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-600">
                 Book a Free Consultation
               </Link>
             </div>
@@ -96,9 +96,9 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             <aside className="hidden lg:block">
               <div className="sticky top-28">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">On this page</p>
-                <nav className="mt-3 flex flex-col gap-2 border-l border-navy-900/10 pl-3">
+                <nav className="mt-3 flex flex-col gap-2 border-l border-ink-900/10 pl-3">
                   {headings.map((h) => (
-                    <a key={h.id} href={`#${h.id}`} className="text-xs text-muted hover:text-red-500">
+                    <a key={h.id} href={`#${h.id}`} className="text-xs text-muted hover:text-gold-500">
                       {h.text}
                     </a>
                   ))}
@@ -115,10 +115,10 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">Related articles</p>
             <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-3">
               {related.map((p) => (
-                <Link key={p.slug} href={`/blog/${p.slug}`} className="group block rounded-2xl border border-navy-900/8 bg-white p-5">
-                  <h3 className="font-display text-base font-bold text-navy-900 transition-colors group-hover:text-red-500">{p.title}</h3>
+                <Link key={p.slug} href={`/blog/${p.slug}`} className="group block rounded-2xl border border-ink-900/8 bg-white p-5">
+                  <h3 className="font-display text-base text-ink-900 transition-colors group-hover:text-gold-500">{p.title}</h3>
                   <p className="mt-2 text-xs text-muted line-clamp-2">{p.excerpt}</p>
-                  <span className="mt-3 flex items-center gap-1 text-xs font-medium text-red-500">
+                  <span className="mt-3 flex items-center gap-1 text-xs font-medium text-gold-500">
                     Read <ArrowRight size={12} />
                   </span>
                 </Link>
