@@ -47,7 +47,7 @@ export default async function DestinationDetailPage({ params }: PageProps<"/dest
           <Button href="/book" size="lg" magnetic>
             Book a Free Consultation
           </Button>
-          <Button href={buildWhatsAppLink(waMessage)} target="_blank" rel="noopener noreferrer" variant="outline-light" size="lg" magnetic>
+          <Button href={buildWhatsAppLink(waMessage)} target="_blank" rel="noopener noreferrer" variant="secondary" size="lg" magnetic>
             Ask About {destination.name} on WhatsApp
           </Button>
         </div>
