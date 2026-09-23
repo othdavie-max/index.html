@@ -51,7 +51,7 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
             source="course-matcher"
             payload={{ answers, results }}
             title="See how all six countries rank"
-            description="Unlock your full personalised breakdown — we'll also flag your top matches on WhatsApp."
+            description="Unlock your full personalised breakdown, and we'll also flag your top matches on WhatsApp."
             onSuccess={(v) => {
               setName(v.name);
               setUnlocked(true);
@@ -61,7 +61,7 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
         </div>
       ) : (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-8">
-          <p className="text-center text-sm text-muted">Thanks{name ? `, ${name}` : ""} — here&apos;s your full ranking:</p>
+          <p className="text-center text-sm text-muted">Thanks{name ? `, ${name}` : ""}, here&apos;s your full ranking:</p>
           <div className="mt-4 flex flex-col gap-3">
             {results.map((r, i) => {
               const d = getDestination(r.code)!;

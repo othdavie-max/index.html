@@ -15,7 +15,7 @@ export function FinalCta() {
             Ready to start your <span className="font-serif-em font-normal text-gold-500">study abroad</span> journey?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-white/70 sm:text-lg">
-            Book a free, no-pressure consultation, or message us on WhatsApp right now — a real counsellor will respond.
+            Book a free, no-pressure consultation, or message us on WhatsApp right now. A real counsellor will respond.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button href="/book" size="lg" magnetic icon={<CalendarCheck size={18} />}>

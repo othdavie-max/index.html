@@ -18,8 +18,8 @@ export default function ToolsDataAdminPage() {
     <div>
       <h1 className="font-display text-xl text-ink-900">Tools Data</h1>
       <p className="mt-1 text-sm text-muted">
-        Data behind the Cost Calculator and Timeline Planner. (Course Matcher scoring rules live in code —{" "}
-        <code>src/data/matcher-rules.ts</code> — per the original spec.)
+        Data behind the Cost Calculator and Timeline Planner. (Course Matcher scoring rules live in code,{" "}
+        <code>src/data/matcher-rules.ts</code>, per the original spec.)
       </p>
 
       <div className="mt-6">

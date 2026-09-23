@@ -15,7 +15,7 @@ export default function TimelinePlannerPage() {
         eyebrow="Free Tool"
         title="Your"
         emphasis="personal timeline."
-        description="Pick your destination, level and intake — we'll work backwards to show exactly when each step is due."
+        description="Pick your destination, level and intake, and we'll work backwards to show exactly when each step is due."
       />
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">

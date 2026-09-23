@@ -10,7 +10,7 @@ import { getDestination } from "@/data/destinations";
 
 export const metadata: Metadata = {
   title: "Success Stories",
-  description: "Real student journeys and visa approvals — hear from students who studied abroad with Baseline.",
+  description: "Real student journeys and visa approvals. Hear from students who studied abroad with Baseline.",
   alternates: { canonical: "/success-stories" },
 };
 
@@ -31,7 +31,7 @@ export default function SuccessStoriesPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <SectionHeading eyebrow="Visa Approvals Wall" title="Recently" emphasis="approved." align="center" className="mx-auto" />
           <p className="mx-auto mt-4 max-w-xl text-center text-xs text-muted">
-            Shared only with each student&apos;s consent. PLACEHOLDER entries — replace with real approvals as they come in.
+            Shared only with each student&apos;s consent. PLACEHOLDER entries, replace with real approvals as they come in.
           </p>
 
           <RevealGroup className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

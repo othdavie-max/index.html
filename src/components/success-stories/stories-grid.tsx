@@ -22,7 +22,7 @@ export function StoriesGrid() {
       <Tabs tabs={filterTabs} defaultTab="all" onChange={setFilter} />
 
       <p className="mt-6 rounded-xl border border-gold-500/20 bg-gold-500/5 p-3 text-xs text-muted sm:text-sm">
-        PLACEHOLDER testimonials shown below — replace with real, consented student stories before launch.
+        PLACEHOLDER testimonials shown below. Replace with real, consented student stories before launch.
       </p>
 
       <RevealGroup className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

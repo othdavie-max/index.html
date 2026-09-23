@@ -50,7 +50,7 @@ export function Footer() {
 
           <div className="col-span-2 md:col-span-1">
             <h3 className="font-display text-sm text-white">Stay updated</h3>
-            <p className="mt-3 text-sm text-white/60">Intakes, scholarships and deadlines — straight to your inbox.</p>
+            <p className="mt-3 text-sm text-white/60">Intakes, scholarships and deadlines, straight to your inbox.</p>
             <div className="mt-4">
               <NewsletterForm />
             </div>

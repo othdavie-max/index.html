@@ -14,7 +14,7 @@ export default function TermsPage() {
       <PageHero eyebrow="Legal" title="Terms of Service" />
       <section className="bg-white py-16 sm:py-24">
         <div className="legal-content mx-auto max-w-3xl px-4 text-sm leading-relaxed text-ink-900 sm:px-6 sm:text-base lg:px-8">
-          <p className="text-muted">Last updated: {new Date().toISOString().slice(0, 10)}. PLACEHOLDER — have this reviewed by a Nigerian lawyer before launch, especially the fee and refund sections.</p>
+          <p className="text-muted">Last updated: {new Date().toISOString().slice(0, 10)}. PLACEHOLDER: have this reviewed by a Nigerian lawyer before launch, especially the fee and refund sections.</p>
 
           <h2 className="mt-8 font-display text-xl text-ink-900">1. Acceptance of terms</h2>
           <p>
@@ -25,7 +25,7 @@ export default function TermsPage() {
           <h2 className="mt-8 font-display text-xl text-ink-900">2. Our services</h2>
           <p>
             We provide career counselling, admission services, English test preparation guidance, visa assistance and
-            interview preparation for students seeking to study abroad. Our role is advisory and administrative — we
+            interview preparation for students seeking to study abroad. Our role is advisory and administrative. We
             do not control, and cannot guarantee, decisions made by universities, English test providers, or
             immigration authorities.
           </p>
@@ -40,7 +40,7 @@ export default function TermsPage() {
 
           <h2 className="mt-8 font-display text-xl text-ink-900">4. Fees</h2>
           <p>
-            PLACEHOLDER — service fees, payment schedules and refund conditions will be confirmed in writing before
+            PLACEHOLDER: service fees, payment schedules and refund conditions will be confirmed in writing before
             you engage a paid service, and are not published on this site pending confirmation of current pricing.
           </p>
 
@@ -53,7 +53,7 @@ export default function TermsPage() {
 
           <h2 className="mt-8 font-display text-xl text-ink-900">6. Intellectual property</h2>
           <p>
-            All content on this site — text, design, graphics, tools and code — is the property of{" "}
+            All content on this site (text, design, graphics, tools and code) is the property of{" "}
             {siteSettings.companyName} unless otherwise stated, and may not be reproduced without permission.
           </p>
 

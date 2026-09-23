@@ -17,7 +17,7 @@ const LEAD_PROMPT_AFTER_USER_MESSAGES = 3;
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: "Hi! I'm the Baseline assistant. Ask me anything about studying abroad, or our services — I'll do my best to help, and can connect you with a real counsellor any time." },
+    { role: "assistant", content: "Hi! I'm the Baseline assistant. Ask me anything about studying abroad or our services. I'll do my best to help, and can connect you with a real counsellor any time." },
   ]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -173,7 +173,7 @@ export function ChatWidget() {
                 </button>
               </form>
               <p className="mt-2 text-center text-[10px] text-muted">
-                General guidance only — not a guarantee of any outcome. See our{" "}
+                General guidance only, not a guarantee of any outcome. See our{" "}
                 <a href="/privacy-policy" className="underline">
                   Privacy Policy
                 </a>

@@ -44,7 +44,7 @@ export function FaqExplorer() {
         {filtered.length > 0 ? (
           <Accordion items={filtered} />
         ) : (
-          <p className="py-10 text-center text-sm text-muted">No questions match your search yet — try a different term, or ask us directly.</p>
+          <p className="py-10 text-center text-sm text-muted">No questions match your search yet, try a different term, or ask us directly.</p>
         )}
       </div>
     </div>

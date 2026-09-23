@@ -8,7 +8,7 @@ const TEAM_EMAIL = process.env.TEAM_NOTIFICATION_EMAIL ?? siteSettings.email;
 /** No-ops (and logs) when RESEND_API_KEY is unset, so forms still work locally without email configured. */
 export async function sendEmail(opts: { to: string | string[]; subject: string; html: string }) {
   if (!resend) {
-    console.info("[email:skip] RESEND_API_KEY not set — would have sent:", opts.subject, "to", opts.to);
+    console.info("[email:skip] RESEND_API_KEY not set, would have sent:", opts.subject, "to", opts.to);
     return { skipped: true };
   }
   return resend.emails.send({ from: FROM, to: opts.to, subject: opts.subject, html: opts.html });

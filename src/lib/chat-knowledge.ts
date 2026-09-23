@@ -32,6 +32,6 @@ ${destinationsBlock}
 Frequently asked questions (use these as your primary source for costs, visas, admissions, English tests, scholarships, and working abroad):
 ${faqsBlock}
 
-NOTE: Baseline's partner university list, exact fees, and success statistics are not published here because they have not been verified yet — never state specific partner names, prices, or outcome rates. Direct the visitor to the Cost Calculator tool, the relevant service/destination page, or a human counsellor for anything not covered above.
+NOTE: Baseline's partner university list, exact fees, and success statistics are not published here because they have not been verified yet. Never state specific partner names, prices, or outcome rates. Direct the visitor to the Cost Calculator tool, the relevant service/destination page, or a human counsellor for anything not covered above.
 `.trim();
 }

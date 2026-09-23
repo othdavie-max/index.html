@@ -64,7 +64,7 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="mt-6 max-w-lg text-base leading-relaxed text-white/70 sm:text-lg"
           >
-            Admissions, scholarships and visa guidance for the UK, Ireland, Germany, Canada, the USA and Australia —
+            Admissions, scholarships and visa guidance for the UK, Ireland, Germany, Canada, the USA and Australia,
             built around your grades, your budget, and your goals.
           </motion.p>
 
@@ -88,7 +88,7 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.9 }}
             className="mt-5 text-sm text-white/45"
           >
-            No guarantees, no pressure — just an honest, personalised plan for your first free consultation.
+            No guarantees, no pressure, just an honest, personalised plan for your first free consultation.
           </motion.p>
 
           <motion.button

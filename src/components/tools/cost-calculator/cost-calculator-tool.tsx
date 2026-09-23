@@ -86,7 +86,7 @@ export function CostCalculatorTool() {
             </select>
           </Field>
 
-          <Field label={`Programme Duration — ${input.durationYears} year${input.durationYears > 1 ? "s" : ""}`}>
+          <Field label={`Programme Duration, ${input.durationYears} year${input.durationYears > 1 ? "s" : ""}`}>
             <input
               type="range"
               min={1}
@@ -133,7 +133,7 @@ export function CostCalculatorTool() {
 
           <div className="mt-6 flex items-start gap-3 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-xs text-muted">
             <ShieldAlert size={16} className="mt-0.5 shrink-0 text-gold-500" />
-            Estimates only. Actual costs vary by university and city — use this as a planning starting point, not a
+            Estimates only. Actual costs vary by university and city. Use this as a planning starting point, not a
             quote.
           </div>
 

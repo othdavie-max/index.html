@@ -5,7 +5,7 @@ export const howItWorksSteps = [
   },
   {
     title: "Course & country matching",
-    description: "We shortlist countries and courses that actually fit your profile — using our Course Matcher and counsellor review.",
+    description: "We shortlist countries and courses that actually fit your profile, using our Course Matcher and counsellor review.",
   },
   {
     title: "Admission application",

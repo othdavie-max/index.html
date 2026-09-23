@@ -16,13 +16,13 @@ export const metadata: Metadata = {
 
 const values = [
   { icon: Award, title: "Excellence", description: "We hold our advice, our documentation and our follow-through to a high standard, every time." },
-  { icon: ShieldCheck, title: "Trust", description: "We tell you what's realistic, not what's easiest to hear — no guarantees we can't keep." },
+  { icon: ShieldCheck, title: "Trust", description: "We tell you what's realistic, not what's easiest to hear. No guarantees we can't keep." },
   { icon: HeartHandshake, title: "Quality Services Delivery", description: "From your first message to your first week abroad, we stay responsive and thorough." },
   { icon: Users, title: "Positive Relationships", description: "We build long-term relationships with students, families and university partners alike." },
 ];
 
 const whyChooseUs = [
-  "One-on-one counselling tailored to your grades, budget and goals — not a generic checklist.",
+  "One-on-one counselling tailored to your grades, budget and goals, not a generic checklist.",
   "Support across all six major destinations, so we recommend what fits you, not just one country.",
   "Document-by-document visa and application guidance, reviewed before you submit anything.",
   "A physical office in Abuja for students and parents who want to meet in person.",
@@ -35,7 +35,7 @@ export default function AboutPage() {
         eyebrow="About Baseline"
         title="Honest guidance for a"
         emphasis="life-changing decision."
-        description="We're a study-abroad consultancy based in Abuja, built around one idea: give students and their families a clear, realistic plan — not just a sales pitch."
+        description="We're a study-abroad consultancy based in Abuja, built around one idea: give students and their families a clear, realistic plan, not just a sales pitch."
       />
 
       <section className="bg-white py-20 sm:py-28">
@@ -45,12 +45,12 @@ export default function AboutPage() {
             <p className="mt-5 text-base leading-relaxed text-muted">
               Baseline Educational Services helps Nigerian students navigate admissions, scholarships and visas for
               universities in the UK, Ireland, Germany, Canada, the USA and Australia. We work with students at every
-              stage — from Foundation programmes to PhDs — and with parents who want a trustworthy second opinion
+              stage, from Foundation programmes to PhDs, and with parents who want a trustworthy second opinion
               before committing.
             </p>
             <p className="mt-4 text-base leading-relaxed text-muted">
               Studying abroad is one of the biggest decisions a family makes. We treat it that way: with clear
-              timelines, honest budgeting, and documentation that&apos;s checked before it&apos;s submitted — not after
+              timelines, honest budgeting, and documentation that&apos;s checked before it&apos;s submitted, not after
               something goes wrong.
             </p>
           </div>

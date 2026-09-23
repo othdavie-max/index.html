@@ -9,7 +9,7 @@ export const faqs: FaqItem[] = [
     category: "Costs",
     question: "How much does it cost to study abroad from Nigeria?",
     answer:
-      "It depends heavily on the country, city, and course — tuition and living costs vary widely even within one country. Use our Cost Calculator for an estimate broken down by country, level, and city tier, and speak with a counsellor for figures specific to your shortlisted universities.",
+      "It depends heavily on the country, city, and course. Tuition and living costs vary widely even within one country. Use our Cost Calculator for an estimate broken down by country, level, and city tier, and speak with a counsellor for figures specific to your shortlisted universities.",
   },
   {
     id: "cost-2",
@@ -23,28 +23,28 @@ export const faqs: FaqItem[] = [
     category: "Costs",
     question: "What is 'proof of funds' and how much do I need?",
     answer:
-      "Most study visas require you to show you can cover a set period of tuition and living costs, usually via a bank statement held for a minimum number of days. The exact amount and rules differ by country — we'll confirm the current requirement for your destination during your application.",
+      "Most study visas require you to show you can cover a set period of tuition and living costs, usually via a bank statement held for a minimum number of days. The exact amount and rules differ by country. We'll confirm the current requirement for your destination during your application.",
   },
   {
     id: "visa-1",
     category: "Visas",
     question: "Can Baseline guarantee my visa will be approved?",
     answer:
-      "No one can guarantee a visa outcome — approval is entirely at the discretion of the destination country's immigration authority. What we can do is help you prepare a complete, accurate, well-documented application, which is the biggest factor within your control.",
+      "No one can guarantee a visa outcome. Approval is entirely at the discretion of the destination country's immigration authority. What we can do is help you prepare a complete, accurate, well-documented application, which is the biggest factor within your control.",
   },
   {
     id: "visa-2",
     category: "Visas",
     question: "What documents do I typically need for a student visa?",
     answer:
-      "Common requirements include a valid passport, your university offer/CAS letter, proof of funds, an English test result, academic transcripts, and passport photographs. Exact requirements vary by country — we provide a country-specific checklist once you're ready to apply.",
+      "Common requirements include a valid passport, your university offer/CAS letter, proof of funds, an English test result, academic transcripts, and passport photographs. Exact requirements vary by country. We provide a country-specific checklist once you're ready to apply.",
   },
   {
     id: "visa-3",
     category: "Visas",
     question: "How long does a student visa take to process?",
     answer:
-      "Processing times vary by country, embassy workload, and season, ranging from a few weeks to a few months. We help you plan backwards from your intake date so you apply with enough buffer — try the Timeline Planner for a personalised schedule.",
+      "Processing times vary by country, embassy workload, and season, ranging from a few weeks to a few months. We help you plan backwards from your intake date so you apply with enough buffer. Try the Timeline Planner for a personalised schedule.",
   },
   {
     id: "admissions-1",
@@ -58,7 +58,7 @@ export const faqs: FaqItem[] = [
     category: "Admissions",
     question: "Can I apply to more than one country at the same time?",
     answer:
-      "Yes — many students apply to two or three countries in parallel to compare offers, costs, and timelines before deciding. Our Course Matcher and counsellors can help you compare countries side by side.",
+      "Yes, many students apply to two or three countries in parallel to compare offers, costs, and timelines before deciding. Our Course Matcher and counsellors can help you compare countries side by side.",
   },
   {
     id: "admissions-3",
@@ -70,9 +70,9 @@ export const faqs: FaqItem[] = [
   {
     id: "english-1",
     category: "English Tests",
-    question: "Which English test should I take — IELTS, TOEFL, PTE or Duolingo?",
+    question: "Which English test should I take: IELTS, TOEFL, PTE or Duolingo?",
     answer:
-      "It depends on which universities and countries you're targeting — not all institutions accept every test. We help you confirm which test(s) your shortlisted universities accept before you book one.",
+      "It depends on which universities and countries you're targeting. Not all institutions accept every test. We help you confirm which test(s) your shortlisted universities accept before you book one.",
   },
   {
     id: "english-2",
@@ -93,14 +93,14 @@ export const faqs: FaqItem[] = [
     category: "Scholarships",
     question: "Does Baseline guarantee scholarships?",
     answer:
-      "No — scholarships are awarded by universities and external bodies based on their own criteria and competition levels. We help you identify scholarships you may be eligible for and prepare a strong application, but we never guarantee an award.",
+      "No, scholarships are awarded by universities and external bodies based on their own criteria and competition levels. We help you identify scholarships you may be eligible for and prepare a strong application, but we never guarantee an award.",
   },
   {
     id: "scholarships-2",
     category: "Scholarships",
     question: "When should I start looking for scholarships?",
     answer:
-      "As early as possible — many scholarship deadlines fall months before the main application deadline. We flag relevant scholarship windows as part of your personalised timeline.",
+      "As early as possible. Many scholarship deadlines fall months before the main application deadline. We flag relevant scholarship windows as part of your personalised timeline.",
   },
   {
     id: "working-1",

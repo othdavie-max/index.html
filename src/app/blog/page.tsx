@@ -7,7 +7,7 @@ import { blogPosts } from "@/data/blog-posts";
 
 export const metadata: Metadata = {
   title: "Blog & Guides",
-  description: "Practical, honest advice on studying abroad from Nigeria — visas, costs, English tests, and more.",
+  description: "Practical, honest advice on studying abroad from Nigeria: visas, costs, English tests, and more.",
   alternates: { canonical: "/blog" },
 };
 
@@ -16,7 +16,7 @@ export default function BlogPage() {
 
   return (
     <>
-      <PageHero eyebrow="Blog" title="Advice worth" emphasis="reading." description="Practical, honest guidance — not recycled listicles." />
+      <PageHero eyebrow="Blog" title="Advice worth" emphasis="reading." description="Practical, honest guidance, not recycled listicles." />
 
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

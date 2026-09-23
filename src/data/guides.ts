@@ -21,7 +21,7 @@ export const guides: Guide[] = [
   {
     slug: "sop-writing-guide",
     title: "Statement of Purpose Writing Guide",
-    description: "A practical framework for writing a statement of purpose that stands out — with dos and don'ts.",
+    description: "A practical framework for writing a statement of purpose that stands out, with dos and don'ts.",
     fileUrl: "/guides/PLACEHOLDER-sop-writing-guide.pdf",
     pageCount: 5,
   },

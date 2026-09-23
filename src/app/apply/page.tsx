@@ -4,7 +4,7 @@ import { ApplicationWizard } from "@/components/apply/application-wizard";
 
 export const metadata: Metadata = {
   title: "Apply Now",
-  description: "Submit your study abroad application to Baseline Educational Services — personal details, documents, and everything in between.",
+  description: "Submit your study abroad application to Baseline Educational Services: personal details, documents, and everything in between.",
   alternates: { canonical: "/apply" },
 };
 

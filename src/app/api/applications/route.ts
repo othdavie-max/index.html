@@ -62,9 +62,9 @@ export async function POST(request: Request) {
 
   await sendEmail({
     to: data.email,
-    subject: `Application received — Reference ${referenceId}`,
+    subject: `Application received: Reference ${referenceId}`,
     html: wrapEmail(
-      `Thanks, ${data.fullName.split(" ")[0]} — we've received your application`,
+      `Thanks, ${data.fullName.split(" ")[0]}, we've received your application`,
       `<p>Your reference ID is <strong>${referenceId}</strong>. Keep this for your records.</p>${summaryHtml}<p>Our team will review your documents and be in touch with next steps.</p>`,
     ),
   });

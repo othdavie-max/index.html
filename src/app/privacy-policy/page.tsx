@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
       <PageHero eyebrow="Legal" title="Privacy Policy" />
       <section className="bg-white py-16 sm:py-24">
         <div className="legal-content mx-auto max-w-3xl px-4 text-sm leading-relaxed text-ink-900 sm:px-6 sm:text-base lg:px-8">
-          <p className="text-muted">Last updated: {new Date().toISOString().slice(0, 10)}. PLACEHOLDER — have this reviewed by a Nigerian data-protection lawyer before launch.</p>
+          <p className="text-muted">Last updated: {new Date().toISOString().slice(0, 10)}. PLACEHOLDER: have this reviewed by a Nigerian data-protection lawyer before launch.</p>
 
           <h2 className="mt-8 font-display text-xl text-ink-900">1. Who we are</h2>
           <p>

@@ -57,7 +57,7 @@ export function TimelinePlannerTool() {
   }
 
   const waMessage = `Hi Baseline, I planned my timeline for ${destination.name} (${level}, ${intakeOptions[intakeIndex].label} intake). ${
-    isTight ? "My timeline looks tight — " : ""
+    isTight ? "My timeline looks tight. " : ""
   }Can we talk about next steps?`;
 
   return (
@@ -98,7 +98,7 @@ export function TimelinePlannerTool() {
         <div className="mt-6 flex items-start gap-3 rounded-xl border border-gold-500/30 bg-gold-500/5 p-4 text-sm text-ink-900">
           <AlertTriangle size={18} className="mt-0.5 shrink-0 text-gold-500" />
           <p>
-            You&apos;re on a tight schedule — your intake is only {daysToIntake} days away. Some milestones below are
+            You&apos;re on a tight schedule. Your intake is only {daysToIntake} days away. Some milestones below are
             already overdue. Let&apos;s talk about what&apos;s still realistic.
           </p>
         </div>

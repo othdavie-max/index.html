@@ -52,7 +52,7 @@ export default function AdminOverviewPage() {
 
       {!supabase ? (
         <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">
-          Supabase isn&apos;t configured — connect it to see live counts and recent activity.
+          Supabase isn&apos;t configured. Connect it to see live counts and recent activity.
         </p>
       ) : (
         <>
@@ -65,7 +65,7 @@ export default function AdminOverviewPage() {
                   </div>
                   <ArrowRight size={14} className="text-ink-900/30" />
                 </div>
-                <p className="mt-4 font-display text-3xl text-ink-900">{c.value ?? "—"}</p>
+                <p className="mt-4 font-display text-3xl text-ink-900">{c.value ?? "N/A"}</p>
                 <p className="mt-1 text-sm text-muted">{c.label}</p>
               </Link>
             ))}

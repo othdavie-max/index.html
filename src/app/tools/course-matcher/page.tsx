@@ -15,7 +15,7 @@ export default function CourseMatcherPage() {
         eyebrow="Free Tool"
         title="Find your best-fit"
         emphasis="country."
-        description="Answer a few quick questions — no guesswork, just a rule-based match to your grades, budget and goals."
+        description="Answer a few quick questions, no guesswork, just a rule-based match to your grades, budget and goals."
       />
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">

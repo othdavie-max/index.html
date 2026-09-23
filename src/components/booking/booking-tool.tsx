@@ -79,7 +79,7 @@ export function BookingTool() {
     date.setHours(h, m, 0, 0);
     const ics = buildIcsFile([
       {
-        title: "Baseline Educational Services — Free Consultation",
+        title: "Baseline Educational Services, Free Consultation",
         description: `${consultationTypeLabels[consultationType]} with Baseline Educational Services.`,
         date,
       },

@@ -61,7 +61,7 @@ export default function BookingsAdminPage() {
       </p>
 
       {!supabase ? (
-        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view bookings.</p>
+        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured. Connect it to view bookings.</p>
       ) : loading ? (
         <div className="mt-8 flex items-center gap-2 text-sm text-muted">
           <Loader2 size={14} className="animate-spin" /> Loading…
@@ -93,7 +93,7 @@ export default function BookingsAdminPage() {
                   </td>
                   <td className="px-4 py-3 text-xs text-ink-900">{consultationTypeLabels[r.consultation_type]}</td>
                   <td className="px-4 py-3 text-xs text-ink-900">
-                    {r.destination ?? "—"} {r.level ? `/ ${r.level}` : ""}
+                    {r.destination ?? "N/A"} {r.level ? `/ ${r.level}` : ""}
                   </td>
                   <td className="px-4 py-3">
                     <select value={r.status} onChange={(e) => updateStatus(r.id, e.target.value as BookingRow["status"])} className="rounded-lg border border-ink-900/12 bg-white px-2 py-1 text-xs">

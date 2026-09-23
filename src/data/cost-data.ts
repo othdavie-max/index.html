@@ -14,7 +14,7 @@ export interface CostBase {
   healthCoverPerYear: number;
   visaFeeOneTime: number;
   englishTestFeeOneTime: number;
-  flightNgnOneTime: number; // priced in naira — booked from Nigeria
+  flightNgnOneTime: number; // priced in naira, booked from Nigeria
   settlingInNgnOneTime: number;
 }
 

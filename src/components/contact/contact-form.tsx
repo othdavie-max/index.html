@@ -28,7 +28,7 @@ export function ContactForm() {
         body: JSON.stringify(values),
       });
       if (!res.ok) throw new Error();
-      push("Message sent — we'll get back to you shortly.");
+      push("Message sent. We'll get back to you shortly.");
       reset();
     } catch {
       push("Something went wrong. Please try again or reach us on WhatsApp.", "error");

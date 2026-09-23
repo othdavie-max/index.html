@@ -79,7 +79,7 @@ export default function ApplicationsAdminPage() {
       </div>
 
       {!supabase ? (
-        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view applications.</p>
+        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured. Connect it to view applications.</p>
       ) : loading ? (
         <div className="mt-8 flex items-center gap-2 text-sm text-muted">
           <Loader2 size={14} className="animate-spin" /> Loading…
@@ -139,8 +139,8 @@ export default function ApplicationsAdminPage() {
               <DetailRow label="Email" value={active.email} />
               <DetailRow label="Phone" value={active.phone} />
               <DetailRow label="Level" value={active.level} />
-              <DetailRow label="Course" value={active.course_of_interest ?? "—"} />
-              <DetailRow label="Intake" value={active.intake ?? "—"} />
+              <DetailRow label="Course" value={active.course_of_interest ?? "N/A"} />
+              <DetailRow label="Intake" value={active.intake ?? "N/A"} />
               <DetailRow label="Destinations" value={active.destination_countries?.join(", ")} />
             </div>
 

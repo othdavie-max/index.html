@@ -83,7 +83,7 @@ export function CrudPage({ config }: { config: CrudConfig }) {
 
       {!supabase ? (
         <p className="mt-8 rounded-xl border border-danger-500/20 bg-danger-500/5 p-4 text-sm text-muted">
-          Supabase isn&apos;t configured — connect it to manage {config.title.toLowerCase()}.
+          Supabase isn&apos;t configured. Connect it to manage {config.title.toLowerCase()}.
         </p>
       ) : loading ? (
         <div className="mt-8 flex items-center gap-2 text-sm text-muted">
@@ -143,7 +143,7 @@ export function CrudPage({ config }: { config: CrudConfig }) {
 }
 
 function formatCell(value: unknown) {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "N/A";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (Array.isArray(value)) return value.join(", ");
   if (typeof value === "string" && value.length > 80) return value.slice(0, 80) + "…";

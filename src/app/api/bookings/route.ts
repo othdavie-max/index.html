@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     if (error) {
       // unique_violation on (scheduled_date, scheduled_time)
       if (error.code === "23505") {
-        return NextResponse.json({ error: "That slot was just booked — please pick another time." }, { status: 409 });
+        return NextResponse.json({ error: "That slot was just booked. Please pick another time." }, { status: 409 });
       }
       return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
     }
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 
   await sendEmail({
     to: email,
-    subject: "Your consultation is booked — Baseline Educational Services",
+    subject: "Your consultation is booked - Baseline Educational Services",
     html: wrapEmail(
       `You're booked in, ${name.split(" ")[0]}`,
       `<p>Thanks for booking a free consultation. Here are your details:</p>${summaryHtml}<p>We'll be in touch beforehand with any next steps. If you need to reschedule, just reply to this email or reach us on WhatsApp.</p>`,
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
   });
 
   await notifyTeam(
-    `New booking: ${name} — ${prettyDate} ${scheduledTime}`,
+    `New booking: ${name}, ${prettyDate} ${scheduledTime}`,
     wrapEmail(
       "New consultation booking",
       `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Phone:</strong> ${phone}</p>${summaryHtml}`,

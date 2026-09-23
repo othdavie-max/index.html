@@ -1,22 +1,14 @@
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-// PLACEHOLDER wordmark. Swap for the real logo here — this is the single
-// place the logo renders across the site.
+// `dark` is accepted so call sites don't need to change based on the
+// section background; the logo art itself doesn't need to change.
 export function Logo({ className, dark = false }: { className?: string; dark?: boolean }) {
+  void dark;
   return (
-    <Link href="/" className={cn("inline-flex flex-col leading-none group", className)} aria-label="Baseline Educational Services — Home">
-      <span
-        className={cn(
-          "font-display text-xl tracking-tight",
-          dark ? "text-white" : "text-ink-900",
-        )}
-      >
-        Baseline
-      </span>
-      <span className="relative block h-[3px] w-full overflow-hidden rounded-full bg-gold-500/20 mt-0.5">
-        <span className="absolute inset-y-0 left-0 w-2/3 bg-gold-500 transition-all duration-300 group-hover:w-full" />
-      </span>
+    <Link href="/" className={cn("inline-flex items-center", className)} aria-label="Baseline Educational Services, Home">
+      <Image src="/logo.png" alt="Baseline Educational Services" width={500} height={204} priority className="h-10 w-auto" />
     </Link>
   );
 }

@@ -6,14 +6,14 @@ import { siteSettings } from "@/data/site-settings";
 
 export const metadata: Metadata = {
   title: "Contact Us",
-  description: "Get in touch with Baseline Educational Services — visit our Abuja office, call, WhatsApp, or send us a message.",
+  description: "Get in touch with Baseline Educational Services: visit our Abuja office, call, WhatsApp, or send us a message.",
   alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {
   return (
     <>
-      <PageHero eyebrow="Contact" title="Let's talk about your" emphasis="next step." description="Reach us by phone, WhatsApp, email, or in person — or send a message below." />
+      <PageHero eyebrow="Contact" title="Let's talk about your" emphasis="next step." description="Reach us by phone, WhatsApp, email, or in person, or send a message below." />
 
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">

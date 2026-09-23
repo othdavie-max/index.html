@@ -82,7 +82,7 @@ export function LeadCaptureForm({
           <a href="/privacy-policy" className="underline">
             Privacy Policy
           </a>
-          . No spam — just your results and relevant follow-up.
+          . No spam, just your results and relevant follow-up.
         </p>
       </form>
     </div>

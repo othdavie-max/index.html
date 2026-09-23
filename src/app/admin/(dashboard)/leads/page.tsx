@@ -85,7 +85,7 @@ export default function LeadsAdminPage() {
       </div>
 
       {!supabase ? (
-        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured — connect it to view leads.</p>
+        <p className="mt-8 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-sm text-muted">Supabase isn&apos;t configured. Connect it to view leads.</p>
       ) : loading ? (
         <div className="mt-8 flex items-center gap-2 text-sm text-muted">
           <Loader2 size={14} className="animate-spin" /> Loading…

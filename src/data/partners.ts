@@ -7,7 +7,7 @@ import type { Partner } from "@/types";
 export const partners: Partner[] = [
   {
     slug: "placeholder-uk-university-1",
-    name: "[Partner University — UK #1]",
+    name: "[Partner University, UK #1]",
     country: "uk",
     logoPlaceholder: "UK-1",
     overview: "PLACEHOLDER overview. Replace with the university's real profile, campus info and rankings once confirmed.",
@@ -16,7 +16,7 @@ export const partners: Partner[] = [
   },
   {
     slug: "placeholder-uk-university-2",
-    name: "[Partner University — UK #2]",
+    name: "[Partner University, UK #2]",
     country: "uk",
     logoPlaceholder: "UK-2",
     overview: "PLACEHOLDER overview. Replace with the university's real profile, campus info and rankings once confirmed.",
@@ -25,7 +25,7 @@ export const partners: Partner[] = [
   },
   {
     slug: "placeholder-ireland-university-1",
-    name: "[Partner University — Ireland #1]",
+    name: "[Partner University, Ireland #1]",
     country: "ireland",
     logoPlaceholder: "IE-1",
     overview: "PLACEHOLDER overview. Replace with the university's real profile, campus info and rankings once confirmed.",
@@ -34,7 +34,7 @@ export const partners: Partner[] = [
   },
   {
     slug: "placeholder-germany-university-1",
-    name: "[Partner University — Germany #1]",
+    name: "[Partner University, Germany #1]",
     country: "germany",
     logoPlaceholder: "DE-1",
     overview: "PLACEHOLDER overview. Replace with the university's real profile, campus info and rankings once confirmed.",
@@ -43,7 +43,7 @@ export const partners: Partner[] = [
   },
   {
     slug: "placeholder-canada-university-1",
-    name: "[Partner University — Canada #1]",
+    name: "[Partner University, Canada #1]",
     country: "canada",
     logoPlaceholder: "CA-1",
     overview: "PLACEHOLDER overview. Replace with the university's real profile, campus info and rankings once confirmed.",
@@ -52,7 +52,7 @@ export const partners: Partner[] = [
   },
   {
     slug: "placeholder-canada-university-2",
-    name: "[Partner University — Canada #2]",
+    name: "[Partner University, Canada #2]",
     country: "canada",
     logoPlaceholder: "CA-2",
     overview: "PLACEHOLDER overview. Replace with the university's real profile, campus info and rankings once confirmed.",
@@ -61,7 +61,7 @@ export const partners: Partner[] = [
   },
   {
     slug: "placeholder-usa-university-1",
-    name: "[Partner University — USA #1]",
+    name: "[Partner University, USA #1]",
     country: "usa",
     logoPlaceholder: "US-1",
     overview: "PLACEHOLDER overview. Replace with the university's real profile, campus info and rankings once confirmed.",
@@ -70,7 +70,7 @@ export const partners: Partner[] = [
   },
   {
     slug: "placeholder-australia-university-1",
-    name: "[Partner University — Australia #1]",
+    name: "[Partner University, Australia #1]",
     country: "australia",
     logoPlaceholder: "AU-1",
     overview: "PLACEHOLDER overview. Replace with the university's real profile, campus info and rankings once confirmed.",

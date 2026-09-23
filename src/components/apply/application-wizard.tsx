@@ -122,7 +122,7 @@ export function ApplicationWizard() {
         <h2 className="mt-5 font-display text-2xl text-ink-900">Application submitted!</h2>
         <p className="mt-2 text-sm text-muted">
           Your reference number is <span className="font-semibold text-ink-900">{referenceId}</span>. We&apos;ve emailed a
-          copy of your submission — our team will review your documents and reach out with next steps.
+          copy of your submission. Our team will review your documents and reach out with next steps.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button href={buildWhatsAppLink(waMessage)} target="_blank" rel="noopener noreferrer" icon={<MessageCircle size={16} />} magnetic>
@@ -356,7 +356,7 @@ function SummaryRow({ label, value }: { label: string; value?: string }) {
   return (
     <div className="flex justify-between gap-4 border-b border-ink-900/8 pb-2 last:border-0 last:pb-0">
       <span className="text-muted">{label}</span>
-      <span className="text-right font-medium text-ink-900">{value || "—"}</span>
+      <span className="text-right font-medium text-ink-900">{value || "N/A"}</span>
     </div>
   );
 }

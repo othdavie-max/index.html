@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Free Planning Tools",
-  description: "Course Matcher, Cost Calculator and Timeline Planner — three free tools to help you plan your study abroad journey.",
+  description: "Course Matcher, Cost Calculator and Timeline Planner: three free tools to help you plan your study abroad journey.",
   alternates: { canonical: "/tools" },
 };
 

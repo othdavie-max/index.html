@@ -20,7 +20,7 @@ export function ServicesSection() {
           eyebrow="Services"
           title="Support at every"
           emphasis="stage."
-          description="From your first conversation to the day you land, our services cover the full journey — not just one part of it."
+          description="From your first conversation to the day you land, our services cover the full journey, not just one part of it."
         />
 
         <RevealGroup className="no-scrollbar mt-12 flex snap-x gap-5 overflow-x-auto pb-4 lg:grid lg:grid-cols-5 lg:overflow-visible">

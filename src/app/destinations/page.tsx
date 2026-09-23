@@ -10,7 +10,7 @@ import { formatNaira } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Study Destinations",
-  description: "Explore study-abroad options in the UK, Ireland, Germany, Canada, the USA and Australia — tuition ranges, intakes, and post-study work.",
+  description: "Explore study-abroad options in the UK, Ireland, Germany, Canada, the USA and Australia: tuition ranges, intakes, and post-study work.",
   alternates: { canonical: "/destinations" },
 };
 
@@ -65,7 +65,7 @@ export default function DestinationsPage() {
           </RevealGroup>
 
           <p className="mt-8 text-center text-xs text-muted">
-            Figures are estimates only and vary by university and city — see each country page and our{" "}
+            Figures are estimates only and vary by university and city, see each country page and our{" "}
             <Link href="/tools/cost-calculator" className="underline">
               Cost Calculator
             </Link>{" "}

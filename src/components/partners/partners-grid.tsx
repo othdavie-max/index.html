@@ -20,7 +20,7 @@ export function PartnersGrid() {
       <Tabs tabs={filterTabs} defaultTab="all" onChange={setFilter} />
 
       <p className="mt-6 rounded-xl border border-gold-500/20 bg-gold-500/5 p-3 text-xs text-muted sm:text-sm">
-        PLACEHOLDER partner list shown below — replace with Baseline&apos;s confirmed partner universities and logos
+        PLACEHOLDER partner list shown below. Replace with Baseline&apos;s confirmed partner universities and logos
         before launch.
       </p>
 
