@@ -6,7 +6,6 @@ import { ServicesSection } from "@/components/home/services-section";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { ToolsTeaser } from "@/components/home/tools-teaser";
 import { SuccessStoriesSection } from "@/components/home/success-stories-section";
-import { StatsStrip } from "@/components/home/stats-strip";
 import { TeamPreview } from "@/components/home/team-preview";
 import { BlogPreview } from "@/components/home/blog-preview";
 import { FaqPreview } from "@/components/home/faq-preview";
@@ -29,7 +28,6 @@ export default function Home() {
       <HowItWorks />
       <ToolsTeaser />
       <SuccessStoriesSection />
-      <StatsStrip />
       <TeamPreview />
       <BlogPreview />
       <FaqPreview />

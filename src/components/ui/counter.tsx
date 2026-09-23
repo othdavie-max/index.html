@@ -3,7 +3,18 @@
 import { useEffect, useRef } from "react";
 import { useInView, useMotionValue, useSpring } from "framer-motion";
 
-export function Counter({ value, suffix = "", className }: { value: number; suffix?: string; className?: string }) {
+export function Counter({
+  value,
+  suffix = "",
+  format,
+  className,
+}: {
+  value: number;
+  suffix?: string;
+  /** Overrides the default `toLocaleString() + suffix` formatting, e.g. for abbreviated currency. */
+  format?: (value: number) => string;
+  className?: string;
+}) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   const motionValue = useMotionValue(0);
@@ -15,13 +26,9 @@ export function Counter({ value, suffix = "", className }: { value: number; suff
 
   useEffect(() => {
     return spring.on("change", (latest) => {
-      if (ref.current) ref.current.textContent = Math.round(latest).toLocaleString() + suffix;
+      if (ref.current) ref.current.textContent = format ? format(latest) : Math.round(latest).toLocaleString() + suffix;
     });
-  }, [spring, suffix]);
+  }, [spring, suffix, format]);
 
-  return (
-    <span ref={ref} className={className}>
-      0{suffix}
-    </span>
-  );
+  return <span ref={ref} className={className}>{format ? format(0) : `0${suffix}`}</span>;
 }

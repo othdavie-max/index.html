@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { siteSettings } from "@/data/site-settings";
 
 export function FinalCta({
   heading = "Your global future is closer than you think.",
@@ -33,7 +34,12 @@ export function FinalCta({
             <span className="text-gold-500">.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-white/70 sm:text-lg">{body}</p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+
+          <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
+            <span
+              aria-hidden
+              className="animate-gradient-glow pointer-events-none absolute left-1/2 top-1/2 -z-10 h-40 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold-500/30 blur-3xl"
+            />
             <Button href="/book" size="lg" magnetic icon={<CalendarCheck size={18} />}>
               Book a Consultation
             </Button>
@@ -46,6 +52,14 @@ export function FinalCta({
               Chat on WhatsApp
             </Button>
           </div>
+
+          <a
+            href={`tel:${siteSettings.phones[0].replace(/\s/g, "")}`}
+            className="mt-5 inline-flex items-center gap-1.5 text-sm text-white/50 transition-colors hover:text-white"
+          >
+            <Phone size={14} />
+            Or call {siteSettings.phones[0]}
+          </a>
         </Reveal>
       </div>
     </section>

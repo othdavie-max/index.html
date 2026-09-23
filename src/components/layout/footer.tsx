@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Mail, Phone } from "lucide-react";
+import { MapPin, Mail, Phone, Clock } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { FacebookIcon, InstagramIcon, XIcon } from "@/components/ui/social-icons";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
@@ -30,6 +30,10 @@ export function Footer() {
                 <Phone size={16} className="shrink-0 text-gold-500" />
                 {siteSettings.phones[0]}
               </a>
+              <p className="flex items-center gap-2.5">
+                <Clock size={16} className="shrink-0 text-gold-500" />
+                {siteSettings.hours}
+              </p>
             </div>
             <div className="mt-6 flex gap-3">
               <a href={siteSettings.socials.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="rounded-full bg-white/5 p-2.5 hover:bg-white/15">
@@ -75,11 +79,11 @@ export function Footer() {
 function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
-            <h3 className="font-display text-sm text-white">{title}</h3>
-      <ul className="mt-3 flex flex-col gap-2.5">
+      <h3 className="font-display text-sm text-white">{title}</h3>
+      <ul className="mt-2 flex flex-col">
         {links.map((l) => (
           <li key={l.href}>
-            <Link href={l.href} className="text-sm text-white/60 hover:text-white">
+            <Link href={l.href} className="flex min-h-[44px] items-center text-sm text-white/60 hover:text-white">
               {l.label}
             </Link>
           </li>

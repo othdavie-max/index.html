@@ -7,9 +7,9 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
 import { ImagePlaceholder } from "@/components/ui/image-placeholder";
 import { Flag } from "@/components/ui/flag";
-import { Icon3D } from "@/components/ui/icon-3d";
 import { destinations } from "@/data/destinations";
-import { OtherDestinationsChips } from "@/components/destinations/other-destinations-chips";
+import { AnywhereElseBanner } from "@/components/destinations/anywhere-else-banner";
+import { formatNaira } from "@/lib/utils";
 
 const photos: Record<string, string> = {
   uk: "/destinations/uk.png",
@@ -22,7 +22,7 @@ const photos: Record<string, string> = {
 
 export function DestinationShowcase() {
   return (
-    <section className="bg-offwhite py-20 sm:py-28">
+    <section className="bg-white py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="Study Destinations"
@@ -30,24 +30,24 @@ export function DestinationShowcase() {
           description="Start with our most popular destinations, or tell us where you're dreaming of. Wherever you want to study, we'll help you get there."
         />
 
-        <RevealGroup className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <RevealGroup className="no-scrollbar -mx-4 mt-12 flex snap-x gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
           {destinations.map((d) => {
             const photo = photos[d.code];
             return (
-              <RevealItem key={d.code}>
+              <RevealItem key={d.code} className="w-[82vw] max-w-[340px] shrink-0 snap-start sm:w-auto sm:max-w-none">
                 <Link href={`/destinations/${d.slug}`} className="group relative flex h-80 flex-col justify-end overflow-hidden rounded-2xl">
                   {photo ? (
                     <Image
                       src={photo}
                       alt={`${d.name} skyline`}
                       fill
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 82vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
                     <ImagePlaceholder label={`${d.name} skyline photo`} dark className="absolute inset-0 h-full w-full rounded-none border-0" />
                   )}
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/50 to-transparent" />
 
                   <div className="relative p-6">
                     <div className="mb-2 flex items-center gap-2">
@@ -55,6 +55,14 @@ export function DestinationShowcase() {
                       <h3 className="font-display text-xl font-bold text-white">{d.name}</h3>
                     </div>
                     <p className="text-sm text-white/70">{d.heroTagline}</p>
+
+                    <div className="mt-3 flex flex-col gap-1.5">
+                      <span className="inline-flex w-fit items-center rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                        Tuition from {formatNaira(d.tuitionRangeNgnPerYear[0])}/yr
+                      </span>
+                      <span className="line-clamp-1 text-xs text-white/60">{d.postStudyWork}</span>
+                    </div>
+
                     <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-500 transition-transform duration-300 group-hover:translate-x-1">
                       Explore <ArrowRight size={14} />
                     </span>
@@ -63,26 +71,11 @@ export function DestinationShowcase() {
               </RevealItem>
             );
           })}
-
-          <RevealItem>
-            <Link
-              href="/destinations/other"
-              className="group relative flex h-80 flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-gold-500/40 bg-gradient-to-br from-ink-900 to-ink-950 p-6 text-center transition-colors hover:border-gold-500"
-            >
-              <Icon3D name="globe-europe-africa" size={88} alt="" className="drop-shadow-lg" />
-              <h3 className="mt-5 font-display text-xl font-bold text-white">Anywhere else in the world</h3>
-              <p className="mt-2 text-sm text-white/70">
-                Netherlands, France, Malaysia, the UAE, South Africa, Ghana and beyond. If you want to study there,
-                we&apos;ll help.
-              </p>
-              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-500 transition-transform duration-300 group-hover:translate-x-1">
-                Talk to us <ArrowRight size={14} />
-              </span>
-            </Link>
-          </RevealItem>
         </RevealGroup>
 
-        <OtherDestinationsChips />
+        <div className="mt-8">
+          <AnywhereElseBanner />
+        </div>
       </div>
     </section>
   );

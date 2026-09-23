@@ -29,7 +29,7 @@ export function BlogPreview() {
           {latest.map((post) => (
             <RevealItem key={post.slug}>
               <Link href={`/blog/${post.slug}`} className="group block">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-ink-100">
+                <div className="relative aspect-video overflow-hidden rounded-2xl bg-ink-100">
                   {photos[post.slug] && (
                     <Image
                       src={photos[post.slug]}
@@ -43,8 +43,10 @@ export function BlogPreview() {
                     {post.category}
                   </span>
                 </div>
-                <h3 className="mt-4 font-display text-lg text-ink-900 transition-colors group-hover:text-gold-500">
-                  {post.title}
+                <h3 className="mt-4 line-clamp-2 font-display text-lg text-ink-900">
+                  <span className="bg-[linear-gradient(currentColor,currentColor)] bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size,color] duration-300 group-hover:bg-[length:100%_1px] group-hover:text-gold-500">
+                    {post.title}
+                  </span>
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted line-clamp-2">{post.excerpt}</p>
                 <div className="mt-3 flex items-center gap-3 text-xs text-muted">
