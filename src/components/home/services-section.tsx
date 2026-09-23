@@ -26,12 +26,12 @@ export function ServicesSection() {
           description="From your first conversation to the day you land, our services cover the full journey, not just one part of it."
         />
 
-        <RevealGroup className="no-scrollbar mt-12 flex snap-x gap-5 overflow-x-auto pb-4 lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0">
+        <RevealGroup className="no-scrollbar mt-12 grid grid-cols-1 gap-5 sm:flex sm:snap-x sm:gap-5 sm:overflow-x-auto sm:pb-4 lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0">
           {services.map((service) => {
             const isLarge = service.slug === "admission-services";
             const isWide = service.slug === "interview-preparation";
             return (
-              <RevealItem key={service.slug} className={cn("w-[280px] shrink-0 snap-start lg:w-auto", SPAN[service.slug])}>
+              <RevealItem key={service.slug} className={cn("sm:w-[280px] sm:shrink-0 sm:snap-start lg:w-auto", SPAN[service.slug])}>
                 <Link
                   href={`/services/${service.slug}`}
                   className={cn(
@@ -48,7 +48,7 @@ export function ServicesSection() {
                       {isLarge ? service.description : service.shortDescription}
                     </p>
                     {isLarge && (
-                      <ul className="mt-4 flex flex-col gap-2">
+                      <ul className="mt-4 hidden flex-col gap-2 sm:flex">
                         {service.highlights.slice(0, 2).map((h) => (
                           <li key={h} className="flex items-start gap-2 text-sm text-ink-900">
                             <Check size={15} className="mt-0.5 shrink-0 text-gold-500" />

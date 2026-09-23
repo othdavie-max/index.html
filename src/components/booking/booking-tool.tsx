@@ -191,6 +191,7 @@ export function BookingTool() {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
       <div className="lg:col-span-3">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted sm:hidden">Step {step} of {STEPS.length}</p>
         {/* Progress indicator */}
         <div className="mb-8 flex items-center">
           {STEPS.map((s, i) => {
@@ -290,7 +291,7 @@ export function BookingTool() {
                   <Loader2 size={14} className="animate-spin" /> Loading available times…
                 </p>
               ) : (
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {allSlots.map((slot) => {
                     const taken = bookedTimes.includes(slot);
                     return (

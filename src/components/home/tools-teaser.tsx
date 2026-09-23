@@ -112,7 +112,7 @@ export function ToolsTeaser() {
                   <h3 className="mt-5 font-display text-xl text-white">{tool.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-white/60">{tool.description}</p>
                 </div>
-                <div className="mt-6 flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
+                <div className="mt-6 hidden items-center justify-between rounded-xl bg-white/5 px-4 py-3 sm:flex">
                   {tool.preview}
                   <ArrowRight size={16} className="text-white transition-transform duration-300 group-hover:translate-x-1" />
                 </div>

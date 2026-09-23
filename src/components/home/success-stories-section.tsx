@@ -23,9 +23,9 @@ export function SuccessStoriesSection() {
         </div>
 
         {hasEnoughRealStories ? (
-          <RevealGroup className="no-scrollbar mt-12 flex snap-x gap-5 overflow-x-auto pb-2">
+          <RevealGroup className="no-scrollbar mt-12 grid grid-cols-1 gap-5 sm:flex sm:snap-x sm:overflow-x-auto sm:pb-2">
             {realTestimonials.slice(0, 4).map((t) => (
-              <RevealItem key={t.id} className="w-[280px] shrink-0 snap-start">
+              <RevealItem key={t.id} className="sm:w-[280px] sm:shrink-0 sm:snap-start">
                 <Link href="/success-stories" className="group block overflow-hidden rounded-2xl border border-ink-900/8 bg-white">
                   <div className="relative flex aspect-[4/5] items-center justify-center bg-gradient-to-br from-ink-700 to-ink-900">
                     <span className="font-display text-4xl text-white/20">{t.photoPlaceholder}</span>

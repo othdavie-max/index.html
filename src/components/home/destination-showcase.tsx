@@ -25,18 +25,18 @@ export function DestinationShowcase() {
           description="Start with our most popular destinations, or tell us where you're dreaming of. Wherever you want to study, we'll help you get there."
         />
 
-        <RevealGroup className="no-scrollbar -mx-4 mt-12 flex snap-x gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+        <RevealGroup className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {destinations.map((d) => {
             const photo = photoFor(d.code);
             return (
-              <RevealItem key={d.code} className="w-[82vw] max-w-[340px] shrink-0 snap-start sm:w-auto sm:max-w-none">
-                <Link href={`/destinations/${d.slug}`} className="group relative flex h-80 flex-col justify-end overflow-hidden rounded-2xl">
+              <RevealItem key={d.code}>
+                <Link href={`/destinations/${d.slug}`} className="group relative flex h-56 flex-col justify-end overflow-hidden rounded-2xl sm:h-80">
                   {photo ? (
                     <Image
                       src={photo}
                       alt={`${d.name} skyline`}
                       fill
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 82vw"
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
@@ -44,14 +44,14 @@ export function DestinationShowcase() {
                   )}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/50 to-transparent" />
 
-                  <div className="relative p-6">
+                  <div className="relative p-5 sm:p-6">
                     <div className="mb-2 flex items-center gap-2">
                       <Flag code={d.flagCode} size={24} alt={`${d.name} flag`} />
                       <h3 className="font-display text-xl font-bold text-white">{d.name}</h3>
                     </div>
                     <p className="text-sm text-white/70">{d.heroTagline}</p>
 
-                    <div className="mt-3 flex flex-col gap-1.5">
+                    <div className="mt-3 hidden flex-col gap-1.5 sm:flex">
                       <span className="inline-flex w-fit items-center rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
                         Tuition from {formatNaira(d.tuitionRangeNgnPerYear[0])}/yr
                       </span>
