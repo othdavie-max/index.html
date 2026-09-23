@@ -82,6 +82,8 @@ export interface BlogPost {
   publishedAt: string;
   readingTimeMinutes: number;
   coverPlaceholder: string;
+  /** Path under /public, e.g. "/blog/uk-visa.png" — used for card thumbnails, Open Graph/Twitter images, and Article JSON-LD. */
+  coverImage: string;
   seoTitle: string;
   seoDescription: string;
 }

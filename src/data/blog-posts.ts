@@ -13,6 +13,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-02-10",
     readingTimeMinutes: 7,
     coverPlaceholder: "blog-uk-visa",
+    coverImage: "/blog/uk-visa.png",
     seoTitle: "How to Get a UK Student Visa from Nigeria (Step-by-Step)",
     seoDescription:
       "Everything Nigerian students need to know about applying for a UK student visa: documents, funds, timelines and common mistakes to avoid.",
@@ -58,6 +59,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-02-24",
     readingTimeMinutes: 6,
     coverPlaceholder: "blog-cheapest-countries",
+    coverImage: "/blog/cost-comparison.png",
     seoTitle: "Cheapest Countries to Study Abroad from Nigeria",
     seoDescription:
       "A practical comparison of study-abroad costs across the UK, Ireland, Germany, Canada, the USA and Australia, and how to budget realistically.",
@@ -94,6 +96,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2026-03-05",
     readingTimeMinutes: 5,
     coverPlaceholder: "blog-english-tests",
+    coverImage: "/blog/ielts-prep.png",
     seoTitle: "IELTS vs TOEFL vs PTE vs Duolingo, Which Should You Take?",
     seoDescription:
       "A comparison of the major English proficiency tests for Nigerian students applying to study abroad, and how to pick the right one.",

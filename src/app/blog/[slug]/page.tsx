@@ -7,6 +7,7 @@ import { ShareButtons } from "@/components/blog/share-buttons";
 import { FinalCta } from "@/components/home/final-cta";
 import { blogPosts, getBlogPost } from "@/data/blog-posts";
 import { extractHeadings } from "@/lib/blog";
+import { siteSettings } from "@/data/site-settings";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.baselineeducationalservices.com";
 
@@ -18,11 +19,31 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
   const { slug } = await params;
   const post = getBlogPost(slug);
   if (!post) return {};
+
+  const url = `${siteUrl}/blog/${post.slug}`;
+  const imageUrl = `${siteUrl}${post.coverImage}`;
+
   return {
     title: post.seoTitle,
     description: post.seoDescription,
     alternates: { canonical: `/blog/${post.slug}` },
-    openGraph: { type: "article", publishedTime: post.publishedAt, authors: [post.author] },
+    openGraph: {
+      type: "article",
+      title: post.seoTitle,
+      description: post.seoDescription,
+      url,
+      siteName: siteSettings.companyName,
+      locale: "en_NG",
+      publishedTime: post.publishedAt,
+      authors: [post.author],
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.seoTitle,
+      description: post.seoDescription,
+      images: [imageUrl],
+    },
   };
 }
 
@@ -34,15 +55,22 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
   const { html, headings } = extractHeadings(post.contentHtml);
   const related = blogPosts.filter((p) => p.category === post.category && p.slug !== post.slug).slice(0, 3);
   const url = `${siteUrl}/blog/${post.slug}`;
+  const imageUrl = `${siteUrl}${post.coverImage}`;
 
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.seoDescription,
+    image: [imageUrl],
     author: { "@type": "Organization", name: post.author },
+    publisher: {
+      "@type": "Organization",
+      name: siteSettings.companyName,
+      logo: { "@type": "ImageObject", url: `${siteUrl}/logo.png` },
+    },
     datePublished: post.publishedAt,
-    mainEntityOfPage: url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
