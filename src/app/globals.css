@@ -75,6 +75,10 @@ body {
   font-family: var(--font-display);
 }
 
+.font-hero {
+  font-family: var(--font-montserrat);
+}
+
 .font-serif-em {
   font-family: var(--font-serif);
   font-style: italic;
