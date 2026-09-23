@@ -54,7 +54,7 @@ See `.env.example` for the full list with comments. Summary:
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Any database reads/writes, admin login |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side inserts from API routes (leads, bookings, applications, admin writes) — **never expose this to the browser** |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TEAM_NOTIFICATION_EMAIL` | Transactional emails (booking confirmations, application receipts, lead notifications) |
-| `ANTHROPIC_API_KEY` | The AI chat assistant — without it, the widget shows a friendly "not configured" message instead of erroring |
+| `XAI_API_KEY` | The AI chat assistant (Grok) — without it, the widget shows a friendly "not configured" message instead of erroring |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | The floating WhatsApp button and every "chat on WhatsApp" CTA site-wide |
 | `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_META_PIXEL_ID` | Analytics — both are no-ops when unset |
 
@@ -82,16 +82,16 @@ See `.env.example` for the full list with comments. Summary:
 
 Also unverified live (no API key in this environment) — the send calls and email templates (`src/lib/email.ts`) are implemented and the no-key fallback path was tested, but a real send was not.
 
-## 6. AI assistant (Anthropic)
+## 6. AI assistant (Grok / xAI)
 
-Set `ANTHROPIC_API_KEY`. The chat route (`src/app/api/chat/route.ts`) streams responses from `claude-sonnet-5` with a system prompt that:
+Set `XAI_API_KEY` (get one at [console.x.ai](https://console.x.ai)). The chat route (`src/app/api/chat/route.ts`) streams responses from Grok (`grok-4-fast` by default — override with `XAI_MODEL`) via xAI's OpenAI-compatible `/v1/chat/completions` endpoint, with a system prompt that:
 - Never promises a specific admission/scholarship/visa outcome
 - Never gives legal/immigration advice as authoritative
 - Never invents Baseline-specific facts (partner names, fees, stats) — its knowledge base (`src/lib/chat-knowledge.ts`) is compiled directly from the site's own published content
 - Prompts for name/WhatsApp after a few exchanges or signs of real intent, saving a lead (`source: ai-chat`) with the full transcript
 - Always surfaces a "Talk to a human on WhatsApp" button
 
-Rate-limited to 20 messages / 10 minutes per IP, 1000-character input cap, 20-turn history cap. **The streaming integration was not tested against a live model** — no `ANTHROPIC_API_KEY` was available in this environment. The UI, error states, and the "not configured" fallback were verified; a real conversation was not.
+Rate-limited to 20 messages / 10 minutes per IP, 1000-character input cap, 20-turn history cap. **The streaming integration was not tested against a live model** — no `XAI_API_KEY` was available in this environment. The UI, error states, and the "not configured" fallback were verified; a real conversation was not.
 
 ## 7. Deployment (Vercel)
 
