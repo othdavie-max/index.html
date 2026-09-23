@@ -1,8 +1,9 @@
 import { Marquee } from "@/components/ui/marquee";
+import { Flag } from "@/components/ui/flag";
 import { partners } from "@/data/partners";
 import { destinations } from "@/data/destinations";
 
-const flagByCountry = Object.fromEntries(destinations.map((d) => [d.code, d.flag]));
+const flagCodeByCountry = Object.fromEntries(destinations.map((d) => [d.code, d.flagCode]));
 
 export function TrustStrip() {
   return (
@@ -18,9 +19,7 @@ export function TrustStrip() {
               className="flex h-14 min-w-[160px] items-center justify-center gap-2 rounded-xl border border-ink-900/8 bg-white px-6 text-sm font-semibold text-ink-900/50"
               title={p.name}
             >
-              <span className="text-lg" aria-hidden="true">
-                {flagByCountry[p.country]}
-              </span>
+              <Flag code={flagCodeByCountry[p.country]} size={18} alt="" />
               {p.logoPlaceholder}
             </div>
           ))}

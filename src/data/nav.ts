@@ -15,6 +15,7 @@ export const destinationsNav: NavLink[] = [
   { label: "Canada", href: "/destinations/canada" },
   { label: "United States", href: "/destinations/usa" },
   { label: "Australia", href: "/destinations/australia" },
+  { label: "Other Destinations", href: "/destinations/other" },
 ];
 
 export const toolsNav: NavLink[] = [

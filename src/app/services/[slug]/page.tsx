@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Check, Compass, GraduationCap, BookOpenCheck, FileCheck2, MessagesSquare, type LucideIcon } from "lucide-react";
+import { Check } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
 import { Button } from "@/components/ui/button";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
+import { Icon3DTile, type Icon3DName } from "@/components/ui/icon-3d";
 import { FinalCta } from "@/components/home/final-cta";
 import { services } from "@/data/services";
-
-const icons: Record<string, LucideIcon> = { Compass, GraduationCap, BookOpenCheck, FileCheck2, MessagesSquare };
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -29,8 +28,6 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
   const service = services.find((s) => s.slug === slug);
   if (!service) notFound();
 
-  const Icon = icons[service.icon];
-
   return (
     <>
       <PageHero eyebrow="Service" title={service.name} description={service.description}>
@@ -43,8 +40,8 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
 
       <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-500">
-            {Icon && <Icon size={28} />}
+          <div className="mx-auto">
+            <Icon3DTile name={service.icon as Icon3DName} size={44} tileSize={64} className="mx-auto" />
           </div>
 
           <RevealGroup className="mt-10 flex flex-col gap-4">

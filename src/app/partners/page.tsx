@@ -4,7 +4,7 @@ import { PartnersGrid } from "@/components/partners/partners-grid";
 
 export const metadata: Metadata = {
   title: "Partner Universities",
-  description: "Browse Baseline's partner universities across the UK, Ireland, Germany, Canada, the USA and Australia.",
+  description: "Browse Baseline's featured partner universities by country, and ask us about institutions anywhere else in the world.",
   alternates: { canonical: "/partners" },
 };
 
@@ -15,7 +15,7 @@ export default function PartnersPage() {
         eyebrow="Partners"
         title="Our partner"
         emphasis="institutions."
-        description="We work with universities across all six destinations. Browse by country to see what each partner offers."
+        description="We work with universities around the world. Browse our featured partners by country below, and ask us about institutions anywhere else."
       />
 
       <section className="bg-white py-16 sm:py-24">

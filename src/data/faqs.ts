@@ -5,6 +5,13 @@ import type { FaqItem } from "@/types";
 // point back to the cost calculator / a counsellor for current numbers.
 export const faqs: FaqItem[] = [
   {
+    id: "admissions-0",
+    category: "Admissions",
+    question: "Do you only help with the six countries on your website?",
+    answer:
+      "No. The UK, Ireland, Germany, Canada, the USA and Australia are our most popular destinations, but we help students study in any country, including elsewhere in Europe, Asia, the Middle East, Oceania, and other African countries. Tell us where you'd like to go and we'll guide you from application to visa.",
+  },
+  {
     id: "cost-1",
     category: "Costs",
     question: "How much does it cost to study abroad from Nigeria?",

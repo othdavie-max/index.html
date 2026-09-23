@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowUpRight, X } from "lucide-react";
+import { Flag } from "@/components/ui/flag";
 import { destinations } from "@/data/destinations";
 import { formatNaira } from "@/lib/utils";
 import type { Destination } from "@/types";
@@ -23,7 +25,9 @@ const nameToCode: Record<string, string> = {
 };
 
 export function WorldMap() {
+  const router = useRouter();
   const [hovered, setHovered] = useState<{ destination: Destination; x: number; y: number } | null>(null);
+  const [hoveredOther, setHoveredOther] = useState<{ name: string; x: number; y: number } | null>(null);
   const [hoveredCode, setHoveredCode] = useState<string | null>(null);
   const [selected, setSelected] = useState<Destination | null>(null);
   // world-atlas serves TopoJSON, which react-simple-maps accepts and
@@ -69,30 +73,36 @@ export function WorldMap() {
                 const name = geo.properties?.name as string | undefined;
                 const code = name ? nameToCode[name] : undefined;
                 const destination = destinations.find((d) => d.code === code);
-                const isHovered = hoveredCode === code;
+                const isHovered = hoveredCode === (code ?? name);
                 const fill = destination ? (isHovered ? "#A3835F" : "#C4A57B") : isHovered ? "#D8CFC5" : "#E7E0D8";
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
                     onMouseEnter={(e) => {
-                      setHoveredCode(code ?? null);
-                      if (!destination) return;
-                      setHovered({ destination, x: e.clientX, y: e.clientY });
+                      setHoveredCode(code ?? name ?? null);
+                      if (destination) {
+                        setHovered({ destination, x: e.clientX, y: e.clientY });
+                        setHoveredOther(null);
+                      } else if (name) {
+                        setHoveredOther({ name, x: e.clientX, y: e.clientY });
+                        setHovered(null);
+                      }
                     }}
                     onMouseMove={(e) => {
-                      if (!destination) return;
-                      setHovered({ destination, x: e.clientX, y: e.clientY });
+                      if (destination) setHovered({ destination, x: e.clientX, y: e.clientY });
+                      else if (name) setHoveredOther({ name, x: e.clientX, y: e.clientY });
                     }}
                     onMouseLeave={() => {
                       setHoveredCode(null);
                       setHovered(null);
+                      setHoveredOther(null);
                     }}
-                    onClick={() => destination && setSelected(destination)}
+                    onClick={() => (destination ? setSelected(destination) : name && router.push(`/destinations/other?country=${encodeURIComponent(name)}`))}
                     fill={fill}
                     stroke="#F7F8FB"
                     strokeWidth={0.5}
-                    style={{ outline: "none", cursor: destination ? "pointer" : "default", transition: "fill 200ms" }}
+                    style={{ outline: "none", cursor: "pointer", transition: "fill 200ms" }}
                   />
                 );
               })
@@ -106,13 +116,23 @@ export function WorldMap() {
             className="pointer-events-none fixed z-30 w-64 rounded-xl border border-ink-900/10 bg-white p-4 shadow-xl"
             style={{ left: hovered.x + 16, top: hovered.y + 16 }}
           >
-            <p className="font-display text-sm text-ink-900">
-              {hovered.destination.flag} {hovered.destination.name}
+            <p className="flex items-center gap-1.5 font-display text-sm text-ink-900">
+              <Flag code={hovered.destination.flagCode} size={16} alt="" /> {hovered.destination.name}
             </p>
             <p className="mt-1 text-xs text-muted">
               Tuition: {formatNaira(hovered.destination.tuitionRangeNgnPerYear[0])}–{formatNaira(hovered.destination.tuitionRangeNgnPerYear[1])}/yr
             </p>
             <p className="mt-0.5 text-xs text-muted">Top course: {hovered.destination.topCourses[0]}</p>
+          </div>
+        )}
+
+        {hoveredOther && (
+          <div
+            className="pointer-events-none fixed z-30 w-60 rounded-xl border border-ink-900/10 bg-white p-4 shadow-xl"
+            style={{ left: hoveredOther.x + 16, top: hoveredOther.y + 16 }}
+          >
+            <p className="text-sm text-ink-900">We can help you study here too</p>
+            <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-gold-500">Talk to us <ArrowUpRight size={12} /></p>
           </div>
         )}
       </div>
@@ -125,7 +145,7 @@ export function WorldMap() {
               onClick={() => setSelected(d)}
               className="rounded-2xl border border-ink-900/8 bg-white p-5 text-left transition-colors hover:border-gold-500/30"
             >
-              <span className="text-3xl">{d.flag}</span>
+              <Flag code={d.flagCode} size={32} alt={`${d.name} flag`} />
               <p className="mt-2 font-display text-base text-ink-900">{d.name}</p>
               <p className="mt-1 text-xs text-muted">{d.heroTagline}</p>
             </button>
@@ -141,11 +161,18 @@ export function WorldMap() {
             onClick={() => setSelected(d)}
             className="w-56 shrink-0 snap-start rounded-2xl border border-ink-900/8 bg-white p-5 text-left"
           >
-            <span className="text-3xl">{d.flag}</span>
-              <p className="mt-2 font-display text-base text-ink-900">{d.name}</p>
+            <Flag code={d.flagCode} size={32} alt={`${d.name} flag`} />
+            <p className="mt-2 font-display text-base text-ink-900">{d.name}</p>
             <p className="mt-1 text-xs text-muted">{d.heroTagline}</p>
           </button>
         ))}
+        <Link
+          href="/destinations/other"
+          className="flex w-56 shrink-0 snap-start flex-col justify-center rounded-2xl border border-dashed border-gold-500/40 bg-white p-5 text-left"
+        >
+          <p className="font-display text-base text-ink-900">Anywhere else</p>
+          <p className="mt-1 text-xs text-muted">We can help you study anywhere in the world.</p>
+        </Link>
       </div>
 
       <AnimatePresence>
@@ -169,7 +196,9 @@ export function WorldMap() {
                 <X size={18} />
               </button>
 
-              <span className="mt-4 block text-5xl">{selected.flag}</span>
+              <div className="mt-4">
+                <Flag code={selected.flagCode} size={56} alt={`${selected.name} flag`} />
+              </div>
               <h3 className="mt-3 font-display text-2xl text-ink-900">{selected.name}</h3>
               <p className="mt-2 text-sm text-muted">{selected.summary}</p>
 

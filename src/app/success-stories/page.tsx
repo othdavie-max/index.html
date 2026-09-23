@@ -3,6 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
+import { Flag } from "@/components/ui/flag";
 import { StoriesGrid } from "@/components/success-stories/stories-grid";
 import { FinalCta } from "@/components/home/final-cta";
 import { testimonials } from "@/data/testimonials";
@@ -44,8 +45,8 @@ export default function SuccessStoriesPage() {
                       {t.photoPlaceholder}
                     </div>
                     <p className="text-xs font-semibold text-ink-900">{t.name}</p>
-                    <p className="text-[11px] text-muted">
-                      {destination?.flag} {destination?.name}
+                    <p className="flex items-center justify-center gap-1 text-[11px] text-muted">
+                      {destination && <Flag code={destination.flagCode} size={12} alt="" />} {destination?.name}
                     </p>
                     <span className="mt-1 flex items-center gap-1 rounded-full bg-gold-500/10 px-2 py-0.5 text-[10px] font-semibold text-gold-600">
                       <ShieldCheck size={10} /> Approved

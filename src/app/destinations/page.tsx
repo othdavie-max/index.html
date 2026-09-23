@@ -2,15 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
+import { Flag } from "@/components/ui/flag";
 import { FinalCta } from "@/components/home/final-cta";
 import { WorldMapLoader } from "@/components/destinations/world-map-loader";
+import { OtherDestinationsGrouped } from "@/components/destinations/other-destinations-grouped";
+import { OtherDestinationsCta } from "@/components/destinations/other-destinations-cta";
 import { destinations } from "@/data/destinations";
 import { formatNaira } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Study Destinations",
-  description: "Explore study-abroad options in the UK, Ireland, Germany, Canada, the USA and Australia: tuition ranges, intakes, and post-study work.",
+  description:
+    "Compare tuition, intakes and post-study work for the UK, Ireland, Germany, Canada, the USA and Australia, and get guidance for studying in any other country.",
   alternates: { canonical: "/destinations" },
 };
 
@@ -19,9 +24,9 @@ export default function DestinationsPage() {
     <>
       <PageHero
         eyebrow="Destinations"
-        title="Six countries,"
-        emphasis="one clear plan."
-        description="Every destination offers something different. Compare tuition, intakes and post-study work before you decide."
+        title="Study anywhere,"
+        emphasis="start with a clear plan."
+        description="Compare tuition, intakes and post-study work for our most popular destinations below. Considering somewhere else? We support students heading to universities all over the world."
       />
 
       <section className="bg-white py-16 sm:py-20">
@@ -41,7 +46,7 @@ export default function DestinationsPage() {
                   className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:shadow-[0_20px_40px_-15px_rgba(11,_37,_69,0.2)]"
                 >
                   <div className="flex items-start justify-between">
-                    <span className="text-4xl">{d.flag}</span>
+                    <Flag code={d.flagCode} size={40} alt={`${d.name} flag`} />
                     <ArrowUpRight size={18} className="text-ink-900/40 transition-colors group-hover:text-gold-500" />
                   </div>
                   <h2 className="mt-4 font-display text-xl text-ink-900">{d.name}</h2>
@@ -71,6 +76,22 @@ export default function DestinationsPage() {
             </Link>{" "}
             for a personalised breakdown.
           </p>
+        </div>
+      </section>
+
+      <section className="bg-white py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <SectionHeading
+            eyebrow="Beyond Our Popular Destinations"
+            title="Studying somewhere"
+            emphasis="else in the world?"
+            align="center"
+            className="mx-auto"
+          />
+          <div className="mt-12">
+            <OtherDestinationsGrouped />
+          </div>
+          <OtherDestinationsCta />
         </div>
       </section>
 

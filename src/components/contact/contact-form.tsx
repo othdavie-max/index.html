@@ -63,6 +63,12 @@ export function ContactForm() {
       </div>
 
       <div>
+        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Destination you&apos;re interested in (optional)</label>
+        <input {...register("destination")} className={fieldClass} placeholder="e.g. UK, Canada, or anywhere else" />
+        {errors.destination && <p className={errorClass}>{errors.destination.message}</p>}
+      </div>
+
+      <div>
         <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Message</label>
         <textarea {...register("message")} rows={5} className={fieldClass} placeholder="Tell us a bit about what you need…" />
         {errors.message && <p className={errorClass}>{errors.message.message}</p>}

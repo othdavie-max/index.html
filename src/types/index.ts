@@ -8,6 +8,8 @@ export interface Destination {
   code: CountryCode;
   name: string;
   flag: string;
+  /** ISO 3166-1 alpha-2 code, lowercase — matches /public/flags/<flagCode>.svg (circle-flags). */
+  flagCode: string;
   slug: string;
   heroTagline: string;
   summary: string;

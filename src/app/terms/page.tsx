@@ -54,7 +54,16 @@ export default function TermsPage() {
           <h2 className="mt-8 font-display text-xl text-ink-900">6. Intellectual property</h2>
           <p>
             All content on this site (text, design, graphics, tools and code) is the property of{" "}
-            {siteSettings.companyName} unless otherwise stated, and may not be reproduced without permission.
+            {siteSettings.companyName} unless otherwise stated, and may not be reproduced without permission. This
+            site also uses third-party icon and flag assets under MIT license — see{" "}
+            <a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noopener noreferrer">
+              Fluent Emoji
+            </a>{" "}
+            (Copyright Microsoft Corporation) and{" "}
+            <a href="https://github.com/HatScripts/circle-flags" target="_blank" rel="noopener noreferrer">
+              circle-flags
+            </a>{" "}
+            (Copyright HatScripts). Full details in this repository&apos;s ATTRIBUTIONS.md.
           </p>
 
           <h2 className="mt-8 font-display text-xl text-ink-900">7. Limitation of liability</h2>

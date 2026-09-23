@@ -8,6 +8,7 @@ export const destinations: Destination[] = [
     code: "uk",
     name: "United Kingdom",
     flag: "🇬🇧",
+    flagCode: "gb",
     slug: "uk",
     heroTagline: "World-renowned degrees, one-year Master's options",
     summary:
@@ -27,6 +28,7 @@ export const destinations: Destination[] = [
     code: "ireland",
     name: "Ireland",
     flag: "🇮🇪",
+    flagCode: "ie",
     slug: "ireland",
     heroTagline: "Europe's tech and pharma hub, English-speaking",
     summary:
@@ -46,6 +48,7 @@ export const destinations: Destination[] = [
     code: "germany",
     name: "Germany",
     flag: "🇩🇪",
+    flagCode: "de",
     slug: "germany",
     heroTagline: "Low or no tuition at public universities",
     summary:
@@ -65,6 +68,7 @@ export const destinations: Destination[] = [
     code: "canada",
     name: "Canada",
     flag: "🇨🇦",
+    flagCode: "ca",
     slug: "canada",
     heroTagline: "Quality education with clear immigration pathways",
     summary:
@@ -84,6 +88,7 @@ export const destinations: Destination[] = [
     code: "usa",
     name: "United States",
     flag: "🇺🇸",
+    flagCode: "us",
     slug: "usa",
     heroTagline: "The widest range of programmes and campuses",
     summary:
@@ -103,6 +108,7 @@ export const destinations: Destination[] = [
     code: "australia",
     name: "Australia",
     flag: "🇦🇺",
+    flagCode: "au",
     slug: "australia",
     heroTagline: "Strong tech focus and a diverse, welcoming culture",
     summary:

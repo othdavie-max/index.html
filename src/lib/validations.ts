@@ -14,6 +14,7 @@ export const contactFormSchema = z.object({
   email: emailSchema,
   phone: phoneSchema,
   subject: z.string().trim().min(2).max(150),
+  destination: z.string().trim().max(100).optional(),
   message: z.string().trim().min(10, "Tell us a little more (10 characters minimum)").max(2000),
 });
 export type ContactFormValues = z.infer<typeof contactFormSchema>;

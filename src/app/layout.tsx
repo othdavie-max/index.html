@@ -36,6 +36,7 @@ export const metadata: Metadata = {
     "UK student visa Nigeria",
     "Canada study visa Nigeria",
     "study abroad consultancy Abuja",
+    "study abroad anywhere from Nigeria",
   ],
   openGraph: {
     type: "website",

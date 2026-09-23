@@ -27,7 +27,7 @@ export default async function PartnerDetailPage({ params }: PageProps<"/partners
 
   return (
     <>
-      <PageHero eyebrow={destination ? `${destination.flag} ${destination.name}` : undefined} title={partner.name} description={partner.overview} />
+      <PageHero eyebrow={destination?.name} title={partner.name} description={partner.overview} />
 
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">

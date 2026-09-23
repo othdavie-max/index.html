@@ -15,7 +15,7 @@ import { FinalCta } from "@/components/home/final-cta";
 export const metadata: Metadata = {
   title: "Study Abroad Consultants in Abuja, Nigeria",
   description:
-    "Baseline Educational Services helps Nigerian students get admissions, scholarships and visas for the UK, Ireland, Germany, Canada, the USA and Australia. Book your free consultation.",
+    "Baseline Educational Services in Abuja helps Nigerian students secure admissions, scholarships and visas for universities worldwide, from the UK, Canada and the USA to Europe, Asia and Africa. Book a free consultation.",
   alternates: { canonical: "/" },
 };
 

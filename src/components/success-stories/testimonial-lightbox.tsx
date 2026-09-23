@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ShieldCheck, X } from "lucide-react";
+import { Flag } from "@/components/ui/flag";
 import { getDestination } from "@/data/destinations";
 import type { Testimonial } from "@/types";
 
@@ -53,8 +54,8 @@ export function TestimonialLightbox({ testimonial, onClose }: { testimonial: Tes
               )}
               <p className="text-sm italic leading-relaxed text-ink-900">&ldquo;{testimonial.quote}&rdquo;</p>
               <p className="mt-4 font-display text-sm text-ink-900">{testimonial.name}</p>
-              <p className="text-xs text-muted">
-                {testimonial.course} · {testimonial.university} · {destination?.flag} {destination?.name}
+              <p className="flex items-center gap-1 text-xs text-muted">
+                {testimonial.course} · {testimonial.university} · {destination && <Flag code={destination.flagCode} size={13} alt="" />} {destination?.name}
               </p>
             </div>
           </motion.div>
