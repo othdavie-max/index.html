@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { buildKnowledgeBase } from "@/lib/chat-knowledge";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { siteSettings } from "@/data/site-settings";
@@ -27,7 +26,7 @@ export async function POST(request: Request) {
     return new Response("Too many messages. Please try again in a few minutes, or reach us on WhatsApp.", { status: 429 });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.XAI_API_KEY;
   if (!apiKey) {
     return new Response(
       "The AI assistant isn't configured yet. Please reach us directly on WhatsApp or book a free consultation.",
@@ -46,29 +45,75 @@ export async function POST(request: Request) {
     content: String(m.content ?? "").slice(0, MAX_MESSAGE_LENGTH),
   }));
 
-  const client = new Anthropic({ apiKey });
+  const model = process.env.XAI_MODEL || "grok-4-fast";
+
+  let upstream: Response;
+  try {
+    upstream = await fetch("https://api.x.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1024,
+        stream: true,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...trimmedHistory],
+      }),
+    });
+  } catch (err) {
+    console.error("[chat] upstream request failed", err);
+    return new Response("Something went wrong. Please try again or reach us on WhatsApp.", { status: 502 });
+  }
+
+  if (!upstream.ok || !upstream.body) {
+    const errorBody = await upstream.text().catch(() => "");
+    console.error("[chat] upstream error", upstream.status, errorBody);
+    return new Response("Something went wrong. Please try again or reach us on WhatsApp.", { status: 502 });
+  }
 
   const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    start(controller) {
-      const anthropicStream = client.messages.stream({
-        model: "claude-sonnet-5",
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
-        messages: trimmedHistory,
-      });
+  const decoder = new TextDecoder();
+  const reader = upstream.body.getReader();
 
-      anthropicStream.on("text", (textDelta) => {
-        controller.enqueue(encoder.encode(textDelta));
-      });
-      anthropicStream.on("end", () => controller.close());
-      anthropicStream.on("error", (err) => {
+  const stream = new ReadableStream({
+    async start(controller) {
+      let buffer = "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const data = trimmed.slice(5).trim();
+            if (data === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const delta = parsed?.choices?.[0]?.delta?.content;
+              if (typeof delta === "string" && delta.length > 0) {
+                controller.enqueue(encoder.encode(delta));
+              }
+            } catch {
+              // Skip malformed SSE chunks rather than failing the whole stream.
+            }
+          }
+        }
+        controller.close();
+      } catch (err) {
         console.error("[chat] stream error", err);
         controller.error(err);
-      });
+      }
     },
     cancel() {
-      // no-op — the SDK stream will be garbage collected
+      reader.cancel().catch(() => {});
     },
   });
 
