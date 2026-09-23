@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+:root {
+  /* PLACEHOLDER-safe brand tokens — navy / crimson editorial palette.
+     NOTE: token names (ink-*, gold-*) are historical from an earlier
+     luxury palette and now hold navy/crimson values instead — kept as-is
+     to avoid another risky project-wide class rename. ink-* = navy,
+     gold-* = crimson. */
+  --color-ink-950: #061529;
+  --color-ink-900: #0b2545;
+  --color-ink-700: #123769;
+  --color-ink-100: #e8edf6;
+  --color-gold-500: #e31c5f;
+  --color-gold-600: #c91652;
+  --color-danger-500: #c22a2f;
+  --color-danger-600: #a01f24;
+  --color-white: #ffffff;
+  --color-offwhite: #f7f9fc;
+  --color-ink: #0b2545;
+  --color-muted: #5b6577;
+
+  --font-display: var(--font-merriweather);
+  --font-serif: var(--font-merriweather);
+  --font-body: var(--font-inter);
+
+  --header-height: 76px;
+}
+
+@theme inline {
+  --color-ink-950: var(--color-ink-950);
+  --color-ink-900: var(--color-ink-900);
+  --color-ink-700: var(--color-ink-700);
+  --color-ink-100: var(--color-ink-100);
+  --color-gold-500: var(--color-gold-500);
+  --color-gold-600: var(--color-gold-600);
+  --color-danger-500: var(--color-danger-500);
+  --color-danger-600: var(--color-danger-600);
+  --color-offwhite: var(--color-offwhite);
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-muted);
+
+  --font-display: var(--font-display);
+  --font-serif: var(--font-serif);
+  --font-body: var(--font-body);
+
+  --animate-marquee: marquee 32s linear infinite;
+  --animate-marquee-fast: marquee 18s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--color-ink-100);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--color-gold-500);
+  color: var(--color-white);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-serif-em {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+/* Reduced motion: kill non-essential animation globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.legal-content p {
+  margin-top: 1rem;
+  color: var(--color-muted);
+}
+.legal-content ul {
+  margin-top: 1rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+  color: var(--color-muted);
+}
+.legal-content li {
+  margin-top: 0.4rem;
+}
+.legal-content a {
+  color: var(--color-gold-500);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.blog-content h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-ink);
+  scroll-margin-top: 6rem;
+}
+.blog-content p {
+  margin-top: 1rem;
+  color: var(--color-muted);
+  line-height: 1.75;
+}
+.blog-content ul {
+  margin-top: 1rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+  color: var(--color-muted);
+}
+.blog-content li {
+  margin-top: 0.4rem;
+}
+.blog-content a {
+  color: var(--color-gold-500);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.blog-content strong {
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-500);
+  outline-offset: 2px;
+}
