@@ -1,9 +1,16 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Button } from "@/components/ui/button";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
 import { blogPosts } from "@/data/blog-posts";
+
+const photos: Record<string, string> = {
+  "how-to-get-a-uk-student-visa-from-nigeria": "/blog/uk-visa.png",
+  "cheapest-countries-to-study-abroad-from-nigeria": "/blog/cost-comparison.png",
+  "ielts-vs-toefl-vs-pte-vs-duolingo": "/blog/ielts-prep.png",
+};
 
 export function BlogPreview() {
   const latest = [...blogPosts].sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1)).slice(0, 3);
@@ -22,8 +29,19 @@ export function BlogPreview() {
           {latest.map((post) => (
             <RevealItem key={post.slug}>
               <Link href={`/blog/${post.slug}`} className="group block">
-                <div className="flex aspect-[16/10] items-center justify-center rounded-2xl bg-gradient-to-br from-ink-100 to-ink-100/40">
-                  <span className="rounded-full bg-ink-900 px-3 py-1 text-xs font-semibold text-white">{post.category}</span>
+                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-ink-100">
+                  {photos[post.slug] && (
+                    <Image
+                      src={photos[post.slug]}
+                      alt=""
+                      fill
+                      sizes="(min-width: 768px) 33vw, 100vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
+                  <span className="absolute left-3 top-3 rounded-full bg-ink-900 px-3 py-1 text-xs font-semibold text-white">
+                    {post.category}
+                  </span>
                 </div>
                 <h3 className="mt-4 font-display text-lg text-ink-900 transition-colors group-hover:text-gold-500">
                   {post.title}

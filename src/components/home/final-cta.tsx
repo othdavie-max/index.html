@@ -1,18 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import { CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
-import { ImagePlaceholder } from "@/components/ui/image-placeholder";
 import { openWhatsApp } from "@/lib/whatsapp";
 
 export function FinalCta() {
   return (
     <section className="relative overflow-hidden py-28 sm:py-36">
-      <ImagePlaceholder
-        label="CTA background — skyline at dusk with passport and boarding pass"
-        dark
-        className="absolute inset-0 h-full w-full rounded-none border-0"
+      <Image
+        src="/cta-background.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/70 to-ink-950/30" />
 

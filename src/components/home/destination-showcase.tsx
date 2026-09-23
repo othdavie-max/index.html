@@ -8,9 +8,11 @@ import { RevealGroup, RevealItem } from "@/components/ui/reveal";
 import { ImagePlaceholder } from "@/components/ui/image-placeholder";
 import { destinations } from "@/data/destinations";
 
-// Filled in as real destination photos are generated/uploaded; falls back
-// to ImagePlaceholder for any destination not listed here yet.
 const photos: Record<string, string> = {
+  uk: "/destinations/uk.png",
+  ireland: "/destinations/ireland.png",
+  germany: "/destinations/germany.png",
+  canada: "/destinations/canada.png",
   usa: "/destinations/usa.webp",
   australia: "/destinations/australia.webp",
 };
