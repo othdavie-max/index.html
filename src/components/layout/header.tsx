@@ -32,7 +32,7 @@ export function Header() {
     <header
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
-        scrolled ? "bg-white/85 shadow-[0_1px_0_rgba(42, 24, 16,0.08)] backdrop-blur-lg" : "bg-transparent",
+        scrolled ? "bg-white/85 shadow-[0_1px_0_rgba(11, 37, 69,0.08)] backdrop-blur-lg" : "bg-transparent",
       )}
     >
       <div
@@ -43,18 +43,21 @@ export function Header() {
       >
         <Logo />
 
-        <nav className="hidden items-center gap-1 lg:flex" onMouseLeave={() => setOpenMenu(null)}>
+        <nav className="hidden items-center gap-0.5 lg:flex" onMouseLeave={() => setOpenMenu(null)}>
           {primaryNav.map((item) => (
             <div key={item.href} className="relative" onMouseEnter={() => item.children && setOpenMenu(item.label)}>
               <Link
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-ink-900 transition-colors hover:bg-ink-900/5",
+                  "relative flex items-center gap-1 px-3 py-2 text-sm font-medium text-ink-900 transition-colors hover:text-gold-500",
                   pathname === item.href && "text-gold-500",
                 )}
               >
                 {item.label}
                 {item.children && <ChevronDown size={14} className="opacity-50" />}
+                {pathname === item.href && (
+                  <motion.span layoutId="nav-underline" className="absolute -bottom-1 left-3 right-3 h-[2px] bg-gold-500" />
+                )}
               </Link>
 
               <AnimatePresence>

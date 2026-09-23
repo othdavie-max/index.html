@@ -86,7 +86,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             <div className="mt-10 rounded-2xl bg-ink-900 p-6 text-center sm:p-8">
               <p className="font-display text-lg text-white">Ready to talk it through?</p>
               <p className="mt-1 text-sm text-white/60">Book a free consultation with a Baseline counsellor.</p>
-              <Link href="/book" className="mt-4 inline-block rounded-full bg-gold-500 px-6 py-2.5 text-sm font-medium text-ink-900 hover:bg-gold-600">
+              <Link href="/book" className="mt-4 inline-block rounded-full bg-gold-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-600">
                 Book a Free Consultation
               </Link>
             </div>

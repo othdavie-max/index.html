@@ -1,82 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { cn } from "@/lib/utils";
-import { howItWorksSteps } from "@/data/how-it-works";
+import { MessagesSquare, Compass, FileText, Award, ShieldCheck, PlaneTakeoff, type LucideIcon } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { RevealGroup, RevealItem } from "@/components/ui/reveal";
+import { howItWorksSteps } from "@/data/how-it-works";
+
+const icons: Record<string, LucideIcon> = {
+  MessagesSquare,
+  Compass,
+  FileText,
+  Award,
+  ShieldCheck,
+  PlaneTakeoff,
+};
 
 export function HowItWorks() {
-  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [active, setActive] = useState(0);
-
-  useEffect(() => {
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) return;
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const triggers = stepRefs.current.map((el, i) => {
-      if (!el) return null;
-      return ScrollTrigger.create({
-        trigger: el,
-        start: "top center",
-        end: "bottom center",
-        onToggle: (self) => self.isActive && setActive(i),
-      });
-    });
-
-    return () => triggers.forEach((t) => t?.kill());
-  }, []);
-
   return (
-    <section className="bg-ink-950 py-20 sm:py-28">
+    <section className="bg-white py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="How It Works" title="Six steps from" emphasis="here to there." dark align="center" className="mx-auto" />
+        <SectionHeading eyebrow="Our Process" title="How Baseline works" align="center" className="mx-auto" />
 
-        <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-2">
-          <div className="flex flex-col">
-            {howItWorksSteps.map((step, i) => (
-              <div
-                key={step.title}
-                ref={(el) => {
-                  stepRefs.current[i] = el;
-                }}
-                className="flex min-h-[22vh] items-center gap-4 py-4 lg:min-h-[30vh]"
-              >
-                <div
-                  className={cn(
-                    "flex items-start gap-4 rounded-xl px-4 py-4 transition-all duration-500",
-                    active === i ? "bg-white/8" : "opacity-40",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors duration-500",
-                      active === i ? "border-gold-500 bg-gold-500 text-ink-900" : "border-white/20 text-white/60",
-                    )}
-                  >
-                    {i + 1}
+        <div className="relative mt-16">
+          <div className="absolute left-0 right-0 top-7 hidden h-px bg-ink-900/10 md:block" />
+          <RevealGroup className="grid grid-cols-1 gap-x-4 gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+            {howItWorksSteps.map((step, i) => {
+              const Icon = icons[step.icon];
+              return (
+                <RevealItem key={step.title} className="relative flex flex-col items-center text-center">
+                  <span className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-ink-900/10 bg-white text-gold-500">
+                    {Icon && <Icon size={22} />}
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-[10px] font-bold text-white">
+                      {i + 1}
+                    </span>
                   </span>
-                  <div>
-                    <h3 className="font-display text-base text-white sm:text-lg">{step.title}</h3>
-                    <p className="mt-1 text-sm text-white/60">{step.description}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="relative hidden lg:block">
-            <div className="sticky top-28 flex aspect-square items-center justify-center rounded-3xl border border-white/10 bg-white/[0.03]">
-              <span className="font-display text-[10rem] leading-none text-white/10">{active + 1}</span>
-              <div className="absolute bottom-10 left-10 right-10">
-                <p className="font-display text-2xl text-white">{howItWorksSteps[active].title}</p>
-                <p className="mt-2 text-sm text-white/60">{howItWorksSteps[active].description}</p>
-              </div>
-            </div>
-          </div>
+                  <h3 className="mt-4 font-display text-sm font-bold text-ink-900">{step.title}</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted">{step.description}</p>
+                </RevealItem>
+              );
+            })}
+          </RevealGroup>
         </div>
       </div>
     </section>

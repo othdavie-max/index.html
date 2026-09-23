@@ -49,7 +49,7 @@ export function GuideCard({ guide }: { guide: Guide }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-4 flex items-center justify-center gap-2 rounded-full bg-gold-500 px-5 py-2.5 text-sm font-medium text-ink-900 hover:bg-gold-600"
+          className="mt-4 flex items-center justify-center gap-2 rounded-full bg-gold-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-600"
         >
           <Download size={15} /> Get Free Guide
         </button>
@@ -75,7 +75,7 @@ export function GuideCard({ guide }: { guide: Guide }) {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="mt-1 flex items-center justify-center gap-2 rounded-full bg-gold-500 px-5 py-3 text-sm font-medium text-ink-900 hover:bg-gold-600 disabled:opacity-60"
+              className="mt-1 flex items-center justify-center gap-2 rounded-full bg-gold-500 px-5 py-3 text-sm font-medium text-white hover:bg-gold-600 disabled:opacity-60"
             >
               {status === "loading" && <Loader2 size={15} className="animate-spin" />}
               {status === "loading" ? "Unlocking…" : "Get Free Guide"}

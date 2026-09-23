@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Cormorant_Garamond } from "next/font/google";
+import { Inter, Merriweather } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { SiteChrome } from "@/components/layout/site-chrome";
@@ -11,13 +11,13 @@ import { ToastProvider } from "@/components/ui/toast";
 import { GA_ID, META_PIXEL_ID } from "@/lib/analytics";
 import { siteSettings } from "@/data/site-settings";
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const merriweather = Merriweather({
+  variable: "--font-merriweather",
   subsets: ["latin"],
   style: ["normal", "italic"],
-  weight: ["300"],
+  weight: ["700", "900"],
 });
-const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.baselineeducationalservices.com";
 
@@ -85,7 +85,7 @@ const organizationJsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}>
+    <html lang="en" className={`${merriweather.variable} ${inter.variable} h-full antialiased`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         {GA_ID && (

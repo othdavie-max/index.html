@@ -145,7 +145,7 @@ export default function SiteSettingsAdminPage() {
           <button
             onClick={save}
             disabled={!supabase || saving}
-            className="flex items-center gap-2 rounded-full bg-gold-500 px-5 py-2.5 text-sm font-medium text-ink-900 hover:bg-gold-600 disabled:opacity-60"
+            className="flex items-center gap-2 rounded-full bg-gold-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-600 disabled:opacity-60"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? "Saving…" : "Save Changes"}

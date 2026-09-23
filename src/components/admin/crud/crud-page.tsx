@@ -76,7 +76,7 @@ export function CrudPage({ config }: { config: CrudConfig }) {
           <h1 className="font-display text-xl text-ink-900">{config.title}</h1>
           <p className="mt-1 text-sm text-muted">{config.description}</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-1.5 rounded-full bg-gold-500 px-4 py-2 text-sm font-medium text-ink-900 hover:bg-gold-600">
+        <button onClick={openCreate} className="flex items-center gap-1.5 rounded-full bg-gold-500 px-4 py-2 text-sm font-medium text-white hover:bg-gold-600">
           <Plus size={15} /> New
         </button>
       </div>

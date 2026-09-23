@@ -1,63 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
+import { ImagePlaceholder } from "@/components/ui/image-placeholder";
 import { destinations } from "@/data/destinations";
 
 export function DestinationShowcase() {
   return (
-    <section className="bg-white py-20 sm:py-28">
+    <section className="bg-offwhite py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Destinations"
-          title="Where do you want to"
-          emphasis="study?"
+          eyebrow="Study Destinations"
+          title="Where would you like to study?"
           description="Six countries, one clear plan. Explore what each destination actually offers before you commit."
         />
 
         <RevealGroup className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {destinations.map((d) => (
             <RevealItem key={d.code}>
-              <motion.div whileHover="hover" initial="rest" animate="rest" className="group relative h-72 overflow-hidden rounded-2xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-ink-900 to-ink-950" />
-                <div className="absolute inset-0 opacity-40 [background:radial-gradient(circle_at_30%_20%,rgba(196, 165, 123,0.5),transparent_60%)]" />
+              <Link href={`/destinations/${d.slug}`} className="group relative flex h-80 flex-col justify-end overflow-hidden rounded-2xl">
+                <ImagePlaceholder
+                  label={`${d.name} skyline photo`}
+                  dark
+                  className="absolute inset-0 h-full w-full rounded-none border-0"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-transparent" />
 
-                <div className="relative flex h-full flex-col justify-between p-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-4xl">{d.flag}</span>
-                    <Link
-                      href={`/destinations/${d.slug}`}
-                      className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
-                    >
-                      Explore <ArrowUpRight size={14} />
-                    </Link>
+                <div className="relative p-6">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="text-2xl">{d.flag}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{d.name}</h3>
                   </div>
-
-                  <div>
-                    <h3 className="font-display text-xl text-white">{d.name}</h3>
-                    <p className="mt-1 text-sm text-white/60">{d.heroTagline}</p>
-
-                    <motion.div
-                      variants={{ rest: { height: 0, opacity: 0 }, hover: { height: "auto", opacity: 1 } }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-3 overflow-hidden"
-                    >
-                      <div className="flex flex-wrap gap-1.5 pt-2">
-                        {d.topCourses.slice(0, 3).map((c) => (
-                          <span key={c} className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/80">
-                            {c}
-                          </span>
-                        ))}
-                      </div>
-                    </motion.div>
-                  </div>
+                  <p className="text-sm text-white/70">{d.heroTagline}</p>
+                  <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-500 transition-transform duration-300 group-hover:translate-x-1">
+                    Explore <ArrowRight size={14} />
+                  </span>
                 </div>
-
-                <Link href={`/destinations/${d.slug}`} className="absolute inset-0" aria-label={`Explore studying in ${d.name}`} />
-              </motion.div>
+              </Link>
             </RevealItem>
           ))}
         </RevealGroup>

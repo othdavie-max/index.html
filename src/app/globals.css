@@ -1,23 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  /* PLACEHOLDER-safe brand tokens — warm luxury palette (ivory / espresso / mahogany / gold) */
-  --color-ink-950: #1c1512;
-  --color-ink-900: #2a1810;
-  --color-ink-700: #4a4240;
-  --color-ink-100: #ede4dd;
-  --color-gold-500: #c4a57b;
-  --color-gold-600: #a3835f;
+  /* PLACEHOLDER-safe brand tokens — navy / crimson editorial palette.
+     NOTE: token names (ink-*, gold-*) are historical from an earlier
+     luxury palette and now hold navy/crimson values instead — kept as-is
+     to avoid another risky project-wide class rename. ink-* = navy,
+     gold-* = crimson. */
+  --color-ink-950: #061529;
+  --color-ink-900: #0b2545;
+  --color-ink-700: #123769;
+  --color-ink-100: #e8edf6;
+  --color-gold-500: #e31c5f;
+  --color-gold-600: #c91652;
   --color-danger-500: #c22a2f;
   --color-danger-600: #a01f24;
   --color-white: #ffffff;
-  --color-offwhite: #faf6f1;
-  --color-ink: #2a1810;
-  --color-muted: #7a6f68;
+  --color-offwhite: #f7f9fc;
+  --color-ink: #0b2545;
+  --color-muted: #5b6577;
 
-  --font-display: var(--font-cormorant);
-  --font-serif: var(--font-cormorant);
-  --font-body: var(--font-manrope);
+  --font-display: var(--font-merriweather);
+  --font-serif: var(--font-merriweather);
+  --font-body: var(--font-inter);
 
   --header-height: 76px;
 }
