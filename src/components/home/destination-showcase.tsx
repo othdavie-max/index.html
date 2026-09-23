@@ -11,14 +11,9 @@ import { destinations } from "@/data/destinations";
 import { AnywhereElseBanner } from "@/components/destinations/anywhere-else-banner";
 import { formatNaira } from "@/lib/utils";
 
-const photos: Record<string, string> = {
-  uk: "/destinations/uk.png",
-  ireland: "/destinations/ireland.png",
-  germany: "/destinations/germany.png",
-  canada: "/destinations/canada.png",
-  usa: "/destinations/usa.webp",
-  australia: "/destinations/australia.webp",
-};
+function photoFor(code: string) {
+  return `/destinations/${code}.webp`;
+}
 
 export function DestinationShowcase() {
   return (
@@ -32,7 +27,7 @@ export function DestinationShowcase() {
 
         <RevealGroup className="no-scrollbar -mx-4 mt-12 flex snap-x gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
           {destinations.map((d) => {
-            const photo = photos[d.code];
+            const photo = photoFor(d.code);
             return (
               <RevealItem key={d.code} className="w-[82vw] max-w-[340px] shrink-0 snap-start sm:w-auto sm:max-w-none">
                 <Link href={`/destinations/${d.slug}`} className="group relative flex h-80 flex-col justify-end overflow-hidden rounded-2xl">
