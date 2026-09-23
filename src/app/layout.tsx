@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Merriweather } from "next/font/google";
+import { Inter, Merriweather, Montserrat } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { SiteChrome } from "@/components/layout/site-chrome";
@@ -18,6 +18,7 @@ const merriweather = Merriweather({
   weight: ["700", "900"],
 });
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"], weight: ["300"] });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.baselineeducationalservices.com";
 
@@ -85,7 +86,7 @@ const organizationJsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${merriweather.variable} ${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${merriweather.variable} ${inter.variable} ${montserrat.variable} h-full antialiased`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         {GA_ID && (

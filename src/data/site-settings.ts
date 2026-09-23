@@ -5,7 +5,7 @@
 export const siteSettings = {
   companyName: "Baseline Educational Services",
   shortName: "Baseline",
-  tagline: "Your journey from Abuja to the world's best universities starts here.",
+  tagline: "Your journey from Nigeria to the world's best universities starts here.",
   address: "Suite A, Philkruz Estate Phase IV, Kubwa, Abuja, Nigeria",
   // PLACEHOLDER: confirm exact map coordinates / Google Maps place link
   mapUrl: "https://maps.google.com/?q=Philkruz+Estate+Phase+IV+Kubwa+Abuja",
