@@ -4,15 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { destinations } from "@/data/destinations";
-import { services } from "@/data/services";
 import { openWhatsApp } from "@/lib/whatsapp";
-
-const stats = [
-  { value: `${destinations.length}`, label: "Study Destinations" },
-  { value: `${services.length}`, label: "Expert-Led Services" },
-  { value: "100%", label: "Personalised Plans" },
-];
 
 export function Hero() {
   return (
@@ -43,7 +35,7 @@ export function Hero() {
       </motion.div>
 
       <div className="relative border-t border-white/10 bg-ink-950 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,20 +55,6 @@ export function Hero() {
               </span>
               Chat on WhatsApp
             </button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-wrap gap-8 border-t border-white/10 pt-6 sm:border-t-0 sm:pt-0"
-          >
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <p className="font-display text-2xl font-bold text-white">{stat.value}</p>
-                <p className="mt-0.5 text-xs text-white/60">{stat.label}</p>
-              </div>
-            ))}
           </motion.div>
         </div>
       </div>
