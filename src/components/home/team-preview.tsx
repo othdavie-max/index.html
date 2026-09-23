@@ -2,8 +2,11 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Button } from "@/components/ui/button";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
 import { team } from "@/data/team";
+import { siteSettings } from "@/data/site-settings";
 
 export function TeamPreview() {
+  if (!siteSettings.showTeam) return null;
+
   return (
     <section className="bg-offwhite py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
