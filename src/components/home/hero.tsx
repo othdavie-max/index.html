@@ -51,7 +51,7 @@ export function Hero() {
       >
         <div className="mx-auto max-w-7xl">
           <span className="mb-4 inline-block h-1 w-10 rounded-full bg-gold-500" />
-          <h1 className="font-hero max-w-2xl text-3xl font-light leading-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="font-hero max-w-2xl text-3xl font-light leading-[1.08] text-white sm:text-5xl lg:text-6xl">
             Your journey from Nigeria to the world&apos;s best universities starts here.
           </h1>
           <p className="mt-4 max-w-lg text-sm font-semibold uppercase tracking-[0.15em] text-white/70 sm:text-base">
