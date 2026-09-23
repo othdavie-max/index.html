@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Mail, MapPin, Phone, Clock } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
 import { ContactForm } from "@/components/contact/contact-form";
+import { GoogleMapEmbed } from "@/components/ui/google-map-embed";
 import { siteSettings } from "@/data/site-settings";
 
 export const metadata: Metadata = {
@@ -27,9 +28,8 @@ export default function ContactPage() {
             <ContactRow icon={Mail} label="Email" value={siteSettings.email} href={`mailto:${siteSettings.email}`} />
             <ContactRow icon={Clock} label="Hours" value={siteSettings.hours} />
 
-            <div className="mt-4 flex aspect-video items-center justify-center rounded-2xl border border-ink-900/8 bg-ink-100 text-sm text-muted">
-              {/* PLACEHOLDER: embed real Google Maps iframe */}
-              Map embed placeholder
+            <div className="mt-4">
+              <GoogleMapEmbed address={siteSettings.address} />
             </div>
           </div>
         </div>

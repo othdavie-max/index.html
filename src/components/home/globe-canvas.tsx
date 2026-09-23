@@ -101,7 +101,7 @@ export function GlobeCanvas() {
         pointerRef.current.x = e.clientX;
       }}
       style={{ width: "100%", height: "100%", cursor: "grab", contain: "layout paint size" }}
-      aria-label="Interactive globe showing Baseline's six study destinations connected to Abuja"
+      aria-label="Interactive globe showing Baseline's popular study destinations connected to Abuja"
       role="img"
     />
   );

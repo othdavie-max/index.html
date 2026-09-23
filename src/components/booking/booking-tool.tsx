@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { CalendarPlus, CheckCircle2, Loader2, Video, Phone, MapPin } from "lucide-react";
+import { CalendarPlus, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Icon3D, type Icon3DName } from "@/components/ui/icon-3d";
 import { destinations } from "@/data/destinations";
 import { nextBookableDates, generateDaySlots, consultationTypeLabels } from "@/lib/booking";
 import { siteSettings } from "@/data/site-settings";
@@ -13,13 +15,18 @@ import { openWhatsApp } from "@/lib/whatsapp";
 import type { BookingFormValues } from "@/lib/validations";
 
 const fieldClass = "w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none focus:border-gold-500";
-const typeIcons = { "video-call": Video, "phone-call": Phone, "in-person": MapPin } as const;
+const typeIcons: Record<keyof typeof consultationTypeLabels, Icon3DName> = {
+  "video-call": "video-camera",
+  "phone-call": "telephone-receiver",
+  "in-person": "office-building",
+};
 
 function toDateKey(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
 export function BookingTool() {
+  const searchParams = useSearchParams();
   const dates = useMemo(() => nextBookableDates(14), []);
   const allSlots = useMemo(() => generateDaySlots(), []);
 
@@ -30,7 +37,20 @@ export function BookingTool() {
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   const [form, setForm] = useState({ name: "", email: "", phone: "", destination: "", level: "", message: "" });
+  const [otherDestinationName, setOtherDestinationName] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  useEffect(() => {
+    const prefill = searchParams.get("destination") ?? searchParams.get("country");
+    if (!prefill) return;
+    const known = destinations.find((d) => d.name.toLowerCase() === prefill.toLowerCase());
+    if (known) {
+      setForm((f) => ({ ...f, destination: known.name }));
+    } else {
+      setForm((f) => ({ ...f, destination: "Another country" }));
+      setOtherDestinationName(prefill);
+    }
+  }, [searchParams]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -51,6 +71,7 @@ export function BookingTool() {
 
     const payload: BookingFormValues = {
       ...form,
+      destination: form.destination === "Another country" && otherDestinationName ? otherDestinationName : form.destination,
       consultationType,
       scheduledDate: toDateKey(selectedDate),
       scheduledTime: selectedTime,
@@ -120,7 +141,6 @@ export function BookingTool() {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Consultation Type</p>
         <div className="grid grid-cols-3 gap-2">
           {(Object.keys(consultationTypeLabels) as (keyof typeof consultationTypeLabels)[]).map((type) => {
-            const Icon = typeIcons[type];
             return (
               <button
                 key={type}
@@ -130,7 +150,7 @@ export function BookingTool() {
                   consultationType === type ? "border-gold-500 bg-gold-500/5 text-gold-600 ring-1 ring-gold-500" : "border-ink-900/10 text-ink-900"
                 }`}
               >
-                <Icon size={16} />
+                <Icon3D name={typeIcons[type]} size={24} alt="" />
                 {consultationTypeLabels[type]}
               </button>
             );
@@ -194,10 +214,21 @@ export function BookingTool() {
             <option value="">Destination of interest (optional)</option>
             {destinations.map((d) => (
               <option key={d.code} value={d.name}>
-                {d.flag} {d.name}
+                {d.name}
               </option>
             ))}
+            <option value="Another country">Another country</option>
+            <option value="Not sure yet">Not sure yet</option>
           </select>
+          {form.destination === "Another country" && (
+            <input
+              type="text"
+              value={otherDestinationName}
+              onChange={(e) => setOtherDestinationName(e.target.value)}
+              placeholder="Which country? (optional)"
+              className={fieldClass}
+            />
+          )}
           <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className={fieldClass}>
             <option value="">Level of interest (optional)</option>
             <option value="foundation">Foundation Programme</option>

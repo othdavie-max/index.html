@@ -57,6 +57,9 @@ export function Hero() {
           <p className="mt-4 max-w-lg text-sm font-semibold uppercase tracking-[0.15em] text-white/70 sm:text-base">
             Admissions &middot; Scholarships &middot; Visa Guidance
           </p>
+          <p className="mt-3 max-w-lg text-sm text-white/60 sm:text-base">
+            Study in the UK, Canada, the USA, Europe, Africa, Asia, or anywhere in between.
+          </p>
 
           <motion.div
             initial={{ opacity: 0, y: 12 }}

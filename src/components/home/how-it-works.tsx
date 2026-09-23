@@ -2,20 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MessagesSquare, Compass, FileText, Award, ShieldCheck, PlaneTakeoff, type LucideIcon } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Reveal } from "@/components/ui/reveal";
+import { Icon3D, type Icon3DName } from "@/components/ui/icon-3d";
 import { howItWorksSteps } from "@/data/how-it-works";
 import { cn } from "@/lib/utils";
-
-const icons: Record<string, LucideIcon> = {
-  MessagesSquare,
-  Compass,
-  FileText,
-  Award,
-  ShieldCheck,
-  PlaneTakeoff,
-};
 
 const AUTO_ADVANCE_MS = 4500;
 
@@ -44,7 +35,6 @@ export function HowItWorks() {
   }
 
   const step = howItWorksSteps[active];
-  const StepIcon = icons[step.icon];
 
   return (
     <section className="bg-white py-20 sm:py-28">
@@ -61,7 +51,6 @@ export function HowItWorks() {
           />
           <div className="grid grid-cols-3 gap-x-4 gap-y-8 sm:grid-cols-6">
             {howItWorksSteps.map((s, i) => {
-              const Icon = icons[s.icon];
               const isActive = i === active;
               return (
                 <button
@@ -77,10 +66,10 @@ export function HowItWorks() {
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     className={cn(
                       "relative flex h-14 w-14 items-center justify-center rounded-full border-2 bg-white transition-colors duration-300",
-                      isActive ? "border-gold-500 text-gold-500 shadow-lg shadow-gold-500/20" : "border-ink-900/10 text-ink-900/40 group-hover:border-gold-500/50",
+                      isActive ? "border-gold-500 shadow-lg shadow-gold-500/20" : "border-ink-900/10 opacity-50 group-hover:border-gold-500/50 group-hover:opacity-100",
                     )}
                   >
-                    {Icon && <Icon size={22} />}
+                    <Icon3D name={s.icon as Icon3DName} size={26} alt="" />
                     <span
                       className={cn(
                         "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold transition-colors duration-300",
@@ -111,8 +100,8 @@ export function HowItWorks() {
                 transition={{ duration: 0.35, ease: "easeInOut" }}
                 className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:gap-10 sm:text-left"
               >
-                <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-500">
-                  {StepIcon && <StepIcon size={36} />}
+                <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gold-500/10">
+                  <Icon3D name={step.icon as Icon3DName} size={44} alt="" />
                 </span>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-500">

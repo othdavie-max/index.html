@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { MessageCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LeadCaptureForm } from "@/components/tools/lead-capture-form";
+import { Flag } from "@/components/ui/flag";
 import { getDestination } from "@/data/destinations";
 import type { MatcherResult, MatcherAnswers } from "@/data/matcher-rules";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
@@ -22,8 +23,8 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
     <div className="mx-auto max-w-2xl">
       <div className="text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-gold-500">Your Top Match</p>
-        <h2 className="mt-2 font-display text-3xl text-ink-900">
-          {topDestination.flag} {topDestination.name}
+        <h2 className="mt-2 flex items-center justify-center gap-2 font-display text-3xl text-ink-900">
+          <Flag code={topDestination.flagCode} size={28} alt={`${topDestination.name} flag`} /> {topDestination.name}
         </h2>
         <p className="mt-1 text-muted">{top.score}% match based on your answers</p>
       </div>
@@ -50,7 +51,7 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
           <LeadCaptureForm
             source="course-matcher"
             payload={{ answers, results }}
-            title="See how all six countries rank"
+            title="See your full ranked results"
             description="Unlock your full personalised breakdown, and we'll also flag your top matches on WhatsApp."
             onSuccess={(v) => {
               setName(v.name);
@@ -68,7 +69,7 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
               return (
                 <div key={r.code} className="flex items-center gap-4 rounded-xl border border-ink-900/8 bg-offwhite p-4">
                   <span className="font-display text-lg text-ink-900/30">#{i + 1}</span>
-                  <span className="text-2xl">{d.flag}</span>
+                  <Flag code={d.flagCode} size={28} alt={`${d.name} flag`} />
                   <div className="flex-1">
                     <p className="font-medium text-ink-900">{d.name}</p>
                     <p className="text-xs text-muted">{d.topCourses.slice(0, 3).join(", ")}</p>
@@ -86,6 +87,27 @@ export function MatcherResults({ results, answers }: { results: MatcherResult[];
             <Button href="/book" variant="secondary">
               Book a Free Consultation
             </Button>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-gold-500/20 bg-gold-500/5 p-4 text-center">
+            <p className="text-sm text-ink-900">
+              Thinking about a country that isn&apos;t here? Our counsellors can help with any destination.
+            </p>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <Button
+                href={buildWhatsAppLink("Hi Baseline, I took the Course Matcher quiz but I'm interested in a country that wasn't listed. Can you help?")}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="secondary"
+                size="sm"
+                icon={<MessageCircle size={14} />}
+              >
+                Ask on WhatsApp
+              </Button>
+              <Button href="/destinations/other" variant="ghost" size="sm">
+                Explore other destinations
+              </Button>
+            </div>
           </div>
         </motion.div>
       )}

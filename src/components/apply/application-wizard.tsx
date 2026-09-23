@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Flag } from "@/components/ui/flag";
 import { QuizProgress } from "@/components/tools/quiz-progress";
 import { DocumentUploadField, type UploadedDoc } from "@/components/apply/document-upload-field";
 import { destinations } from "@/data/destinations";
@@ -203,7 +204,7 @@ export function ApplicationWizard() {
                             selected ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500" : "border-ink-900/10 bg-white"
                           }`}
                         >
-                          <span className="text-lg">{d.flag}</span>
+                          <Flag code={d.flagCode} size={18} alt="" />
                         </button>
                       );
                     })}

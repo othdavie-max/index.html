@@ -1,3 +1,4 @@
+import { Flag } from "@/components/ui/flag";
 import { destinations } from "@/data/destinations";
 
 // Lightweight static fallback for reduced-motion, small screens, or when the
@@ -10,10 +11,10 @@ export function GlobeFallback() {
         {destinations.map((d) => (
           <span
             key={d.code}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-xl backdrop-blur-sm"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 backdrop-blur-sm"
             aria-label={d.name}
           >
-            {d.flag}
+            <Flag code={d.flagCode} size={26} alt="" />
           </span>
         ))}
       </div>

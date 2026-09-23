@@ -7,6 +7,7 @@
 -- FAQS
 -- ─────────────────────────────────────────────────────────────────────────
 insert into faqs (category, question, answer, sort_order, published) values
+('Admissions', 'Do you only help with the six countries on your website?', 'No. The UK, Ireland, Germany, Canada, the USA and Australia are our most popular destinations, but we help students study in any country, including elsewhere in Europe, Asia, the Middle East, Oceania, and other African countries. Tell us where you''d like to go and we''ll guide you from application to visa.', 0, true),
 ('Costs', 'How much does it cost to study abroad from Nigeria?', 'It depends heavily on the country, city, and course — tuition and living costs vary widely even within one country. Use our Cost Calculator for an estimate broken down by country, level, and city tier, and speak with a counsellor for figures specific to your shortlisted universities.', 1, true),
 ('Costs', 'Does Baseline charge for consultations?', 'Your first consultation is free. We''ll walk you through our service fees for admission and visa support during that session, based on the countries and services you need.', 2, true),
 ('Costs', 'What is ''proof of funds'' and how much do I need?', 'Most study visas require you to show you can cover a set period of tuition and living costs, usually via a bank statement held for a minimum number of days. The exact amount and rules differ by country — we''ll confirm the current requirement for your destination during your application.', 3, true),

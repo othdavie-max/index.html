@@ -4,7 +4,7 @@ import { CostCalculatorTool } from "@/components/tools/cost-calculator/cost-calc
 
 export const metadata: Metadata = {
   title: "Cost Calculator",
-  description: "Estimate tuition and living costs in naira for studying in the UK, Ireland, Germany, Canada, the USA or Australia.",
+  description: "Estimate tuition and living costs in naira for our popular destinations, or ask for a personalised estimate for any other country.",
   alternates: { canonical: "/tools/cost-calculator" },
 };
 

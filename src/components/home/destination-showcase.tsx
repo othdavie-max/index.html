@@ -6,7 +6,10 @@ import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
 import { ImagePlaceholder } from "@/components/ui/image-placeholder";
+import { Flag } from "@/components/ui/flag";
+import { Icon3D } from "@/components/ui/icon-3d";
 import { destinations } from "@/data/destinations";
+import { OtherDestinationsChips } from "@/components/destinations/other-destinations-chips";
 
 const photos: Record<string, string> = {
   uk: "/destinations/uk.png",
@@ -24,7 +27,7 @@ export function DestinationShowcase() {
         <SectionHeading
           eyebrow="Study Destinations"
           title="Where would you like to study?"
-          description="Six countries, one clear plan. Explore what each destination actually offers before you commit."
+          description="Start with our most popular destinations, or tell us where you're dreaming of. Wherever you want to study, we'll help you get there."
         />
 
         <RevealGroup className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -48,7 +51,7 @@ export function DestinationShowcase() {
 
                   <div className="relative p-6">
                     <div className="mb-2 flex items-center gap-2">
-                      <span className="text-2xl">{d.flag}</span>
+                      <Flag code={d.flagCode} size={24} alt={`${d.name} flag`} />
                       <h3 className="font-display text-xl font-bold text-white">{d.name}</h3>
                     </div>
                     <p className="text-sm text-white/70">{d.heroTagline}</p>
@@ -60,7 +63,26 @@ export function DestinationShowcase() {
               </RevealItem>
             );
           })}
+
+          <RevealItem>
+            <Link
+              href="/destinations/other"
+              className="group relative flex h-80 flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-gold-500/40 bg-gradient-to-br from-ink-900 to-ink-950 p-6 text-center transition-colors hover:border-gold-500"
+            >
+              <Icon3D name="globe-europe-africa" size={88} alt="" className="drop-shadow-lg" />
+              <h3 className="mt-5 font-display text-xl font-bold text-white">Anywhere else in the world</h3>
+              <p className="mt-2 text-sm text-white/70">
+                Netherlands, France, Malaysia, the UAE, South Africa, Ghana and beyond. If you want to study there,
+                we&apos;ll help.
+              </p>
+              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-500 transition-transform duration-300 group-hover:translate-x-1">
+                Talk to us <ArrowRight size={14} />
+              </span>
+            </Link>
+          </RevealItem>
         </RevealGroup>
+
+        <OtherDestinationsChips />
       </div>
     </section>
   );

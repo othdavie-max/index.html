@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Play, ShieldCheck } from "lucide-react";
 import { Tabs } from "@/components/ui/tabs";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
+import { Flag } from "@/components/ui/flag";
 import { TestimonialLightbox } from "@/components/success-stories/testimonial-lightbox";
 import { testimonials } from "@/data/testimonials";
 import { destinations } from "@/data/destinations";
@@ -46,8 +47,8 @@ export function StoriesGrid() {
                 </div>
                 <div className="p-4">
                   <p className="font-display text-sm text-ink-900">{t.name}</p>
-                  <p className="mt-0.5 text-xs text-muted">
-                    {t.course} · {destination?.flag} {destination?.name}
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
+                    {t.course} · {destination && <Flag code={destination.flagCode} size={13} alt="" />} {destination?.name}
                   </p>
                 </div>
               </button>

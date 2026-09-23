@@ -14,8 +14,8 @@ export function Footer() {
           <div className="col-span-2">
             <Logo dark />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">
-              Nigeria-based study-abroad consultancy helping students get admissions, scholarships and visas for
-              universities in the UK, Ireland, Germany, Canada, the USA and Australia.
+              Nigeria-based study-abroad consultancy helping students secure admissions, scholarships and visas for
+              universities worldwide, including the UK, Ireland, Germany, Canada, the USA and Australia.
             </p>
             <div className="mt-6 flex flex-col gap-2.5 text-sm">
               <a href={siteSettings.mapUrl} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2.5 hover:text-white">

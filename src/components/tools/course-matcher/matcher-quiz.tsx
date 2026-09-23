@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Flag } from "@/components/ui/flag";
 import { QuizProgress } from "@/components/tools/quiz-progress";
 import { ChoiceGrid } from "@/components/tools/choice-grid";
 import { MatcherResults } from "@/components/tools/course-matcher/matcher-results";
@@ -222,7 +223,7 @@ export function MatcherQuiz() {
                         selected ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500" : "border-ink-900/10 bg-white hover:border-ink-900/30"
                       }`}
                     >
-                      <span className="text-2xl">{d.flag}</span>
+                      <Flag code={d.flagCode} size={26} alt="" />
                       <p className="mt-1 text-xs font-medium text-ink-900">{d.name}</p>
                     </button>
                   );

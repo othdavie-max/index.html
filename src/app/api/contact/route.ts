@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid submission" }, { status: 400 });
   }
 
-  const { name, email, phone, subject, message } = parsed.data;
+  const { name, email, phone, subject, destination, message } = parsed.data;
 
   const supabase = createAdminClient();
   if (supabase) {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       phone,
       email,
       source: "contact",
-      payload: { subject, message },
+      payload: { subject, destination: destination ?? null, message },
     });
   }
 
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
        <p><strong>Email:</strong> ${email}</p>
        <p><strong>Phone:</strong> ${phone}</p>
        <p><strong>Subject:</strong> ${subject}</p>
+       ${destination ? `<p><strong>Destination of interest:</strong> ${destination}</p>` : ""}
        <p><strong>Message:</strong><br/>${message.replace(/\n/g, "<br/>")}</p>`,
     ),
   );

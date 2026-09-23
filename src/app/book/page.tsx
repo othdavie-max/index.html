@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageHero } from "@/components/ui/page-hero";
 import { BookingTool } from "@/components/booking/booking-tool";
 
@@ -19,7 +20,9 @@ export default function BookPage() {
       />
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <BookingTool />
+          <Suspense fallback={null}>
+            <BookingTool />
+          </Suspense>
         </div>
       </section>
     </>

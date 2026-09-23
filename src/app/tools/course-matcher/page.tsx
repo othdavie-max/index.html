@@ -4,7 +4,7 @@ import { MatcherQuiz } from "@/components/tools/course-matcher/matcher-quiz";
 
 export const metadata: Metadata = {
   title: "Course Matcher Quiz",
-  description: "A 2-minute quiz that ranks the UK, Ireland, Germany, Canada, the USA and Australia by fit for your grades, budget and goals.",
+  description: "A 2-minute quiz that ranks our popular destinations by fit for your grades, budget and goals, with guidance available for any other country too.",
   alternates: { canonical: "/tools/course-matcher" },
 };
 
