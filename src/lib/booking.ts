@@ -33,6 +33,20 @@ export function nextBookableDates(count: number): Date[] {
   return dates;
 }
 
+/** The next `count` consecutive calendar days (including non-bookable ones,
+ * e.g. Sundays), so the UI can show them greyed out instead of silently
+ * skipping them. */
+export function upcomingDates(count: number): { date: Date; bookable: boolean }[] {
+  const dates: { date: Date; bookable: boolean }[] = [];
+  const cursor = new Date();
+  cursor.setDate(cursor.getDate() + 1); // earliest is tomorrow
+  for (let i = 0; i < count; i++) {
+    dates.push({ date: new Date(cursor), bookable: isBookableDay(cursor) });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+}
+
 export const consultationTypeLabels = {
   "video-call": "Video Call (Zoom / Google Meet)",
   "phone-call": "Phone Call",
