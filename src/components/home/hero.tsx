@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImagePlaceholder } from "@/components/ui/image-placeholder";
 import { destinations } from "@/data/destinations";
 import { services } from "@/data/services";
 import { openWhatsApp } from "@/lib/whatsapp";
@@ -90,10 +90,16 @@ export function Hero() {
           transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
           className="relative"
         >
-          <ImagePlaceholder
-            label="Hero photo — student portrait in front of a university building"
-            className="aspect-[4/5] w-full rounded-3xl"
-          />
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-ink-100">
+            <Image
+              src="/hero-student.webp"
+              alt="Nigerian student standing in front of a UK university, ready to begin her study-abroad journey"
+              fill
+              priority
+              sizes="(min-width: 1024px) 40vw, 90vw"
+              className="object-cover"
+            />
+          </div>
           <div className="absolute -bottom-6 -left-6 hidden rounded-2xl bg-ink-900 px-5 py-4 text-white shadow-xl sm:block">
             <p className="font-display text-lg font-bold">Better Education.</p>
             <p className="font-display text-lg font-bold text-gold-500">Bigger Opportunities.</p>
