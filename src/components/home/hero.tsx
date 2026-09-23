@@ -24,13 +24,22 @@ export function Hero() {
         className="relative w-full"
       >
         <Image
+          src="/hero-banner-mobile.png"
+          alt="Your journey from Abuja to the world's best universities starts here. Admissions, Scholarships, Visa Guidance."
+          width={896}
+          height={1120}
+          priority
+          sizes="100vw"
+          className="block h-auto w-full sm:hidden"
+        />
+        <Image
           src="/hero-banner.png"
           alt="Your journey from Abuja to the world's best universities starts here. Admissions, Scholarships, Visa Guidance."
           width={1344}
           height={752}
           priority
           sizes="100vw"
-          className="h-auto w-full"
+          className="hidden h-auto w-full sm:block"
         />
       </motion.div>
 

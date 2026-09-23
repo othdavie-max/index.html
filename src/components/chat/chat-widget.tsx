@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MessageCircle, Send, ShieldCheck, X } from "lucide-react";
+import { Bot, Send, ShieldCheck, Sparkles, X } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { trackEvent } from "@/lib/analytics";
 
@@ -24,11 +24,38 @@ export function ChatWidget() {
   const [showLeadPrompt, setShowLeadPrompt] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [leadDismissed, setLeadDismissed] = useState(false);
+  const [showTeaser, setShowTeaser] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, streaming]);
+
+  useEffect(() => {
+    let seen = false;
+    try {
+      seen = localStorage.getItem("bes-ai-teaser-seen") === "1";
+    } catch {
+      // localStorage unavailable (private browsing, etc.) — just skip the teaser.
+      seen = true;
+    }
+    if (seen) return;
+    const showTimer = setTimeout(() => setShowTeaser(true), 2500);
+    const hideTimer = setTimeout(() => setShowTeaser(false), 9000);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
+  function dismissTeaser() {
+    setShowTeaser(false);
+    try {
+      localStorage.setItem("bes-ai-teaser-seen", "1");
+    } catch {
+      // ignore
+    }
+  }
 
   async function sendMessage(text: string) {
     const nextMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
@@ -86,18 +113,53 @@ export function ChatWidget() {
 
   return (
     <>
+      <AnimatePresence>
+        {showTeaser && !open && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.25 }}
+            className="fixed bottom-[6.5rem] right-4 z-40 flex max-w-[190px] items-center gap-2 rounded-2xl border border-ink-900/8 bg-white px-3.5 py-2.5 text-xs font-medium text-ink-900 shadow-xl sm:bottom-[6.5rem] sm:right-6"
+          >
+            <Sparkles size={14} className="shrink-0 text-gold-500" />
+            Ask our AI assistant anything about studying abroad
+            <button
+              type="button"
+              onClick={dismissTeaser}
+              aria-label="Dismiss"
+              className="ml-auto shrink-0 rounded-full p-0.5 text-muted hover:bg-offwhite"
+            >
+              <X size={12} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setOpen((v) => !v);
+          dismissTeaser();
+        }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1.2, type: "spring", stiffness: 260, damping: 20 }}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
-        aria-label={open ? "Close chat assistant" : "Open chat assistant"}
+        aria-label={open ? "Close AI chat assistant" : "Open AI chat assistant"}
         className="fixed bottom-40 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink-900 text-white shadow-lg shadow-ink-900/30 sm:bottom-24 sm:right-6"
       >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
+        {open ? (
+          <X size={22} />
+        ) : (
+          <>
+            <Bot size={24} />
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-white ring-2 ring-offwhite">
+              <Sparkles size={10} />
+            </span>
+          </>
+        )}
       </motion.button>
 
       <AnimatePresence>
@@ -110,9 +172,14 @@ export function ChatWidget() {
             className="fixed inset-x-4 bottom-[14.5rem] z-40 flex h-[70vh] max-h-[560px] flex-col overflow-hidden rounded-2xl border border-ink-900/10 bg-white shadow-2xl sm:inset-x-auto sm:bottom-[10.5rem] sm:right-6 sm:w-[380px]"
           >
             <div className="flex items-center justify-between bg-ink-900 px-4 py-3.5">
-              <div>
-                <p className="font-display text-sm text-white">Baseline Assistant</p>
-                <p className="text-[11px] text-white/50">Usually replies instantly</p>
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-500/15 text-gold-500">
+                  <Bot size={16} />
+                </span>
+                <div>
+                  <p className="font-display text-sm text-white">Baseline AI Assistant</p>
+                  <p className="text-[11px] text-white/50">AI-powered · usually replies instantly</p>
+                </div>
               </div>
               <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white">
                 <X size={16} />
