@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageHero } from "@/components/ui/page-hero";
 import { CostCalculatorTool } from "@/components/tools/cost-calculator/cost-calculator-tool";
 
@@ -19,7 +20,9 @@ export default function CostCalculatorPage() {
       />
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <CostCalculatorTool />
+          <Suspense fallback={null}>
+            <CostCalculatorTool />
+          </Suspense>
         </div>
       </section>
     </>

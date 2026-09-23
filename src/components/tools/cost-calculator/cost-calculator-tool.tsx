@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { MessageCircle, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DonutChart } from "@/components/tools/donut-chart";
@@ -9,6 +10,10 @@ import { calculateCost, type CostCalculatorInput } from "@/lib/cost-calculator";
 import { formatNaira, formatCurrency } from "@/lib/utils";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import type { CountryCode } from "@/types";
+
+function isCountryCode(value: string): value is CountryCode {
+  return destinations.some((d) => d.code === value);
+}
 
 const toggleFields: { key: keyof Omit<CostCalculatorInput, "country">; label: string }[] = [
   { key: "includeVisaFee", label: "Visa Fee" },
@@ -21,8 +26,14 @@ const toggleFields: { key: keyof Omit<CostCalculatorInput, "country">; label: st
 const selectClass = "w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none focus:border-gold-500";
 
 export function CostCalculatorTool() {
+  const searchParams = useSearchParams();
   const [country, setCountry] = useState<CountryCode | "other">("uk");
   const [otherCountryName, setOtherCountryName] = useState("");
+
+  useEffect(() => {
+    const prefill = searchParams.get("country");
+    if (prefill && isCountryCode(prefill)) setCountry(prefill);
+  }, [searchParams]);
   const [input, setInput] = useState<Omit<CostCalculatorInput, "country">>({
     courseType: "standard",
     cityTier: "standard",
