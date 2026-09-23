@@ -22,6 +22,9 @@ export const siteSettings = {
   // Stats strip is OFF until verified real numbers are supplied. Never flip
   // this on with placeholder figures.
   showStats: false,
+  // Team sections are OFF until real counsellor names, roles, bios and
+  // photos are supplied. Never flip this on with placeholder data.
+  showTeam: false,
   stats: {
     studentsPlaced: 0, // PLACEHOLDER
     partnerUniversities: 0, // PLACEHOLDER

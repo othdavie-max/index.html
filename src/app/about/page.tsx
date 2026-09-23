@@ -87,25 +87,27 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-white py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading eyebrow="Our Team" title="Meet the" emphasis="counsellors." align="center" className="mx-auto" />
-          <RevealGroup className="mt-12 grid grid-cols-2 gap-5 md:grid-cols-4">
-            {team.map((member) => (
-              <RevealItem key={member.slug}>
-                <div className="rounded-2xl border border-ink-900/8 bg-offwhite p-6 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-ink-100 font-display text-lg text-ink-900">
-                    {member.photoPlaceholder}
+      {siteSettings.showTeam && (
+        <section className="bg-white py-20 sm:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <SectionHeading eyebrow="Our Team" title="Meet the" emphasis="counsellors." align="center" className="mx-auto" />
+            <RevealGroup className="mt-12 grid grid-cols-2 gap-5 md:grid-cols-4">
+              {team.map((member) => (
+                <RevealItem key={member.slug}>
+                  <div className="rounded-2xl border border-ink-900/8 bg-offwhite p-6 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-ink-100 font-display text-lg text-ink-900">
+                      {member.photoPlaceholder}
+                    </div>
+                    <p className="mt-3 font-display text-sm text-ink-900">{member.name}</p>
+                    <p className="mt-0.5 text-xs text-gold-500">{member.role}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-muted">{member.bio}</p>
                   </div>
-                  <p className="mt-3 font-display text-sm text-ink-900">{member.name}</p>
-                  <p className="mt-0.5 text-xs text-gold-500">{member.role}</p>
-                  <p className="mt-2 text-xs leading-relaxed text-muted">{member.bio}</p>
-                </div>
-              </RevealItem>
-            ))}
-          </RevealGroup>
-        </div>
-      </section>
+                </RevealItem>
+              ))}
+            </RevealGroup>
+          </div>
+        </section>
+      )}
 
       <section className="bg-offwhite py-20 sm:py-28">
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
