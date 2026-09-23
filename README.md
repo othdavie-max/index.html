@@ -84,7 +84,7 @@ Also unverified live (no API key in this environment) — the send calls and ema
 
 ## 6. AI assistant (Google Gemini)
 
-Set `GEMINI_API_KEY` — get a free one (no credit card required) at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). The chat route (`src/app/api/chat/route.ts`) streams responses from Gemini (`gemini-2.5-flash` by default — override with `GEMINI_MODEL`) via Google's `streamGenerateContent` SSE endpoint, with a system prompt that:
+Set `GEMINI_API_KEY` — get a free one (no credit card required) at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). The chat route (`src/app/api/chat/route.ts`) streams responses from Gemini (`gemini-3.6-flash` by default — override with `GEMINI_MODEL`) via Google's `streamGenerateContent` SSE endpoint, with a system prompt that:
 - Never promises a specific admission/scholarship/visa outcome
 - Never gives legal/immigration advice as authoritative
 - Never invents Baseline-specific facts (partner names, fees, stats) — its knowledge base (`src/lib/chat-knowledge.ts`) is compiled directly from the site's own published content
