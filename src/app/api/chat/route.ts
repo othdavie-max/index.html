@@ -81,7 +81,11 @@ export async function POST(request: Request) {
   if (!upstream.ok || !upstream.body) {
     const errorBody = await upstream.text().catch(() => "");
     console.error("[chat] upstream error", upstream.status, errorBody);
-    return new Response("Something went wrong. Please try again or reach us on WhatsApp.", { status: 502 });
+    // TEMPORARY: surface the upstream error for debugging. Remove once verified working.
+    return new Response(
+      `Something went wrong. Please try again or reach us on WhatsApp. [debug ${upstream.status}: ${errorBody.slice(0, 500)}]`,
+      { status: 502 },
+    );
   }
 
   const encoder = new TextEncoder();
