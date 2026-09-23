@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { AlertTriangle, CalendarPlus, MessageCircle } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertTriangle, ArrowLeft, ArrowRight, CalendarPlus, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Flag } from "@/components/ui/flag";
+import { QuizProgress } from "@/components/tools/quiz-progress";
+import { ChoiceGrid } from "@/components/tools/choice-grid";
 import { LeadCaptureForm } from "@/components/tools/lead-capture-form";
 import { destinations } from "@/data/destinations";
 import { getMilestones } from "@/data/timeline-milestones";
@@ -12,7 +15,7 @@ import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { trackEvent } from "@/lib/analytics";
 import type { CountryCode, StudyLevel } from "@/types";
 
-const selectClass = "w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none focus:border-gold-500";
+const STEPS = ["destination", "level", "intake"] as const;
 
 function nextIntakeDates() {
   const now = new Date();
@@ -27,6 +30,8 @@ function nextIntakeDates() {
 export function TimelinePlannerTool() {
   const intakeOptions = useMemo(() => nextIntakeDates(), []);
   const [now] = useState(() => Date.now());
+  const [step, setStep] = useState(0);
+  const [showResults, setShowResults] = useState(false);
   const [country, setCountry] = useState<CountryCode | "other">("uk");
   const [otherCountryName, setOtherCountryName] = useState("");
   const [level, setLevel] = useState<StudyLevel>("masters");
@@ -53,9 +58,7 @@ export function TimelinePlannerTool() {
   function handleDownloadIcs() {
     if (!destination) return;
     trackEvent("timeline_ics_download");
-    const ics = buildIcsFile(
-      timeline.map((t) => ({ title: `Baseline: ${t.label}`, description: t.description, date: t.dueDate })),
-    );
+    const ics = buildIcsFile(timeline.map((t) => ({ title: `Baseline: ${t.label}`, description: t.description, date: t.dueDate })));
     downloadIcsFile(`baseline-timeline-${destination.slug}.ics`, ics);
   }
 
@@ -65,52 +68,137 @@ export function TimelinePlannerTool() {
       }Can we talk about next steps?`
     : `Hi Baseline, I'd like a study timeline for ${otherCountryName || "a country that isn't listed on your website"} (${level}, ${intakeOptions[intakeIndex].label} intake). Can you help?`;
 
-  return (
-    <div>
-      <div className="grid grid-cols-1 gap-4 rounded-2xl border border-ink-900/10 bg-offwhite p-6 sm:grid-cols-3">
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Destination</label>
-          <select className={selectClass} value={country} onChange={(e) => setCountry(e.target.value as CountryCode | "other")}>
-            {destinations.map((d) => (
-              <option key={d.code} value={d.code}>
-                {d.name}
-              </option>
-            ))}
-            <option value="other">Another country</option>
-          </select>
-          {isOther && (
-            <input
-              type="text"
-              value={otherCountryName}
-              onChange={(e) => setOtherCountryName(e.target.value)}
-              placeholder="Which country?"
-              className={`${selectClass} mt-2`}
-            />
-          )}
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Level</label>
-          <select className={selectClass} value={level} onChange={(e) => setLevel(e.target.value as StudyLevel)}>
-            <option value="foundation">Foundation Programme</option>
-            <option value="undergraduate">Undergraduate</option>
-            <option value="masters">Master&apos;s Degree</option>
-            <option value="phd">PhD</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Target Intake</label>
-          <select className={selectClass} value={intakeIndex} onChange={(e) => setIntakeIndex(Number(e.target.value))}>
-            {intakeOptions.map((opt, i) => (
-              <option key={opt.label} value={i}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+  function next() {
+    if (step === STEPS.length - 1) {
+      trackEvent("timeline_planner_completed");
+      setShowResults(true);
+      return;
+    }
+    setStep((s) => s + 1);
+  }
+
+  function back() {
+    if (showResults) {
+      setShowResults(false);
+      return;
+    }
+    if (step === 0) return;
+    setStep((s) => s - 1);
+  }
+
+  if (!showResults) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <QuizProgress step={step} total={STEPS.length} />
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="mt-8"
+          >
+            {STEPS[step] === "destination" && (
+              <>
+                <h2 className="font-display text-xl text-ink-900 sm:text-2xl">Where are you planning to study?</h2>
+                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {destinations.map((d) => (
+                    <button
+                      key={d.code}
+                      type="button"
+                      onClick={() => setCountry(d.code)}
+                      className={`min-h-[64px] rounded-xl border p-4 text-center transition-all duration-200 ${
+                        country === d.code ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500" : "border-ink-900/10 bg-white hover:border-ink-900/30"
+                      }`}
+                    >
+                      <Flag code={d.flagCode} size={26} alt="" />
+                      <p className="mt-1 text-xs font-medium text-ink-900">{d.name}</p>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setCountry("other")}
+                    className={`min-h-[64px] rounded-xl border p-4 text-center transition-all duration-200 ${
+                      isOther ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500" : "border-ink-900/10 bg-white hover:border-ink-900/30"
+                    }`}
+                  >
+                    <p className="text-xs font-medium text-ink-900">Another country</p>
+                  </button>
+                </div>
+                {isOther && (
+                  <input
+                    type="text"
+                    value={otherCountryName}
+                    onChange={(e) => setOtherCountryName(e.target.value)}
+                    placeholder="Which country?"
+                    className="mt-4 w-full rounded-xl border border-ink-900/12 bg-white px-4 py-3 text-sm text-ink-900 outline-none focus:border-gold-500"
+                  />
+                )}
+              </>
+            )}
+
+            {STEPS[step] === "level" && (
+              <>
+                <h2 className="font-display text-xl text-ink-900 sm:text-2xl">What level are you applying for?</h2>
+                <div className="mt-6">
+                  <ChoiceGrid
+                    value={level}
+                    onChange={(v) => setLevel(v)}
+                    options={[
+                      { value: "foundation", label: "Foundation Programme" },
+                      { value: "undergraduate", label: "Undergraduate" },
+                      { value: "masters", label: "Master's Degree" },
+                      { value: "phd", label: "PhD" },
+                    ]}
+                  />
+                </div>
+              </>
+            )}
+
+            {STEPS[step] === "intake" && (
+              <>
+                <h2 className="font-display text-xl text-ink-900 sm:text-2xl">Which intake are you targeting?</h2>
+                <div className="no-scrollbar mt-6 grid max-h-72 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
+                  {intakeOptions.map((opt, i) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => setIntakeIndex(i)}
+                      className={`min-h-[48px] rounded-xl border px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                        intakeIndex === i ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500 text-ink-900" : "border-ink-900/10 bg-white text-ink-900 hover:border-ink-900/30"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="mt-10 flex items-center justify-between">
+          <Button variant="ghost" onClick={back} disabled={step === 0} icon={<ArrowLeft size={16} />}>
+            Back
+          </Button>
+          <Button onClick={next} icon={<ArrowRight size={16} />}>
+            {step === STEPS.length - 1 ? "See My Timeline" : "Next"}
+          </Button>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div>
+      <button type="button" onClick={back} className="mb-6 flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink-900">
+        <ArrowLeft size={14} /> Edit my answers
+      </button>
 
       {isOther ? (
-        <div className="mt-10 rounded-2xl border border-gold-500/20 bg-gold-500/5 p-6 text-center">
+        <div className="rounded-2xl border border-gold-500/20 bg-gold-500/5 p-6 text-center">
           <p className="text-sm leading-relaxed text-ink-900">
             We don&apos;t publish generic timelines for every country, but we&apos;ll build you a real one, milestone
             by milestone, once we know where you&apos;re headed.
@@ -124,7 +212,7 @@ export function TimelinePlannerTool() {
       ) : (
         <>
           {isTight && (
-            <div className="mt-6 flex items-start gap-3 rounded-xl border border-gold-500/30 bg-gold-500/5 p-4 text-sm text-ink-900">
+            <div className="flex items-start gap-3 rounded-xl border border-gold-500/30 bg-gold-500/5 p-4 text-sm text-ink-900">
               <AlertTriangle size={18} className="mt-0.5 shrink-0 text-gold-500" />
               <p>
                 You&apos;re on a tight schedule. Your intake is only {daysToIntake} days away. Some milestones below are
@@ -166,6 +254,9 @@ export function TimelinePlannerTool() {
           </div>
 
           <div className="mt-10 flex flex-wrap gap-3">
+            <Button href="/book" magnetic>
+              Book a Consultation to Discuss This
+            </Button>
             <Button onClick={handleDownloadIcs} variant="secondary" icon={<CalendarPlus size={16} />}>
               Add to Calendar (.ics)
             </Button>
