@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { motion, type Variants } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
@@ -11,35 +10,33 @@ import { HeroQuickstart } from "@/components/home/hero-quickstart";
 import { openWhatsApp } from "@/lib/whatsapp";
 
 const HEADLINE = "Your journey from Nigeria to the world's best universities starts here.";
-
-const headlineContainer: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06 } },
-};
-
-const wordVariant: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-};
-
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-};
+const WORD_STAGGER_S = 0.06;
 
 export function Hero() {
   const [playVideo, setPlayVideo] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setReducedMotion(rm);
-    if (!rm) setPlayVideo(true);
+    if (rm) return;
+
+    // Swap the poster image for the autoplaying video only after the page
+    // has settled, so the fast, static image (not the video's decode time)
+    // is what LCP measures — video-as-hero-background is otherwise a common
+    // cause of a slow Largest Contentful Paint.
+    const start = () => setPlayVideo(true);
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(start, { timeout: 2000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = setTimeout(start, 300);
+    return () => clearTimeout(timer);
   }, []);
+
+  const words = HEADLINE.split(" ");
 
   return (
     <section className="relative flex min-h-[620px] items-end overflow-hidden bg-ink-950 sm:min-h-[720px]">
-      <div className={reducedMotion ? "absolute inset-0" : "absolute inset-0 animate-ken-burns"}>
+      <div className="absolute inset-0 animate-ken-burns">
         {playVideo ? (
           <video autoPlay muted loop playsInline poster="/hero-poster.jpg" className="h-full w-full object-cover">
             <source src="/hero-video.webm" type="video/webm" />
@@ -53,27 +50,27 @@ export function Hero() {
 
       <div className="relative w-full px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <span className="mb-4 inline-block h-1 w-10 rounded-full bg-gold-500" />
+          <span className="animate-word-in mb-4 inline-block h-1 w-10 rounded-full bg-gold-500" />
 
-          <motion.h1
-            initial={reducedMotion ? "show" : "hidden"}
-            animate="show"
-            variants={headlineContainer}
-            className="font-display max-w-2xl text-balance text-h1 font-bold leading-[1.08] text-white"
-          >
-            {HEADLINE.split(" ").map((word, i) => (
-              <motion.span key={i} variants={wordVariant} className="mr-[0.28em] inline-block">
+          {/* CSS-only reveal (not framer-motion): stays on the critical
+              rendering path so the headline paints as soon as CSS is
+              parsed, instead of waiting on React hydration — the biggest
+              single lever for this section's Largest Contentful Paint. */}
+          <h1 className="font-display max-w-2xl text-balance text-h1 font-bold leading-[1.08] text-white">
+            {words.map((word, i) => (
+              <span
+                key={i}
+                className="animate-word-in mr-[0.28em] inline-block"
+                style={{ animationDelay: `${i * WORD_STAGGER_S}s` }}
+              >
                 {word}
-              </motion.span>
+              </span>
             ))}
-          </motion.h1>
+          </h1>
 
-          <motion.div
-            initial={reducedMotion ? "show" : "hidden"}
-            animate="show"
-            variants={fadeUp}
-            transition={{ delay: 0.5 }}
-            className="mt-6 flex flex-wrap gap-2"
+          <div
+            className="animate-word-in mt-6 flex flex-wrap gap-2"
+            style={{ animationDelay: `${words.length * WORD_STAGGER_S + 0.1}s` }}
           >
             <Chip tone="dark" icon={<Check size={14} className="text-gold-500" />}>
               Free consultation
@@ -84,14 +81,11 @@ export function Hero() {
             <Chip tone="dark" icon={<Check size={14} className="text-gold-500" />}>
               Any country
             </Chip>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={reducedMotion ? "show" : "hidden"}
-            animate="show"
-            variants={fadeUp}
-            transition={{ delay: 0.6 }}
-            className="mt-8 flex flex-wrap items-center gap-3"
+          <div
+            className="animate-word-in mt-8 flex flex-wrap items-center gap-3"
+            style={{ animationDelay: `${words.length * WORD_STAGGER_S + 0.2}s` }}
           >
             <Button href="/book" size="lg" magnetic icon={<ArrowRight size={18} />}>
               Book a Free Consultation
@@ -105,11 +99,11 @@ export function Hero() {
             >
               Chat on WhatsApp
             </Button>
-          </motion.div>
+          </div>
 
-          <motion.div initial={reducedMotion ? "show" : "hidden"} animate="show" variants={fadeUp} transition={{ delay: 0.7 }}>
+          <div className="animate-word-in" style={{ animationDelay: `${words.length * WORD_STAGGER_S + 0.3}s` }}>
             <HeroQuickstart />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

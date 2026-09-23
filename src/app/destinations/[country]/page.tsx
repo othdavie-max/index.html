@@ -88,13 +88,13 @@ export default async function DestinationDetailPage({ params }: PageProps<"/dest
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <RevealGroup className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {facts.map((f) => (
-              <RevealItem key={f.key}>
-                <div className="h-full rounded-2xl border border-ink-900/8 bg-offwhite p-6 shadow-soft">
+              <RevealItem key={f.key} className="min-w-0">
+                <div className="h-full min-w-0 rounded-2xl border border-ink-900/8 bg-offwhite p-6 shadow-soft">
                   <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold-500/10 text-gold-500">
                     <f.icon size={24} />
                   </span>
                   <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted">{f.label}</p>
-                  <p className="mt-1.5 font-display text-h3 font-bold text-ink-900">
+                  <p className="mt-1.5 break-words font-display text-lg font-bold text-ink-900 sm:text-h3">
                     {f.key === "tuition" &&
                       `${formatNaira(destination.tuitionRangeNgnPerYear[0])} – ${formatNaira(destination.tuitionRangeNgnPerYear[1])}/yr`}
                     {f.key === "living" &&
