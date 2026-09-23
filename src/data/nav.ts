@@ -24,6 +24,7 @@ export const toolsNav: NavLink[] = [
 ];
 
 export const primaryNav = [
+  { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Services", href: "/services", children: servicesNav },
   { label: "Destinations", href: "/destinations", children: destinationsNav },

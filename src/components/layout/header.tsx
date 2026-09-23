@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
+import { SearchOverlay } from "@/components/layout/search-overlay";
 import { primaryNav } from "@/data/nav";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -88,22 +90,42 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
-          <Button href="/book" size="sm" variant="primary" magnetic>
+        <div className="hidden items-center gap-2 lg:flex">
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search the site"
+            className="rounded-full p-2.5 text-ink-900 transition-colors hover:bg-ink-900/5"
+          >
+            <Search size={18} />
+          </button>
+          <Button href="/book" size="sm" variant="primary" magnetic className="ml-1">
             Book a Free Consultation
           </Button>
         </div>
 
-        <button
-          type="button"
-          className="rounded-full p-2 text-ink-900 lg:hidden"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Toggle menu"
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-1 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search the site"
+            className="rounded-full p-2 text-ink-900"
+          >
+            <Search size={20} />
+          </button>
+          <button
+            type="button"
+            className="rounded-full p-2 text-ink-900"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
+
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       <AnimatePresence>
         {mobileOpen && (
