@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return new Response("Too many messages. Please try again in a few minutes, or reach us on WhatsApp.", { status: 429 });
   }
 
-  const apiKey = process.env.XAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return new Response(
       "The AI assistant isn't configured yet. Please reach us directly on WhatsApp or book a free consultation.",
@@ -40,28 +40,39 @@ export async function POST(request: Request) {
     return new Response("Invalid request", { status: 400 });
   }
 
-  const trimmedHistory = messages.slice(-MAX_HISTORY).map((m: { role: string; content: string }) => ({
-    role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
-    content: String(m.content ?? "").slice(0, MAX_MESSAGE_LENGTH),
+  // Gemini requires the conversation to start on a "user" turn — the widget's
+  // locally-seeded greeting is an assistant message with no prior user turn,
+  // so drop any leading assistant messages before truncating/mapping.
+  const recent = messages.slice(-MAX_HISTORY) as { role: string; content: string }[];
+  const firstUserIndex = recent.findIndex((m) => m.role === "user");
+  const trimmedHistory = (firstUserIndex === -1 ? [] : recent.slice(firstUserIndex)).map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: String(m.content ?? "").slice(0, MAX_MESSAGE_LENGTH) }],
   }));
 
-  const model = process.env.XAI_MODEL || "grok-4-fast";
+  if (trimmedHistory.length === 0) {
+    return new Response("Invalid request", { status: 400 });
+  }
+
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
   let upstream: Response;
   try {
-    upstream = await fetch("https://api.x.ai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+    upstream = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: trimmedHistory,
+          generationConfig: { maxOutputTokens: 1024 },
+        }),
       },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1024,
-        stream: true,
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...trimmedHistory],
-      }),
-    });
+    );
   } catch (err) {
     console.error("[chat] upstream request failed", err);
     return new Response("Something went wrong. Please try again or reach us on WhatsApp.", { status: 502 });
@@ -93,12 +104,13 @@ export async function POST(request: Request) {
             const trimmed = line.trim();
             if (!trimmed.startsWith("data:")) continue;
             const data = trimmed.slice(5).trim();
-            if (data === "[DONE]") continue;
+            if (!data || data === "[DONE]") continue;
 
             try {
               const parsed = JSON.parse(data);
-              const delta = parsed?.choices?.[0]?.delta?.content;
-              if (typeof delta === "string" && delta.length > 0) {
+              const parts = parsed?.candidates?.[0]?.content?.parts;
+              const delta = Array.isArray(parts) ? parts.map((p: { text?: string }) => p.text ?? "").join("") : "";
+              if (delta.length > 0) {
                 controller.enqueue(encoder.encode(delta));
               }
             } catch {
