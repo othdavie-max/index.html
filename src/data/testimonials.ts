@@ -72,3 +72,9 @@ export const testimonials: Testimonial[] = [
     quote: "PLACEHOLDER quote. Replace with a real, consented testimonial once available.",
   },
 ];
+
+// The only testimonials ever shown on the live site — consent-gated so a
+// placeholder can never accidentally render as a real story.
+export const realTestimonials = testimonials.filter((t) => t.consentGiven);
+
+export const MIN_REAL_TESTIMONIALS_TO_SHOW_GRID = 3;

@@ -1,11 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Merriweather, Montserrat } from "next/font/google";
+import { Inter, Merriweather } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { SiteChrome } from "@/components/layout/site-chrome";
-import { CursorFollower } from "@/components/layout/cursor-follower";
-import { LoadingScreen } from "@/components/layout/loading-screen";
-import { SmoothScrollProvider } from "@/components/layout/smooth-scroll-provider";
 import { PageTransition } from "@/components/layout/page-transition";
 import { ToastProvider } from "@/components/ui/toast";
 import { GA_ID, META_PIXEL_ID } from "@/lib/analytics";
@@ -18,7 +15,6 @@ const merriweather = Merriweather({
   weight: ["700", "900"],
 });
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
-const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"], weight: ["300"] });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.baselineeducationalservices.com";
 
@@ -53,7 +49,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#2A1810",
+  themeColor: "#0B2545",
 };
 
 const organizationJsonLd = {
@@ -87,7 +83,7 @@ const organizationJsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${merriweather.variable} ${inter.variable} ${montserrat.variable} h-full antialiased`}>
+    <html lang="en" className={`${merriweather.variable} ${inter.variable} h-full antialiased`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         {GA_ID && (
@@ -118,16 +114,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col">
         <ToastProvider>
-          <SmoothScrollProvider>
-            <LoadingScreen />
-            <CursorFollower />
-            <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-full focus:bg-ink-900 focus:px-4 focus:py-2 focus:text-white">
-              Skip to content
-            </a>
-            <SiteChrome>
-              <PageTransition>{children}</PageTransition>
-            </SiteChrome>
-          </SmoothScrollProvider>
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-full focus:bg-ink-900 focus:px-4 focus:py-2 focus:text-white">
+            Skip to content
+          </a>
+          <SiteChrome>
+            <PageTransition>{children}</PageTransition>
+          </SiteChrome>
         </ToastProvider>
       </body>
     </html>

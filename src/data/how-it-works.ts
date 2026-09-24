@@ -1,33 +1,49 @@
 export const howItWorksSteps = [
   {
-    title: "Free consultation",
-    description: "Tell us your goals, budget and grades. We listen first, then give you an honest read on what's realistic.",
-    icon: "speech-balloon",
-  },
-  {
-    title: "Course & country matching",
+    id: "consultation",
+    number: "01",
+    title: "Consultation",
+    short: "Consult",
+    caption: "Getting to know you",
     description:
-      "We shortlist countries and courses that actually fit your profile, using our Course Matcher and counsellor review. Popular destinations or anywhere else, we start from you.",
-    icon: "world-map",
+      "Tell us your goals, academic background, budget and where you'd like to study. We listen first, then give you an honest read on what's realistic.",
   },
   {
-    title: "Admission application",
-    description: "We help you compile documents, write a strong statement of purpose, and submit to your shortlisted universities.",
-    icon: "memo",
+    id: "selection",
+    number: "02",
+    title: "Course & University Selection",
+    short: "Selection",
+    caption: "Finding the right fit",
+    description:
+      "We shortlist courses and universities that actually fit your profile and goals, using our Course Matcher and counsellor review. Popular destinations or anywhere else, we start from you.",
   },
   {
-    title: "Offer & scholarship support",
-    description: "Once offers arrive, we help you compare them and flag scholarships you may be eligible to apply for.",
-    icon: "outbox-tray",
+    id: "application",
+    number: "03",
+    title: "Application",
+    short: "Application",
+    caption: "Building your application",
+    description:
+      "We help you compile documents, write a strong statement of purpose and submit to your shortlisted universities. When offers arrive, we help you compare them and flag scholarships you may be eligible for.",
   },
   {
-    title: "Visa & interview prep",
-    description: "We help you prepare a complete visa application and run mock interviews where one is required.",
-    icon: "passport-control",
+    id: "visa",
+    number: "04",
+    title: "Visa Support",
+    short: "Visa",
+    caption: "Preparing your visa",
+    description:
+      "We help you prepare a complete visa application, check your documents and run mock interviews where one is required.",
   },
   {
-    title: "Fly out & settle in",
-    description: "From pre-departure briefings to your first weeks abroad, we stay reachable while you settle into your new campus.",
-    icon: "airplane-departure",
+    id: "departure",
+    number: "05",
+    title: "Pre-Departure",
+    short: "Departure",
+    caption: "Ready for your next chapter",
+    description:
+      "From pre-departure briefings to your first weeks abroad, we help you get ready to go and stay reachable while you settle into your new campus.",
   },
 ] as const;
+
+export type HowItWorksStep = (typeof howItWorksSteps)[number];

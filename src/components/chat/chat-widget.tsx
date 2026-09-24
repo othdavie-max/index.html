@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, Send, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Bot, Send, ShieldCheck, X } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { trackEvent } from "@/lib/analytics";
 
@@ -14,8 +14,9 @@ interface ChatMessage {
 const MAX_INPUT_LENGTH = 1000;
 const LEAD_PROMPT_AFTER_USER_MESSAGES = 3;
 
-export function ChatWidget() {
-  const [open, setOpen] = useState(false);
+/** The chat panel only — open state is owned by SiteChrome so the desktop
+ * StickyCTA and mobile ChatLauncherMobile can both open the same widget. */
+export function ChatWidget({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: "Hi! I'm the Baseline assistant. Ask me anything about studying abroad or our services. I'll do my best to help, and can connect you with a real counsellor any time." },
   ]);
@@ -24,38 +25,11 @@ export function ChatWidget() {
   const [showLeadPrompt, setShowLeadPrompt] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [leadDismissed, setLeadDismissed] = useState(false);
-  const [showTeaser, setShowTeaser] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, streaming]);
-
-  useEffect(() => {
-    let seen = false;
-    try {
-      seen = localStorage.getItem("bes-ai-teaser-seen") === "1";
-    } catch {
-      // localStorage unavailable (private browsing, etc.) — just skip the teaser.
-      seen = true;
-    }
-    if (seen) return;
-    const showTimer = setTimeout(() => setShowTeaser(true), 2500);
-    const hideTimer = setTimeout(() => setShowTeaser(false), 9000);
-    return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-    };
-  }, []);
-
-  function dismissTeaser() {
-    setShowTeaser(false);
-    try {
-      localStorage.setItem("bes-ai-teaser-seen", "1");
-    } catch {
-      // ignore
-    }
-  }
 
   async function sendMessage(text: string) {
     const nextMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
@@ -112,145 +86,94 @@ export function ChatWidget() {
   }
 
   return (
-    <>
-      <AnimatePresence>
-        {showTeaser && !open && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            transition={{ duration: 0.25 }}
-            className="fixed bottom-[6.5rem] right-4 z-40 flex max-w-[190px] items-center gap-2 rounded-2xl border border-ink-900/8 bg-white px-3.5 py-2.5 text-xs font-medium text-ink-900 shadow-xl sm:bottom-[6.5rem] sm:right-6"
-          >
-            <Sparkles size={14} className="shrink-0 text-gold-500" />
-            Ask our AI assistant anything about studying abroad
-            <button
-              type="button"
-              onClick={dismissTeaser}
-              aria-label="Dismiss"
-              className="ml-auto shrink-0 rounded-full p-0.5 text-muted hover:bg-offwhite"
-            >
-              <X size={12} />
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.96 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="fixed inset-x-4 bottom-[4.5rem] z-40 flex h-[70vh] max-h-[560px] flex-col overflow-hidden rounded-2xl border border-ink-900/10 bg-white shadow-2xl sm:inset-x-auto sm:bottom-24 sm:right-6 sm:w-[380px]"
+        >
+          <div className="flex items-center justify-between bg-ink-900 px-4 py-3.5">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-500/15 text-gold-500">
+                <Bot size={16} />
+              </span>
+              <div>
+                <p className="font-display text-sm text-white">Baseline AI Assistant</p>
+                <p className="text-[11px] text-white/50">AI-powered · usually replies instantly</p>
+              </div>
+            </div>
+            <button onClick={() => onOpenChange(false)} aria-label="Close" className="rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white">
+              <X size={16} />
             </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
 
-      <motion.button
-        type="button"
-        onClick={() => {
-          setOpen((v) => !v);
-          dismissTeaser();
-        }}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 1.2, type: "spring", stiffness: 260, damping: 20 }}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        aria-label={open ? "Close AI chat assistant" : "Open AI chat assistant"}
-        className="fixed bottom-40 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink-900 text-white shadow-lg shadow-ink-900/30 sm:bottom-24 sm:right-6"
-      >
-        {open ? (
-          <X size={22} />
-        ) : (
-          <>
-            <Bot size={24} />
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-white ring-2 ring-offwhite">
-              <Sparkles size={10} />
-            </span>
-          </>
-        )}
-      </motion.button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.96 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-x-4 bottom-[14.5rem] z-40 flex h-[70vh] max-h-[560px] flex-col overflow-hidden rounded-2xl border border-ink-900/10 bg-white shadow-2xl sm:inset-x-auto sm:bottom-[10.5rem] sm:right-6 sm:w-[380px]"
-          >
-            <div className="flex items-center justify-between bg-ink-900 px-4 py-3.5">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-500/15 text-gold-500">
-                  <Bot size={16} />
-                </span>
-                <div>
-                  <p className="font-display text-sm text-white">Baseline AI Assistant</p>
-                  <p className="text-[11px] text-white/50">AI-powered · usually replies instantly</p>
+          <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+            {messages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                    m.role === "user" ? "bg-gold-500 text-white" : "bg-offwhite text-ink-900"
+                  }`}
+                >
+                  {m.content || (streaming && i === messages.length - 1 ? "…" : "")}
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-full p-1.5 text-white/60 hover:bg-white/10 hover:text-white">
-                <X size={16} />
-              </button>
-            </div>
+            ))}
 
-            <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                      m.role === "user" ? "bg-gold-500 text-white" : "bg-offwhite text-ink-900"
-                    }`}
-                  >
-                    {m.content || (streaming && i === messages.length - 1 ? "…" : "")}
-                  </div>
-                </div>
-              ))}
+            {showLeadPrompt && !leadCaptured && (
+              <LeadPrompt
+                onDismiss={() => {
+                  setShowLeadPrompt(false);
+                  setLeadDismissed(true);
+                }}
+                onSuccess={() => {
+                  setShowLeadPrompt(false);
+                  setLeadCaptured(true);
+                }}
+                transcript={messages}
+              />
+            )}
+          </div>
 
-              {showLeadPrompt && !leadCaptured && (
-                <LeadPrompt
-                  onDismiss={() => {
-                    setShowLeadPrompt(false);
-                    setLeadDismissed(true);
-                  }}
-                  onSuccess={() => {
-                    setShowLeadPrompt(false);
-                    setLeadCaptured(true);
-                  }}
-                  transcript={messages}
-                />
-              )}
-            </div>
-
-            <div className="border-t border-ink-900/8 px-4 py-2">
+          <div className="border-t border-ink-900/8 px-4 py-2">
+            <button
+              type="button"
+              onClick={() => openWhatsApp("Hi Baseline, I've been chatting with your AI assistant and would like to speak with a human counsellor.", "ai-chat-widget")}
+              className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-full border border-ink-900/10 py-2 text-xs font-medium text-ink-900 hover:bg-offwhite"
+            >
+              Talk to a human on WhatsApp
+            </button>
+            <form onSubmit={onSubmit} className="flex items-center gap-2">
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT_LENGTH))}
+                placeholder="Ask a question…"
+                disabled={streaming}
+                className="flex-1 rounded-full border border-ink-900/12 px-4 py-2.5 text-sm outline-none focus:border-gold-500 disabled:opacity-60"
+              />
               <button
-                type="button"
-                onClick={() => openWhatsApp("Hi Baseline, I've been chatting with your AI assistant and would like to speak with a human counsellor.", "ai-chat-widget")}
-                className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-full border border-ink-900/10 py-2 text-xs font-medium text-ink-900 hover:bg-offwhite"
+                type="submit"
+                disabled={streaming || !input.trim()}
+                aria-label="Send"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-500 text-white hover:bg-gold-600 disabled:opacity-50"
               >
-                Talk to a human on WhatsApp
+                <Send size={16} />
               </button>
-              <form onSubmit={onSubmit} className="flex items-center gap-2">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT_LENGTH))}
-                  placeholder="Ask a question…"
-                  disabled={streaming}
-                  className="flex-1 rounded-full border border-ink-900/12 px-4 py-2.5 text-sm outline-none focus:border-gold-500 disabled:opacity-60"
-                />
-                <button
-                  type="submit"
-                  disabled={streaming || !input.trim()}
-                  aria-label="Send"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-500 text-white hover:bg-gold-600 disabled:opacity-50"
-                >
-                  <Send size={16} />
-                </button>
-              </form>
-              <p className="mt-2 text-center text-[10px] text-muted">
-                General guidance only, not a guarantee of any outcome. See our{" "}
-                <a href="/privacy-policy" className="underline">
-                  Privacy Policy
-                </a>
-                .
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            </form>
+            <p className="mt-2 text-center text-[10px] text-muted">
+              General guidance only, not a guarantee of any outcome. See our{" "}
+              <a href="/privacy-policy" className="underline">
+                Privacy Policy
+              </a>
+              .
+            </p>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

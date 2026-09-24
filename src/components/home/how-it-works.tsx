@@ -1,135 +1,195 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { useInView, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { Reveal } from "@/components/ui/reveal";
-import { Icon3D, type Icon3DName } from "@/components/ui/icon-3d";
-import { howItWorksSteps } from "@/data/how-it-works";
+import { Button } from "@/components/ui/button";
+import { JourneyVisual } from "@/components/home/journey-visual";
+import { howItWorksSteps, type HowItWorksStep } from "@/data/how-it-works";
 import { cn } from "@/lib/utils";
 
-const AUTO_ADVANCE_MS = 4500;
+// The step whose block crosses the middle of the viewport is the active one.
+// IntersectionObserver (not a per-frame scroll listener) keeps this cheap,
+// and an element hidden with display:none never intersects, so the desktop
+// and mobile layouts each track only while they're the visible one.
+function useActiveStep(refs: RefObject<(HTMLElement | null)[]>) {
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(Number((entry.target as HTMLElement).dataset.step));
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px" },
+    );
+    for (const el of refs.current) if (el) observer.observe(el);
+    return () => observer.disconnect();
+  }, [refs]);
+  return active;
+}
+
+function StepRail({ active, onSelect, className }: { active: number; onSelect: (i: number) => void; className?: string }) {
+  return (
+    <nav aria-label="Stages of the Baseline journey" className={className}>
+      <ol className="grid grid-cols-5 gap-2">
+        {howItWorksSteps.map((s, i) => (
+          <li key={s.id}>
+            <button
+              type="button"
+              onClick={() => onSelect(i)}
+              aria-current={i === active ? "step" : undefined}
+              className="group flex min-h-[48px] w-full flex-col items-start gap-1.5 rounded-md pt-2 text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-500"
+            >
+              <span className="relative block h-[3px] w-full overflow-hidden rounded-full bg-ink-900/10">
+                <span
+                  className={cn(
+                    "absolute inset-0 origin-left rounded-full bg-gold-500 transition-transform duration-500 ease-out",
+                    i <= active ? "scale-x-100" : "scale-x-0",
+                  )}
+                />
+              </span>
+              <span className="flex items-baseline gap-1.5">
+                <span
+                  className={cn(
+                    "text-xs font-semibold tabular-nums transition-colors",
+                    i === active ? "text-gold-500" : "text-ink-900/40 group-hover:text-ink-900/70",
+                  )}
+                >
+                  <span className="sr-only">Stage </span>
+                  {s.number}
+                </span>
+                <span
+                  className={cn(
+                    "sr-only text-[13px] font-medium leading-tight transition-colors sm:not-sr-only",
+                    i === active ? "text-ink-900" : "text-muted group-hover:text-ink-900",
+                  )}
+                >
+                  {s.short}
+                </span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+function MobileStage({
+  step,
+  index,
+  reduced,
+  stepRef,
+}: {
+  step: HowItWorksStep;
+  index: number;
+  reduced: boolean;
+  stepRef: (el: HTMLLIElement | null) => void;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(cardRef, { once: true, amount: 0.35 });
+  return (
+    <li ref={stepRef} data-step={index} className="scroll-mt-28 md:grid md:grid-cols-2 md:gap-x-10">
+      <div className="md:col-start-2 md:row-start-1 md:self-end">
+        <p className="text-sm font-semibold tabular-nums text-gold-500">{step.number}</p>
+        <h3 className="mt-1.5 font-display text-h3 text-ink-900">{step.title}</h3>
+      </div>
+      <div ref={cardRef} className="mt-5 md:col-start-1 md:row-span-2 md:row-start-1 md:mt-0 md:self-center">
+        <JourneyVisual stage={index} play={inView} reduced={reduced} />
+      </div>
+      <p className="mt-5 text-base leading-relaxed text-muted md:col-start-2 md:row-start-2 md:mt-3 md:self-start">{step.description}</p>
+    </li>
+  );
+}
 
 export function HowItWorks() {
-  const [active, setActive] = useState(0);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const reduced = !!useReducedMotion();
 
-  useEffect(() => {
-    setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
+  const desktopRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const mobileRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const desktopActive = useActiveStep(desktopRefs);
+  const mobileActive = useActiveStep(mobileRefs);
 
-  useEffect(() => {
-    if (reducedMotion) return;
-    timerRef.current = setInterval(() => {
-      setActive((prev) => (prev + 1) % howItWorksSteps.length);
-    }, AUTO_ADVANCE_MS);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [reducedMotion, active]);
+  const visualRef = useRef<HTMLDivElement>(null);
+  const visualInView = useInView(visualRef, { once: true, amount: 0.3 });
 
-  function selectStep(i: number) {
-    setActive(i);
-    if (timerRef.current) clearInterval(timerRef.current);
+  function jumpTo(refs: RefObject<(HTMLLIElement | null)[]>, i: number, block: ScrollLogicalPosition) {
+    refs.current[i]?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block });
   }
-
-  const step = howItWorksSteps[active];
 
   return (
     <section className="bg-white py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="Our Process" title="How Baseline works" align="center" className="mx-auto" />
+        <SectionHeading
+          eyebrow="How Baseline Works"
+          title="From your first conversation to your"
+          emphasis="first day abroad."
+          description="Baseline guides you through the whole journey, one stage at a time. Scroll through to see what we do with you at each step."
+        />
 
-        {/* Step selector: numbered nodes on a connecting progress line */}
-        <div className="relative mt-16">
-          <div className="absolute left-0 right-0 top-7 hidden h-px bg-ink-900/10 md:block" />
-          <motion.div
-            className="absolute left-0 top-7 hidden h-px bg-gold-500 md:block"
-            animate={{ width: `${(active / (howItWorksSteps.length - 1)) * 100}%` }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-          />
-          <div className="grid grid-cols-3 gap-x-4 gap-y-8 sm:grid-cols-6">
-            {howItWorksSteps.map((s, i) => {
-              const isActive = i === active;
-              return (
-                <button
-                  key={s.title}
-                  type="button"
-                  onClick={() => selectStep(i)}
-                  className="group relative flex flex-col items-center text-center"
-                  aria-current={isActive}
-                  aria-label={`Step ${i + 1}: ${s.title}`}
+        {/* Desktop: step copy scrolls on the left, the student file stays pinned on the right and evolves */}
+        <div className="mt-16 hidden lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16 xl:gap-24">
+          <ol>
+            {howItWorksSteps.map((s, i) => (
+              <li
+                key={s.id}
+                ref={(el) => {
+                  desktopRefs.current[i] = el;
+                }}
+                data-step={i}
+                className="flex min-h-[60vh] flex-col justify-center"
+              >
+                <div
+                  className={cn(
+                    "max-w-md transition-opacity duration-500",
+                    desktopActive === i ? "opacity-100" : "opacity-30",
+                  )}
                 >
-                  <motion.span
-                    animate={{ scale: isActive ? 1.15 : 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className={cn(
-                      "relative flex h-14 w-14 items-center justify-center rounded-full border-2 bg-white transition-colors duration-300",
-                      isActive ? "border-gold-500 shadow-lg shadow-gold-500/20" : "border-ink-900/10 opacity-50 group-hover:border-gold-500/50 group-hover:opacity-100",
-                    )}
-                  >
-                    <Icon3D name={s.icon as Icon3DName} size={26} alt="" />
-                    <span
-                      className={cn(
-                        "absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold transition-colors duration-300",
-                        isActive ? "bg-gold-500 text-white" : "bg-ink-100 text-ink-900/50",
-                      )}
-                    >
-                      {i + 1}
-                    </span>
-                  </motion.span>
-                  <span className={cn("mt-3 hidden text-xs font-semibold sm:block", isActive ? "text-ink-900" : "text-ink-900/40")}>
-                    {s.title}
-                  </span>
-                </button>
-              );
-            })}
+                  <p className="text-sm font-semibold tabular-nums text-gold-500">{s.number}</p>
+                  <h3 className="mt-2 font-display text-h3 text-ink-900">{s.title}</h3>
+                  <p className="mt-3 text-body text-muted">{s.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <div>
+            <div className="sticky top-24 pt-[8vh]">
+              <StepRail active={desktopActive} onSelect={(i) => jumpTo(desktopRefs, i, "center")} />
+              <div ref={visualRef} className="mt-6 rounded-3xl bg-offwhite p-8 xl:p-10">
+                <JourneyVisual stage={desktopActive} play={visualInView} reduced={reduced} />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Active step detail panel */}
-        <Reveal className="mt-12">
-          <div className="relative overflow-hidden rounded-3xl bg-ink-950 px-6 py-10 sm:px-12 sm:py-14">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active}
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -24 }}
-                transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:gap-10 sm:text-left"
-              >
-                <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gold-500/10">
-                  <Icon3D name={step.icon as Icon3DName} size={44} alt="" />
-                </span>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-500">
-                    Step {active + 1} of {howItWorksSteps.length}
-                  </p>
-                  <h3 className="mt-2 font-display text-2xl font-bold text-white sm:text-3xl">{step.title}</h3>
-                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">{step.description}</p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+        {/* Mobile & tablet: each stage is its own block with its own stage of the student file */}
+        <div className="mt-10 lg:hidden">
+          <div className="sticky top-0 z-30 -mx-4 border-b border-ink-900/8 bg-white/95 px-4 pb-1 backdrop-blur sm:-mx-6 sm:px-6">
+            <StepRail active={mobileActive} onSelect={(i) => jumpTo(mobileRefs, i, "start")} />
           </div>
-
-          {/* Dot navigation */}
-          <div className="mt-6 flex items-center justify-center gap-2">
+          <ol className="mt-10 flex flex-col gap-16">
             {howItWorksSteps.map((s, i) => (
-              <button
-                key={s.title}
-                type="button"
-                onClick={() => selectStep(i)}
-                aria-label={`Go to step ${i + 1}`}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-300",
-                  i === active ? "w-6 bg-gold-500" : "w-2 bg-ink-900/15 hover:bg-ink-900/30",
-                )}
+              <MobileStage
+                key={s.id}
+                step={s}
+                index={i}
+                reduced={reduced}
+                stepRef={(el) => {
+                  mobileRefs.current[i] = el;
+                }}
               />
             ))}
-          </div>
-        </Reveal>
+          </ol>
+        </div>
+
+        <div className="mt-14 flex justify-center lg:mt-4">
+          <Button href="/book" variant="primary" magnetic icon={<ArrowRight size={16} />}>
+            Step 1 is free
+          </Button>
+        </div>
       </div>
     </section>
   );

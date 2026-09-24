@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock, Search } from "lucide-react";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
@@ -52,10 +53,21 @@ export function BlogExplorer({ excludeSlug }: { excludeSlug?: string }) {
         {filtered.map((post) => (
           <RevealItem key={post.slug}>
             <Link href={`/blog/${post.slug}`} className="group block">
-              <div className="flex aspect-[16/10] items-center justify-center rounded-2xl bg-gradient-to-br from-ink-100 to-ink-100/40">
-                <span className="rounded-full bg-ink-900 px-3 py-1 text-xs font-semibold text-white">{post.category}</span>
+              <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-ink-100 to-ink-100/40">
+                <Image
+                  src={post.coverImage}
+                  alt=""
+                  fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-ink-900 px-3 py-1 text-xs font-semibold text-white">{post.category}</span>
               </div>
-              <h3 className="mt-4 font-display text-lg text-ink-900 transition-colors group-hover:text-gold-500">{post.title}</h3>
+              <h3 className="mt-4 line-clamp-2 font-display text-lg text-ink-900">
+                <span className="bg-[linear-gradient(currentColor,currentColor)] bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size,color] duration-300 group-hover:bg-[length:100%_1px] group-hover:text-gold-500">
+                  {post.title}
+                </span>
+              </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted line-clamp-2">{post.excerpt}</p>
               <div className="mt-3 flex items-center gap-3 text-xs text-muted">
                 <span className="flex items-center gap-1">

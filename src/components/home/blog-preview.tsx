@@ -6,12 +6,6 @@ import { Button } from "@/components/ui/button";
 import { RevealGroup, RevealItem } from "@/components/ui/reveal";
 import { blogPosts } from "@/data/blog-posts";
 
-const photos: Record<string, string> = {
-  "how-to-get-a-uk-student-visa-from-nigeria": "/blog/uk-visa.png",
-  "cheapest-countries-to-study-abroad-from-nigeria": "/blog/cost-comparison.png",
-  "ielts-vs-toefl-vs-pte-vs-duolingo": "/blog/ielts-prep.png",
-};
-
 export function BlogPreview() {
   const latest = [...blogPosts].sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1)).slice(0, 3);
 
@@ -29,22 +23,22 @@ export function BlogPreview() {
           {latest.map((post) => (
             <RevealItem key={post.slug}>
               <Link href={`/blog/${post.slug}`} className="group block">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-ink-100">
-                  {photos[post.slug] && (
-                    <Image
-                      src={photos[post.slug]}
-                      alt=""
-                      fill
-                      sizes="(min-width: 768px) 33vw, 100vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  )}
+                <div className="relative aspect-video overflow-hidden rounded-2xl bg-ink-100">
+                  <Image
+                    src={post.coverImage}
+                    alt=""
+                    fill
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                   <span className="absolute left-3 top-3 rounded-full bg-ink-900 px-3 py-1 text-xs font-semibold text-white">
                     {post.category}
                   </span>
                 </div>
-                <h3 className="mt-4 font-display text-lg text-ink-900 transition-colors group-hover:text-gold-500">
-                  {post.title}
+                <h3 className="mt-4 line-clamp-2 font-display text-lg text-ink-900">
+                  <span className="bg-[linear-gradient(currentColor,currentColor)] bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size,color] duration-300 group-hover:bg-[length:100%_1px] group-hover:text-gold-500">
+                    {post.title}
+                  </span>
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted line-clamp-2">{post.excerpt}</p>
                 <div className="mt-3 flex items-center gap-3 text-xs text-muted">

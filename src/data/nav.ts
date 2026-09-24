@@ -24,17 +24,24 @@ export const toolsNav: NavLink[] = [
   { label: "Timeline Planner", href: "/tools/timeline-planner", description: "A personalised roadmap to your intake" },
 ];
 
+export const resourcesNav: NavLink[] = [
+  { label: "Blog & Guides", href: "/blog", description: "Intakes, scholarships and application tips" },
+  { label: "FAQ", href: "/faq", description: "Answers to common questions" },
+];
+
+export const aboutNav: NavLink[] = [
+  { label: "About Us", href: "/about", description: "Who we are and how we work" },
+  { label: "Partners", href: "/partners", description: "Institutions we work with" },
+  { label: "Contact", href: "/contact", description: "Reach our team in Abuja" },
+];
+
 export const primaryNav = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services", children: servicesNav },
   { label: "Destinations", href: "/destinations", children: destinationsNav },
-  { label: "Tools", href: "/tools", children: toolsNav },
-  { label: "Partners", href: "/partners" },
+  { label: "Services", href: "/services", children: servicesNav },
+  { label: "Free Tools", href: "/tools", children: toolsNav },
   { label: "Success Stories", href: "/success-stories" },
-  { label: "Blog", href: "/blog" },
-  { label: "FAQ", href: "/faq" },
-  { label: "Contact", href: "/contact" },
+  { label: "Resources", href: "/blog", children: resourcesNav },
+  { label: "About", href: "/about", children: aboutNav },
 ];
 
 export const footerNav = {

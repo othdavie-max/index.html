@@ -43,7 +43,7 @@ export default function DestinationsPage() {
               <RevealItem key={d.code}>
                 <Link
                   href={`/destinations/${d.slug}`}
-                  className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:shadow-[0_20px_40px_-15px_rgba(11,_37,_69,0.2)]"
+                  className="group flex h-full flex-col rounded-2xl border border-ink-900/8 bg-offwhite p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:shadow-hover"
                 >
                   <div className="flex items-start justify-between">
                     <Flag code={d.flagCode} size={40} alt={`${d.name} flag`} />

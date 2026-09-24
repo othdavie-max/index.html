@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
@@ -21,8 +22,15 @@ export default function BlogPage() {
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Link href={`/blog/${featured.slug}`} className="group mb-14 grid grid-cols-1 gap-6 rounded-3xl border border-ink-900/8 bg-offwhite p-6 sm:p-8 lg:grid-cols-2">
-            <div className="flex aspect-[16/10] items-center justify-center rounded-2xl bg-gradient-to-br from-ink-900 to-ink-700 lg:aspect-auto">
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">Featured</span>
+            <div className="relative flex aspect-video items-end overflow-hidden rounded-2xl bg-gradient-to-br from-ink-900 to-ink-700 lg:aspect-auto">
+              <Image
+                src={featured.coverImage}
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <span className="relative m-4 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">Featured</span>
             </div>
             <div className="flex flex-col justify-center">
               <span className="text-xs font-semibold uppercase tracking-widest text-gold-500">{featured.category}</span>

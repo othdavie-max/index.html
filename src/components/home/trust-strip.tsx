@@ -1,29 +1,29 @@
-import { Marquee } from "@/components/ui/marquee";
-import { Flag } from "@/components/ui/flag";
-import { partners } from "@/data/partners";
-import { destinations } from "@/data/destinations";
+import { GraduationCap, Building2, Globe2, CalendarClock } from "lucide-react";
+import { StatCounter } from "@/components/ui/stat-counter";
+import { siteSettings } from "@/data/site-settings";
 
-const flagCodeByCountry = Object.fromEntries(destinations.map((d) => [d.code, d.flagCode]));
-
+// Renders nothing until real numbers are supplied (siteSettings.showStats),
+// same truthfulness gate as the rest of the site — never replace the old
+// placeholder-logo marquee ("UK-1", "IE-1"...) with invented figures.
+// Once real partner-university logos exist, reintroduce <Marquee> here
+// (see src/components/ui/marquee.tsx), greyscale by default, colour +
+// paused on hover.
 export function TrustStrip() {
+  if (!siteSettings.showStats) return null;
+
+  const stats = [
+    { icon: GraduationCap, label: "Students placed", value: siteSettings.stats.studentsPlaced },
+    { icon: Building2, label: "Partner universities", value: siteSettings.stats.partnerUniversities, suffix: "+" },
+    { icon: Globe2, label: "Destination countries", value: siteSettings.stats.countries },
+    { icon: CalendarClock, label: "Years of experience", value: siteSettings.stats.yearsOfExperience, suffix: "+" },
+  ];
+
   return (
-    <section className="border-y border-ink-900/8 bg-offwhite py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-          Our partner institutions
-        </p>
-        <Marquee>
-          {partners.map((p) => (
-            <div
-              key={p.slug}
-              className="flex h-14 min-w-[160px] items-center justify-center gap-2 rounded-xl border border-ink-900/8 bg-white px-6 text-sm font-semibold text-ink-900/50"
-              title={p.name}
-            >
-              <Flag code={flagCodeByCountry[p.country]} size={18} alt="" />
-              {p.logoPlaceholder}
-            </div>
-          ))}
-        </Marquee>
+    <section className="border-y border-ink-900/8 bg-offwhite py-10">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 sm:grid-cols-4 sm:px-6 lg:px-8">
+        {stats.map((s) => (
+          <StatCounter key={s.label} icon={s.icon} value={s.value} suffix={s.suffix} label={s.label} />
+        ))}
       </div>
     </section>
   );
