@@ -1,247 +1,225 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Flag } from "@/components/ui/flag";
-import { QuizProgress } from "@/components/tools/quiz-progress";
 import { ChoiceGrid } from "@/components/tools/choice-grid";
+import { MultiChoice } from "@/components/tools/multi-choice";
+import { StepShell } from "@/components/tools/step-shell";
 import { MatcherResults } from "@/components/tools/course-matcher/matcher-results";
-import { scoreDestinations, type MatcherAnswers } from "@/data/matcher-rules";
-import { destinations } from "@/data/destinations";
+import { FIELDS, REGIONS, type StudyRegion } from "@/data/study-countries";
+import {
+  GRADE_OPTIONS,
+  PRIORITY_LABELS,
+  gradeGroup,
+  rankCountries,
+  type EnglishBand,
+  type LanguageOpenness,
+  type MatcherAnswers,
+  type Priority,
+  type StartWhen,
+} from "@/lib/course-matcher";
+import { LEVEL_LABELS, type CostLevel } from "@/lib/study-costs";
 import { trackEvent } from "@/lib/analytics";
-import type { CountryCode } from "@/types";
 
-type Answers = Partial<MatcherAnswers>;
+type Answers = Partial<MatcherAnswers> & { priorities: Priority[]; regions: StudyRegion[] };
 
-const steps: { key: keyof MatcherAnswers; question: string }[] = [
-  { key: "level", question: "What level do you want to study?" },
-  { key: "fieldOfInterest", question: "What field are you interested in?" },
-  { key: "gradeBand", question: "How would you describe your grades?" },
-  { key: "englishTest", question: "What's your English test status?" },
-  { key: "englishScoreBand", question: "How does your score compare to typical requirements?" },
-  { key: "budgetNairaPerYear", question: "What's your total annual budget?" },
-  { key: "intake", question: "Which intake are you targeting?" },
-  { key: "wantsPostStudyWork", question: "Do you want to work abroad after graduating?" },
-  { key: "preferredCountries", question: "Any countries you're already leaning toward?" },
-];
+const STEPS = ["level", "field", "grade", "english", "language", "budget", "priorities", "start", "regions"] as const;
 
-const budgetOptions = [
-  { value: "8000000", label: "Under ₦8,000,000/yr" },
-  { value: "14000000", label: "₦8,000,000 – ₦14,000,000/yr" },
-  { value: "22000000", label: "₦14,000,000 – ₦22,000,000/yr" },
-  { value: "35000000", label: "Above ₦22,000,000/yr" },
+const LEVEL_DESCRIPTIONS: Record<CostLevel, string> = {
+  foundation: "A one-year bridge into a Bachelor's",
+  undergraduate: "Straight after WAEC, A-levels or JUPEB",
+  masters: "Taught or research Master's",
+  mba: "Usually needs work experience",
+  medicine: "MBBS, MD or dentistry",
+  phd: "Doctoral research",
+};
+
+const BUDGETS = [
+  { value: "8000000", label: "Under ₦10 million a year" },
+  { value: "15000000", label: "₦10m – ₦20m a year" },
+  { value: "27000000", label: "₦20m – ₦35m a year" },
+  { value: "45000000", label: "₦35m – ₦55m a year" },
+  { value: "67000000", label: "₦55m – ₦80m a year" },
+  { value: "95000000", label: "Above ₦80 million a year" },
 ];
 
 export function MatcherQuiz() {
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({ preferredCountries: [] });
+  const [answers, setAnswers] = useState<Answers>({ priorities: [], regions: [] });
   const [showResults, setShowResults] = useState(false);
-
-  const current = steps[step];
-  const isLast = step === steps.length - 1;
 
   function update<K extends keyof MatcherAnswers>(key: K, value: MatcherAnswers[K]) {
     setAnswers((a) => ({ ...a, [key]: value }));
   }
 
+  const current = STEPS[step];
+  const isLast = step === STEPS.length - 1;
+
+  const canNext = (() => {
+    switch (current) {
+      case "level":
+        return !!answers.level;
+      case "field":
+        return !!answers.field;
+      case "grade":
+        return !!answers.grade;
+      case "english":
+        return !!answers.english;
+      case "language":
+        return !!answers.languageOpenness;
+      case "budget":
+        return !!answers.budgetNgn;
+      case "priorities":
+        return answers.priorities.length > 0;
+      case "start":
+        return !!answers.start;
+      case "regions":
+        return true;
+    }
+  })();
+
   function next() {
     if (isLast) {
       trackEvent("course_matcher_completed");
       setShowResults(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     setStep((s) => s + 1);
   }
 
-  function back() {
-    if (step === 0) return;
-    setStep((s) => s - 1);
-  }
-
-  const canProceed = (() => {
-    switch (current.key) {
-      case "level":
-        return !!answers.level;
-      case "fieldOfInterest":
-        return !!answers.fieldOfInterest;
-      case "gradeBand":
-        return !!answers.gradeBand;
-      case "englishTest":
-        return !!answers.englishTest;
-      case "englishScoreBand":
-        return !!answers.englishScoreBand;
-      case "budgetNairaPerYear":
-        return !!answers.budgetNairaPerYear;
-      case "intake":
-        return !!answers.intake;
-      case "wantsPostStudyWork":
-        return !!answers.wantsPostStudyWork;
-      case "preferredCountries":
-        return true;
-      default:
-        return false;
-    }
-  })();
-
   if (showResults) {
-    const results = scoreDestinations(answers as MatcherAnswers);
-    return <MatcherResults results={results} answers={answers as MatcherAnswers} />;
+    const full = answers as MatcherAnswers;
+    return (
+      <MatcherResults
+        results={rankCountries(full)}
+        answers={full}
+        onEdit={() => {
+          setShowResults(false);
+          setStep(0);
+        }}
+      />
+    );
   }
 
-  return (
-    <div className="mx-auto max-w-xl">
-      <QuizProgress step={step} total={steps.length} />
+  const shell = { step, total: STEPS.length, onBack: () => setStep((s) => Math.max(0, s - 1)), onNext: next, canNext };
+  const group = answers.level ? gradeGroup(answers.level) : "school";
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 24 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -24 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="mt-8"
+  switch (current) {
+    case "level":
+      return (
+        <StepShell {...shell} title="What do you want to study?">
+          <ChoiceGrid
+            value={answers.level}
+            onChange={(v) => setAnswers((a) => ({ ...a, level: v, grade: undefined }))}
+            options={(Object.keys(LEVEL_LABELS) as CostLevel[]).map((l) => ({ value: l, label: LEVEL_LABELS[l], description: LEVEL_DESCRIPTIONS[l] }))}
+          />
+        </StepShell>
+      );
+    case "field":
+      return (
+        <StepShell {...shell} title="Which field are you interested in?" hint="We'll favour countries whose universities are known for it.">
+          <ChoiceGrid
+            value={answers.field}
+            onChange={(v) => update("field", v)}
+            options={[...FIELDS.map((f) => ({ value: f.id as MatcherAnswers["field"], label: f.label })), { value: "undecided", label: "Not decided yet" }]}
+          />
+        </StepShell>
+      );
+    case "grade":
+      return (
+        <StepShell
+          {...shell}
+          title={group === "school" ? "How did you do in WAEC/NECO?" : group === "postgrad" ? "What class of degree do you have (or expect)?" : "What are your highest qualifications?"}
+          hint={group === "school" ? "Include A-levels, JUPEB or IB if you have them." : undefined}
         >
-          <h2 className="font-display text-xl text-ink-900 sm:text-2xl">{current.question}</h2>
-
-          <div className="mt-6">
-            {current.key === "level" && (
-              <ChoiceGrid
-                value={answers.level}
-                onChange={(v) => update("level", v)}
-                options={[
-                  { value: "foundation", label: "Foundation Programme" },
-                  { value: "undergraduate", label: "Undergraduate" },
-                  { value: "masters", label: "Master's Degree" },
-                  { value: "phd", label: "PhD" },
-                ]}
-              />
-            )}
-
-            {current.key === "fieldOfInterest" && (
-              <ChoiceGrid
-                value={answers.fieldOfInterest}
-                onChange={(v) => update("fieldOfInterest", v)}
-                columns={2}
-                options={[
-                  "Business & Management",
-                  "Engineering & Technology",
-                  "Computer Science & IT",
-                  "Health & Medical Sciences",
-                  "Law",
-                  "Arts, Media & Design",
-                  "Sciences",
-                  "Other",
-                ].map((f) => ({ value: f, label: f }))}
-              />
-            )}
-
-            {current.key === "gradeBand" && (
-              <ChoiceGrid
-                value={answers.gradeBand}
-                onChange={(v) => update("gradeBand", v)}
-                options={[
-                  { value: "70+", label: "First Class / 70%+", description: "or equivalent GPA/degree classification" },
-                  { value: "60-69", label: "Second Class Upper / 60–69%" },
-                  { value: "50-59", label: "Second Class Lower / 50–59%" },
-                  { value: "below-50", label: "Below 50% / Third Class" },
-                ]}
-              />
-            )}
-
-            {current.key === "englishTest" && (
-              <ChoiceGrid
-                value={answers.englishTest}
-                onChange={(v) => update("englishTest", v)}
-                options={[
-                  { value: "ielts", label: "IELTS" },
-                  { value: "toefl", label: "TOEFL" },
-                  { value: "pte", label: "PTE Academic" },
-                  { value: "duolingo", label: "Duolingo English Test" },
-                  { value: "none", label: "Haven't taken one yet" },
-                ]}
-              />
-            )}
-
-            {current.key === "englishScoreBand" && (
-              <ChoiceGrid
-                value={answers.englishScoreBand}
-                onChange={(v) => update("englishScoreBand", v)}
-                options={[
-                  { value: "not-yet", label: "Not applicable yet" },
-                  { value: "below-requirement", label: "Below typical requirements" },
-                  { value: "meets-requirement", label: "Meets typical requirements" },
-                  { value: "exceeds-requirement", label: "Exceeds typical requirements" },
-                ]}
-              />
-            )}
-
-            {current.key === "budgetNairaPerYear" && (
-              <ChoiceGrid
-                value={answers.budgetNairaPerYear?.toString()}
-                onChange={(v) => update("budgetNairaPerYear", Number(v))}
-                options={budgetOptions}
-              />
-            )}
-
-            {current.key === "intake" && (
-              <ChoiceGrid
-                value={answers.intake}
-                onChange={(v) => update("intake", v)}
-                options={["January", "February", "April", "May", "July", "September", "October"].map((m) => ({ value: m, label: m }))}
-              />
-            )}
-
-            {current.key === "wantsPostStudyWork" && (
-              <ChoiceGrid
-                value={answers.wantsPostStudyWork}
-                onChange={(v) => update("wantsPostStudyWork", v)}
-                options={[
-                  { value: "yes", label: "Yes, that's a priority" },
-                  { value: "no", label: "No, just studying" },
-                  { value: "unsure", label: "Not sure yet" },
-                ]}
-              />
-            )}
-
-            {current.key === "preferredCountries" && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {destinations.map((d) => {
-                  const selected = answers.preferredCountries?.includes(d.code);
-                  return (
-                    <button
-                      key={d.code}
-                      type="button"
-                      onClick={() => {
-                        const list = new Set(answers.preferredCountries ?? []);
-                        if (selected) list.delete(d.code);
-                        else list.add(d.code);
-                        update("preferredCountries", Array.from(list) as CountryCode[]);
-                      }}
-                      className={`rounded-xl border p-4 text-center transition-all duration-200 ${
-                        selected ? "border-gold-500 bg-gold-500/5 ring-1 ring-gold-500" : "border-ink-900/10 bg-white hover:border-ink-900/30"
-                      }`}
-                    >
-                      <Flag code={d.flagCode} size={26} alt="" />
-                      <p className="mt-1 text-xs font-medium text-ink-900">{d.name}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </motion.div>
-      </AnimatePresence>
-
-      <div className="mt-10 flex items-center justify-between">
-        <Button variant="ghost" onClick={back} disabled={step === 0} icon={<ArrowLeft size={16} />}>
-          Back
-        </Button>
-        <Button onClick={next} disabled={!canProceed} icon={<ArrowRight size={16} />}>
-          {isLast ? "See My Results" : "Next"}
-        </Button>
-      </div>
-    </div>
-  );
+          <ChoiceGrid value={answers.grade} onChange={(v) => update("grade", v)} options={GRADE_OPTIONS[group]} />
+        </StepShell>
+      );
+    case "english":
+      return (
+        <StepShell
+          {...shell}
+          title="What's your English test score?"
+          hint="IELTS or equivalent (TOEFL, PTE, Duolingo). Some countries accept a WAEC English credit instead, and we'll factor that in."
+        >
+          <ChoiceGrid<EnglishBand>
+            value={answers.english}
+            onChange={(v) => update("english", v)}
+            options={[
+              { value: "not-taken", label: "Haven't taken one yet" },
+              { value: "below-5.5", label: "Below 5.5" },
+              { value: "5.5", label: "5.5" },
+              { value: "6.0-6.5", label: "6.0 – 6.5" },
+              { value: "7.0+", label: "7.0 or higher" },
+            ]}
+          />
+        </StepShell>
+      );
+    case "language":
+      return (
+        <StepShell
+          {...shell}
+          title="Would you study in another language?"
+          hint="Some of the best-value countries teach many Bachelor's degrees in German, French or other languages."
+        >
+          <ChoiceGrid<LanguageOpenness>
+            value={answers.languageOpenness}
+            onChange={(v) => update("languageOpenness", v)}
+            columns={1}
+            options={[
+              { value: "english-only", label: "English only, please" },
+              { value: "open", label: "I'm open to learning a new language" },
+              { value: "speaks-other", label: "I already speak French, German or another language" },
+            ]}
+          />
+        </StepShell>
+      );
+    case "budget":
+      return (
+        <StepShell
+          {...shell}
+          title="What can you realistically spend each year?"
+          hint="Tuition plus living costs, per year. Be honest: we'll show options that stretch further, including scholarships."
+        >
+          <ChoiceGrid value={answers.budgetNgn?.toString()} onChange={(v) => update("budgetNgn", Number(v))} options={BUDGETS} />
+        </StepShell>
+      );
+    case "priorities":
+      return (
+        <StepShell {...shell} title="What matters most to you?" hint="Pick up to three.">
+          <MultiChoice<Priority>
+            max={3}
+            values={answers.priorities}
+            onChange={(v) => update("priorities", v)}
+            options={(Object.keys(PRIORITY_LABELS) as Priority[]).map((p) => ({ value: p, ...PRIORITY_LABELS[p] }))}
+          />
+        </StepShell>
+      );
+    case "start":
+      return (
+        <StepShell {...shell} title="When do you want to start?">
+          <ChoiceGrid<StartWhen>
+            value={answers.start}
+            onChange={(v) => update("start", v)}
+            options={[
+              { value: "asap", label: "As soon as possible", description: "Within the next 6 months" },
+              { value: "6-12", label: "In 6–12 months" },
+              { value: "12+", label: "In more than a year" },
+              { value: "flexible", label: "I'm flexible" },
+            ]}
+          />
+        </StepShell>
+      );
+    case "regions":
+      return (
+        <StepShell
+          {...shell}
+          title="Any regions you prefer?"
+          hint="Optional. Leave blank to compare every country we cover."
+          nextLabel="See my matches"
+        >
+          <MultiChoice<StudyRegion> values={answers.regions} onChange={(v) => update("regions", v)} options={REGIONS.map((r) => ({ value: r, label: r }))} />
+        </StepShell>
+      );
+  }
 }
