@@ -5,7 +5,7 @@ import { CostCalculatorTool } from "@/components/tools/cost-calculator/cost-calc
 
 export const metadata: Metadata = {
   title: "Cost Calculator",
-  description: "Estimate tuition and living costs in naira for our popular destinations, or ask for a personalised estimate for any other country.",
+  description: "Estimate tuition, living costs, visa fees and flights in naira for 39 countries, with year-by-year totals and what you need before your visa.",
   alternates: { canonical: "/tools/cost-calculator" },
 };
 
@@ -16,7 +16,7 @@ export default function CostCalculatorPage() {
         eyebrow="Free Tool"
         title="Estimate your"
         emphasis="total cost."
-        description="Adjust country, city, accommodation and duration to see a personalised naira estimate."
+        description="Any country, any level. See every cost in naira, what you need before your visa, and what happens if the naira weakens."
       />
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">

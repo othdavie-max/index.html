@@ -49,7 +49,7 @@ const tools: { href: string; icon: Icon3DName; title: string; description: strin
     href: "/tools/course-matcher",
     icon: "bullseye",
     title: "Course Matcher",
-    description: "A 2-minute quiz that ranks our popular destinations by fit for your grades, budget and goals.",
+    description: "A 3-minute quiz that ranks 39 countries worldwide by fit for your grades, budget and goals.",
     preview: (
       <div className="flex items-center gap-3">
         <ProgressRing percent={87} />
@@ -64,7 +64,7 @@ const tools: { href: string; icon: Icon3DName; title: string; description: strin
     href: "/tools/cost-calculator",
     icon: "money-bag",
     title: "Cost Calculator",
-    description: "Estimate tuition and living costs in naira, broken down by country, level and city.",
+    description: "Tuition, living, visa and flight costs in naira for 39 countries, year by year.",
     preview: (
       <div>
         <p className="text-xs text-white/50">Estimated per year</p>
@@ -76,7 +76,7 @@ const tools: { href: string; icon: Icon3DName; title: string; description: strin
     href: "/tools/timeline-planner",
     icon: "spiral-calendar",
     title: "Timeline Planner",
-    description: "A personalised, milestone-by-milestone roadmap working backwards from your intake date.",
+    description: "A milestone-by-milestone roadmap worked back from your intake date, with an honest feasibility check.",
     preview: (
       <div>
         <p className="text-xs text-white/50">Your roadmap</p>

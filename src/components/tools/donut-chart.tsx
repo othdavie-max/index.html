@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { formatNaira } from "@/lib/utils";
 
-const COLORS = ["#C4A57B", "#2A1810", "#4A4240", "#8B6F47", "#7A6F68", "#A38F7E", "#EDE4DD"];
+const COLORS = ["#0b2545", "#e31c5f", "#3d6aa8", "#f07a9f", "#8da9d1", "#5b6577", "#c91652", "#b8c4d6"];
 
 export function DonutChart({ data, total }: { data: { label: string; value: number }[]; total: number }) {
   const radius = 70;
@@ -20,7 +20,7 @@ export function DonutChart({ data, total }: { data: { label: string; value: numb
     <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
       <div className="relative h-48 w-48 shrink-0">
         <svg viewBox="0 0 180 180" className="h-full w-full -rotate-90">
-          <circle cx="90" cy="90" r={radius} fill="none" stroke="#EDE4DD" strokeWidth="20" />
+          <circle cx="90" cy="90" r={radius} fill="none" stroke="#e8edf6" strokeWidth="20" />
           {segments.map((seg, i) => (
             <motion.circle
               key={seg.label}

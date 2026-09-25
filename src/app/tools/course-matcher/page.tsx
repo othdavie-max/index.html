@@ -4,7 +4,7 @@ import { MatcherQuiz } from "@/components/tools/course-matcher/matcher-quiz";
 
 export const metadata: Metadata = {
   title: "Course Matcher Quiz",
-  description: "A 2-minute quiz that ranks our popular destinations by fit for your grades, budget and goals, with guidance available for any other country too.",
+  description: "A 3-minute quiz that ranks 39 study destinations worldwide by fit for your grades, budget, English, priorities and timing.",
   alternates: { canonical: "/tools/course-matcher" },
 };
 
@@ -15,7 +15,7 @@ export default function CourseMatcherPage() {
         eyebrow="Free Tool"
         title="Find your best-fit"
         emphasis="country."
-        description="Answer a few quick questions, no guesswork, just a rule-based match to your grades, budget and goals."
+        description="Nine quick questions. We compare 39 countries on budget, grades, English, your priorities and timing, and show exactly why each one fits."
       />
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">

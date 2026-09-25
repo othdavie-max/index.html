@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 };
 
 const tools = [
-  { href: "/tools/course-matcher", icon: Compass, title: "Course Matcher", description: "A 2-minute quiz that ranks destinations by fit for your grades, budget and goals." },
-  { href: "/tools/cost-calculator", icon: Calculator, title: "Cost Calculator", description: "Estimate tuition and living costs in naira, broken down by country, level and city." },
-  { href: "/tools/timeline-planner", icon: CalendarClock, title: "Timeline Planner", description: "A personalised, milestone-by-milestone roadmap working backwards from your intake." },
+  { href: "/tools/course-matcher", icon: Compass, title: "Course Matcher", description: "A 3-minute quiz that ranks 39 countries by fit for your grades, budget, English and priorities." },
+  { href: "/tools/cost-calculator", icon: Calculator, title: "Cost Calculator", description: "Tuition, living, visa and flight costs in naira for 39 countries, year by year." },
+  { href: "/tools/timeline-planner", icon: CalendarClock, title: "Timeline Planner", description: "A milestone-by-milestone roadmap with visa steps, worked back from your intake, with an honest feasibility check." },
 ];
 
 export default function ToolsPage() {

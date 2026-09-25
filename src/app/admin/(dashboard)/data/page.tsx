@@ -18,8 +18,9 @@ export default function ToolsDataAdminPage() {
     <div>
       <h1 className="font-display text-xl text-ink-900">Tools Data</h1>
       <p className="mt-1 text-sm text-muted">
-        Data behind the Cost Calculator and Timeline Planner. (Course Matcher scoring rules live in code,{" "}
-        <code>src/data/matcher-rules.ts</code>, per the original spec.)
+        Reference tables for the planning tools. The live tools currently read their figures from code:{" "}
+        <code>src/data/study-countries.ts</code> (costs, visas, intakes for 39 countries), <code>src/data/exchange-rates.ts</code> and{" "}
+        <code>src/lib/course-matcher.ts</code> (matching rules).
       </p>
 
       <div className="mt-6">
