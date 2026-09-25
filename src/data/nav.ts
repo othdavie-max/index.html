@@ -36,6 +36,7 @@ export const aboutNav: NavLink[] = [
 ];
 
 export const primaryNav = [
+  { label: "Home", href: "/" },
   { label: "Destinations", href: "/destinations", children: destinationsNav },
   { label: "Services", href: "/services", children: servicesNav },
   { label: "Free Tools", href: "/tools", children: toolsNav },
@@ -46,6 +47,7 @@ export const primaryNav = [
 
 export const footerNav = {
   company: [
+    { label: "Home", href: "/" },
     { label: "About Us", href: "/about" },
     { label: "Partners", href: "/partners" },
     { label: "Success Stories", href: "/success-stories" },

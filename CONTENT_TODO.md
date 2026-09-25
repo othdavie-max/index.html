@@ -57,7 +57,7 @@ switch them on.
 All in `src/data/site-settings.ts`:
 
 - `mapUrl` — confirm the exact Google Maps place link/coordinates for the
-  Kubwa office.
+  Jabi office (House 3, Sigma Estate).
 - `whatsappNumber` — confirm this is the primary WhatsApp line the team
   wants leads routed to.
 - `socials.facebook` / `socials.twitter` / `socials.instagram` — confirm

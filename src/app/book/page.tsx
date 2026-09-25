@@ -16,7 +16,7 @@ export default function BookPage() {
         eyebrow="Free Consultation"
         title="Let's plan your"
         emphasis="next step."
-        description="Pick a time that works for you, Monday to Saturday, 9AM to 5PM (WAT). No pressure, no cost."
+        description="Pick a time that works for you, Monday to Friday, 9AM to 5PM (WAT). No pressure, no cost."
       />
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
