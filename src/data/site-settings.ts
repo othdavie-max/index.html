@@ -6,12 +6,12 @@ export const siteSettings = {
   companyName: "Baseline Educational Services",
   shortName: "Baseline",
   tagline: "Your journey from Nigeria to the world's best universities starts here.",
-  address: "Suite A, Philkruz Estate Phase IV, Kubwa, Abuja, Nigeria",
+  address: "House 3, Sigma Estate, Jabi, Abuja, Nigeria",
   // PLACEHOLDER: confirm exact map coordinates / Google Maps place link
-  mapUrl: "https://maps.google.com/?q=Philkruz+Estate+Phase+IV+Kubwa+Abuja",
+  mapUrl: "https://maps.google.com/?q=Sigma+Estate+Jabi+Abuja",
   phones: ["+234 813 7821 173", "+234 901 7168 330", "+234 902 6221 132"],
   email: "info@baselineeducationalservices.com",
-  hours: "Monday – Saturday, 9:00 AM – 5:00 PM (WAT)",
+  hours: "Monday – Friday, 9:00 AM – 5:00 PM (WAT)",
   whatsappNumber: "2348137821173", // PLACEHOLDER: confirm primary WhatsApp line, digits only w/ country code
   socials: {
     // PLACEHOLDER: replace with real handles
@@ -32,7 +32,7 @@ export const siteSettings = {
     yearsOfExperience: 0, // PLACEHOLDER
   },
   bookingHours: {
-    days: [1, 2, 3, 4, 5, 6], // Mon–Sat
+    days: [1, 2, 3, 4, 5], // Mon–Fri
     startHour: 9,
     endHour: 17,
     slotMinutes: 45,

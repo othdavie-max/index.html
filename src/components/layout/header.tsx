@@ -89,7 +89,7 @@ export function Header() {
                 aria-haspopup={item.children ? "true" : undefined}
                 aria-expanded={item.children ? openMenu === item.label : undefined}
                 className={cn(
-                  "relative flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-gold-500",
+                  "relative flex items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium transition-colors hover:text-gold-500 xl:px-3",
                   transparent ? "text-white" : "text-ink-900",
                   pathname === item.href && "text-gold-500",
                 )}
@@ -97,7 +97,7 @@ export function Header() {
                 {item.label}
                 {item.children && <ChevronDown size={14} className="opacity-50" />}
                 {pathname === item.href && (
-                  <motion.span layoutId="nav-underline" className="absolute -bottom-1 left-3 right-3 h-[2px] bg-gold-500" />
+                  <motion.span layoutId="nav-underline" className="absolute -bottom-1 left-2 right-2 h-[2px] bg-gold-500 xl:left-3 xl:right-3" />
                 )}
               </Link>
 
@@ -164,8 +164,9 @@ export function Header() {
           >
             <Search size={18} />
           </button>
-          <Button href="/book" size="sm" variant="primary" magnetic className="ml-1">
-            Book a Free Consultation
+          <Button href="/book" size="sm" variant="primary" magnetic className="ml-1 whitespace-nowrap">
+            <span className="xl:hidden">Free Consultation</span>
+            <span className="hidden xl:inline">Book a Free Consultation</span>
           </Button>
         </div>
 
