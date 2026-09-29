@@ -12,16 +12,17 @@ const fmt = (d: string | null) => (d ? new Date(d).toLocaleString() : "—");
 export default async function LeadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const { db } = await requireCrmUser();
+  const { db, profile } = await requireCrmUser();
 
   // RLS hides leads that aren't assigned to a non-owner, so a foreign id is simply "not found".
   const { data } = await db.from("crm_leads").select("*, crm_sources(name)").eq("id", id).maybeSingle();
   if (!data) notFound();
   const lead = data as CrmLead & { crm_sources: { name: string } | null };
 
-  const [{ data: timeline }, { data: users }] = await Promise.all([
+  const [{ data: timeline }, { data: users }, { data: meetings }] = await Promise.all([
     db.from("crm_interactions").select("*").eq("lead_id", id).order("created_at", { ascending: false }),
     db.from("crm_users").select("id, name"),
+    db.from("crm_meetings").select("id, scheduled_at, format, status").eq("lead_id", id).order("scheduled_at", { ascending: false }),
   ]);
   const userName = new Map((users ?? []).map((u) => [u.id as string, u.name as string]));
   const stale = isStale(lead);
@@ -46,6 +47,16 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
           <div className="mt-4 flex gap-2">
             <a href={`tel:${lead.phone}`} className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-sm text-white"><Phone size={14} /> Call</a>
             <a href={waLink(lead.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm text-white"><MessageCircle size={14} /> WhatsApp</a>
+          </div>
+        )}
+        {(meetings ?? []).length > 0 && (
+          <div className="mt-4 rounded-2xl border border-ink-900/10 bg-white p-4 text-sm">
+            <h2 className="font-display text-base text-ink-900">Meetings</h2>
+            <ul className="mt-1">
+              {(meetings ?? []).map((m) => (
+                <li key={m.id}>{profile.role === "owner" ? <Link href={`/crm/meetings/${m.id}`} className="underline">{fmt(m.scheduled_at)}</Link> : fmt(m.scheduled_at)} · {m.format} · {m.status}</li>
+              ))}
+            </ul>
           </div>
         )}
         <dl className="mt-5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-2xl border border-ink-900/10 bg-white p-4 text-sm">

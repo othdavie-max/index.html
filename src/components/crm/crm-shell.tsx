@@ -14,6 +14,7 @@ export function CrmShell({ profile, children }: { profile: CrmProfile; children:
             <Link href="/crm/leads" className="hover:text-gold-500">Leads</Link>
             <Link href="/crm/leads/board" className="hover:text-gold-500">Board</Link>
             <Link href="/crm/leads/new" className="hover:text-gold-500">+ New lead</Link>
+            {owner && <Link href="/crm/meetings" className="hover:text-gold-500">Meetings</Link>}
             {owner && <Link href="/crm/leads/import" className="hover:text-gold-500">Import CSV</Link>}
             {owner && <Link href="/crm/settings" className="hover:text-gold-500">Settings</Link>}
           </nav>

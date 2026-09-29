@@ -32,3 +32,18 @@ export function generateSlots(av: Availability, booked: Iterable<string | Date>,
   }
   return out;
 }
+
+export type SlotGroup = { label: string; slots: { iso: string; time: string }[] };
+
+/** Group slot instants by calendar day (in `tz`) for the picker. */
+export function groupSlots(slots: string[], tz = CRM_TIMEZONE): SlotGroup[] {
+  const groups: SlotGroup[] = [];
+  for (const iso of slots) {
+    const label = new Date(iso).toLocaleDateString("en-GB", { timeZone: tz, weekday: "short", day: "numeric", month: "short" });
+    const time = new Date(iso).toLocaleTimeString("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
+    let g = groups.find((x) => x.label === label);
+    if (!g) groups.push((g = { label, slots: [] }));
+    g.slots.push({ iso, time });
+  }
+  return groups;
+}

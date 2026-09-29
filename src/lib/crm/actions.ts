@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { CountryCode } from "libphonenumber-js";
-import { requireCrmUser } from "./auth";
+import { requireCrmUser, type CrmDb } from "./auth";
 import { planImport } from "./csv-import";
-import { DEFAULT_AVAILABILITY, generateSlots, parseAvailability } from "./slots";
+import { createGoogleEvent, deleteGoogleEvent } from "./google-calendar";
+import { getOpenSlots } from "./open-slots";
 import { normalizePhone } from "./phone";
 import {
   CALL_OUTCOMES, INTERACTION_TYPES, LIST_ORIGINS, NO_FOLLOW_UP_STAGES, PAYMENT_PREFERENCES, PURCHASE_PURPOSES, STAGES,
@@ -250,11 +251,6 @@ export async function recordOutcome(leadId: string, outcome: string, opts: { cal
   return { ok: true };
 }
 
-async function loadAvailability(db: Awaited<ReturnType<typeof requireCrmUser>>["db"]) {
-  const { data } = await db.from("crm_settings").select("value").eq("key", "availability").maybeSingle();
-  return data ? parseAvailability(data.value) : DEFAULT_AVAILABILITY;
-}
-
 export async function bookMeeting(leadId: string, scheduledAt: string, format: string, note?: string): Promise<ActionState> {
   const { db } = await requireCrmUser();
   if (!z.uuid().safeParse(leadId).success) return { error: "Invalid lead" };
@@ -263,9 +259,7 @@ export async function bookMeeting(leadId: string, scheduledAt: string, format: s
   if (Number.isNaN(+when)) return { error: "Invalid time" };
 
   // The chosen time must be one of the owner's open slots, not an arbitrary instant.
-  const from = new Date(), to = new Date(Date.now() + 9 * 86_400_000);
-  const { data: booked } = await db.rpc("crm_booked_slots", { p_from: from.toISOString(), p_to: to.toISOString() });
-  const slots = generateSlots(await loadAvailability(db), (booked ?? []) as string[]);
+  const { slots, availability } = await getOpenSlots(db);
   if (!slots.includes(when.toISOString())) return { error: "That slot is no longer available. Pick another." };
 
   const { data: lead } = await db.from("crm_leads").select("full_name, phone, country, city, project_interest, budget_range, payment_preference, purchase_purpose, timeline, notes").eq("id", leadId).maybeSingle();
@@ -283,7 +277,7 @@ export async function bookMeeting(leadId: string, scheduledAt: string, format: s
   ].filter(Boolean).join("\n");
 
   const { data: meeting, error } = await db.from("crm_meetings")
-    .insert({ lead_id: leadId, scheduled_at: when.toISOString(), format, lead_summary: summary }).select("id").single();
+    .insert({ lead_id: leadId, scheduled_at: when.toISOString(), format, lead_summary: summary, duration_minutes: availability.slot_minutes }).select("id").single();
   if (error) return { error: error.code === "23505" ? "That slot was just taken. Pick another." : error.message };
 
   const { error: logErr } = await db.rpc("crm_log_interaction", {
@@ -295,8 +289,10 @@ export async function bookMeeting(leadId: string, scheduledAt: string, format: s
     await db.from("crm_meetings").delete().eq("id", meeting.id);
     return { error: logErr.message };
   }
+  await syncCreate(db, meeting.id, lead.full_name, format, when, summary, availability.slot_minutes);
   revalidatePath("/crm/cockpit");
   revalidatePath("/crm/today");
+  revalidatePath("/crm/meetings");
   return { ok: true, message: "Meeting booked" };
 }
 
@@ -318,4 +314,94 @@ export async function saveSettings(_prev: ActionState, formData: FormData): Prom
   revalidatePath("/crm/settings");
   revalidatePath("/crm/cockpit");
   return { ok: true, message: "Saved" };
+}
+
+// ─── Meetings (owner) ────────────────────────────────────────────────────
+const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL ?? "";
+
+/** Best-effort push to Google Calendar. A Google outage must never block a booking. */
+async function syncCreate(db: CrmDb, meetingId: string, name: string, format: string, when: Date, summary: string, durationMinutes: number) {
+  try {
+    const id = await createGoogleEvent({
+      id: meetingId, title: `Meeting: ${name} (${format})`, start: when, durationMinutes,
+      description: `${summary}\n\nBrief: ${siteUrl()}/crm/meetings/${meetingId}`,
+    });
+    if (id) await db.from("crm_meetings").update({ google_event_id: id }).eq("id", meetingId);
+  } catch (e) {
+    console.error("Google Calendar sync failed", e instanceof Error ? e.message : e);
+  }
+}
+
+const AFTER_MEETING_STAGES = ["Meeting Held", "Proposal Sent", "Negotiation", "Won", "Lost", "Nurture"] as const;
+
+export async function markMeeting(
+  meetingId: string, result: "held" | "no-show", opts: { notes?: string; stage?: string; nextAt?: string } = {},
+): Promise<ActionState> {
+  const { db, profile } = await requireCrmUser();
+  if (profile.role !== "owner") return { error: "Owner only" };
+  if (!z.uuid().safeParse(meetingId).success) return { error: "Invalid meeting" };
+  const { data: m } = await db.from("crm_meetings").select("lead_id, status").eq("id", meetingId).maybeSingle();
+  if (!m || m.status !== "booked") return { error: "Only booked meetings can be updated" };
+
+  let stage: string;
+  let next: string | null;
+  if (result === "held") {
+    stage = opts.stage ?? "Meeting Held";
+    if (!(AFTER_MEETING_STAGES as readonly string[]).includes(stage)) return { error: "Invalid stage" };
+    const closing = (NO_FOLLOW_UP_STAGES as readonly string[]).includes(stage);
+    const when = opts.nextAt ? new Date(opts.nextAt) : null;
+    if (!closing && (!when || Number.isNaN(+when))) return { error: "Set a next follow-up date, or mark the lead Won, Lost or Nurture." };
+    next = when ? when.toISOString() : null;
+  } else {
+    stage = "Contacted"; // back in the follow-up queue to rebook
+    next = opts.nextAt ? new Date(opts.nextAt).toISOString() : new Date(Date.now() + 86_400_000).toISOString();
+  }
+
+  const { error: upErr } = await db.from("crm_meetings").update({ status: result, outcome_notes: opts.notes?.trim() || null }).eq("id", meetingId);
+  if (upErr) return { error: upErr.message };
+  const { error } = await db.rpc("crm_log_interaction", {
+    p_lead_id: m.lead_id, p_type: "meeting", p_direction: null, p_outcome: result,
+    p_summary: opts.notes?.trim() || null, p_next_follow_up_at: next, p_new_stage: stage, p_consent_whatsapp: null,
+  });
+  if (error) {
+    await db.from("crm_meetings").update({ status: "booked", outcome_notes: null }).eq("id", meetingId);
+    return { error: error.message };
+  }
+  revalidatePath("/crm/meetings");
+  revalidatePath(`/crm/meetings/${meetingId}`);
+  revalidatePath("/crm/today");
+  return { ok: true };
+}
+
+/** Reschedule = old meeting marked "rescheduled" (frees its slot) + a new booked meeting. */
+export async function rescheduleMeeting(meetingId: string, scheduledAt: string): Promise<ActionState> {
+  const { db, profile } = await requireCrmUser();
+  if (profile.role !== "owner") return { error: "Owner only" };
+  if (!z.uuid().safeParse(meetingId).success) return { error: "Invalid meeting" };
+  const when = new Date(scheduledAt);
+  if (Number.isNaN(+when)) return { error: "Invalid time" };
+  const { data: old } = await db.from("crm_meetings").select("*, crm_leads(full_name)").eq("id", meetingId).maybeSingle();
+  if (!old || old.status !== "booked") return { error: "Only booked meetings can be rescheduled" };
+
+  const { slots } = await getOpenSlots(db);
+  if (!slots.includes(when.toISOString())) return { error: "That slot is no longer available. Pick another." };
+
+  const { error: e1 } = await db.from("crm_meetings").update({ status: "rescheduled" }).eq("id", meetingId);
+  if (e1) return { error: e1.message };
+  const { data: created, error: e2 } = await db.from("crm_meetings").insert({
+    lead_id: old.lead_id, scheduled_at: when.toISOString(), format: old.format, lead_summary: old.lead_summary,
+    duration_minutes: old.duration_minutes, created_by: old.created_by,
+  }).select("id").single();
+  if (e2) {
+    await db.from("crm_meetings").update({ status: "booked" }).eq("id", meetingId);
+    return { error: e2.code === "23505" ? "That slot was just taken. Pick another." : e2.message };
+  }
+  await db.rpc("crm_log_interaction", {
+    p_lead_id: old.lead_id, p_type: "meeting", p_direction: null, p_outcome: "rescheduled",
+    p_summary: `Meeting moved to ${when.toISOString()}`, p_next_follow_up_at: when.toISOString(), p_new_stage: null, p_consent_whatsapp: null,
+  });
+  try { await deleteGoogleEvent(old.google_event_id); } catch (e) { console.error("Google Calendar delete failed", e instanceof Error ? e.message : e); }
+  await syncCreate(db, created.id, old.crm_leads?.full_name ?? "Lead", old.format, when, old.lead_summary ?? "", old.duration_minutes);
+  revalidatePath("/crm/meetings");
+  return { ok: true, message: created.id };
 }

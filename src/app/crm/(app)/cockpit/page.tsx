@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { CockpitActions, type SlotGroup } from "@/components/crm/cockpit-actions";
+import { CockpitActions } from "@/components/crm/cockpit-actions";
 import { requireCrmUser } from "@/lib/crm/auth";
 import { callStats } from "@/lib/crm/call-stats";
-import { CRM_TIMEZONE, dayBounds, formatWait, partitionLeads, waLink } from "@/lib/crm/lead-utils";
-import { DEFAULT_AVAILABILITY, generateSlots, parseAvailability } from "@/lib/crm/slots";
+import { dayBounds, formatWait, partitionLeads, waLink } from "@/lib/crm/lead-utils";
+import { getOpenSlots } from "@/lib/crm/open-slots";
+import { groupSlots } from "@/lib/crm/slots";
 import type { CrmLead } from "@/lib/crm/types";
 
 export const dynamic = "force-dynamic";
@@ -21,17 +22,16 @@ export default async function CockpitPage({ searchParams }: { searchParams: Prom
   let calls = db.from("crm_interactions").select("outcome, created_by, crm_leads(call_list_id)").eq("type", "call").gte("created_at", since).limit(5000);
   if (profile.role !== "owner") calls = calls.eq("created_by", profile.id);
 
-  const [open, settings, booked, callRows, lists] = await Promise.all([
+  const [open, settings, openSlots, callRows, lists] = await Promise.all([
     db.from("crm_leads").select("*").not("stage", "in", "(Won,Lost,Nurture)").limit(2000),
     db.from("crm_settings").select("key, value"),
-    db.rpc("crm_booked_slots", { p_from: now.toISOString(), p_to: new Date(now.getTime() + 9 * 86_400_000).toISOString() }),
+    getOpenSlots(db, now),
     calls,
     profile.role === "owner" ? db.from("crm_call_lists").select("id, name") : Promise.resolve({ data: [] as { id: string; name: string }[] }),
   ]);
 
   const cfg = new Map((settings.data ?? []).map((s) => [s.key as string, s.value]));
   const script = typeof cfg.get("call_script") === "string" ? (cfg.get("call_script") as string) : "";
-  const av = cfg.has("availability") ? parseAvailability(cfg.get("availability")) : DEFAULT_AVAILABILITY;
 
   const q = partitionLeads((open.data ?? []) as CrmLead[], start, end);
   // Work order: overdue callbacks, then due today, then brand-new leads waiting.
@@ -40,14 +40,7 @@ export default async function CockpitPage({ searchParams }: { searchParams: Prom
   const idx = current ? queue.indexOf(current) : -1;
   const nextLeadId = idx >= 0 ? (queue[idx + 1] ?? queue[idx - 1] ?? null)?.id ?? null : null;
 
-  const slotGroups: SlotGroup[] = [];
-  for (const iso of generateSlots(av, (booked.data ?? []) as string[], now)) {
-    const label = new Date(iso).toLocaleDateString("en-GB", { timeZone: CRM_TIMEZONE, weekday: "short", day: "numeric", month: "short" });
-    const time = new Date(iso).toLocaleTimeString("en-GB", { timeZone: CRM_TIMEZONE, hour: "2-digit", minute: "2-digit" });
-    let g = slotGroups.find((x) => x.label === label);
-    if (!g) slotGroups.push((g = { label, slots: [] }));
-    g.slots.push({ iso, time });
-  }
+  const slotGroups = groupSlots(openSlots.slots);
 
   type CallRow = { outcome: string | null; created_by: string | null; crm_leads: { call_list_id: string | null } | null };
   const rows = (callRows.data ?? []) as unknown as CallRow[];

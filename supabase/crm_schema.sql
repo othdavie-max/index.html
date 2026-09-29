@@ -328,3 +328,10 @@ create or replace function crm_booked_slots(p_from timestamptz, p_to timestamptz
   language sql stable security definer set search_path = public as
   $$ select scheduled_at from crm_meetings
      where status = 'booked' and scheduled_at >= p_from and scheduled_at < p_to and crm_is_staff() $$;
+
+-- ─── Step 7: meetings ─────────────────────────────────────────────────────
+alter table crm_meetings add column if not exists google_event_id text;
+alter table crm_meetings add column if not exists duration_minutes integer not null default 30;
+-- Meeting management (calendar, status, outcomes) is owner-only in the app; the existing
+-- crm_meetings policies still let a telemarketer create meetings for her own leads.
+create index if not exists crm_meetings_scheduled_idx on crm_meetings (scheduled_at);

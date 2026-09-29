@@ -3,9 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { bookMeeting, recordOutcome } from "@/lib/crm/actions";
+import type { SlotGroup } from "@/lib/crm/slots";
+import { SlotPicker } from "./slot-picker";
 import { inputCls } from "./ui";
-
-export type SlotGroup = { label: string; slots: { iso: string; time: string }[] };
 
 const ONE_TAP = [
   ["no answer", "No answer", "bg-ink-900"],
@@ -20,7 +20,6 @@ export function CockpitActions({ leadId, nextLeadId, slotGroups }: { leadId: str
   const [mode, setMode] = useState<"none" | "callback" | "meeting">("none");
   const [note, setNote] = useState("");
   const [callback, setCallback] = useState("");
-  const [day, setDay] = useState(0);
   const [slot, setSlot] = useState("");
   const [format, setFormat] = useState("video");
   const [error, setError] = useState("");
@@ -61,28 +60,15 @@ export function CockpitActions({ leadId, nextLeadId, slotGroups }: { leadId: str
 
       {mode === "meeting" && (
         <div className="rounded-xl border border-ink-900/10 bg-white p-3">
-          {slotGroups.length === 0 ? <p className="text-sm text-ink-900/60">No open slots in the next 7 days.</p> : (
-            <>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {slotGroups.map((g, i) => (
-                  <button key={g.label} onClick={() => { setDay(i); setSlot(""); }}
-                    className={`whitespace-nowrap rounded-full border px-3 py-1 text-xs ${i === day ? "border-ink-900 bg-ink-900 text-white" : "border-ink-900/20"}`}>{g.label}</button>
-                ))}
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                {(slotGroups[day]?.slots ?? []).map((s) => (
-                  <button key={s.iso} onClick={() => setSlot(s.iso)}
-                    className={`rounded-lg border py-1.5 text-xs ${slot === s.iso ? "border-gold-500 bg-gold-500 text-white" : "border-ink-900/20"}`}>{s.time}</button>
-                ))}
-              </div>
-              <div className="mt-3 flex gap-2">
-                <select value={format} onChange={(e) => setFormat(e.target.value)} className={inputCls} aria-label="Meeting format">
-                  <option value="video">Video</option><option value="in person">In person</option><option value="phone">Phone</option>
-                </select>
-                <button disabled={pending || !slot} onClick={() => run(() => bookMeeting(leadId, slot, format, note))}
-                  className="rounded-xl bg-ink-900 px-4 text-sm text-white disabled:opacity-60">Book</button>
-              </div>
-            </>
+          <SlotPicker groups={slotGroups} value={slot} onChange={setSlot} />
+          {slotGroups.length > 0 && (
+            <div className="mt-3 flex gap-2">
+              <select value={format} onChange={(e) => setFormat(e.target.value)} className={inputCls} aria-label="Meeting format">
+                <option value="video">Video</option><option value="in person">In person</option><option value="phone">Phone</option>
+              </select>
+              <button disabled={pending || !slot} onClick={() => run(() => bookMeeting(leadId, slot, format, note))}
+                className="rounded-xl bg-ink-900 px-4 text-sm text-white disabled:opacity-60">Book</button>
+            </div>
           )}
         </div>
       )}

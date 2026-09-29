@@ -15,7 +15,8 @@ Private CRM for Parvez Dubai Properties, built as an isolated module inside this
 - [x] 4. Pipeline board (`/crm/leads/board`, drag-and-drop plus a stage dropdown for touch) and list filters (search, stage, source, owner, country, project, date range)
 - [x] 5. Today screen (`/crm/today`): new leads with wait timer, meetings today, overdue, due today, no-next-step; average first response, compliance, red flags. Business day uses `CRM_TIMEZONE` (default `Asia/Dubai`).
 - [x] 6. Telemarketer cockpit (`/crm/cockpit`): queue, script panel, one-tap outcomes, callback picker, meeting booking against the owner's open slots, performance (calls, connect rate, interest rate, meetings; per call list for the owner). Owner sets the script and availability at `/crm/settings`.
-- [ ] 7-10 not started
+- [x] 7. Meetings (owner only): week calendar `/crm/meetings` with held / no-show / rescheduled tracking, "needs an outcome" list for past booked meetings, pre-meeting brief page (lead summary + full history), Google Calendar sync.
+- [ ] 8-10 not started
 
 ## Verifying
 `psql -v ON_ERROR_STOP=1 -f supabase/tests/crm_rls_test.sql <empty database>` stubs Supabase auth and asserts the role rules (assigned-leads-only, no deal values/lists/costs for the telemarketer, mandatory next step).
@@ -30,3 +31,10 @@ Private CRM for Parvez Dubai Properties, built as an isolated module inside this
 - Connect rate = calls not "no answer"/"wrong number"; interest rate = (interested, callback or meeting) / connected.
 - Per-call-list performance is owner-only, since list names are confidential.
 - Re-run `supabase/crm_schema.sql` to add step 6 (settings table, meeting slot uniqueness, `crm_booked_slots`).
+
+## Google Calendar sync (step 7)
+Two options, both optional:
+1. **Push sync** (events created/moved automatically): set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (and optionally `GOOGLE_CALENDAR_ID`, default `primary`) plus `NEXT_PUBLIC_SITE_URL` for brief links. You create the OAuth client in Google Cloud (Calendar API enabled, scope `calendar.events`) and generate the refresh token once. Event descriptions include the lead summary, so they contain the lead's phone number in your own calendar. Sync failures are logged and never block a booking.
+2. **Subscribe feed** (no Google Cloud setup, but Google refreshes it only every few hours): set `CRM_ICS_TOKEN` (24+ random characters), then in Google Calendar add "From URL": `https://<your-domain>/api/crm/calendar?token=<CRM_ICS_TOKEN>`. Names only, no phone numbers.
+
+Marking a meeting held or no-show also logs an interaction and needs a next step (or Won/Lost/Nurture), like every other interaction. No-show returns the lead to Contacted with a follow-up tomorrow. Rescheduling marks the old meeting "rescheduled" and books a new one.
