@@ -30,15 +30,20 @@ export async function proxy(request: NextRequest) {
 
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
   const isLoginRoute = request.nextUrl.pathname === "/admin/login";
+  const isCrmRoute = request.nextUrl.pathname.startsWith("/crm");
+  const isCrmLogin = request.nextUrl.pathname === "/crm/login";
 
   if (isAdminRoute && !isLoginRoute && !user) {
     const loginUrl = new URL("/admin/login", request.url);
     return NextResponse.redirect(loginUrl);
+  }
+  if (isCrmRoute && !isCrmLogin && !user) {
+    return NextResponse.redirect(new URL("/crm/login", request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/crm/:path*"],
 };
