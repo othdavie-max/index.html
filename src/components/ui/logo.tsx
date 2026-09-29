@@ -8,7 +8,7 @@ export function Logo({ className, dark = false }: { className?: string; dark?: b
   void dark;
   return (
     <Link href="/" className={cn("inline-flex items-center", className)} aria-label="Baseline Educational Services, Home">
-      <Image src="/logo.png" alt="Baseline Educational Services" width={500} height={204} priority className="h-10 w-auto" />
+      <Image src="/logo.png" alt="Baseline Educational Services" width={1796} height={653} priority className="h-10 w-auto" />
     </Link>
   );
 }
