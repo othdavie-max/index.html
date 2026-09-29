@@ -32,3 +32,17 @@ export function formatWait(ms: number): string {
   if (h < 48) return `${h}h ${m % 60}m`;
   return `${Math.floor(h / 24)}d ${h % 24}h`;
 }
+
+/** Split open leads into the daily work queues. A lead appears in exactly one. */
+export function partitionLeads<L extends Pick<CrmLead, "id" | "stage" | "created_at" | "first_contacted_at" | "next_follow_up_at">>(leads: L[], start: Date, end: Date) {
+  const at = (l: L) => new Date(l.next_follow_up_at!).getTime();
+  const fresh = leads.filter((l) => !l.first_contacted_at && l.stage === "New").sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
+  const ids = new Set(fresh.map((l) => l.id));
+  const rest = leads.filter((l) => !ids.has(l.id));
+  return {
+    fresh,
+    overdue: rest.filter((l) => l.next_follow_up_at && at(l) < start.getTime()).sort((a, b) => at(a) - at(b)),
+    dueToday: rest.filter((l) => l.next_follow_up_at && at(l) >= start.getTime() && at(l) < end.getTime()).sort((a, b) => at(a) - at(b)),
+    noStep: rest.filter((l) => !l.next_follow_up_at),
+  };
+}

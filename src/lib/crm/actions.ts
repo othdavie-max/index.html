@@ -5,9 +5,10 @@ import { z } from "zod";
 import type { CountryCode } from "libphonenumber-js";
 import { requireCrmUser } from "./auth";
 import { planImport } from "./csv-import";
+import { DEFAULT_AVAILABILITY, generateSlots, parseAvailability } from "./slots";
 import { normalizePhone } from "./phone";
 import {
-  INTERACTION_TYPES, LIST_ORIGINS, NO_FOLLOW_UP_STAGES, PAYMENT_PREFERENCES, PURCHASE_PURPOSES, STAGES,
+  CALL_OUTCOMES, INTERACTION_TYPES, LIST_ORIGINS, NO_FOLLOW_UP_STAGES, PAYMENT_PREFERENCES, PURCHASE_PURPOSES, STAGES,
   type Stage,
 } from "./constants";
 import type { ActionState } from "./types";
@@ -209,4 +210,112 @@ export async function moveLead(leadId: string, stage: string): Promise<ActionSta
   revalidatePath("/crm/leads/board");
   revalidatePath("/crm/today");
   return { ok: true };
+}
+
+// ─── Telemarketer cockpit ────────────────────────────────────────────────
+
+const inOneDay = () => new Date(Date.now() + 86_400_000).toISOString();
+
+/** One-tap call outcome. Every outcome leaves the lead with a next step (or Lost). */
+export async function recordOutcome(leadId: string, outcome: string, opts: { callbackAt?: string; note?: string } = {}): Promise<ActionState> {
+  const { db } = await requireCrmUser();
+  if (!z.uuid().safeParse(leadId).success) return { error: "Invalid lead" };
+  if (!(CALL_OUTCOMES as readonly string[]).includes(outcome) || outcome === "meeting booked") return { error: "Invalid outcome" };
+
+  const { data: lead } = await db.from("crm_leads").select("stage").eq("id", leadId).maybeSingle();
+  if (!lead) return { error: "Lead not found" };
+  const wasNew = lead.stage === "New";
+
+  let stage: string | null = null;
+  let next: string | null = null;
+  let consent: boolean | null = null;
+  switch (outcome) {
+    case "no answer": next = inOneDay(); break;
+    case "wrong number":
+    case "not interested": stage = "Lost"; break;
+    case "interested + WhatsApp consent": stage = "Qualified"; next = inOneDay(); consent = true; break;
+    case "callback requested": {
+      const when = opts.callbackAt ? new Date(opts.callbackAt) : null;
+      if (!when || Number.isNaN(+when) || +when < Date.now() - 60_000) return { error: "Pick a callback date and time in the future" };
+      stage = wasNew ? "Contacted" : null; next = when.toISOString(); break;
+    }
+  }
+  const { error } = await db.rpc("crm_log_interaction", {
+    p_lead_id: leadId, p_type: "call", p_direction: "outbound", p_outcome: outcome,
+    p_summary: opts.note?.trim() || null, p_next_follow_up_at: next, p_new_stage: stage, p_consent_whatsapp: consent,
+  });
+  if (error) return { error: error.message };
+  revalidatePath("/crm/cockpit");
+  revalidatePath("/crm/today");
+  return { ok: true };
+}
+
+async function loadAvailability(db: Awaited<ReturnType<typeof requireCrmUser>>["db"]) {
+  const { data } = await db.from("crm_settings").select("value").eq("key", "availability").maybeSingle();
+  return data ? parseAvailability(data.value) : DEFAULT_AVAILABILITY;
+}
+
+export async function bookMeeting(leadId: string, scheduledAt: string, format: string, note?: string): Promise<ActionState> {
+  const { db } = await requireCrmUser();
+  if (!z.uuid().safeParse(leadId).success) return { error: "Invalid lead" };
+  if (!["video", "in person", "phone"].includes(format)) return { error: "Choose a meeting format" };
+  const when = new Date(scheduledAt);
+  if (Number.isNaN(+when)) return { error: "Invalid time" };
+
+  // The chosen time must be one of the owner's open slots, not an arbitrary instant.
+  const from = new Date(), to = new Date(Date.now() + 9 * 86_400_000);
+  const { data: booked } = await db.rpc("crm_booked_slots", { p_from: from.toISOString(), p_to: to.toISOString() });
+  const slots = generateSlots(await loadAvailability(db), (booked ?? []) as string[]);
+  if (!slots.includes(when.toISOString())) return { error: "That slot is no longer available. Pick another." };
+
+  const { data: lead } = await db.from("crm_leads").select("full_name, phone, country, city, project_interest, budget_range, payment_preference, purchase_purpose, timeline, notes").eq("id", leadId).maybeSingle();
+  if (!lead) return { error: "Lead not found" };
+  const summary = [
+    `${lead.full_name}${lead.phone ? ` (${lead.phone})` : ""}`,
+    [lead.city, lead.country].filter(Boolean).join(", "),
+    lead.project_interest && `Interested in: ${lead.project_interest}`,
+    lead.budget_range && `Budget: ${lead.budget_range}`,
+    lead.payment_preference && `Payment: ${lead.payment_preference}`,
+    lead.purchase_purpose && `Purpose: ${lead.purchase_purpose}`,
+    lead.timeline && `Timeline: ${lead.timeline}`,
+    lead.notes && `Notes: ${lead.notes}`,
+    note?.trim() && `Booking note: ${note.trim()}`,
+  ].filter(Boolean).join("\n");
+
+  const { data: meeting, error } = await db.from("crm_meetings")
+    .insert({ lead_id: leadId, scheduled_at: when.toISOString(), format, lead_summary: summary }).select("id").single();
+  if (error) return { error: error.code === "23505" ? "That slot was just taken. Pick another." : error.message };
+
+  const { error: logErr } = await db.rpc("crm_log_interaction", {
+    p_lead_id: leadId, p_type: "call", p_direction: "outbound", p_outcome: "meeting booked",
+    p_summary: `Meeting booked for ${when.toISOString()} (${format})`, p_next_follow_up_at: when.toISOString(),
+    p_new_stage: "Meeting Booked", p_consent_whatsapp: null,
+  });
+  if (logErr) {
+    await db.from("crm_meetings").delete().eq("id", meeting.id);
+    return { error: logErr.message };
+  }
+  revalidatePath("/crm/cockpit");
+  revalidatePath("/crm/today");
+  return { ok: true, message: "Meeting booked" };
+}
+
+export async function saveSettings(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const { db, profile } = await requireCrmUser();
+  if (profile.role !== "owner") return { error: "Owner only" };
+  const script = String(formData.get("call_script") ?? "");
+  const days = formData.getAll("days").map(Number).filter((d) => d >= 0 && d <= 6);
+  const start = String(formData.get("start") ?? ""), end = String(formData.get("end") ?? "");
+  const slot = Number(formData.get("slot_minutes"));
+  if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end) || start >= end) return { error: "Availability: start must be before end" };
+  if (![15, 20, 30, 45, 60].includes(slot)) return { error: "Choose a slot length" };
+  if (days.length === 0) return { error: "Pick at least one available day" };
+  const { error } = await db.from("crm_settings").upsert([
+    { key: "call_script", value: script, updated_at: new Date().toISOString() },
+    { key: "availability", value: { days, start, end, slot_minutes: slot }, updated_at: new Date().toISOString() },
+  ]);
+  if (error) return { error: error.message };
+  revalidatePath("/crm/settings");
+  revalidatePath("/crm/cockpit");
+  return { ok: true, message: "Saved" };
 }

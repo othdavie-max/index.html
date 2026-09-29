@@ -14,7 +14,8 @@ Private CRM for Parvez Dubai Properties, built as an isolated module inside this
 - [x] 3. Lead entry, CSV import with duplicate detection, lead detail + timeline
 - [x] 4. Pipeline board (`/crm/leads/board`, drag-and-drop plus a stage dropdown for touch) and list filters (search, stage, source, owner, country, project, date range)
 - [x] 5. Today screen (`/crm/today`): new leads with wait timer, meetings today, overdue, due today, no-next-step; average first response, compliance, red flags. Business day uses `CRM_TIMEZONE` (default `Asia/Dubai`).
-- [ ] 6-10 not started
+- [x] 6. Telemarketer cockpit (`/crm/cockpit`): queue, script panel, one-tap outcomes, callback picker, meeting booking against the owner's open slots, performance (calls, connect rate, interest rate, meetings; per call list for the owner). Owner sets the script and availability at `/crm/settings`.
+- [ ] 7-10 not started
 
 ## Verifying
 `psql -v ON_ERROR_STOP=1 -f supabase/tests/crm_rls_test.sql <empty database>` stubs Supabase auth and asserts the role rules (assigned-leads-only, no deal values/lists/costs for the telemarketer, mandatory next step).
@@ -25,3 +26,7 @@ Private CRM for Parvez Dubai Properties, built as an isolated module inside this
 - Only the owner can import call lists (list names are confidential).
 - Dragging a lead out of Lost/Nurture into an open stage sets its follow-up to now if it had none, so it is never left without a next step.
 - Meetings today shows nothing until step 7 creates meetings.
+- Cockpit defaults: no answer -> follow up in 24h; interested + WhatsApp OK -> Qualified, follow up in 24h, consent recorded as verbal on call; wrong number / not interested -> Lost. Say if you want different defaults.
+- Connect rate = calls not "no answer"/"wrong number"; interest rate = (interested, callback or meeting) / connected.
+- Per-call-list performance is owner-only, since list names are confidential.
+- Re-run `supabase/crm_schema.sql` to add step 6 (settings table, meeting slot uniqueness, `crm_booked_slots`).

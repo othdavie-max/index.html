@@ -10,10 +10,12 @@ export function CrmShell({ profile, children }: { profile: CrmProfile; children:
           <Link href="/crm/today" className="whitespace-nowrap font-display text-base">Lead Engine</Link>
           <nav className="flex flex-1 items-center gap-4 whitespace-nowrap">
             <Link href="/crm/today" className="hover:text-gold-500">Today</Link>
+            <Link href="/crm/cockpit" className="hover:text-gold-500">Cockpit</Link>
             <Link href="/crm/leads" className="hover:text-gold-500">Leads</Link>
             <Link href="/crm/leads/board" className="hover:text-gold-500">Board</Link>
             <Link href="/crm/leads/new" className="hover:text-gold-500">+ New lead</Link>
             {owner && <Link href="/crm/leads/import" className="hover:text-gold-500">Import CSV</Link>}
+            {owner && <Link href="/crm/settings" className="hover:text-gold-500">Settings</Link>}
           </nav>
           <span className="whitespace-nowrap text-xs text-white/60">{profile.name} · {profile.role}</span>
           <form action="/crm/logout" method="post">

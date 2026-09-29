@@ -301,3 +301,30 @@ insert into crm_sources (name, type) values
   ('Instagram', 'organic'), ('Website Calculator', 'organic'), ('Website Contact Form', 'organic'),
   ('Referral', 'referral'), ('Event', 'event')
 on conflict (name) do nothing;
+
+-- ─── Step 6: settings (call script, owner availability) and meeting slots ───
+create table if not exists crm_settings (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table crm_settings enable row level security;
+drop policy if exists crm_settings_select on crm_settings;
+create policy crm_settings_select on crm_settings for select using (crm_is_staff());
+drop policy if exists crm_settings_owner_write on crm_settings;
+create policy crm_settings_owner_write on crm_settings for all using (crm_is_owner()) with check (crm_is_owner());
+
+insert into crm_settings (key, value) values
+  ('call_script', to_jsonb('Replace this with your approved cold-call script. Do not promise returns or make Golden Visa guarantees.'::text)),
+  ('availability', '{"days":[1,2,3,4,5],"start":"10:00","end":"18:00","slot_minutes":30}'::jsonb)
+on conflict (key) do nothing;
+
+alter table crm_meetings add column if not exists lead_summary text;
+-- one booked meeting per slot (the owner's calendar), enforced even across users
+create unique index if not exists crm_meetings_slot_uniq on crm_meetings (scheduled_at) where status = 'booked';
+
+-- Telemarketers only see meetings of their own leads, but must know which slots are taken.
+create or replace function crm_booked_slots(p_from timestamptz, p_to timestamptz) returns setof timestamptz
+  language sql stable security definer set search_path = public as
+  $$ select scheduled_at from crm_meetings
+     where status = 'booked' and scheduled_at >= p_from and scheduled_at < p_to and crm_is_staff() $$;

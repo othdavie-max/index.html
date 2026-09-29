@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireCrmUser } from "@/lib/crm/auth";
-import { CRM_TIMEZONE, dayBounds, formatWait, isStale, waLink } from "@/lib/crm/lead-utils";
+import { CRM_TIMEZONE, dayBounds, formatWait, isStale, partitionLeads, waLink } from "@/lib/crm/lead-utils";
 import type { CrmLead } from "@/lib/crm/types";
 
 export const dynamic = "force-dynamic";
@@ -49,15 +49,7 @@ export default async function TodayPage() {
     db.from("crm_leads").select("created_at, first_contacted_at").not("first_contacted_at", "is", null).gte("created_at", since).limit(2000),
   ]);
   const leads = (open.data ?? []) as CrmLead[];
-  const at = (l: CrmLead) => new Date(l.next_follow_up_at!).getTime();
-
-  const fresh = leads.filter((l) => !l.first_contacted_at && l.stage === "New")
-    .sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
-  const freshIds = new Set(fresh.map((l) => l.id));
-  const rest = leads.filter((l) => !freshIds.has(l.id));
-  const overdue = rest.filter((l) => l.next_follow_up_at && at(l) < start.getTime()).sort((a, b) => at(a) - at(b));
-  const dueToday = rest.filter((l) => l.next_follow_up_at && at(l) >= start.getTime() && at(l) < end.getTime()).sort((a, b) => at(a) - at(b));
-  const noStep = rest.filter((l) => !l.next_follow_up_at);
+  const { fresh, overdue, dueToday, noStep } = partitionLeads(leads, start, end);
   const stale = leads.filter((l) => isStale(l));
 
   const waits = (responded.data ?? []).map((r) => +new Date(r.first_contacted_at as string) - +new Date(r.created_at as string));

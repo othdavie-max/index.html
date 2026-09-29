@@ -30,7 +30,7 @@ function LoginForm() {
       setLoading(false);
       return setError(authError.message);
     }
-    router.push("/crm/today");
+    router.push("/crm");
     router.refresh();
   }
 

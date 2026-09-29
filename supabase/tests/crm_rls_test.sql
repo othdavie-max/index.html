@@ -30,6 +30,8 @@ insert into crm_leads (full_name, phone, source_id, assigned_to)
   from generate_series(1, 6) n;
 insert into crm_deals (lead_id, project, value) select id, 'P', 1000000 from crm_leads limit 1;
 insert into crm_sources (name, type, monthly_cost) values ('Costed', 'paid', 5000);
+insert into crm_meetings (lead_id, scheduled_at, format)
+  select id, '2026-10-05 10:00+00', 'video' from crm_leads where assigned_to = '00000000-0000-0000-0000-00000000000c' limit 1;
 
 create or replace function pg_temp.as_user(u text) returns void language plpgsql as
 $$ begin perform set_config('request.jwt.claim.sub', u, false); end $$;
@@ -74,6 +76,18 @@ end $$ ;
 do $$ declare ok boolean := false; begin
   begin update crm_leads set call_list_id = gen_random_uuid(); exception when others then ok := true; end;
   assert ok, 'tele cannot change list/provenance';
+end $$;
+do $$ declare ok boolean := false; v_mine uuid; begin
+  select id into v_mine from crm_leads limit 1;
+  assert (select count(*) from crm_meetings) = 0, 'tele cannot see meetings of others leads';
+  assert (select count(*) from crm_booked_slots('2026-10-05 00:00+00', '2026-10-06 00:00+00')) = 1, 'tele sees taken slots';
+  begin insert into crm_meetings (lead_id, scheduled_at, format) values (v_mine, '2026-10-05 10:00+00', 'video');
+  exception when unique_violation then ok := true; end;
+  assert ok, 'double booking a slot must fail';
+  insert into crm_meetings (lead_id, scheduled_at, format) values (v_mine, '2026-10-05 10:30+00', 'video');
+  assert (select count(*) from crm_settings where key = 'call_script') = 1, 'tele reads script';
+  update crm_settings set value = '"x"'::jsonb where key = 'call_script';
+  assert (select value <> '"x"'::jsonb from crm_settings where key = 'call_script'), 'tele cannot change script';
 end $$;
 reset role;
 select 'ALL RLS TESTS PASSED' as result;
