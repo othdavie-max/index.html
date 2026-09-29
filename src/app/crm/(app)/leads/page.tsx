@@ -6,10 +6,10 @@ import { inputCls } from "@/components/crm/ui";
 import type { CrmLead } from "@/lib/crm/types";
 
 type Row = CrmLead & { crm_sources: { name: string } | null };
-type Params = Promise<{ q?: string; stage?: string; source?: string; assigned?: string }>;
+type Params = Promise<{ q?: string; stage?: string; source?: string; assigned?: string; country?: string; project?: string; from?: string; to?: string }>;
 
 export default async function LeadsPage({ searchParams }: { searchParams: Params }) {
-  const { q, stage, source, assigned } = await searchParams;
+  const { q, stage, source, assigned, country, project, from, to } = await searchParams;
   const { db, profile } = await requireCrmUser();
 
   let query = db.from("crm_leads").select("*, crm_sources(name)").order("created_at", { ascending: false }).limit(200);
@@ -21,6 +21,11 @@ export default async function LeadsPage({ searchParams }: { searchParams: Params
   if (stage) query = query.eq("stage", stage);
   if (source) query = query.eq("source_id", source);
   if (assigned) query = query.eq("assigned_to", assigned);
+  if (country) query = query.ilike("country", `%${country.replace(/[,()%*\\]/g, " ").trim()}%`);
+  if (project) query = query.ilike("project_interest", `%${project.replace(/[,()%*\\]/g, " ").trim()}%`);
+  const isDate = (d?: string) => !!d && /^\d{4}-\d{2}-\d{2}$/.test(d);
+  if (isDate(from)) query = query.gte("created_at", `${from}T00:00:00Z`);
+  if (isDate(to)) query = query.lte("created_at", `${to}T23:59:59Z`);
 
   const [{ data: leads, error }, { data: sources }, { data: users }] = await Promise.all([
     query,
@@ -34,7 +39,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Params
     <div>
       <div className="flex items-center justify-between">
         <h1 className="font-display text-xl text-ink-900">Leads</h1>
-        <Link href="/crm/leads/new" className="text-sm text-gold-600 underline">+ New lead</Link>
+        <div className="flex gap-4 text-sm text-gold-600 underline"><Link href="/crm/leads/board">Board view</Link><Link href="/crm/leads/new">+ New lead</Link></div>
       </div>
 
       <form className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -53,6 +58,10 @@ export default async function LeadsPage({ searchParams }: { searchParams: Params
             {(users ?? []).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
         ) : <span />}
+        <input name="country" defaultValue={country} placeholder="Country" className={inputCls} />
+        <input name="project" defaultValue={project} placeholder="Project" className={inputCls} />
+        <input name="from" type="date" defaultValue={from} aria-label="Created from" className={inputCls} />
+        <input name="to" type="date" defaultValue={to} aria-label="Created to" className={inputCls} />
         <button className="rounded-full bg-ink-900 px-4 py-2 text-sm text-white sm:col-span-5 sm:w-fit">Filter</button>
       </form>
 

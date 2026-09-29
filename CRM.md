@@ -12,7 +12,9 @@ Private CRM for Parvez Dubai Properties, built as an isolated module inside this
 - [x] 1. Project setup, auth, roles (`/crm/login`, route gating in `src/proxy.ts`, role checks in `src/lib/crm/auth.ts`). Vercel deploy not done.
 - [x] 2. Schema + RLS (`supabase/crm_schema.sql`), verified by `supabase/tests/crm_rls_test.sql`
 - [x] 3. Lead entry, CSV import with duplicate detection, lead detail + timeline
-- [ ] 4-10 not started
+- [x] 4. Pipeline board (`/crm/leads/board`, drag-and-drop plus a stage dropdown for touch) and list filters (search, stage, source, owner, country, project, date range)
+- [x] 5. Today screen (`/crm/today`): new leads with wait timer, meetings today, overdue, due today, no-next-step; average first response, compliance, red flags. Business day uses `CRM_TIMEZONE` (default `Asia/Dubai`).
+- [ ] 6-10 not started
 
 ## Verifying
 `psql -v ON_ERROR_STOP=1 -f supabase/tests/crm_rls_test.sql <empty database>` stubs Supabase auth and asserts the role rules (assigned-leads-only, no deal values/lists/costs for the telemarketer, mandatory next step).
@@ -21,3 +23,5 @@ Private CRM for Parvez Dubai Properties, built as an isolated module inside this
 - `Won` (like `Lost` and `Nurture`) needs no next follow-up date; the spec names only Lost and Nurture.
 - Manual/imported leads get `next_follow_up_at = now` so they appear on the Today screen (step 5).
 - Only the owner can import call lists (list names are confidential).
+- Dragging a lead out of Lost/Nurture into an open stage sets its follow-up to now if it had none, so it is never left without a next step.
+- Meetings today shows nothing until step 7 creates meetings.

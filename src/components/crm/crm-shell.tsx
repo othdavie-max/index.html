@@ -7,9 +7,11 @@ export function CrmShell({ profile, children }: { profile: CrmProfile; children:
     <div className="min-h-screen bg-offwhite">
       <header className="sticky top-0 z-20 border-b border-ink-900/10 bg-ink-950 text-white">
         <div className="mx-auto flex max-w-6xl items-center gap-4 overflow-x-auto px-4 py-3 text-sm">
-          <Link href="/crm/leads" className="whitespace-nowrap font-display text-base">Lead Engine</Link>
+          <Link href="/crm/today" className="whitespace-nowrap font-display text-base">Lead Engine</Link>
           <nav className="flex flex-1 items-center gap-4 whitespace-nowrap">
+            <Link href="/crm/today" className="hover:text-gold-500">Today</Link>
             <Link href="/crm/leads" className="hover:text-gold-500">Leads</Link>
+            <Link href="/crm/leads/board" className="hover:text-gold-500">Board</Link>
             <Link href="/crm/leads/new" className="hover:text-gold-500">+ New lead</Link>
             {owner && <Link href="/crm/leads/import" className="hover:text-gold-500">Import CSV</Link>}
           </nav>

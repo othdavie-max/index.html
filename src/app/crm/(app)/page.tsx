@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default function CrmHome() {
-  redirect("/crm/leads");
+  redirect("/crm/today");
 }

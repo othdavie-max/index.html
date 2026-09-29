@@ -191,3 +191,22 @@ export async function logInteraction(_prev: ActionState, formData: FormData): Pr
   revalidatePath("/crm/leads");
   return { ok: true, message: "Saved" };
 }
+
+export async function moveLead(leadId: string, stage: string): Promise<ActionState> {
+  const { db } = await requireCrmUser();
+  if (!z.uuid().safeParse(leadId).success || !(STAGES as readonly string[]).includes(stage)) return { error: "Invalid request" };
+
+  const { data: lead, error: readErr } = await db.from("crm_leads").select("next_follow_up_at").eq("id", leadId).maybeSingle();
+  if (readErr || !lead) return { error: "Lead not found" };
+
+  // A lead reopened from Lost/Nurture must not be left without a next step.
+  const patch: Record<string, unknown> = { stage };
+  if (!(NO_FOLLOW_UP_STAGES as readonly string[]).includes(stage) && !lead.next_follow_up_at) {
+    patch.next_follow_up_at = new Date().toISOString();
+  }
+  const { error } = await db.from("crm_leads").update(patch).eq("id", leadId);
+  if (error) return { error: error.message };
+  revalidatePath("/crm/leads/board");
+  revalidatePath("/crm/today");
+  return { ok: true };
+}
