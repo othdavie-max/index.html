@@ -487,3 +487,30 @@ export function primaryProvider(p: Player): Npc | null {
 export function randomStateForFamily(): StateInfo {
   return pick(TRAVEL_STATES);
 }
+
+/** Names the player would call their living relatives, for events that need someone to ask for help. */
+export function livingKin(p: Player): string[] {
+  const out: string[] = [];
+  for (const n of Object.values(p.npcs)) {
+    if (!n.alive) continue;
+    const first = n.name.split(" ")[0];
+    if (n.role === "dad") out.push(T("Papa", "Papa"));
+    else if (n.role === "mom") out.push(T("Mama", "Mama"));
+    else if (n.role === "grandparent") out.push(T(`Grandparent ${first}`, `Grandparent ${first}`));
+    else if (n.role === "guardian") out.push(n.gender === "female" ? T(`Aunty ${first}`, `Aunty ${first}`) : T(`Uncle ${first}`, `Uncle ${first}`));
+    else if (n.role === "uncle") out.push(T(`Uncle ${first}`, `Uncle ${first}`));
+    else if (n.role === "aunt") out.push(T(`Aunty ${first}`, `Aunty ${first}`));
+    else if (n.role === "cousin") out.push(T(`Your cousin ${first}`, `Your cousin ${first}`));
+    else if (n.role === "sibling") out.push(n.gender === "male" ? T(`Your brother ${first}`, `Your brother ${first}`) : T(`Your sister ${first}`, `Your sister ${first}`));
+  }
+  return out;
+}
+
+/** The elder who would call about home: a living parent first, then any living guardian. */
+export function homeCaller(p: Player): string {
+  const find = (role: string) => Object.values(p.npcs).find((n) => n.alive && n.role === role);
+  if (find("mom")) return T("Mama", "Mama");
+  if (find("dad")) return T("Papa", "Papa");
+  const g = find("guardian") ?? find("grandparent");
+  return g ? g.name.split(" ")[0] : T("A relative", "One relative");
+}

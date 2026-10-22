@@ -60,40 +60,37 @@ export function GameHeader({ p, onMenu, onWallet, alerts }: { p: Player; onMenu:
   const st = STATE_BY_ID[p.state];
   const title = officeTitle(p) ?? jobTitle(p);
   return (
-    <header className="px-4 pb-3 pt-4">
-      <div className="flex items-start gap-3">
-        <div className="shrink-0 rounded-full bg-sky-100 p-1 shadow-[0_6px_16px_-6px_rgba(37,99,235,0.45)]">
-          <Avatar look={shownLook(p)} gender={p.gender} age={p.age} mood={p.stats.happiness} size={64} dim={!p.alive} round />
+    <header className="px-4 pb-2.5 pt-3.5">
+      <div className="flex items-center gap-2.5">
+        <div data-tour="avatar" className="shrink-0 rounded-full bg-sky-100 p-0.5 shadow-[0_4px_12px_-4px_rgba(37,99,235,0.45)]">
+          <Avatar look={shownLook(p)} gender={p.gender} age={p.age} mood={p.stats.happiness} size={50} dim={!p.alive} round />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="truncate text-[21px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{p.name} {p.surname}</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-[15px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{p.name} {p.surname}</h1>
             <Flag />
           </div>
-          <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-[13px] font-bold text-emerald-700">
-            <User size={14} strokeWidth={2.6} />
+          <div className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+            <User size={11} strokeWidth={2.6} />
             {stageLabel(p)}
-            <ChevronRight size={14} strokeWidth={2.6} />
-          </div>
-          <div className="mt-1 flex items-center gap-1 text-[12px] font-medium text-slate-600">
-            <MapPin size={14} className="shrink-0 text-red-500" fill="currentColor" />
-            <span className="truncate">{st.name}, {T("Nigeria", "Naija")} · {title}</span>
           </div>
         </div>
-      </div>
-      <div className="mt-3 flex items-center gap-2.5">
-        <button type="button" onClick={onWallet} className="flex flex-1 items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/80 px-3.5 py-2.5 text-left shadow-[0_6px_18px_-12px_rgba(37,99,235,0.6)]" aria-label={T("Wallet", "Wallet")}>
-          <Wallet size={26} className="shrink-0 text-blue-600" strokeWidth={2.2} />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[19px] font-extrabold leading-tight text-[#0b2a6b]">{naira(p.money)}</span>
-            <span className="block text-[11.5px] font-medium text-slate-500">{T("Wallet Balance", "Wallet Balance")}</span>
+        <button data-tour="wallet" type="button" onClick={onWallet} className="flex shrink-0 items-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50/80 px-2.5 py-1.5 text-left" aria-label={T("Wallet", "Wallet")}>
+          <Wallet size={16} className="shrink-0 text-blue-600" strokeWidth={2.2} />
+          <span className="block">
+            <span className="block max-w-[84px] truncate text-[13px] font-extrabold leading-tight text-[#0b2a6b]">{naira(p.money)}</span>
+            <span className="block text-[9.5px] leading-tight text-slate-500">{T("Wallet", "Wallet")}</span>
           </span>
-          <ChevronRight size={18} className="shrink-0 text-slate-400" />
+          <ChevronRight size={13} className="shrink-0 text-slate-400" />
         </button>
-        <button type="button" onClick={onMenu} className="relative flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-2xl border border-slate-100 bg-white text-[#0b2a6b] shadow-[0_6px_18px_-12px_rgba(30,64,175,0.5)]" aria-label={T("Menu", "Menu")}>
-          <MenuIcon size={24} strokeWidth={2.6} />
-          {alerts > 0 && <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{alerts}</span>}
+        <button data-tour="menu" type="button" onClick={onMenu} className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-white text-[#0b2a6b] shadow-sm" aria-label={T("Menu", "Menu")}>
+          <MenuIcon size={18} strokeWidth={2.5} />
+          {alerts > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{alerts}</span>}
         </button>
+      </div>
+      <div className="mt-1.5 flex items-center gap-1 text-[11.5px] text-slate-500">
+        <MapPin size={12} className="shrink-0 text-red-500" fill="currentColor" />
+        <span className="truncate">{st.name}, {T("Nigeria", "Naija")} · {title} · {T("Age", "Age")} {p.age}</span>
       </div>
     </header>
   );
@@ -103,16 +100,14 @@ function StatCell({ icon: Icon, label, value, tint, ink, bar, invert }: { icon: 
   const v = Math.round(value);
   const low = invert ? v > 70 : v < 30;
   return (
-    <div className="flex min-w-0 items-center gap-1 px-1.5 py-2.5">
-      <span className={cx("flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full", tint)}><Icon size={13} className={ink} strokeWidth={2.4} fill={Icon === Heart ? "currentColor" : "none"} /></span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-1 text-[9px] font-bold tracking-tighter text-slate-700">
-          <span className="truncate">{label}</span>
-          <span className={cx("shrink-0 text-[9px] font-semibold", low ? "text-red-500" : "text-slate-500")}>{v}%</span>
-        </div>
-        <div className="mt-1 h-[5px] overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full" style={{ width: `${Math.max(3, Math.min(100, v))}%`, background: bar }} />
-        </div>
+    <div className="min-w-0 px-2 py-2">
+      <div className="flex items-center justify-between gap-1">
+        <span className={cx("flex h-6 w-6 shrink-0 items-center justify-center rounded-full", tint)}><Icon size={12} className={ink} strokeWidth={2.4} fill={Icon === Heart ? "currentColor" : "none"} /></span>
+        <span className={cx("text-[12px] font-extrabold tabular-nums", low ? "text-red-500" : "text-[#0b2a6b]")}>{v}%</span>
+      </div>
+      <div className="mt-1 text-[10.5px] font-semibold leading-tight text-slate-600">{label}</div>
+      <div className="mt-1 h-1 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-full rounded-full" style={{ width: `${Math.max(3, Math.min(100, v))}%`, background: bar }} />
       </div>
     </div>
   );
@@ -121,15 +116,15 @@ function StatCell({ icon: Icon, label, value, tint, ink, bar, invert }: { icon: 
 export function StatsCard({ p }: { p: Player }) {
   const s = p.stats;
   return (
-    <section className="mx-4 grid grid-cols-4 divide-x divide-slate-100 rounded-3xl border border-slate-100 bg-white shadow-[0_8px_26px_-12px_rgba(30,64,175,0.28)]" aria-label={T("Your stats", "Your stats")}>
+    <section data-tour="stats" className="mx-4 grid grid-cols-4 divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-white shadow-[0_6px_20px_-12px_rgba(30,64,175,0.3)]" aria-label={T("Your stats", "Your stats")}>
       <StatCell icon={Heart} label={T("Health", "Health")} value={s.health} tint="bg-rose-100" ink="text-rose-500" bar="#22c55e" />
-      <StatCell icon={Smile} label={T("Happy", "Happy")} value={s.happiness} tint="bg-amber-100" ink="text-amber-500" bar="#fbbf24" />
-      <StatCell icon={Brain} label={T("Smart", "Smart")} value={s.smarts} tint="bg-violet-100" ink="text-violet-600" bar="#8b5cf6" />
+      <StatCell icon={Smile} label={T("Happiness", "Happiness")} value={s.happiness} tint="bg-amber-100" ink="text-amber-500" bar="#fbbf24" />
+      <StatCell icon={Brain} label={T("Smarts", "Smarts")} value={s.smarts} tint="bg-violet-100" ink="text-violet-600" bar="#8b5cf6" />
       <StatCell icon={Sparkles} label={T("Looks", "Looks")} value={s.looks} tint="bg-pink-100" ink="text-pink-500" bar="#ec4899" />
       <div className="col-span-4 border-t border-slate-100" />
       <StatCell icon={Zap} label={T("Stress", "Stress")} value={s.stress} tint="bg-orange-100" ink="text-orange-500" bar="#f97316" invert />
-      <StatCell icon={Users} label={T("Connect", "Connect")} value={s.connections} tint="bg-teal-100" ink="text-teal-600" bar="#14b8a6" />
-      <StatCell icon={ShieldCheck} label={T("Rep", "Rep")} value={s.reputation} tint="bg-blue-100" ink="text-blue-600" bar="#3b82f6" />
+      <StatCell icon={Users} label={T("Connections", "Connections")} value={s.connections} tint="bg-teal-100" ink="text-teal-600" bar="#14b8a6" />
+      <StatCell icon={ShieldCheck} label={T("Reputation", "Reputation")} value={s.reputation} tint="bg-blue-100" ink="text-blue-600" bar="#3b82f6" />
       <StatCell icon={Users} label={T("Family", "Family")} value={p.family.happy} tint="bg-indigo-100" ink="text-indigo-600" bar="#6366f1" />
     </section>
   );
@@ -143,10 +138,10 @@ export function ExploreHub({ setTab }: { setTab: (t: Tab) => void }) {
         const s = SECTION[id];
         const Icon = s.icon;
         return (
-          <button key={id} type="button" onClick={() => setTab(id)} className="flex flex-col items-start gap-2 rounded-3xl border border-slate-100 bg-white p-4 text-left shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)] transition active:scale-[0.98]">
-            <span className={cx("flex h-11 w-11 items-center justify-center rounded-2xl", s.tint)}><Icon size={22} className={s.ink} /></span>
-            <span className="text-[16px] font-extrabold text-[#0b2a6b]">{s.label()}</span>
-            <span className="text-[11.5px] leading-snug text-slate-500">{s.blurb()}</span>
+          <button key={id} type="button" onClick={() => setTab(id)} className="flex flex-col items-start gap-1.5 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)] transition active:scale-[0.98]">
+            <span className={cx("flex h-9 w-9 items-center justify-center rounded-xl", s.tint)}><Icon size={18} className={s.ink} /></span>
+            <span className="text-[14px] font-extrabold text-[#0b2a6b]">{s.label()}</span>
+            <span className="text-[11px] leading-snug text-slate-500">{s.blurb()}</span>
           </button>
         );
       })}
@@ -158,7 +153,7 @@ export function ExploreChips({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => vo
   return (
     <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="tablist" aria-label={T("Sections", "Sections")}>
       {EXPLORE_TABS.map((id) => (
-        <button key={id} type="button" onClick={() => setTab(id)} className={cx("shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition", tab === id ? "bg-blue-600 text-white shadow-sm shadow-blue-600/30" : "bg-white text-slate-600 shadow-sm ring-1 ring-slate-200")}>
+        <button key={id} type="button" onClick={() => setTab(id)} className={cx("shrink-0 rounded-full px-3 py-1.5 text-[12px] font-bold transition", tab === id ? "bg-blue-600 text-white shadow-sm shadow-blue-600/30" : "bg-white text-slate-600 shadow-sm ring-1 ring-slate-200")}>
           {SECTION[id].label()}
         </button>
       ))}
@@ -176,26 +171,26 @@ const NAV: { id: Tab; label: () => string; icon: typeof Hourglass }[] = [
 export function BottomBar({ tab, setTab, p, busy, onGrow }: { tab: Tab; setTab: (t: Tab) => void; p: Player; busy: boolean; onGrow: () => void }) {
   const group = EXPLORE_TABS.includes(tab) || tab === "explore" ? "explore" : tab;
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-[30px] border-t border-slate-100 bg-white/95 px-4 pt-3 shadow-[0_-12px_30px_-14px_rgba(30,64,175,0.3)] backdrop-blur">
+    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-[24px] border-t border-slate-100 bg-white/95 px-4 pt-2.5 shadow-[0_-12px_30px_-14px_rgba(30,64,175,0.3)] backdrop-blur">
       <button
         type="button"
         disabled={busy || !p.alive}
         onClick={onGrow}
-        className="flex h-14 w-full items-center rounded-full bg-gradient-to-b from-[#2f86ff] to-[#1263e8] px-5 text-white shadow-[0_10px_22px_-8px_rgba(18,99,232,0.75)] transition active:scale-[0.99] disabled:opacity-50"
+        data-tour="grow" className="flex h-11 w-full items-center rounded-full bg-gradient-to-b from-[#2f86ff] to-[#1263e8] px-5 text-white shadow-[0_10px_22px_-8px_rgba(18,99,232,0.75)] transition active:scale-[0.99] disabled:opacity-50"
       >
-        <TrendingUp size={22} strokeWidth={2.6} />
-        <span className="mx-3 h-6 w-px bg-white/35" />
-        <span className="flex-1 text-left text-[18px] font-extrabold tracking-tight">{T("Grow Up", "Grow Up")}<span className="ml-2 text-[13px] font-semibold text-white/75">→ {p.age + 1}</span></span>
-        <ChevronRight size={22} strokeWidth={2.8} />
+        <TrendingUp size={18} strokeWidth={2.6} />
+        <span className="mx-2.5 h-5 w-px bg-white/35" />
+        <span className="flex-1 text-left text-[15px] font-extrabold tracking-tight">{T("Grow Up", "Grow Up")}<span className="ml-2 text-[12px] font-semibold text-white/75">→ {p.age + 1}</span></span>
+        <ChevronRight size={18} strokeWidth={2.8} />
       </button>
-      <nav className="mt-2 flex items-start justify-around pb-2" aria-label="Game sections">
+      <nav data-tour="nav" className="mt-1.5 flex items-start justify-around pb-2" aria-label="Game sections">
         {NAV.map((t) => {
           const Icon = t.icon;
           const on = group === t.id;
           return (
-            <button key={t.id} type="button" onClick={() => setTab(t.id)} className="flex flex-col items-center gap-1 outline-none" aria-current={on ? "page" : undefined}>
-              <span className={cx("flex min-w-[72px] flex-col items-center gap-0.5 rounded-2xl px-4 py-1.5 text-[12px] font-bold transition", on ? "bg-blue-50 text-blue-600" : "text-slate-400")}>
-                <Icon size={22} strokeWidth={on ? 2.5 : 2} />
+            <button key={t.id} data-tour={`tab-${t.id}`} type="button" onClick={() => setTab(t.id)} className="flex flex-col items-center gap-0.5 outline-none" aria-current={on ? "page" : undefined}>
+              <span className={cx("flex min-w-[64px] flex-col items-center gap-0.5 rounded-2xl px-3 py-1 text-[11px] font-bold transition", on ? "bg-blue-50 text-blue-600" : "text-slate-400")}>
+                <Icon size={19} strokeWidth={on ? 2.5 : 2} />
                 {t.label()}
               </span>
               <span className={cx("h-1 w-6 rounded-full", on ? "bg-blue-600" : "bg-transparent")} />
@@ -229,14 +224,14 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
   const [open, setOpen] = useState(false);
   const logs = useMemo(() => [...p.log].reverse(), [p.log]);
   return (
-    <section className="rounded-3xl border border-slate-100 bg-white p-3 shadow-[0_8px_26px_-12px_rgba(30,64,175,0.28)]">
-      <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center gap-3 px-1 py-1 text-left" aria-expanded={open}>
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-100"><ClipboardList size={22} className="text-blue-600" /></span>
+    <section className="rounded-2xl border border-slate-100 bg-white p-2.5 shadow-[0_6px_20px_-12px_rgba(30,64,175,0.3)]">
+      <button type="button" onClick={() => setOpen(!open)} data-tour="activities" className="flex w-full items-center gap-2.5 px-1 py-1 text-left" aria-expanded={open}>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100"><ClipboardList size={18} className="text-blue-600" /></span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[19px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{T("Activities", "Activities")}</span>
-          <span className="block text-[13px] text-slate-500">{T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`)}</span>
+          <span className="block text-[15px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{T("Activities", "Activities")}</span>
+          <span className="block text-[11.5px] text-slate-500">{T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`)}</span>
         </span>
-        <ChevronRight size={20} className={cx("shrink-0 text-slate-500 transition-transform", open && "rotate-90")} />
+        <ChevronRight size={17} className={cx("shrink-0 text-slate-500 transition-transform", open && "rotate-90")} />
       </button>
       {open && (
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -252,24 +247,24 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
         </div>
       )}
       <div className="mt-3 border-t border-slate-100 pt-3">
-        <ol className="relative space-y-2.5">
+        <ol data-tour="timeline" className="relative space-y-2">
           {logs.map((e, idx) => {
             const c = DOTS[(e.age + 5) % DOTS.length];
             return (
               <li key={`${e.age}-${idx}`} className="relative flex gap-3">
                 <div className="relative flex w-5 shrink-0 justify-center">
                   {idx < logs.length - 1 && <span className="absolute top-5 -bottom-3 w-px bg-slate-200" />}
-                  <span className="relative z-10 mt-4 h-4 w-4 rounded-full ring-4 ring-white" style={{ background: c.dot }} />
+                  <span className="relative z-10 mt-3.5 h-3 w-3 rounded-full ring-4 ring-white" style={{ background: c.dot }} />
                 </div>
-                <div className={cx("flex-1 rounded-2xl bg-slate-50/90 px-3.5 py-3", idx === 0 && "ring-1 ring-blue-200")}>
+                <div className={cx("flex-1 rounded-xl bg-slate-50/90 px-3 py-2.5", idx === 0 && "ring-1 ring-blue-200")}>
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-[18px] font-extrabold leading-tight text-[#0b2a6b]">{T("Age", "Age")} {e.age}</span>
+                    <span className="text-[14.5px] font-extrabold leading-tight text-[#0b2a6b]">{T("Age", "Age")} {e.age}</span>
                     <span className="flex shrink-0 items-center gap-1">
-                      <span className={cx("rounded-full px-2.5 py-0.5 text-[12px] font-bold", c.chip)}>{stageOf(e.age)}</span>
+                      <span className={cx("rounded-full px-2 py-0.5 text-[10.5px] font-bold", c.chip)}>{stageOf(e.age)}</span>
                     </span>
                   </div>
                   <ul className="mt-1 space-y-1">
-                    {e.lines.map((l, i) => <li key={i} className="text-[13.5px] leading-snug text-slate-600">{l}</li>)}
+                    {e.lines.map((l, i) => <li key={i} className="text-[12.5px] leading-snug text-slate-600">{l}</li>)}
                   </ul>
                 </div>
               </li>

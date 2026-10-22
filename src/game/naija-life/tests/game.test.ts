@@ -19,6 +19,7 @@ import { mortgageQuote } from "../mortgage";
 import { MILITARY_EVENTS, boardDue, meritOf } from "../military";
 import { EVENTS6, addCousin } from "../events6";
 import { SUPPORT_EVENTS } from "../support";
+import { EVENTS as EVENT_LIST } from "../events";
 import { KID_EVENTS } from "../kids";
 import { EDU_EVENTS, enrollPostgrad } from "../education";
 import { yearlyNews, modActive } from "../news";
@@ -932,4 +933,25 @@ test("love life end to end: meet without a phone, date, move in, propose, marry,
   const dv = act(structuredClone(g), { t: "dating", op: "divorce" });
   assert.equal(dv.g.p.spouse, null);
   assert.ok(ledgerBalances(dv.g.p));
+});
+
+test("dead relatives never ask for money", () => {
+  const base = structuredClone(aliveAt(30));
+  const p = base.p;
+  p.money = 500_000_000 * p.index;
+  const fam = Object.values(p.npcs).filter((n) => ["dad", "mom", "guardian", "grandparent", "uncle", "aunt", "cousin", "sibling"].includes(n.role));
+  for (const n of fam) n.alive = false;
+  const asks = EVENT_LIST.find((e) => e.id === "family_ask")!;
+  assert.equal(asks.weight(p), 0, "no living relatives, so nobody asks");
+  // only the mother is alive: she is the only one who can call
+  const mom = Object.values(p.npcs).find((n) => n.role === "mom");
+  if (mom) {
+    mom.alive = true;
+    for (let s = 1; s <= 40; s++) { setSeed(s); const d = asks.init!(p); assert.ok(!/Papa|Uncle|Aunty|brother|sister|cousin/i.test(String(d.who)), `unexpected caller ${d.who}`); }
+  }
+  // asking a dead parent through the game does nothing
+  const dead = Object.values(p.npcs).find((n) => n.role === "dad")!;
+  dead.alive = false;
+  const r = act({ ...base, p } as Game, { t: "ask", npc: dead.id, kind: "pocket", amount: 1000 });
+  assert.equal(r.g.p.money, p.money);
 });

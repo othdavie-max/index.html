@@ -18,6 +18,7 @@ import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
 import { RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { meritOf } from "./military";
+import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
@@ -84,12 +85,21 @@ export default function NaijaLife() {
   const [slot, setSlot] = useState(0);
   const [lang, setLangState] = useState<Lang>("pcm");
   const [bell, setBell] = useState(false);
+  const [tour, setTour] = useState(false);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>("life");
   const [result, setResult] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [menu, setMenu] = useState(false);
   const [cardImg, setCardImg] = useState<{ url: string; text: string } | null>(null);
+
+  useEffect(() => {
+    // The whole game is a little more compact than the browser default.
+    const root = document.documentElement;
+    const before = root.style.fontSize;
+    root.style.fontSize = "15px";
+    return () => { root.style.fontSize = before; };
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -149,6 +159,7 @@ export default function NaijaLife() {
             setSlot(i);
             setGame(newGame(o));
             setTab("life");
+            if (!hasSeenTutorial()) setTour(true);
           }}
         />
       </Shell>
@@ -258,6 +269,8 @@ export default function NaijaLife() {
         </Sheet>
       )}
 
+      {tour && <Tutorial setTab={setTab} onClose={() => setTour(false)} />}
+
       {bell && (
         <Sheet title={T("Alerts and history", "Alerts and history")} onClose={() => setBell(false)}>
           <H>{T("Needs your attention", "Wetin need your attention")}</H>
@@ -284,6 +297,7 @@ export default function NaijaLife() {
             {(["en", "pcm"] as Lang[]).map((l) => <Btn key={l} tone={p.lang === l ? "gold" : "ghost"} onClick={() => chooseLang(l)}>{l === "en" ? "English" : "Pidgin"}</Btn>)}
           </div>
           <div className="mt-4 space-y-2">
+            <Btn tone="ghost" className="w-full" onClick={() => { setMenu(false); setTour(true); }}>{T("How to play (tutorial)", "How to play (tutorial)")}</Btn>
             <Btn tone="ghost" className="w-full" onClick={() => { setMenu(false); setBell(true); }}>{T("Alerts and history", "Alerts and history")}</Btn>
             <Btn tone="ghost" className="w-full" onClick={() => setMenu(false)}>{T("Back to the game", "Go back to game")}</Btn>
             <Btn tone="ghost" className="w-full" onClick={() => { setGame(null); setMenu(false); }}>{T("Switch life (save slots)", "Change life (save slots)")}</Btn>
@@ -341,7 +355,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
       <div className="h-1.5 w-full overflow-hidden rounded-full">
         <div className="flex h-full"><div className="flex-1 bg-[#1f9d55]" /><div className="flex-1 bg-white" /><div className="flex-1 bg-[#1f9d55]" /></div>
       </div>
-      <h1 className="mt-6 font-serif text-5xl font-black leading-[1.05] text-slate-900">Naija<br /><span className="text-blue-600">Life</span></h1>
+      <h1 className="mt-5 font-serif text-4xl font-black leading-[1.05] text-slate-900">Naija<br /><span className="text-blue-600">Life</span></h1>
       <p className="mt-3 text-sm leading-relaxed text-slate-600">{T("Live a whole Nigerian life: from akara by the roadside to Aso Rock. Hustle, travel between states, build houses, survive NEPA, dodge kidnappers, and leave a legacy your children inherit.", "Live full Naija life: from akara for roadside reach Aso Rock. Hustle, travel between states, build house, survive NEPA, run from kidnappers, and leave legacy wey your pikin go inherit.")}</p>
 
       <div className="mt-5 grid grid-cols-2 gap-2" role="group" aria-label={T("Language", "Language")}>

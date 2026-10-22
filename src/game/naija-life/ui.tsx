@@ -9,13 +9,13 @@ export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Bool
 export const NAVY = "#0b2a6b";
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cx("rounded-3xl border border-slate-100 bg-white p-4 shadow-[0_6px_24px_-10px_rgba(30,64,175,0.18)]", className)}>{children}</div>;
+  return <div className={cx("rounded-2xl border border-slate-100 bg-white p-3.5 shadow-[0_6px_20px_-12px_rgba(30,64,175,0.22)]", className)}>{children}</div>;
 }
 
 export function H({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
     <div className="mb-2 mt-1">
-      <h3 className="text-[16px] font-extrabold tracking-tight text-[#0b2a6b]">{children}</h3>
+      <h3 className="text-[14px] font-extrabold tracking-tight text-[#0b2a6b]">{children}</h3>
       {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
     </div>
   );
@@ -57,7 +57,7 @@ export function Btn({
       onClick={onClick}
       className={cx(
         "rounded-2xl font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40",
-        small ? "px-3 py-1.5 text-xs" : "px-4 py-2.5 text-sm",
+        small ? "px-2.5 py-1.5 text-[12px]" : "px-3.5 py-2.5 text-[13px]",
         tones[tone],
         className,
       )}
@@ -83,7 +83,7 @@ export function Sheet({ children, title, onClose }: { children: ReactNode; title
       <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-slate-100 bg-white p-5 text-slate-800 shadow-2xl sm:rounded-3xl">
         {title && (
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-xl font-extrabold tracking-tight text-[#0b2a6b]">{title}</h2>
+            <h2 className="text-[17px] font-extrabold tracking-tight text-[#0b2a6b]">{title}</h2>
             {onClose && (
               <button type="button" onClick={onClose} aria-label={T("Close", "Close")} className="rounded-full bg-slate-100 px-2.5 py-1 text-sm text-slate-500">
                 ✕

@@ -1,3 +1,4 @@
+import { livingKin } from "./family";
 import { COURSES, STATE_BY_ID, TRAVEL_STATES } from "./data";
 import { I, bump, eligibleJobs, luckBonus, enterPrison, jobDef, moveTo, randomName, stateOf } from "./helpers";
 import type { AutoDef, Choice, EventDef, Pending, Player } from "./types";
@@ -24,8 +25,8 @@ export const EVENTS: EventDef[] = [
   {
     id: "family_ask",
     title: dual("Family trouble", "Family wahala"),
-    weight: (p) => (adult(p) && p.money > I(p, 200_000) ? 3 + (STATE_BY_ID[p.family.state].opp < 4 ? 2 : 0) : 0),
-    init: () => ({ who: pick([T("Uncle Emeka", "Uncle Emeka"), T("Aunty Bisi", "Aunty Bisi"), T("Your cousin", "Your cousin"), T("Mama", "Mama"), T("Your elder brother", "Your big brother"), T("Papa", "Papa")]), why: pick([T("school fees", "school fees"), T("a hospital bill", "hospital bill"), T("a wedding contribution", "wedding contribution"), T("rent that is due", "rent wey don due"), T("a funeral levy", "funeral levy"), T("a goat for the festival", "goat for the festival")]) }),
+    weight: (p) => (adult(p) && p.money > I(p, 200_000) && livingKin(p).length > 0 ? 3 + (STATE_BY_ID[p.family.state].opp < 4 ? 2 : 0) : 0),
+    init: (p) => ({ who: pick(livingKin(p)), why: pick([T("school fees", "school fees"), T("a hospital bill", "hospital bill"), T("a wedding contribution", "wedding contribution"), T("rent that is due", "rent wey don due"), T("a funeral levy", "funeral levy"), T("a goat for the festival", "goat for the festival")]) }),
     text: (p, d) => T(`${d.who} just called you from ${STATE_BY_ID[p.family.state].name}. "My child, God chose you to bless this family. We need money for ${d.why}. Please don't be angry."`, `${d.who} don call you from ${STATE_BY_ID[p.family.state].name}. "Omo, na you God use bless this family. We need money for ${d.why}. No vex o."`),
     choices: (p) => [
       { label: T("Send generously", "Send am well-well"), sub: T(`${naira(p.money * 0.08)} (8% of your cash)`, `${naira(p.money * 0.08)} (8% of your cash)`), run: (q) => { const a = Math.max(0, q.money * 0.08); q.money -= a; q.family.happy = clamp(q.family.happy + 15); bump(q, "reputation", 3); return T(`You send ${naira(a)}. Everybody is praying for you.`, `You send ${naira(a)}. Everybody dey pray for you.`); } },

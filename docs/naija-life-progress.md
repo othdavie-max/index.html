@@ -35,6 +35,9 @@ Status of the "complete life simulation" expansion. Only items marked **Done** a
 - Love life: meet people without a phone, date, make it official, move in, propose, wedding choices, marry, protection options (condom, pill, none), try for a baby, emergency pill, antenatal care choices, birth outcomes (twins, complications, loss), naming ceremony, child support, adoption, fertility treatment, divorce.
 - Browser smoke test (`npm run test:e2e`) plays a life in both languages through the real UI.
 
+- Light blue app design with compact header, stats card, timeline and four-tab bottom bar; first-time tutorial (12 steps, replayable from the menu).
+- Dead relatives no longer ask for money.
+
 ## Not done / limits
 - Saves live in this browser only (three slots). There is no account or online storage.
 - The game is not deployed on the Baseline site itself; only the standalone artifact is published.

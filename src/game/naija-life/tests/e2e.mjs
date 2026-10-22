@@ -37,6 +37,19 @@ async function play(browser, lang) {
   await page.reload();
   await page.getByRole("button", { name: lang === "en" ? "English" : "Pidgin", exact: true }).click();
   await page.getByRole("button", { name: /Be born|Born me/ }).click();
+  // the first-time tutorial appears and can be walked through
+  const tour = page.getByRole("dialog", { name: /How to play/ });
+  await tour.waitFor({ timeout: 60000 });
+  let shown = 0;
+  for (let k = 0; k < 14; k++) {
+    shown++;
+    const next = tour.getByRole("button", { name: /Show me around|^Next$|Start my life/ });
+    const label = await next.first().innerText();
+    await next.first().click();
+    if (/Start my life/.test(label)) break;
+  }
+  if (shown < 10) errors.push(`[${lang}] tutorial had only ${shown} steps`);
+  await tour.waitFor({ state: "detached", timeout: 5000 });
   await page.getByRole("button", { name: /^Grow Up/ }).first().waitFor({ timeout: 60000 });
   const tabs = ["Life", "Money", "Family", "Explore", "Phone", "Work", "Health", "Law", "Map", "Power", "Legacy"];
   for (let year = 0; year < 30; year++) {

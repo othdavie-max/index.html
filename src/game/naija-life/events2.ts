@@ -1,5 +1,5 @@
 import { STATE_BY_ID, TRAVEL_STATES, travelCost } from "./data";
-import { applySupport, defaultAmount, evaluateSupport, primaryProvider } from "./family";
+import { applySupport, defaultAmount, evaluateSupport, primaryProvider, homeCaller } from "./family";
 import { I, bump, expandCostFor, jobDef, luckBonus, ownsHouseIn, stateOf } from "./helpers";
 import type { AutoDef, EventDef, Player } from "./types";
 import { T, chance, clamp, dual, naira, pick, rand } from "./util";
@@ -69,7 +69,7 @@ export const EVENTS2: EventDef[] = [
     id: "festival",
     title: dual("Time to go to the village", "Time don reach to go village"),
     weight: (p) => (adult(p) && p.family.state !== p.state && p.family.parentsAlive ? 3.5 : 0),
-    text: (p) => T(`${festival(p)} is here! Everybody is travelling home. Mama calls: 'Who sits in town when the whole family is gathering? Come home!'`, `${festival(p)} don reach! Everybody dey travel go house. Mama call: 'Who go sit for town when the whole family dey gather? Come home o!'`),
+    text: (p) => T(`${festival(p)} is here! Everybody is travelling home. ${homeCaller(p)} calls: 'Who sits in town when the whole family is gathering? Come home!'`, `${festival(p)} don reach! Everybody dey travel go house. ${homeCaller(p)} call: 'Who go sit for town when the whole family dey gather? Come home o!'`),
     choices: (p) => {
       const cost = I(p, 2) * travelCost(stateOf(p), STATE_BY_ID[p.family.state]) + I(p, 300_000);
       return [
