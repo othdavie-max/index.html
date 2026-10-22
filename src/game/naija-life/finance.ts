@@ -13,7 +13,7 @@ import { ownsPersonalCar, vehicleMonth } from "./vehicles";
 import type { Pending, Player } from "./types";
 import { costMultiplier, payMultiplier } from "./news";
 import { degreeBonus } from "./education";
-import { chance, clamp, naira, rand } from "./util";
+import { T, chance, clamp, naira, rand } from "./util";
 
 export interface MonthCtx {
   lines: string[];
@@ -84,28 +84,28 @@ function payRent(p: Player, ctx: MonthCtx) {
   const now = monthIndex(p);
   if (now < h.paidUntil) return;
   const full = h.annualRent;
-  const label = h.type === "hostel" ? "Hostel fee" : "Rent";
+  const label = h.type === "hostel" ? T("Hostel fee", "Hostel fee") : T("Rent", "Rent");
   // Parents can cover a student's hostel fee if they support you.
   if (h.type === "hostel" && p.age < 25 && !p.fam.cutOff.includes("rent")) {
     const n = primaryProvider(p);
     if (n && capacityOf(p, n) > full * 0.5 && chance(0.85)) {
       h.paidUntil = now + 12;
-      transact(p, { amount: 0, memo: true, reason: `${n.name.split(" ")[0]} paid your ${label.toLowerCase()} (${naira(full)})`, category: "rent" });
+      transact(p, { amount: 0, memo: true, reason: T(`${n.name.split(" ")[0]} paid your ${label.toLowerCase()} (${naira(full)})`, `${n.name.split(" ")[0]} pay your ${label.toLowerCase()} (${naira(full)})`), category: "rent" });
       return;
     }
   }
   if (p.money >= full) {
-    transact(p, { amount: -full, reason: `${label}: ${HOME_TIERS.find((t) => t.id === h.landlord)?.label ?? "accommodation"} for a year`, category: "rent", recurring: "rent" });
+    transact(p, { amount: -full, reason: T(`${label}: ${HOME_TIERS.find((t) => t.id === h.landlord)?.label ?? "accommodation"} for a year`, `${label}: ${HOME_TIERS.find((t) => t.id === h.landlord)?.label ?? "accommodation"} for one year`), category: "rent", recurring: "rent" });
     h.paidUntil = now + 12;
     h.arrears = 0;
   } else if (p.money >= full * 0.3) {
     const quarter = Math.round(full / 4);
-    transact(p, { amount: -quarter, reason: `${label} (landlord accepted a quarter payment)`, category: "rent", recurring: "rent" });
+    transact(p, { amount: -quarter, reason: T(`${label} (landlord accepted a quarter payment)`, `${label} (landlord gree collect quarter payment)`), category: "rent", recurring: "rent" });
     h.paidUntil = now + 3;
     adjustCredit(p, -1);
   } else {
     h.arrears += 1;
-    if (h.arrears === 1) ctx.lines.push("Rent is due and you cannot pay it. The landlord is already asking questions.");
+    if (h.arrears === 1) ctx.lines.push(T("Rent is due and you cannot pay it. The landlord is already asking questions.", "Rent don due and you no fit pay. Landlord don start to ask question."));
     if (h.arrears >= 3) ctx.pending.push(pe("eviction_notice", p.month));
   }
 }
@@ -115,7 +115,7 @@ function prisonMonth(p: Player, ctx: MonthCtx) {
   for (const h of p.houses) {
     if (h.use === "rent" && chance(0.9)) {
       const rent = (HOUSE_RENT[h.kind] * STATE_BY_ID[h.state].cost * Math.pow(p.index, 0.9)) / 12;
-      transact(p, { amount: rent, reason: `Rent from your ${h.kind} in ${STATE_BY_ID[h.state].name}`, category: "business", recurring: h.id });
+      transact(p, { amount: rent, reason: T(`Rent from your ${h.kind} in ${STATE_BY_ID[h.state].name}`, `Rent from your ${h.kind} for ${STATE_BY_ID[h.state].name}`), category: "business", recurring: h.id });
     }
   }
   payRent(p, ctx);
@@ -125,7 +125,7 @@ function prisonMonth(p: Player, ctx: MonthCtx) {
   vehicleMonth(p, ctx.lines);
   healthMonth(p, ctx.lines, ctx.pending);
   processLoansMonth(p, ctx.lines, ctx.pending);
-  const gap = coverShortfall(p, "Cash ran short while you were locked up: borrowed to cover bills");
+  const gap = coverShortfall(p, T("Cash ran short while you were locked up: borrowed to cover bills", "Cash short as you dey inside: you borrow to cover bills"));
   if (gap > 0) { p.stats.stress = clamp(p.stats.stress + 3); adjustCredit(p, -1); }
 }
 
@@ -142,30 +142,30 @@ function monthTick(p: Player, ctx: MonthCtx) {
     const j = jobDef(p);
     const noise = j && j.selfEmployed ? rand(0.7, 1.3) : j && j.group === "creative" ? rand(0.5, 1.5) : 1;
     const amt = (ctx.yearPay / 12) * noise * incomeFactor(p);
-    transact(p, { amount: amt, reason: j?.selfEmployed ? `Business income: ${j.title}` : `Salary: ${j?.title ?? "work"}`, category: j?.selfEmployed ? "business" : "salary", recurring: "income" });
+    transact(p, { amount: amt, reason: j?.selfEmployed ? T(`Business income: ${j.title}`, `Business income: ${j.title}`) : T(`Salary: ${j?.title ?? "work"}`, `Salary: ${j?.title ?? "work"}`), category: j?.selfEmployed ? "business" : "salary", recurring: "income" });
     incomeThisMonth += amt;
   }
   for (const h of p.houses) {
     if (h.use === "rent" && chance(0.9)) {
       const rent = (HOUSE_RENT[h.kind] * STATE_BY_ID[h.state].cost * Math.pow(p.index, 0.9)) / 12;
-      transact(p, { amount: rent, reason: `Rent from your ${h.kind} in ${STATE_BY_ID[h.state].name}`, category: "business", recurring: h.id });
+      transact(p, { amount: rent, reason: T(`Rent from your ${h.kind} in ${STATE_BY_ID[h.state].name}`, `Rent from your ${h.kind} for ${STATE_BY_ID[h.state].name}`), category: "business", recurring: h.id });
       incomeThisMonth += rent;
     }
   }
   if (!p.job && !p.school && adult && !(p.politics && p.politics.office >= 0)) {
     const odd = (220_000 * (0.6 + st.opp / 10) * Math.pow(p.index, 0.92) * rand(0.6, 1.2)) / 12;
-    transact(p, { amount: odd, reason: "Odd jobs and small small hustle", category: "salary", recurring: "informal" });
+    transact(p, { amount: odd, reason: T("Odd jobs and small hustles", "Odd jobs and small small hustle"), category: "salary", recurring: "informal" });
     incomeThisMonth += odd;
   }
   const allow = allowanceMonthly(p);
   if (allow > 0) {
     const n = primaryProvider(p);
-    transact(p, { amount: allow, reason: `Pocket money from ${n?.name.split(" ")[0] ?? "family"}`, category: "allowance", recurring: "allowance" });
+    transact(p, { amount: allow, reason: T(`Pocket money from ${n?.name.split(" ")[0] ?? "family"}`, `Pocket money from ${n?.name.split(" ")[0] ?? "family"}`), category: "allowance", recurring: "allowance" });
     if (n) n.gaveThisYear += allow / p.index;
   }
   if (p.money > 0) {
     const interest = (p.money * 0.04) / 12;
-    transact(p, { amount: interest, reason: "Bank interest", category: "interest", recurring: "interest" });
+    transact(p, { amount: interest, reason: T("Bank interest", "Bank interest"), category: "interest", recurring: "interest" });
   }
 
   // --- Expenses ---
@@ -173,23 +173,23 @@ function monthTick(p: Player, ctx: MonthCtx) {
     const l = monthlyLiving(p);
     const scale = adult ? 1 : 0.25; // teenagers spend less; family covers the rest
     if (adult) {
-      transact(p, { amount: -l.food, reason: "Food and groceries", category: "food", recurring: "living" });
-      transact(p, { amount: -(ownsPersonalCar(p) ? l.transport * 0.25 : l.transport), reason: ownsPersonalCar(p) ? "Transport (occasional fares and parking)" : "Transport fares", category: "transport", recurring: "living" });
-      transact(p, { amount: -l.utilities, reason: p.flags.solar ? "Electricity and water (solar helps)" : "Electricity, fuel and water", category: "utilities", recurring: "living" });
-      if (l.airtime) transact(p, { amount: -l.airtime, reason: "Airtime and data", category: "airtime", recurring: "living" });
-      transact(p, { amount: -l.personal, reason: "Personal spending", category: "personal", recurring: "living" });
+      transact(p, { amount: -l.food, reason: T("Food and groceries", "Chop and foodstuff"), category: "food", recurring: "living" });
+      transact(p, { amount: -(ownsPersonalCar(p) ? l.transport * 0.25 : l.transport), reason: ownsPersonalCar(p) ? T("Transport (occasional fares and parking)", "Transport (sometimes fare and parking)") : T("Transport fares", "Transport fare"), category: "transport", recurring: "living" });
+      transact(p, { amount: -l.utilities, reason: p.flags.solar ? T("Electricity and water (solar helps)", "Light and water (solar dey help)") : T("Electricity, fuel and water", "Light, fuel and water"), category: "utilities", recurring: "living" });
+      if (l.airtime) transact(p, { amount: -l.airtime, reason: T("Airtime and data", "Airtime and data"), category: "airtime", recurring: "living" });
+      transact(p, { amount: -l.personal, reason: T("Personal spending", "Personal spending"), category: "personal", recurring: "living" });
       spouseMonth(p, l.food + l.transport + l.utilities + l.airtime + l.personal);
     } else if (p.possessions.phone && p.age >= 12) {
-      transact(p, { amount: -Math.min(l.airtime * scale + 500 * p.index, Math.max(0, p.money)), reason: "Airtime and data", category: "airtime", recurring: "living" });
+      transact(p, { amount: -Math.min(l.airtime * scale + 500 * p.index, Math.max(0, p.money)), reason: T("Airtime and data", "Airtime and data"), category: "airtime", recurring: "living" });
     }
   }
   if (adult && p.fam.expectContribution && p.housing.type === "family" && incomeThisMonth > 0 && p.age < 40) {
     const give = incomeThisMonth * 0.1;
-    transact(p, { amount: -give, reason: "Contribution to household expenses", category: "family", recurring: "family" });
+    transact(p, { amount: -give, reason: T("Contribution to household expenses", "Contribution to house expenses"), category: "family", recurring: "family" });
   }
   // Teenagers and young children spend most of their pocket money on snacks and airtime.
   if (!adult && p.money > 0 && allow > 0) {
-    transact(p, { amount: -Math.min(p.money, allow * 0.7), reason: "Snacks, airtime and small things", category: "personal", recurring: "teen-spending" });
+    transact(p, { amount: -Math.min(p.money, allow * 0.7), reason: T("Snacks, airtime and small things", "Snacks, airtime and small small things"), category: "personal", recurring: "teen-spending" });
   }
   // Annual / termly bills
   if (p.month === 1 || p.month === 5 || p.month === 9) {
@@ -198,9 +198,9 @@ function monthTick(p: Player, ctx: MonthCtx) {
       const payer = primaryProvider(p);
       const parentsPay = p.age < 18 || (p.age < 25 && !p.fam.cutOff.includes("schoolFees"));
       if (parentsPay && payer) {
-        transact(p, { amount: 0, memo: true, reason: `${payer.name.split(" ")[0]} paid ${naira(fee)} of your school fees this term`, category: "education" });
+        transact(p, { amount: 0, memo: true, reason: T(`${payer.name.split(" ")[0]} paid ${naira(fee)} of your school fees this term`, `${payer.name.split(" ")[0]} pay ${naira(fee)} of your school fees this term`), category: "education" });
       } else {
-        transact(p, { amount: -fee, reason: "School fees for this term", category: "education", recurring: "school" });
+        transact(p, { amount: -fee, reason: T("School fees for this term", "School fees for this term"), category: "education", recurring: "school" });
       }
     }
   }
@@ -209,7 +209,7 @@ function monthTick(p: Player, ctx: MonthCtx) {
     transact(p, { amount: -s.monthly * Math.pow(p.index, 0.9), reason: s.label, category: s.category, recurring: s.id });
   }
   const upkeep = yearlyUpkeep(p) / 12;
-  if (upkeep > 0) transact(p, { amount: -upkeep, reason: "Upkeep on your luxuries", category: "personal", recurring: "luxury-upkeep" });
+  if (upkeep > 0) transact(p, { amount: -upkeep, reason: T("Upkeep on your luxuries", "Upkeep for your luxury things"), category: "personal", recurring: "luxury-upkeep" });
 
   growthMonth(p);
   marketMonth(p, ctx.lines);
@@ -219,7 +219,7 @@ function monthTick(p: Player, ctx: MonthCtx) {
   healthMonth(p, ctx.lines, ctx.pending);
   processLoansMonth(p, ctx.lines, ctx.pending);
   void now;
-  const gap = coverShortfall(p, "Cash ran short: borrowed to cover bills");
+  const gap = coverShortfall(p, T("Cash ran short: borrowed to cover bills", "Cash short: you borrow to cover bills"));
   if (gap > 0) {
     p.stats.stress = clamp(p.stats.stress + 3);
     adjustCredit(p, -1);

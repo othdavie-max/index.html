@@ -68,7 +68,7 @@ function settle(p: Player) {
   // Defensive: never let a bad calculation poison the save.
   if (!Number.isFinite(p.money)) p.money = 0;
   if (!Number.isFinite(p.debt)) p.debt = 0;
-  if (p.money < 0) coverShortfall(p, "Cash ran short: borrowed to cover costs");
+  if (p.money < 0) coverShortfall(p, T("Cash ran short: borrowed to cover costs", "Cash no reach: borrow money cover the costs"));
   // Lenders only go so far: beyond this you cut back, sell things and write the rest off.
   const cap = 2_000_000 * Math.pow(p.index, 0.95);
   if (p.debt > cap) {
@@ -123,16 +123,16 @@ export interface NewLifeOptions {
 export function describeFamily(p: Player): string {
   const dad = p.fam.dadId ? p.npcs[p.fam.dadId] : undefined;
   const mom = p.fam.momId ? p.npcs[p.fam.momId] : undefined;
-  const bits: string[] = [`You were born into a ${p.fam.label.toLowerCase()}.`];
-  if (p.fam.structure === "two-parent" && dad && mom) bits.push(`Your father is a ${dad.occupation.toLowerCase()} and your mother is a ${mom.occupation.toLowerCase()}.`);
-  else if (p.fam.structure === "single-mother" && mom) bits.push(`Your mother, a ${mom.occupation.toLowerCase()}, raised you alone.`);
-  else if (p.fam.structure === "single-father" && dad) bits.push(`Your father, a ${dad.occupation.toLowerCase()}, raised you alone.`);
-  else if (p.fam.structure === "grandparents") bits.push("Your grandparents are raising you.");
-  else if (p.fam.structure === "relatives") bits.push("Relatives are raising you.");
-  else if (p.fam.structure === "divorced" && dad && mom) bits.push(`Your parents (a ${dad.occupation.toLowerCase()} and a ${mom.occupation.toLowerCase()}) have separated.`);
-  else if (p.fam.structure === "parents-abroad") bits.push("Your parents live abroad and send money home.");
-  else if (p.fam.structure === "orphan") bits.push("You lost your parents early. An aunt takes care of you.");
-  if (p.fam.siblings > 0) bits.push(`You have ${p.fam.siblings} sibling${p.fam.siblings > 1 ? "s" : ""}.`);
+  const bits: string[] = [T(`You were born into a ${p.fam.label.toLowerCase()}.`, `Dem born you inside ${p.fam.label.toLowerCase()}.`)];
+  if (p.fam.structure === "two-parent" && dad && mom) bits.push(T(`Your father is a ${dad.occupation.toLowerCase()} and your mother is a ${mom.occupation.toLowerCase()}.`, `Your papa na ${dad.occupation.toLowerCase()} and your mama na ${mom.occupation.toLowerCase()}.`));
+  else if (p.fam.structure === "single-mother" && mom) bits.push(T(`Your mother, a ${mom.occupation.toLowerCase()}, raised you alone.`, `Your mama, wey be ${mom.occupation.toLowerCase()}, raise you alone.`));
+  else if (p.fam.structure === "single-father" && dad) bits.push(T(`Your father, a ${dad.occupation.toLowerCase()}, raised you alone.`, `Your papa, wey be ${dad.occupation.toLowerCase()}, raise you alone.`));
+  else if (p.fam.structure === "grandparents") bits.push(T("Your grandparents are raising you.", "Your grandparents dey raise you."));
+  else if (p.fam.structure === "relatives") bits.push(T("Relatives are raising you.", "Your relatives dey raise you."));
+  else if (p.fam.structure === "divorced" && dad && mom) bits.push(T(`Your parents (a ${dad.occupation.toLowerCase()} and a ${mom.occupation.toLowerCase()}) have separated.`, `Your parents (${dad.occupation.toLowerCase()} and ${mom.occupation.toLowerCase()}) don separate.`));
+  else if (p.fam.structure === "parents-abroad") bits.push(T("Your parents live abroad and send money home.", "Your parents dey abroad and dem dey send money come house."));
+  else if (p.fam.structure === "orphan") bits.push(T("You lost your parents early. An aunt takes care of you.", "You lose your parents early. One aunty dey take care of you."));
+  if (p.fam.siblings > 0) bits.push(T(`You have ${p.fam.siblings} sibling${p.fam.siblings > 1 ? "s" : ""}.`, `You get ${p.fam.siblings} ${p.fam.siblings > 1 ? "brothers and sisters" : "brother or sister"}.`));
   return bits.join(" ");
 }
 
@@ -151,9 +151,9 @@ function rollClass(opp: number): "struggling" | "middle" | "rich" {
 }
 
 const CLASS_TEXT = {
-  struggling: "a struggling family that depends on faith and small trading",
-  middle: "a middle-class family with a modest house and steady jobs",
-  rich: "a wealthy family with a big compound and big connections",
+  get struggling() { return T("a struggling family that depends on faith and small trading", "family wey dey struggle and dey depend on faith and small trading"); },
+  get middle() { return T("a middle-class family with a modest house and steady jobs", "middle class family wey get small house and steady work"); },
+  get rich() { return T("a wealthy family with a big compound and big connections", "rich family wey get big compound and big connections"); },
 };
 
 function enrollByAge(p: Player) {
@@ -224,9 +224,9 @@ export function newGame(opts: NewLifeOptions): Game {
   } as unknown as Player;
   initWorld(p, st, opts.familyConfig, opts.forceArchetype);
   setDeflator(1);
-  addLog(p, `You were born in ${st.capital}, ${st.name} State. You are ${tribe}, ${religion}.`);
+  addLog(p, T(`You were born in ${st.capital}, ${st.name} State. You are ${tribe}, ${religion}.`, `Dem born you for ${st.capital}, ${st.name} State. You be ${tribe}, ${religion}.`));
   addLog(p, describeFamily(p));
-  if (st.opp <= 3) addLog(p, "Opportunities are few in your area. Many people here dream of moving to Abuja or Lagos.");
+  if (st.opp <= 3) addLog(p, T("Opportunities are few in your area. Many people here dream of moving to Abuja or Lagos.", "Opportunity no plenty for your area. Plenty people here dey dream to move go Abuja or Lagos."));
   return { p, queue: [], dynasty: { surname, lineage: [] } };
 }
 
@@ -236,15 +236,15 @@ export function newGame(opts: NewLifeOptions): Game {
 function epitaphFor(p: Player): string {
   const high = p.politics?.highest ?? -1;
   if (high >= 4) {
-    if (p.goodDeeds >= 6 && p.loot < p.goodDeeds * 5_000_000_000) return high === 5 ? "The Reformer President" : "The Reformer Governor";
-    if (p.loot > 0 && p.goodDeeds <= 2) return high === 5 ? "The Looter-in-Chief" : "The Looter Governor";
-    return "The Typical Big Man";
+    if (p.goodDeeds >= 6 && p.loot < p.goodDeeds * 5_000_000_000) return high === 5 ? T("The Reformer President", "President wey Reform Naija") : T("The Reformer Governor", "Governor wey Reform the State");
+    if (p.loot > 0 && p.goodDeeds <= 2) return high === 5 ? T("The Looter-in-Chief", "Chief Looter") : T("The Looter Governor", "Governor wey Loot Well Well");
+    return T("The Typical Big Man", "Typical Oga at the Top");
   }
-  if (p.job?.id === "kidnapper" || p.cause.includes("kidnap")) return "A Dangerous Name";
-  if (p.peakWorth / p.index > 1_000_000_000) return "Self-Made Billionaire";
-  if (p.peakWorth / p.index > 50_000_000) return "A Successful Hustler";
-  if (p.kids.length >= 3) return "A Family Man/Woman";
-  return "A Survivor";
+  if (p.job?.id === "kidnapper" || p.cause.includes("kidnap")) return T("A Dangerous Name", "Name wey Dey Dangerous");
+  if (p.peakWorth / p.index > 1_000_000_000) return T("Self-Made Billionaire", "Billionaire wey Build Himself");
+  if (p.peakWorth / p.index > 50_000_000) return T("A Successful Hustler", "Hustler wey Make It");
+  if (p.kids.length >= 3) return T("A Family Man/Woman", "Person wey Love Im Family");
+  return T("A Survivor", "Survivor");
 }
 
 function ensureRecorded(g: Game) {
@@ -259,7 +259,7 @@ function ensureRecorded(g: Game) {
     born: p.birthYear,
     died: p.birthYear + p.age,
     ageAtDeath: p.age,
-    cause: p.cause || "Natural causes",
+    cause: p.cause || T("Natural causes", "Natural cause"),
     worth: netWorth(p),
     peakWorth: p.peakWorth,
     highestOffice: high >= 0 ? OFFICES[high].title : jobTitle(p),
@@ -270,7 +270,7 @@ function ensureRecorded(g: Game) {
     epitaph: epitaphFor(p),
   };
   g.dynasty.lineage.push(entry);
-  addLog(p, `You died at ${p.age}: ${entry.cause}.`);
+  addLog(p, T(`You died at ${p.age}: ${entry.cause}.`, `You die at ${p.age}: ${entry.cause}.`));
 }
 
 /** Builds the heir's family from who is left: the surviving spouse, siblings, grandparents and relatives. */
@@ -312,9 +312,9 @@ function buildHeirWorld(old: Player, kid: Kid, p: Player, estateReal: number) {
     providers.push(aunt.id);
   }
   const fam: FamilyBg = {
-    archetype, label: old.spouse ? "Family carrying on after a loss" : "Family carrying on after a loss", structure: spouseNpc ? (old.gender === "male" ? "single-mother" : "single-father") : kid.age < 18 ? "relatives" : "orphan",
+    archetype, label: T("Family carrying on after a loss", "Family wey dey continue after dem lose person"), structure: spouseNpc ? (old.gender === "male" ? "single-mother" : "single-father") : kid.age < 18 ? "relatives" : "orphan",
     income: providers.length ? income : Math.round(income * 0.3), generosity: randInt(35, 80), strictness: randInt(25, 75), responsibility: randInt(40, 85), closeness: randInt(55, 90),
-    trend: "steady", debts: 0, connections: old.stats.connections > 40, siblings: old.kids.length - 1, tags: [`Heir to ${old.name} ${old.surname}`], cutOff: [], given: [], providers,
+    trend: "steady", debts: 0, connections: old.stats.connections > 40, siblings: old.kids.length - 1, tags: [T(`Heir to ${old.name} ${old.surname}`, `Heir of ${old.name} ${old.surname}`)], cutOff: [], given: [], providers,
     dadId: spouseNpc?.role === "dad" ? spouseNpc.id : oldSelf.role === "dad" ? oldSelf.id : undefined,
     momId: spouseNpc?.role === "mom" ? spouseNpc.id : oldSelf.role === "mom" ? oldSelf.id : undefined, expectContribution: false,
   };
@@ -420,13 +420,15 @@ export function startHeir(g0: Game, kidIndex: number): Game {
   p.houses = p.houses.map((h) => ({ ...h, use: h.state === p.state ? "owner" : "empty" }));
   p.flags.dynasty = old.generation;
   const inherit = Math.round((cash + bizValue(old)) * f);
-  if (inherit > 0) transact(p, { amount: inherit, reason: `Inheritance from ${old.name} ${old.surname}${plan.hasWill ? " (as set out in the will)" : " (no will)"}`, category: "inheritance" });
-  if (nHouses > 0) transact(p, { amount: 0, memo: true, reason: `Inherited ${nHouses} propert${nHouses > 1 ? "ies" : "y"} from ${old.name}`, category: "inheritance" });
+  if (inherit > 0) transact(p, { amount: inherit, reason: T(`Inheritance from ${old.name} ${old.surname}${plan.hasWill ? " (as set out in the will)" : " (no will)"}`, `Inheritance from ${old.name} ${old.surname}${plan.hasWill ? " (as the will talk)" : " (no will)"}`), category: "inheritance" });
+  if (nHouses > 0) transact(p, { amount: 0, memo: true, reason: T(`Inherited ${nHouses} propert${nHouses > 1 ? "ies" : "y"} from ${old.name}`, `You inherit ${nHouses} propert${nHouses > 1 ? "ies" : "y"} from ${old.name}`), category: "inheritance" });
   if (plan.charityPct > 0) p.stats.reputation = clamp(p.stats.reputation + Math.round(plan.charityPct / 5));
   settle(p);
-  const parts: string[] = [`You are ${p.name} ${p.surname}, the ${old.gender === "male" ? "son" : "daughter"} of ${old.name}.`];
-  parts.push(plan.hasWill ? `Under the will, you inherit ${Math.round(f * 100)}% of the estate: ${naira(p.money)} in cash${p.houses.length ? `, ${p.houses.length} propert${p.houses.length > 1 ? "ies" : "y"}` : ""}${p.holdings.length ? " and investments" : ""}.` : `${old.name} left no will, so the law divided the estate. You receive ${naira(p.money)}${p.houses.length ? ` and ${p.houses.length} propert${p.houses.length > 1 ? "ies" : "y"}` : ""}.`);
-  if (plan.others.length) parts.push(`Others named: ${plan.others.map((o) => `${o.label} ${o.pct}%`).join(", ")}.`);
+  const parts: string[] = [T(`You are ${p.name} ${p.surname}, the ${old.gender === "male" ? "son" : "daughter"} of ${old.name}.`, `You be ${p.name} ${p.surname}, ${old.name} im ${old.gender === "male" ? "son" : "daughter"}.`)];
+  parts.push(plan.hasWill
+    ? T(`Under the will, you inherit ${Math.round(f * 100)}% of the estate: ${naira(p.money)} in cash${p.houses.length ? `, ${p.houses.length} propert${p.houses.length > 1 ? "ies" : "y"}` : ""}${p.holdings.length ? " and investments" : ""}.`, `Based on the will, you inherit ${Math.round(f * 100)}% of the estate: ${naira(p.money)} cash${p.houses.length ? `, ${p.houses.length} propert${p.houses.length > 1 ? "ies" : "y"}` : ""}${p.holdings.length ? " and investments" : ""}.`)
+    : T(`${old.name} left no will, so the law divided the estate. You receive ${naira(p.money)}${p.houses.length ? ` and ${p.houses.length} propert${p.houses.length > 1 ? "ies" : "y"}` : ""}.`, `${old.name} no leave will, so the law share the estate. You collect ${naira(p.money)}${p.houses.length ? ` and ${p.houses.length} propert${p.houses.length > 1 ? "ies" : "y"}` : ""}.`));
+  if (plan.others.length) parts.push(T(`Others named: ${plan.others.map((o) => `${o.label} ${o.pct}%`).join(", ")}.`, `Other people wey dem name: ${plan.others.map((o) => `${o.label} ${o.pct}%`).join(", ")}.`));
   addLog(p, parts.join(" "));
   const queue: Pending[] = [];
   if (chance(plan.disputeChance) && estateReal > 2e6) queue.push({ kind: "event", id: "inheritance_dispute", data: { month: randInt(1, 12), claim: Math.round(p.money * 0.25 + p.houses.reduce((s, h) => s + h.value, 0) * 0.1) } });
@@ -450,14 +452,14 @@ function deathChance(p: Player): number {
   if (a < 5) d += 0.008;
   return clamp(d, 0, 0.95);
 }
-const CAUSES = ["Heart attack", "Stroke", "Complications of malaria", "A short illness", "Kidney failure", "Typhoid complications", "Hypertension"];
+const causes = () => [T("Heart attack", "Heart attack"), T("Stroke", "Stroke"), T("Complications of malaria", "Malaria complications"), T("A short illness", "Short sickness"), T("Kidney failure", "Kidney failure"), T("Typhoid complications", "Typhoid complications"), T("Hypertension", "High blood pressure")];
 
 function schoolTick(p: Player, lines: string[], pending: Pending[]) {
   if (!p.school && p.age === 6 && p.edu === "none") {
     p.school = { stage: "primary", yearsLeft: 6, type: "school" };
     assignSchoolType(p);
     const t = p.flags.schoolType;
-    lines.push(t === "elite" ? "You start primary school at an expensive international school." : t === "private" ? "You start primary school at a private school with a school bus." : "You start primary school at the local public school.");
+    lines.push(t === "elite" ? T("You start primary school at an expensive international school.", "You start primary school for expensive international school.") : t === "private" ? T("You start primary school at a private school with a school bus.", "You start primary school for private school wey get school bus.") : T("You start primary school at the local public school.", "You start primary school for the local public school."));
     return;
   }
   if (!p.school) return;
@@ -475,7 +477,7 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
     pending.push({ kind: "event", id: "boarding_choice", data: {} });
   } else if (stage === "secondary") {
     p.edu = "secondary";
-    lines.push("You finish secondary school. WAEC result don come out.");
+    lines.push(T("You finish secondary school. Your WAEC results are out.", "You finish secondary school. WAEC result don come out."));
     pending.push({ kind: "event", id: "jamb", data: {} });
   } else if (stage === "tertiary" && prevType === "vocational") {
     lines.push(finishTrade(p));
@@ -483,7 +485,7 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
     lines.push(finishPostgrad(p));
   } else {
     p.edu = "tertiary";
-    lines.push(`You graduate${p.course ? ` with degree in ${p.course}` : ""}. Your family throw small party.`);
+    lines.push(T(`You graduate${p.course ? ` with a degree in ${p.course}` : ""}. Your family throws a small party.`, `You graduate${p.course ? ` with degree for ${p.course}` : ""}. Your family throw small party.`));
     bump(p, "smarts", 3);
     schoolHousing(p, false);
     const grad = graduationData(p, true);
@@ -495,6 +497,7 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
 export function ageUp(g0: Game): Game {
   const g = structuredClone(g0);
   const p = g.p;
+  setLang(p.lang);
   if (!p.alive || g.queue.length > 0) return g;
   p.age += 1;
   p.actionsLeft = 3 + (p.politics && p.politics.office >= 2 ? 1 : 0);
@@ -506,7 +509,7 @@ export function ageUp(g0: Game): Game {
   if (chance(0.06)) {
     const shock = rand(0.08, 0.2);
     rate += shock;
-    lines.push(`Economic shock: prices jump ${Math.round(rate * 100)}% this year.`);
+    lines.push(T(`Economic shock: prices jump ${Math.round(rate * 100)}% this year.`, `Economic shock: prices jump ${Math.round(rate * 100)}% this year o.`));
   }
   p.index *= 1 + rate;
   setDeflator(p.index); setLang(p.lang);
@@ -535,7 +538,7 @@ export function ageUp(g0: Game): Game {
         if (chance(base + p.stats.connections / 800 + luckBonus(p) / 3)) {
           p.job.rank += 1;
           p.job.years = 0;
-          lines.push(`Promotion! You don become: ${j.ladder[p.job.rank].title}.`);
+          lines.push(T(`Promotion! You have become: ${j.ladder[p.job.rank].title}.`, `Promotion! You don become: ${j.ladder[p.job.rank].title}.`));
           if (j.id === "kidnapper" || j.id === "yahoo") bump(p, "reputation", -2);
         }
       }
@@ -547,7 +550,7 @@ export function ageUp(g0: Game): Game {
     settle(p);
     yearlyHoldings(p, rate, lines);
     const fy = p.fin.find((f) => f.age === p.age);
-    if (p.age >= 14 && fy && (fy.income > 0 || fy.expense > 0)) lines.push(`Money this year: ${naira(fy.income)} in, ${naira(fy.expense)} out.`);
+    if (p.age >= 14 && fy && (fy.income > 0 || fy.expense > 0)) lines.push(T(`Money this year: ${naira(fy.income)} in, ${naira(fy.expense)} out.`, `Money for this year: ${naira(fy.income)} enter, ${naira(fy.expense)} comot.`));
   }
   yearlyWorld(p, lines, pending);
   yearlyPromises(p, lines);
@@ -567,7 +570,7 @@ export function ageUp(g0: Game): Game {
   }
   p.credit = clamp(p.credit + (p.loans.some((l) => l.direction === "owed" && l.missed > 0) ? 0 : 1));
 
-  { const snap = snapshot(p); yearlyPolitics(p, lines, pending); reconcile(p, snap, "Government pay and allowances", "salary"); }
+  { const snap = snapshot(p); yearlyPolitics(p, lines, pending); reconcile(p, snap, T("Government pay and allowances", "Government pay and allowances"), "salary"); }
   if (p.flags.efccWatch && (p.politics?.office ?? -1) < 0 && p.loot > 0 && chance(0.12)) pending.push({ kind: "event", id: "efcc", data: {} });
 
   // Body and mind
@@ -620,13 +623,13 @@ export function ageUp(g0: Game): Game {
   settle(p);
   if (chance(deathChance(p))) {
     p.alive = false;
-    p.cause = p.age >= 66 ? "Old age" : pick(CAUSES);
+    p.cause = p.age >= 66 ? T("Old age", "Old age") : pick(causes());
   }
 
   p.traveled = false;
   p.month = 12;
   for (const l of lines) addLog(p, l);
-  if (lines.length === 0 && pending.length === 0) addLog(p, "Quiet year. No wahala.");
+  if (lines.length === 0 && pending.length === 0) addLog(p, T("A quiet year. No wahala.", "Quiet year. No wahala."));
   g.queue = p.alive ? pending : [];
   prune(g);
   ensureRecorded(g);
@@ -694,7 +697,7 @@ export function kidnapAction(g0: Game, a: KidnapAction): Game {
   if (!pe || pe.kind !== "kidnap") return g0;
   const snap = snapshot(g.p);
   kidnapStep(g.p, pe.k, a);
-  reconcile(g.p, snap, "Kidnap emergency: ransom arrangements", "emergency");
+  reconcile(g.p, snap, T("Kidnap emergency: ransom arrangements", "Kidnap emergency: ransom arrangement"), "emergency");
   settle(g.p);
   return g;
 }
@@ -705,7 +708,7 @@ export function ackKidnap(g0: Game): Game {
   const pe = g.queue[0];
   if (!pe || pe.kind !== "kidnap" || pe.k.stage !== "over") return g0;
   g.queue.shift();
-  addLog(g.p, `KIDNAPPED: ${pe.k.summary ?? ""}`);
+  addLog(g.p, T(`KIDNAPPED: ${pe.k.summary ?? ""}`, `DEM KIDNAP YOU: ${pe.k.summary ?? ""}`));
   settle(g.p);
   ensureRecorded(g);
   return g;
@@ -769,31 +772,31 @@ export interface ActivityDef {
   minAge: number;
 }
 export const ACTIVITIES: ActivityDef[] = [
-  { id: "study", label: "Study hard", desc: "Boost your smarts.", cost: 0, minAge: 6 },
-  { id: "gym", label: "Exercise / play football", desc: "Health and a little happiness.", cost: 0, minAge: 6 },
-  { id: "worship", label: "Go to church / mosque", desc: "Peace of mind and good reputation.", cost: 20_000, minAge: 8 },
-  { id: "hawk", label: "Hawk after school", desc: "Small money, small stress.", cost: 0, minAge: 10 },
-  { id: "network", label: "Network at an owambe", desc: "Meet useful people.", cost: 80_000, minAge: 16 },
-  { id: "gig", label: "Do a side gig", desc: "Quick cash from odd jobs.", cost: 0, minAge: 16 },
-  { id: "date", label: "Look for love", desc: "Meet someone special.", cost: 0, minAge: 18 },
-  { id: "godfather", label: "Look for a godfather", desc: "Powerful backing, but scammers lurk.", cost: 500_000, minAge: 20 },
+  { id: "study", get label() { return T("Study hard", "Read book well well"); }, get desc() { return T("Boost your smarts.", "Make your brain sharp."); }, cost: 0, minAge: 6 },
+  { id: "gym", get label() { return T("Exercise / play football", "Exercise / play football"); }, get desc() { return T("Health and a little happiness.", "Body strong small, mind sweet small."); }, cost: 0, minAge: 6 },
+  { id: "worship", get label() { return T("Go to church / mosque", "Go church / mosque"); }, get desc() { return T("Peace of mind and good reputation.", "Peace of mind and good name."); }, cost: 20_000, minAge: 8 },
+  { id: "hawk", get label() { return T("Hawk after school", "Hawk after school"); }, get desc() { return T("Small money, small stress.", "Small money, small stress."); }, cost: 0, minAge: 10 },
+  { id: "network", get label() { return T("Network at an owambe", "Do network for owambe"); }, get desc() { return T("Meet useful people.", "Meet people wey go help you."); }, cost: 80_000, minAge: 16 },
+  { id: "gig", get label() { return T("Do a side gig", "Do side gig"); }, get desc() { return T("Quick cash from odd jobs.", "Quick cash from small small jobs."); }, cost: 0, minAge: 16 },
+  { id: "date", get label() { return T("Look for love", "Go find love"); }, get desc() { return T("Meet someone special.", "Meet person wey special."); }, cost: 0, minAge: 18 },
+  { id: "godfather", get label() { return T("Look for a godfather", "Go find godfather"); }, get desc() { return T("Powerful backing, but scammers lurk.", "Strong backing, but scammers dey around."); }, cost: 500_000, minAge: 20 },
 ];
 
 export function activityBlock(p: Player, a: ActivityDef): string | null {
-  if (p.prison > 0) return "In prison";
-  if (p.age < a.minAge) return `From age ${a.minAge}`;
-  if (p.actionsLeft <= 0) return "No actions left this year";
-  if (a.cost && p.money < I(p, a.cost)) return "Not enough cash";
-  if (a.id === "date" && (p.spouse || p.flags.dating)) return "Already with someone";
+  if (p.prison > 0) return T("In prison", "You dey prison");
+  if (p.age < a.minAge) return T(`From age ${a.minAge}`, `Start from age ${a.minAge}`);
+  if (p.actionsLeft <= 0) return T("No actions left this year", "No action remain this year");
+  if (a.cost && p.money < I(p, a.cost)) return T("Not enough cash", "Cash no reach");
+  if (a.id === "date" && (p.spouse || p.flags.dating)) return T("Already with someone", "You don get person already");
   return null;
 }
 
 export function applyBlock(p: Player, jobId: string): string | null {
   const j = JOB_BY_ID[jobId];
-  if (!j) return "Unknown job";
-  if (p.prison > 0) return "In prison";
-  if (p.actionsLeft <= 0) return "No actions left this year";
-  if (j.selfEmployed && p.money < j.startCost * Math.pow(p.index, 0.9)) return `Needs ${naira(j.startCost * Math.pow(p.index, 0.9))} to start`;
+  if (!j) return T("Unknown job", "Job no dey");
+  if (p.prison > 0) return T("In prison", "You dey prison");
+  if (p.actionsLeft <= 0) return T("No actions left this year", "No action remain this year");
+  if (j.selfEmployed && p.money < j.startCost * Math.pow(p.index, 0.9)) return T(`Needs ${naira(j.startCost * Math.pow(p.index, 0.9))} to start`, `You need ${naira(j.startCost * Math.pow(p.index, 0.9))} to start`);
   return null;
 }
 
@@ -805,44 +808,44 @@ export function buildCost(p: Player, kind: HouseKind): number {
 
 function actionMeta(a: Action): { reason: string; category: import("./types").TxCategory } {
   switch (a.t) {
-    case "apply": return a.bribe ? { reason: "Bribe to get a job", category: "other" } : { reason: "Started a business", category: "business" };
-    case "quit": return { reason: "Left your job", category: "other" };
-    case "expand": return { reason: "Business expansion", category: "business" };
-    case "travel": return { reason: "Travel costs", category: "transport" };
-    case "build": return { reason: "Property purchase", category: "asset" };
-    case "prison": return { reason: "Prison", category: "other" };
-    case "mortgage": return { reason: "Mortgage", category: "asset" };
-    case "trade": return { reason: "Vocational training", category: "education" };
-    case "postgrad": return { reason: "Postgraduate study", category: "education" };
-    case "property": return { reason: "Property purchase", category: "asset" };
-    case "sell": return { reason: "Sold property", category: "asset" };
-    case "use": return { reason: "Property change", category: "asset" };
-    case "send": return { reason: "Money sent home", category: "family" };
-    case "activity": return { reason: `Activity: ${a.id}`, category: "personal" };
-    case "japa": return { reason: "Japa application costs", category: "other" };
-    case "luxury": return { reason: "Luxury spending", category: "personal" };
-    case "invest": return { reason: "Investment purchase", category: "investment" };
-    case "divest": return { reason: "Investment sold", category: "investment" };
-    case "joinPolitics": return { reason: "Party membership and forms", category: "other" };
-    case "contest": return { reason: "Campaign", category: "other" };
-    case "gov": return { reason: "Public office proceeds", category: "crime" };
-    case "power": return { reason: "Political power-building", category: "other" };
-    case "coup": return { reason: "Coup", category: "crime" };
-    case "loanTake": case "loanRepay": return { reason: "Loan", category: "loan" };
-    case "ask": case "borrow": case "give": return { reason: "Family and friends", category: "family" };
-    case "rent": case "moveHome": return { reason: "Housing", category: "rent" };
-    case "car": return { reason: "Vehicle", category: "vehicle" };
-    case "insure": case "checkup": case "treat": return { reason: "Healthcare", category: "health" };
-    case "dating": return { reason: "Dating", category: "dating" };
-    case "biz": return { reason: "Business", category: "business" };
-    case "bet": return { reason: "Betting", category: "betting" };
-    case "social": return { reason: "Social media", category: "social" };
-    case "crime": return { reason: "Crime", category: "crime" };
-    case "will": case "gym": return { reason: "Personal", category: "personal" };
-    case "learn": return { reason: "Learning", category: "education" };
-    case "growth": return { reason: "Activity", category: "personal" };
-    case "enlist": return { reason: "Enlistment", category: "other" };
-    case "buy": return { reason: "Purchase", category: "personal" };
+    case "apply": return a.bribe ? { reason: T("Bribe to get a job", "Bribe to get job"), category: "other" } : { reason: T("Started a business", "Start business"), category: "business" };
+    case "quit": return { reason: T("Left your job", "Quit job"), category: "other" };
+    case "expand": return { reason: T("Business expansion", "Business expansion"), category: "business" };
+    case "travel": return { reason: T("Travel costs", "Travel cost"), category: "transport" };
+    case "build": return { reason: T("Property purchase", "Property purchase"), category: "asset" };
+    case "prison": return { reason: T("Prison", "Prison"), category: "other" };
+    case "mortgage": return { reason: T("Mortgage", "Mortgage"), category: "asset" };
+    case "trade": return { reason: T("Vocational training", "Vocational training"), category: "education" };
+    case "postgrad": return { reason: T("Postgraduate study", "Postgraduate study"), category: "education" };
+    case "property": return { reason: T("Property purchase", "Property purchase"), category: "asset" };
+    case "sell": return { reason: T("Sold property", "Sell property"), category: "asset" };
+    case "use": return { reason: T("Property change", "Property change"), category: "asset" };
+    case "send": return { reason: T("Money sent home", "Money wey you send house"), category: "family" };
+    case "activity": return { reason: T(`Activity: ${a.id}`, `Activity: ${a.id}`), category: "personal" };
+    case "japa": return { reason: T("Japa application costs", "Japa application cost"), category: "other" };
+    case "luxury": return { reason: T("Luxury spending", "Luxury spending"), category: "personal" };
+    case "invest": return { reason: T("Investment purchase", "Investment purchase"), category: "investment" };
+    case "divest": return { reason: T("Investment sold", "Investment sold"), category: "investment" };
+    case "joinPolitics": return { reason: T("Party membership and forms", "Party membership and forms"), category: "other" };
+    case "contest": return { reason: T("Campaign", "Campaign"), category: "other" };
+    case "gov": return { reason: T("Public office proceeds", "Public office proceeds"), category: "crime" };
+    case "power": return { reason: T("Political power-building", "Build political power"), category: "other" };
+    case "coup": return { reason: T("Coup", "Coup"), category: "crime" };
+    case "loanTake": case "loanRepay": return { reason: T("Loan", "Loan"), category: "loan" };
+    case "ask": case "borrow": case "give": return { reason: T("Family and friends", "Family and friends"), category: "family" };
+    case "rent": case "moveHome": return { reason: T("Housing", "Housing"), category: "rent" };
+    case "car": return { reason: T("Vehicle", "Vehicle"), category: "vehicle" };
+    case "insure": case "checkup": case "treat": return { reason: T("Healthcare", "Health care"), category: "health" };
+    case "dating": return { reason: T("Dating", "Dating"), category: "dating" };
+    case "biz": return { reason: T("Business", "Business"), category: "business" };
+    case "bet": return { reason: T("Betting", "Betting"), category: "betting" };
+    case "social": return { reason: T("Social media", "Social media"), category: "social" };
+    case "crime": return { reason: T("Crime", "Crime"), category: "crime" };
+    case "will": case "gym": return { reason: T("Personal", "Personal"), category: "personal" };
+    case "learn": return { reason: T("Learning", "Learning"), category: "education" };
+    case "growth": return { reason: T("Activity", "Activity"), category: "personal" };
+    case "enlist": return { reason: T("Enlistment", "Enlistment"), category: "other" };
+    case "buy": return { reason: T("Purchase", "Purchase"), category: "personal" };
   }
 }
 
@@ -872,69 +875,69 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       if (j.selfEmployed) {
         p.money -= j.startCost * Math.pow(p.index, 0.9);
         p.job = { id: j.id, rank: 0, years: 0 };
-        return out(`You started your own business: ${j.title}. ${j.ladder[0].title}.`);
+        return out(T(`You started your own business: ${j.title}. ${j.ladder[0].title}.`, `You start your own business: ${j.title}. ${j.ladder[0].title}.`));
       }
       let pr = j.group === "creative" ? 0.4 : j.group === "crime" ? 0.9 : 0.35 + p.stats.smarts / 250 + p.stats.connections / 150 + st.opp * 0.02;
       if (j.group === "petty") pr = Math.max(pr, 0.75);
       if (a.bribe) {
         const fee = I(p, 300_000);
-        if (p.money < fee) return { g: g0, msg: "Not enough cash to bribe." };
+        if (p.money < fee) return { g: g0, msg: T("Not enough cash to bribe.", "Cash no reach to bribe.") };
         p.money -= fee;
         pr += 0.3;
         if (chance(0.15)) bump(p, "reputation", -10);
       }
       if (SOCIAL_JOBS.includes(j.id)) {
-        if (!p.possessions.smartphone) return { g: g0, msg: "You need a smartphone to start a creator career." };
+        if (!p.possessions.smartphone) return { g: g0, msg: T("You need a smartphone to start a creator career.", "You need smartphone to start creator career.") };
         p.job = { id: j.id, rank: 0, years: 0 };
         ensureAccount(p, j.id === "youtuber" || j.id === "streamer" ? "vidtube" : j.id === "influencer" ? "gram" : "toktik");
-        return out(`You start your ${j.title.toLowerCase()} journey as ${p.social?.handle}.`);
+        return out(T(`You start your ${j.title.toLowerCase()} journey as ${p.social?.handle}.`, `You don start your ${j.title.toLowerCase()} journey as ${p.social?.handle}.`));
       }
       if (chance(clamp(pr + luckBonus(p), 0.05, 0.97))) {
         p.job = { id: j.id, rank: 0, years: 0 };
-        return out(`You got the job: ${j.ladder[0].title}.`);
+        return out(T(`You got the job: ${j.ladder[0].title}.`, `You get the job: ${j.ladder[0].title}.`));
       }
-      return out(`You applied for ${j.title} but did not get it.`);
+      return out(T(`You applied for ${j.title} but did not get it.`, `You apply for ${j.title} but dem no give you.`));
     }
     case "quit": {
       if (!p.job) return { g: g0, msg: "" };
       const j = jobDef(p);
       p.job = null;
-      return out(`You quit your ${j?.title ?? "job"}.`);
+      return out(T(`You quit your ${j?.title ?? "job"}.`, `You quit your ${j?.title ?? "job"}.`));
     }
     case "expand": {
       const cost = expandCost(p);
       const j = jobDef(p);
-      if (cost === null || !p.job || !j || p.money < cost) return { g: g0, msg: "Cannot expand now." };
+      if (cost === null || !p.job || !j || p.money < cost) return { g: g0, msg: T("Cannot expand now.", "You no fit expand now.") };
       p.money -= cost;
       p.job.rank += 1;
       p.job.years = 0;
       const title = j.ladder[p.job.rank].title;
       if (p.job.rank === j.ladder.length - 1 && !p.achievements.includes(`Top of ${j.title}`)) p.achievements.push(`Top of ${j.title}`);
-      return out(`You invested ${naira(cost)} and expanded: ${title}.`);
+      return out(T(`You invested ${naira(cost)} and expanded: ${title}.`, `You put ${naira(cost)} inside the business and expand: ${title}.`));
     }
     case "travel": {
       const to = STATE_BY_ID[a.to];
       if (!to || a.to === p.state || p.prison > 0 || p.age < 16) return { g: g0, msg: "" };
       const cost = Math.round(travelCost(st, to) * p.index * (st.abroad ? 6 : 1));
-      if (p.money < cost) return { g: g0, msg: `Need ${naira(cost)} for the trip.` };
+      if (p.money < cost) return { g: g0, msg: T(`Need ${naira(cost)} for the trip.`, `You need ${naira(cost)} for this trip.`) };
       p.money -= cost;
       p.traveled = true;
       const note = moveTo(p, a.to);
-      const oppNote = to.opp > st.opp ? "More opportunities here." : to.opp < st.opp ? "Fewer opportunities here." : "";
+      const oppNote = to.opp > st.opp ? T("More opportunities here.", "More opportunity dey here.") : to.opp < st.opp ? T("Fewer opportunities here.", "Opportunity no plenty here.") : "";
       bump(p, "stress", 3);
-      return out(`You travelled to ${to.name} (${to.capital}). ${oppNote}${note}`);
+      return out(T(`You travelled to ${to.name} (${to.capital}). ${oppNote}${note}`, `You travel go ${to.name} (${to.capital}). ${oppNote}${note}`));
     }
     case "build": {
       if (p.prison > 0 || st.abroad) return { g: g0, msg: "" };
       const cost = buildCost(p, a.kind);
-      if (p.money < cost) return { g: g0, msg: `Need ${naira(cost)}.` };
+      if (p.money < cost) return { g: g0, msg: T(`Need ${naira(cost)}.`, `You need ${naira(cost)}.`) };
       p.money -= cost;
       const hasOwner = p.houses.some((h) => h.state === p.state && h.use === "owner");
       const h: House = { id: uid(), state: p.state, kind: a.kind, value: Math.round(cost * 1.1), use: hasOwner ? "empty" : "owner" };
       p.houses.push(h);
       p.prestige += a.kind === "flats" ? 2 : 1;
       bump(p, "happiness", 6);
-      return out(`You built a ${HOUSE_KINDS[a.kind].label.toLowerCase()} in ${st.name} for ${naira(cost)}.`);
+      return out(T(`You built a ${HOUSE_KINDS[a.kind].label.toLowerCase()} in ${st.name} for ${naira(cost)}.`, `You build ${HOUSE_KINDS[a.kind].label.toLowerCase()} for ${st.name} for ${naira(cost)}.`));
     }
     case "prison": return out(prisonOp(p, a.op));
     case "mortgage": { if (p.prison > 0) return { g: g0, msg: "" }; const m = takeMortgage(p, a.kind, a.years); return out(m); }
@@ -947,7 +950,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       const h = p.houses[i];
       const note = settleHouseLoan(p, h, h.value);
       p.houses.splice(i, 1);
-      return out(`You sold your ${HOUSE_KINDS[h.kind].label.toLowerCase()} in ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.${note}`);
+      return out(T(`You sold your ${HOUSE_KINDS[h.kind].label.toLowerCase()} in ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.${note}`, `You sell your ${HOUSE_KINDS[h.kind].label.toLowerCase()} for ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.${note}`));
     }
     case "use": {
       const h = p.houses.find((x) => x.id === a.id);
@@ -957,11 +960,11 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         p.family.state = h.state;
         p.family.happy = clamp(p.family.happy + 18);
         h.use = "family";
-        return out(`Your family moved into your house in ${STATE_BY_ID[h.state].name}. They are overjoyed. More opportunities for them.`);
+        return out(T(`Your family moved into your house in ${STATE_BY_ID[h.state].name}. They are overjoyed. More opportunities for them.`, `Your family move enter your house for ${STATE_BY_ID[h.state].name}. Dem happy well well. More opportunity dey for dem.`));
       }
       if (a.use === "owner") for (const o of p.houses) if (o.use === "owner" && o.state === h.state) o.use = "empty";
       h.use = a.use;
-      return out(a.use === "rent" ? `You listed your house in ${STATE_BY_ID[h.state].name} for rent.` : a.use === "owner" ? `You moved into your house in ${STATE_BY_ID[h.state].name}.` : "You left the house empty.");
+      return out(a.use === "rent" ? T(`You listed your house in ${STATE_BY_ID[h.state].name} for rent.`, `You put your house for ${STATE_BY_ID[h.state].name} for rent.`) : a.use === "owner" ? T(`You moved into your house in ${STATE_BY_ID[h.state].name}.`, `You move enter your house for ${STATE_BY_ID[h.state].name}.`) : T("You left the house empty.", "You leave the house empty."));
     }
     case "send": {
       if (a.amount <= 0 || p.money < a.amount) return { g: g0, msg: "" };
@@ -969,7 +972,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       const gain = clamp((a.amount / I(p, 200_000)) * 4, 1, 22);
       p.family.happy = clamp(p.family.happy + gain);
       bump(p, "reputation", 1);
-      return out(`You sent ${naira(a.amount)} home to ${STATE_BY_ID[p.family.state].name}.`);
+      return out(T(`You sent ${naira(a.amount)} home to ${STATE_BY_ID[p.family.state].name}.`, `You send ${naira(a.amount)} go house for ${STATE_BY_ID[p.family.state].name}.`));
     }
     case "activity": {
       const def = ACTIVITIES.find((x) => x.id === a.id);
@@ -977,17 +980,17 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       p.actionsLeft -= 1;
       p.money -= I(p, def.cost);
       switch (def.id) {
-        case "study": bump(p, "smarts", 3); bump(p, "stress", 2); return out("You studied hard. Knowledge is power.");
-        case "gym": bump(p, "health", 5); bump(p, "happiness", 2); return out("You worked out. You feel stronger.");
-        case "worship": bump(p, "happiness", 3); bump(p, "reputation", 2); return out(`You went to ${p.religion === "Muslim" ? "the mosque" : "church"}. Peace of mind.`);
-        case "hawk": { const g2 = I(p, rand(3_000, 9_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 3); bump(p, "health", -1); return out(`You hawked on the street and made ${naira(g2)}.`); }
-        case "network": bump(p, "connections", 4); return out("You networked at an owambe and exchanged numbers.");
-        case "gig": { const g2 = I(p, rand(8_000, 40_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 2); return out(`You did odd jobs and earned ${naira(g2)}.`); }
-        case "date": g.queue.unshift({ kind: "event", id: "love", data: EVENT_DEFS.love.init ? EVENT_DEFS.love.init(p) : {} }); return out("You went out looking for love...");
+        case "study": bump(p, "smarts", 3); bump(p, "stress", 2); return out(T("You studied hard. Knowledge is power.", "You read book well well. Knowledge na power."));
+        case "gym": bump(p, "health", 5); bump(p, "happiness", 2); return out(T("You worked out. You feel stronger.", "You do exercise. Your body don strong."));
+        case "worship": bump(p, "happiness", 3); bump(p, "reputation", 2); return out(T(`You went to ${p.religion === "Muslim" ? "the mosque" : "church"}. Peace of mind.`, `You go ${p.religion === "Muslim" ? "mosque" : "church"}. Your mind don calm.`));
+        case "hawk": { const g2 = I(p, rand(3_000, 9_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 3); bump(p, "health", -1); return out(T(`You hawked on the street and made ${naira(g2)}.`, `You hawk for street and make ${naira(g2)}.`)); }
+        case "network": bump(p, "connections", 4); return out(T("You networked at an owambe and exchanged numbers.", "You do network for owambe and swap numbers."));
+        case "gig": { const g2 = I(p, rand(8_000, 40_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 2); return out(T(`You did odd jobs and earned ${naira(g2)}.`, `You do some small small jobs and collect ${naira(g2)}.`)); }
+        case "date": g.queue.unshift({ kind: "event", id: "love", data: EVENT_DEFS.love.init ? EVENT_DEFS.love.init(p) : {} }); return out(T("You went out looking for love...", "You go out go find love..."));
         case "godfather":
-          if (chance(0.25)) return out("A 'godfather' collected your money and disappeared. You were scammed.");
+          if (chance(0.25)) return out(T("A 'godfather' collected your money and disappeared. You were scammed.", "One 'godfather' collect your money and disappear. Dem don scam you."));
           bump(p, "connections", 8);
-          return out("A powerful man took a liking to you. Doors are starting to open.");
+          return out(T("A powerful man took a liking to you. Doors are starting to open.", "One powerful man like you. Doors don start to open."));
       }
       return { g: g0, msg: "" };
     }
@@ -1000,11 +1003,11 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         moveTo(p, "abroad");
         p.family.happy = clamp(p.family.happy + 8);
         if (!p.achievements.includes("Japa success")) p.achievements.push("Japa success");
-        return out("JAPA SUCCESSFUL! Your visa was approved. You flew out of Nigeria for a new life.");
+        return out(T("JAPA SUCCESSFUL! Your visa was approved. You flew out of Nigeria for a new life.", "JAPA SUCCESSFUL! Dem approve your visa. You fly comot Nigeria go new life."));
       }
       bump(p, "stress", 10);
       p.money += cost * 0.15;
-      return out("Your visa was refused. IELTS, flights and application fees gone. Maybe try again.");
+      return out(T("Your visa was refused. IELTS, flights and application fees gone. Maybe try again.", "Dem refuse your visa. IELTS, flight and application fees don waste. Maybe try again."));
     }
     case "luxury": {
       const block = luxuryBlock(p, a.id);
@@ -1050,14 +1053,14 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         }
         case "loanRepay": {
           const paid = repayLoan(p, a.id, a.amount);
-          if (paid <= 0) return { g: g0, msg: "Nothing to repay, or you are short of cash." };
-          return out(`You repaid ${naira(paid)}.`);
+          if (paid <= 0) return { g: g0, msg: T("Nothing to repay, or you are short of cash.", "Nothing to repay, or your cash no reach.") };
+          return out(T(`You repaid ${naira(paid)}.`, `You don repay ${naira(paid)}.`));
         }
         case "ask": {
           const n = p.npcs[a.npc];
           if (!n || !n.alive) return { g: g0, msg: "" };
           const spec = SUPPORT_KINDS[a.kind];
-          if (!spec || p.age < spec.minAge) return { g: g0, msg: "You are too young to ask for that." };
+          if (!spec || p.age < spec.minAge) return { g: g0, msg: T("You are too young to ask for that.", "You too small to ask for that.") };
           const reply = evaluateSupport(p, n, a.kind, a.amount);
           if (reply.type === "full" || reply.type === "partial" || reply.type === "refuse") return out(applySupport(p, n, a.kind, reply));
           n.asks += 1;
@@ -1091,11 +1094,11 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         case "insure": return out(setInsurance(p, a.plan));
         case "checkup": {
           const cost = Math.round(I(p, 35_000));
-          if (p.money < cost) return { g: g0, msg: `A check-up costs ${naira(cost)}.` };
-          transact(p, { amount: -cost, reason: "Health check-up", category: "health" });
+          if (p.money < cost) return { g: g0, msg: T(`A check-up costs ${naira(cost)}.`, `Check-up go cost ${naira(cost)}.`) };
+          transact(p, { amount: -cost, reason: T("Health check-up", "Health check-up"), category: "health" });
           p.flags.checkupAge = p.age;
           bump(p, "health", 2);
-          return out("A thorough check-up. Your doctor says you are doing well, and advises more exercise.");
+          return out(T("A thorough check-up. Your doctor says you are doing well, and advises more exercise.", "Full check-up. Doctor say you dey fine, but e advise make you exercise more."));
         }
         case "treat": {
           const cond = p.conditions.find((c) => c.id === a.cond);
@@ -1120,18 +1123,18 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "propose": {
           const r = partnerOf(p, a.npc ?? "");
           const n = p.npcs[a.npc ?? ""];
-          if (!r || !n || r.stage !== "exclusive") return { g: g0, msg: "You need to be exclusive first." };
-          if (r.affection < 70) return { g: g0, msg: `${n.name.split(" ")[0]} is not ready yet. Build more affection.` };
-          if (p.age < 20) return { g: g0, msg: "You need to be at least 20 to marry." };
+          if (!r || !n || r.stage !== "exclusive") return { g: g0, msg: T("You need to be exclusive first.", "You must dey exclusive first.") };
+          if (r.affection < 70) return { g: g0, msg: T(`${n.name.split(" ")[0]} is not ready yet. Build more affection.`, `${n.name.split(" ")[0]} never ready. Build more love first.`) };
+          if (p.age < 20) return { g: g0, msg: T("You need to be at least 20 to marry.", "You must reach at least 20 before you marry.") };
           r.stage = "engaged";
           p.flags.dating = n.name;
           p.flags.datingLook = [n.look.skin, n.look.hair, n.look.hairColor, n.look.beard, n.look.wear, n.look.outfit, n.look.outfitColor].join("|");
           p.flags.datingNpc = n.id;
           const def = EVENT_DEFS.proposal;
           g.queue.unshift({ kind: "event", id: "proposal", data: { ...(def.init?.(p) ?? {}), month: randInt(1, 12) } });
-          return dm(`${n.name.split(" ")[0]} says yes. Now the families need to meet.`);
+          return dm(T(`${n.name.split(" ")[0]} says yes. Now the families need to meet.`, `${n.name.split(" ")[0]} say yes. Now the families must meet.`));
         }
-        case "marry": { const r = partnerOf(p, a.npc ?? ""); if (!r || r.stage !== "engaged") return { g: g0, msg: "You need to be engaged first." }; marry(p, a.npc ?? ""); return dm("You are married!"); }
+        case "marry": { const r = partnerOf(p, a.npc ?? ""); if (!r || r.stage !== "engaged") return { g: g0, msg: T("You need to be engaged first.", "You must engage first.") }; marry(p, a.npc ?? ""); return dm(T("You are married!", "You don marry!")); }
           }
           return { g: g0, msg: "" };
         }
@@ -1166,17 +1169,17 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           g.queue.unshift(...res.spawn);
           return out(res.text);
         }
-        case "will": setShare(p, a.id, a.pct); return out("Your will has been updated.");
+        case "will": setShare(p, a.id, a.pct); return out(T("Your will has been updated.", "Dem don update your will."));
         case "buy": {
       const price = Math.round(I(p, a.item === "phone" ? 25_000 : a.item === "smartphone" ? 180_000 : 450_000));
-      if (p.age < 10) return { g: g0, msg: "Ask your family." };
-      if (p.money < price) return { g: g0, msg: `You need ${naira(price)}.` };
-      if ((a.item === "phone" && p.possessions.phone) || (a.item === "smartphone" && p.possessions.smartphone) || (a.item === "laptop" && p.possessions.laptop)) return { g: g0, msg: "You already have one." };
-      transact(p, { amount: -price, reason: a.item === "phone" ? "Basic phone" : a.item === "smartphone" ? "Smartphone" : "Laptop", category: "personal" });
+      if (p.age < 10) return { g: g0, msg: T("Ask your family.", "Ask your family abeg.") };
+      if (p.money < price) return { g: g0, msg: T(`You need ${naira(price)}.`, `You need ${naira(price)}.`) };
+      if ((a.item === "phone" && p.possessions.phone) || (a.item === "smartphone" && p.possessions.smartphone) || (a.item === "laptop" && p.possessions.laptop)) return { g: g0, msg: T("You already have one.", "You don get one already.") };
+      transact(p, { amount: -price, reason: a.item === "phone" ? T("Basic phone", "Basic phone") : a.item === "smartphone" ? T("Smartphone", "Smartphone") : T("Laptop", "Laptop"), category: "personal" });
       if (a.item === "phone") p.possessions.phone = true;
       if (a.item === "smartphone") { p.possessions.phone = true; p.possessions.smartphone = true; }
       if (a.item === "laptop") p.possessions.laptop = true;
-      return out(`You bought a ${a.item === "phone" ? "basic phone" : a.item}.`);
+      return out(T(`You bought a ${a.item === "phone" ? "basic phone" : a.item}.`, `You buy ${a.item === "phone" ? "basic phone" : a.item}.`));
     }
     case "learn": return out(learnSkill(p, a.id));
         case "growth": return out(doGrowth(p, a.id));

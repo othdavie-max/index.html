@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { T } from "./util";
 
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
 
@@ -81,7 +82,7 @@ export function Sheet({ children, title, onClose }: { children: ReactNode; title
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-serif text-xl font-bold text-white">{title}</h2>
             {onClose && (
-              <button type="button" onClick={onClose} aria-label="Close" className="rounded-full bg-white/10 px-2.5 py-1 text-sm text-white/70">
+              <button type="button" onClick={onClose} aria-label={T("Close", "Close")} className="rounded-full bg-white/10 px-2.5 py-1 text-sm text-white/70">
                 ✕
               </button>
             )}

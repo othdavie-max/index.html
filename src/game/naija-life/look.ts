@@ -1,5 +1,5 @@
 import type { Gender } from "./types";
-import { rng, chance, clamp, pick, randInt } from "./util";
+import { T, rng, chance, clamp, pick, randInt } from "./util";
 
 export interface Look {
   skin: number;
@@ -16,42 +16,42 @@ export const HAIR_COLORS = ["#16110d", "#2c1b12", "#6b4423", "#a8a8a8", "#ececec
 export const OUTFIT_COLORS = ["#1f9d55", "#f5b82e", "#c0392b", "#2e5eaa", "#7b3fa0", "#e8e2d0", "#14202b", "#d9772b"];
 
 export const HAIRS: { id: string; label: string }[] = [
-  { id: "bald", label: "Bald" },
-  { id: "low", label: "Low cut" },
-  { id: "fade", label: "High-top fade" },
-  { id: "afro", label: "Afro" },
-  { id: "cornrows", label: "Cornrows" },
-  { id: "dreads", label: "Dreadlocks" },
-  { id: "braids", label: "Long braids" },
-  { id: "knots", label: "Bantu knots" },
-  { id: "twists", label: "Twists" },
-  { id: "shuku", label: "Shuku" },
-  { id: "puff", label: "Afro puff" },
-  { id: "weave", label: "Long weave" },
+  { id: "bald", get label() { return T("Bald", "Bald head"); } },
+  { id: "low", get label() { return T("Low cut", "Low cut"); } },
+  { id: "fade", get label() { return T("High-top fade", "High-top fade"); } },
+  { id: "afro", get label() { return T("Afro", "Afro"); } },
+  { id: "cornrows", get label() { return T("Cornrows", "Cornrows"); } },
+  { id: "dreads", get label() { return T("Dreadlocks", "Dreadlocks"); } },
+  { id: "braids", get label() { return T("Long braids", "Long long braids"); } },
+  { id: "knots", get label() { return T("Bantu knots", "Bantu knots"); } },
+  { id: "twists", get label() { return T("Twists", "Twists"); } },
+  { id: "shuku", get label() { return T("Shuku", "Shuku"); } },
+  { id: "puff", get label() { return T("Afro puff", "Afro puff"); } },
+  { id: "weave", get label() { return T("Long weave", "Long weave"); } },
 ];
 export const BEARDS: { id: string; label: string }[] = [
-  { id: "none", label: "Clean" },
-  { id: "stubble", label: "Stubble" },
-  { id: "mous", label: "Moustache" },
-  { id: "goatee", label: "Goatee" },
-  { id: "full", label: "Full beard" },
+  { id: "none", get label() { return T("Clean-shaven", "Clean face"); } },
+  { id: "stubble", get label() { return T("Stubble", "Small beard"); } },
+  { id: "mous", get label() { return T("Moustache", "Moustache"); } },
+  { id: "goatee", get label() { return T("Goatee", "Goatee"); } },
+  { id: "full", get label() { return T("Full beard", "Full beard"); } },
 ];
 export const WEARS: { id: string; label: string }[] = [
-  { id: "none", label: "Nothing" },
-  { id: "fila", label: "Fila cap" },
-  { id: "hausa", label: "Hausa cap" },
-  { id: "gele", label: "Gele" },
-  { id: "hijab", label: "Hijab" },
-  { id: "facecap", label: "Face cap" },
+  { id: "none", get label() { return T("Nothing", "Nothing"); } },
+  { id: "fila", get label() { return T("Fila cap", "Fila cap"); } },
+  { id: "hausa", get label() { return T("Hausa cap", "Hausa cap"); } },
+  { id: "gele", get label() { return T("Gele", "Gele"); } },
+  { id: "hijab", get label() { return T("Hijab", "Hijab"); } },
+  { id: "facecap", get label() { return T("Face cap", "Face cap"); } },
 ];
 export const OUTFITS: { id: string; label: string }[] = [
-  { id: "tshirt", label: "T-shirt" },
-  { id: "ankara", label: "Ankara" },
-  { id: "agbada", label: "Agbada" },
-  { id: "kaftan", label: "Kaftan" },
-  { id: "senator", label: "Senator wear" },
-  { id: "suit", label: "Suit" },
-  { id: "jersey", label: "Eagles jersey" },
+  { id: "tshirt", get label() { return T("T-shirt", "T-shirt"); } },
+  { id: "ankara", get label() { return T("Ankara", "Ankara"); } },
+  { id: "agbada", get label() { return T("Agbada", "Agbada"); } },
+  { id: "kaftan", get label() { return T("Kaftan", "Kaftan"); } },
+  { id: "senator", get label() { return T("Senator wear", "Senator wear"); } },
+  { id: "suit", get label() { return T("Suit", "Suit"); } },
+  { id: "jersey", get label() { return T("Eagles jersey", "Super Eagles jersey"); } },
 ];
 
 export const lookToStr = (l: Look) => [l.skin, l.hair, l.hairColor, l.beard, l.wear, l.outfit, l.outfitColor].join("|");

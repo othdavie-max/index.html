@@ -46,27 +46,27 @@ export function PhoneTab({ p, run }: { p: Player; run: Run }) {
   if (!has) {
     return (
       <Card>
-        <H sub="Loans, dating, social media and betting all need a phone.">No phone yet</H>
-        <p className="text-sm text-white/70">{p.age < 11 ? "You are too young for your own phone. Maybe a parent will buy you one." : "Buy one, or ask your parents in the Family tab."}</p>
+        <H sub={T("Loans, dating, social media and betting all need a phone.", "Loan, dating, social media and betting all need phone.")}>{T("No phone yet", "You never get phone")}</H>
+        <p className="text-sm text-white/70">{p.age < 11 ? T("You are too young for your own phone. Maybe a parent will buy you one.", "You still small to get your own phone. Maybe your parent go buy one for you.") : T("Buy one, or ask your parents in the Family tab.", "Buy one, or ask your parents for Family tab.")}</p>
         {p.age >= 11 && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <Btn small tone="ghost" disabled={p.money < I(p, 25_000)} onClick={() => run({ t: "buy", item: "phone" })}>Basic phone ({naira(I(p, 25_000))})</Btn>
-            <Btn small tone="gold" disabled={p.money < I(p, 180_000)} onClick={() => run({ t: "buy", item: "smartphone" })}>Smartphone ({naira(I(p, 180_000))})</Btn>
+            <Btn small tone="ghost" disabled={p.money < I(p, 25_000)} onClick={() => run({ t: "buy", item: "phone" })}>{T("Basic phone", "Basic phone")} ({naira(I(p, 25_000))})</Btn>
+            <Btn small tone="gold" disabled={p.money < I(p, 180_000)} onClick={() => run({ t: "buy", item: "smartphone" })}>{T("Smartphone", "Smartphone")} ({naira(I(p, 180_000))})</Btn>
           </div>
         )}
       </Card>
     );
   }
   const apps: { id: PhoneApp; label: string; sub: string }[] = [
-    { id: "wallet", label: "Wallet", sub: "Loans and balance" },
-    { id: "spark", label: "Spark", sub: "Dating app" },
-    { id: "social", label: "Gram / TokTik", sub: "Social media" },
-    { id: "bet", label: "Naija9ja Bet", sub: "Sports betting" },
+    { id: "wallet", label: T("Wallet", "Wallet"), sub: T("Loans and balance", "Loan and balance") },
+    { id: "spark", label: "Spark", sub: T("Dating app", "Dating app") },
+    { id: "social", label: "Gram / TokTik", sub: T("Social media", "Social media") },
+    { id: "bet", label: "Naija9ja Bet", sub: T("Sports betting", "Sports betting") },
   ];
   if (app === "home") {
     return (
       <Card>
-        <H sub={p.possessions.smartphone ? "Smartphone" : "Basic phone: upgrade for social apps"}>Your phone</H>
+        <H sub={p.possessions.smartphone ? T("Smartphone", "Smartphone") : T("Basic phone: upgrade for social apps", "Basic phone: upgrade for social apps")}>{T("Your phone", "Your phone")}</H>
         <div className="grid grid-cols-2 gap-2">
           {apps.map((a) => (
             <button key={a.id} type="button" onClick={() => setApp(a.id)} className="rounded-xl border border-white/10 bg-white/5 p-3 text-left hover:bg-white/10">
@@ -75,13 +75,13 @@ export function PhoneTab({ p, run }: { p: Player; run: Run }) {
             </button>
           ))}
         </div>
-        {!p.possessions.smartphone && <Btn small tone="gold" className="mt-3" disabled={p.money < I(p, 180_000)} onClick={() => run({ t: "buy", item: "smartphone" })}>Upgrade to smartphone ({naira(I(p, 180_000))})</Btn>}
+        {!p.possessions.smartphone && <Btn small tone="gold" className="mt-3" disabled={p.money < I(p, 180_000)} onClick={() => run({ t: "buy", item: "smartphone" })}>{T("Upgrade to smartphone", "Upgrade to smartphone")} ({naira(I(p, 180_000))})</Btn>}
       </Card>
     );
   }
   return (
     <>
-      <button type="button" className="text-xs text-[#f5b82e]" onClick={() => setApp("home")}>← Back to phone</button>
+      <button type="button" className="text-xs text-[#f5b82e]" onClick={() => setApp("home")}>{T("← Back to phone", "← Go back to phone")}</button>
       {app === "wallet" && <Wallet p={p} run={run} />}
       {app === "spark" && <Spark p={p} run={run} />}
       {app === "social" && <Social p={p} run={run} />}
@@ -104,12 +104,12 @@ function Wallet({ p, run }: { p: Player; run: Run }) {
   return (
     <>
       <Card>
-        <H sub={`Credit score ${Math.round(p.credit)} · Total debt ${naira(totalDebt(p))}`}>Wallet</H>
+        <H sub={T(`Credit score ${Math.round(p.credit)} · Total debt ${naira(totalDebt(p))}`, `Credit score ${Math.round(p.credit)} · Total debt ${naira(totalDebt(p))}`)}>{T("Wallet", "Wallet")}</H>
         <div className="text-2xl font-bold text-[#f5b82e]">{naira(p.money)}</div>
-        <div className="mt-2"><Bar label="Credit score" value={p.credit} /></div>
+        <div className="mt-2"><Bar label={T("Credit score", "Credit score")} value={p.credit} /></div>
       </Card>
       <Card>
-        <H sub="Read the terms before you accept. Late payment hurts your credit.">Loan offers</H>
+        <H sub={T("Read the terms before you accept. Late payment hurts your credit.", "Read the terms before you accept. Late payment go spoil your credit.")}>{T("Loan offers", "Loan offers")}</H>
         <div className="space-y-2">
           {offers.map((o) => (
             <div key={o.id} className="rounded-xl bg-white/5 p-3">
@@ -118,54 +118,54 @@ function Wallet({ p, run }: { p: Player; run: Run }) {
                   <div className="text-sm font-semibold">{o.name}</div>
                   <div className="text-[11px] text-white/50">{o.blurb}</div>
                 </div>
-                <Badge tone={o.eligible ? "red" : "green"}>{o.eligible ?? `up to ${naira(o.limit)}`}</Badge>
+                <Badge tone={o.eligible ? "red" : "green"}>{o.eligible ?? T(`up to ${naira(o.limit)}`, `reach ${naira(o.limit)}`)}</Badge>
               </div>
-              {!o.eligible && <Btn small tone="ghost" className="mt-2" onClick={() => { setSel(o.id); setTerm(o.minTerm); }}>{sel === o.id ? "Selected" : "See terms"}</Btn>}
+              {!o.eligible && <Btn small tone="ghost" className="mt-2" onClick={() => { setSel(o.id); setTerm(o.minTerm); }}>{sel === o.id ? T("Selected", "Selected") : T("See terms", "See terms")}</Btn>}
             </div>
           ))}
         </div>
       </Card>
       {offer && prev && (
         <Card className="border-[#f5b82e]/40">
-          <H>{offer.name} terms</H>
+          <H>{offer.name} {T("terms", "terms")}</H>
           <div className="flex gap-1.5">
             {[0.25, 0.5, 1].map((f) => <Btn key={f} small tone={frac === f ? "gold" : "ghost"} onClick={() => setFrac(f)}>{f * 100}%</Btn>)}
           </div>
           <div className="mt-2 flex items-center gap-2 text-xs">
-            Term (months):
+            {T("Term (months)", "Term (months)")}:
             {Array.from({ length: offer.maxTerm - offer.minTerm + 1 }, (_, i) => offer.minTerm + i).filter((m) => offer.maxTerm - offer.minTerm < 8 || m % 3 === 0 || m === offer.minTerm).map((m) => (
               <Btn key={m} small tone={t === m ? "gold" : "ghost"} onClick={() => setTerm(m)}>{m}</Btn>
             ))}
           </div>
           <dl className="mt-3 space-y-1 text-sm">
-            <Row k="You borrow" v={naira(prev.principal)} />
-            <Row k="Fee taken upfront" v={naira(prev.fee)} />
-            <Row k="You receive" v={naira(prev.net)} />
-            <Row k="Monthly repayment" v={naira(prev.monthly)} />
-            <Row k="Total you repay" v={naira(prev.total)} />
-            <Row k="Interest cost" v={naira(prev.interest)} bad />
-            <Row k="First payment" v={prev.firstDue} />
-            <Row k="Late fee" v={`${(offer.lateFeePct * 100).toFixed(0)}% of the instalment`} />
+            <Row k={T("You borrow", "You borrow")} v={naira(prev.principal)} />
+            <Row k={T("Fee taken upfront", "Fee wey dem collect first")} v={naira(prev.fee)} />
+            <Row k={T("You receive", "You go collect")} v={naira(prev.net)} />
+            <Row k={T("Monthly repayment", "Monthly repayment")} v={naira(prev.monthly)} />
+            <Row k={T("Total you repay", "Total wey you go pay")} v={naira(prev.total)} />
+            <Row k={T("Interest cost", "Interest cost")} v={naira(prev.interest)} bad />
+            <Row k={T("First payment", "First payment")} v={prev.firstDue} />
+            <Row k={T("Late fee", "Late fee")} v={T(`${(offer.lateFeePct * 100).toFixed(0)}% of the instalment`, `${(offer.lateFeePct * 100).toFixed(0)}% of the instalment`)} />
           </dl>
           <Btn className="mt-3 w-full" tone="gold" disabled={Boolean(block)} onClick={() => { run({ t: "loanTake", offer: offer.id, amount, term: t }); setSel(null); }}>
-            {block ?? "Accept and take the loan"}
+            {block ?? T("Accept and take the loan", "Accept and take loan")}
           </Btn>
         </Card>
       )}
       {mine.length > 0 && (
         <Card>
-          <H>What you owe</H>
+          <H>{T("What you owe", "Wetin you owe")}</H>
           <div className="space-y-2">
             {mine.map((l) => (
               <div key={l.id} className="rounded-xl bg-white/5 p-3 text-sm">
                 <div className="flex justify-between"><span className="font-semibold">{l.lenderName}</span><span className="text-red-300">{naira(l.balance)}</span></div>
                 <div className="text-[11px] text-white/50">
-                  {l.informal ? `Due month ${l.dueIndex ? ((l.dueIndex - 1) % 12) + 1 : "?"} of age ${l.dueIndex ? Math.floor((l.dueIndex - 1) / 12) : "?"}` : `${naira(l.monthly)}/month`}
-                  {l.missed > 0 ? ` · ${l.missed} missed` : ""}
+                  {l.informal ? T(`Due month ${l.dueIndex ? ((l.dueIndex - 1) % 12) + 1 : "?"} of age ${l.dueIndex ? Math.floor((l.dueIndex - 1) / 12) : "?"}`, `Due month ${l.dueIndex ? ((l.dueIndex - 1) % 12) + 1 : "?"} of age ${l.dueIndex ? Math.floor((l.dueIndex - 1) / 12) : "?"}`) : T(`${naira(l.monthly)}/month`, `${naira(l.monthly)}/month`)}
+                  {l.missed > 0 ? T(` · ${l.missed} missed`, ` · ${l.missed} you no pay`) : ""}
                 </div>
                 <div className="mt-2 flex gap-1.5">
-                  <Btn small tone="ghost" disabled={p.money < Math.min(l.balance, l.monthly || l.balance)} onClick={() => run({ t: "loanRepay", id: l.id, amount: l.informal ? l.balance : l.monthly })}>{l.informal ? "Pay in full" : "Pay instalment"}</Btn>
-                  {!l.informal && <Btn small tone="ghost" disabled={p.money < l.balance} onClick={() => run({ t: "loanRepay", id: l.id, amount: l.balance })}>Settle ({naira(l.balance)})</Btn>}
+                  <Btn small tone="ghost" disabled={p.money < Math.min(l.balance, l.monthly || l.balance)} onClick={() => run({ t: "loanRepay", id: l.id, amount: l.informal ? l.balance : l.monthly })}>{l.informal ? T("Pay in full", "Pay am finish") : T("Pay instalment", "Pay instalment")}</Btn>
+                  {!l.informal && <Btn small tone="ghost" disabled={p.money < l.balance} onClick={() => run({ t: "loanRepay", id: l.id, amount: l.balance })}>{T("Settle", "Clear am")} ({naira(l.balance)})</Btn>}
                 </div>
               </div>
             ))}
@@ -192,15 +192,15 @@ function Spark({ p, run }: { p: Player; run: Run }) {
     <>
       {!d.profile ? (
         <Card>
-          <H sub="Make a profile to see who is around.">Create your Spark profile</H>
-          <input value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Short bio" maxLength={80} className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm" />
-          <Btn className="mt-3" onClick={() => run({ t: "dating", op: "profile", bio: bio || "Just here for good vibes.", interests: ["music", "food", "travel"] })}>Create profile</Btn>
+          <H sub={T("Make a profile to see who is around.", "Make profile to see who dey around.")}>{T("Create your Spark profile", "Create your Spark profile")}</H>
+          <input value={bio} onChange={(e) => setBio(e.target.value)} placeholder={T("Short bio", "Short bio")} maxLength={80} className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm" />
+          <Btn className="mt-3" onClick={() => run({ t: "dating", op: "profile", bio: bio || T("Just here for good vibes.", "I just dey here for good vibes."), interests: ["music", "food", "travel"] })}>{T("Create profile", "Create profile")}</Btn>
         </Card>
       ) : (
         <Card>
-          <H sub={`${d.swipesLeft} swipes · ${d.chatsLeft} chats left this year`}>Discover</H>
+          <H sub={T(`${d.swipesLeft} swipes · ${d.chatsLeft} chats left this year`, `${d.swipesLeft} swipes · ${d.chatsLeft} chats remain this year`)}>{T("Discover", "Discover")}</H>
           {d.deck.length === 0 ? (
-            <Btn small onClick={() => run({ t: "dating", op: "swipe" })}>Refresh deck</Btn>
+            <Btn small onClick={() => run({ t: "dating", op: "swipe" })}>{T("Refresh deck", "Refresh deck")}</Btn>
           ) : (
             <CandidateCard p={p} c={d.deck[0]} run={run} />
           )}
@@ -208,7 +208,7 @@ function Spark({ p, run }: { p: Player; run: Run }) {
       )}
       {partners.length > 0 && (
         <Card>
-          <H>Matches and partners</H>
+          <H>{T("Matches and partners", "Matches and partners")}</H>
           <div className="space-y-2">
             {partners.map(({ rel, npc }) => (
               <div key={npc.id} className="rounded-xl bg-white/5 p-3">
@@ -217,36 +217,36 @@ function Spark({ p, run }: { p: Player; run: Run }) {
                   <div className="flex-1">
                     <div className="text-sm font-semibold">{npc.name}</div>
                     <div className="text-[11px] text-white/50">{STAGE_LABEL[rel.stage]} · {npc.occupation}</div>
-                    <div className="mt-1 grid grid-cols-3 gap-1.5"><Bar label="Love" value={rel.affection} tone="gold" /><Bar label="Trust" value={rel.trust} tone="blue" /><Bar label="Satisf." value={rel.satisfaction} /></div>
+                    <div className="mt-1 grid grid-cols-3 gap-1.5"><Bar label={T("Love", "Love")} value={rel.affection} tone="gold" /><Bar label={T("Trust", "Trust")} value={rel.trust} tone="blue" /><Bar label={T("Satisf.", "Satisf.")} value={rel.satisfaction} /></div>
                   </div>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  <Btn small tone="ghost" onClick={() => setOpen(open === npc.id ? null : npc.id)}>{open === npc.id ? "Close" : "Actions"}</Btn>
-                  <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "spend", npc: npc.id })}>Spend time</Btn>
+                  <Btn small tone="ghost" onClick={() => setOpen(open === npc.id ? null : npc.id)}>{open === npc.id ? T("Close", "Close") : T("Actions", "Actions")}</Btn>
+                  <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "spend", npc: npc.id })}>{T("Spend time", "Spend time")}</Btn>
                 </div>
                 {open === npc.id && (
                   <div className="mt-2 space-y-2 border-t border-white/10 pt-2">
                     <Thread rel={rel} />
                     <div className="flex flex-wrap gap-1.5 text-xs">
-                      <span className="w-full text-white/50">Chat</span>
-                      {(["flirty", "funny", "genuine", "boring"] as const).map((tn) => <Btn key={tn} small tone="ghost" onClick={() => run({ t: "dating", op: "chat", npc: npc.id, tone: tn })}>{tn}</Btn>)}
+                      <span className="w-full text-white/50">{T("Chat", "Chat")}</span>
+                      {(["flirty", "funny", "genuine", "boring"] as const).map((tn) => <Btn key={tn} small tone="ghost" onClick={() => run({ t: "dating", op: "chat", npc: npc.id, tone: tn })}>{tn === "flirty" ? T("flirty", "flirty") : tn === "funny" ? T("funny", "funny") : tn === "genuine" ? T("genuine", "sincere") : T("boring", "boring")}</Btn>)}
                     </div>
                     <div className="flex flex-wrap gap-1.5 text-xs">
-                      <span className="w-full text-white/50">Date</span>
-                      {(["cheap", "nice", "luxury"] as const).map((pl) => <Btn key={pl} small tone="ghost" disabled={p.money < dateCost(p, pl)} onClick={() => choosePlan(npc.id, pl)}>{pl} ({naira(dateCost(p, pl))})</Btn>)}
+                      <span className="w-full text-white/50">{T("Date", "Date")}</span>
+                      {(["cheap", "nice", "luxury"] as const).map((pl) => <Btn key={pl} small tone="ghost" disabled={p.money < dateCost(p, pl)} onClick={() => choosePlan(npc.id, pl)}>{pl === "cheap" ? T("cheap", "cheap") : pl === "nice" ? T("nice", "nice") : T("luxury", "luxury")} ({naira(dateCost(p, pl))})</Btn>)}
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {rel.stage === "dating" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "official", npc: npc.id })}>Make it official</Btn>}
-                      {rel.stage === "exclusive" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "propose", npc: npc.id })}>Propose</Btn>}
-                      {rel.stage === "engaged" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "marry", npc: npc.id })}>Marry</Btn>}
+                      {rel.stage === "dating" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "official", npc: npc.id })}>{T("Make it official", "Make am official")}</Btn>}
+                      {rel.stage === "exclusive" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "propose", npc: npc.id })}>{T("Propose", "Propose")}</Btn>}
+                      {rel.stage === "engaged" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "marry", npc: npc.id })}>{T("Marry", "Marry")}</Btn>}
                       {p.age >= 18 && (() => { const b = intimacyBlock(p, npc.id); return (
                         <>
-                          <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "condom" })}>Spend the night (protected)</Btn>
-                          <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "none" })}>(unprotected)</Btn>
+                          <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "condom" })}>{T("Spend the night (protected)", "Sleep over (protected)")}</Btn>
+                          <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "none" })}>{T("(unprotected)", "(no protection)")}</Btn>
                           {b && <span className="w-full text-[11px] text-white/40">{b}</span>}
                         </>
                       ); })()}
-                      <Btn small tone="red" onClick={() => run({ t: "dating", op: "breakup", npc: npc.id })}>Break up</Btn>
+                      <Btn small tone="red" onClick={() => run({ t: "dating", op: "breakup", npc: npc.id })}>{T("Break up", "Break up")}</Btn>
                     </div>
                   </div>
                 )}
@@ -261,12 +261,12 @@ function Spark({ p, run }: { p: Player; run: Run }) {
 
 function Thread({ rel }: { rel: PartnerRel }) {
   const msgs = (rel.messages ?? []).slice(-10);
-  if (msgs.length === 0) return <p className="text-[11px] text-white/40">No messages yet. Say hello.</p>;
+  if (msgs.length === 0) return <p className="text-[11px] text-white/40">{T("No messages yet. Say hello.", "No message yet. Greet am.")}</p>;
   return (
     <div className="max-h-52 space-y-1.5 overflow-y-auto rounded-xl bg-black/20 p-2">
       {msgs.map((m, i) =>
         m.from === "note" ? (
-          <p key={i} className="text-center text-[10px] italic text-white/40">{m.text} · age {m.age}</p>
+          <p key={i} className="text-center text-[10px] italic text-white/40">{m.text} · {T("age", "age")} {m.age}</p>
         ) : (
           <div key={i} className={cx("flex", m.from === "me" ? "justify-end" : "justify-start")}>
             <span className={cx("max-w-[80%] rounded-2xl px-3 py-1.5 text-xs", m.from === "me" ? "bg-[#1f9d55] text-white" : "bg-white/10 text-white/90")}>{m.text}</span>
@@ -286,8 +286,8 @@ function CandidateCard({ p, c, run }: { p: Player; c: Candidate; run: Run }) {
         <div className="text-xs text-white/60">{c.occupation} · {STATE_BY_ID[c.stateId]?.name ?? ""}</div>
         <div className="mt-1 flex flex-wrap gap-1">{c.interests.map((i) => <Badge key={i}>{i}</Badge>)}</div>
         <div className="mt-2 flex gap-2">
-          <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "swipe", npc: c.id, like: false })}>Pass</Btn>
-          <Btn small tone="gold" onClick={() => run({ t: "dating", op: "swipe", npc: c.id, like: true })}>Like</Btn>
+          <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "swipe", npc: c.id, like: false })}>{T("Pass", "Pass")}</Btn>
+          <Btn small tone="gold" onClick={() => run({ t: "dating", op: "swipe", npc: c.id, like: true })}>{T("Like", "Like")}</Btn>
         </div>
       </div>
     </div>
@@ -301,7 +301,7 @@ function Social({ p, run }: { p: Player; run: Run }) {
   return (
     <>
       <Card>
-        <H sub={s ? `${s.handle} · ${totalFollowers(p).toLocaleString()} followers` : "Build a following."}>Social media</H>
+        <H sub={s ? T(`${s.handle} · ${totalFollowers(p).toLocaleString()} followers`, `${s.handle} · ${totalFollowers(p).toLocaleString()} followers`) : T("Build a following.", "Build your followers.")}>{T("Social media", "Social media")}</H>
         {block && <p className="text-sm text-white/60">{block}</p>}
         <div className="flex flex-wrap gap-2">
           {PLATFORMS.map((pl) => {
@@ -309,17 +309,17 @@ function Social({ p, run }: { p: Player; run: Run }) {
             return acc ? (
               <Badge key={pl.id} tone="green">{pl.label}: {acc.followers.toLocaleString()}</Badge>
             ) : (
-              <Btn key={pl.id} small tone="ghost" disabled={Boolean(block) || p.age < pl.minAge} onClick={() => run({ t: "social", op: "account", platform: pl.id })}>Open {pl.label}</Btn>
+              <Btn key={pl.id} small tone="ghost" disabled={Boolean(block) || p.age < pl.minAge} onClick={() => run({ t: "social", op: "account", platform: pl.id })}>{T("Open", "Open")} {pl.label}</Btn>
             );
           })}
         </div>
         {s && (
-          <div className="mt-3 grid grid-cols-3 gap-2"><Bar label="Brand" value={s.brand} tone="gold" /><Bar label="Skill" value={s.skill} tone="blue" /><Bar label="Controversy" value={s.controversy} invert /></div>
+          <div className="mt-3 grid grid-cols-3 gap-2"><Bar label={T("Brand", "Brand")} value={s.brand} tone="gold" /><Bar label={T("Skill", "Skill")} value={s.skill} tone="blue" /><Bar label={T("Controversy", "Wahala")} value={s.controversy} invert /></div>
         )}
       </Card>
       {s && Object.keys(s.accounts).length > 0 && (
         <Card>
-          <H sub={`${s.postsLeft} posts left this year`}>Create content</H>
+          <H sub={T(`${s.postsLeft} posts left this year`, `${s.postsLeft} posts remain this year`)}>{T("Create content", "Create content")}</H>
           <div className="mb-2 flex gap-1.5">
             {(Object.keys(s.accounts) as Platform[]).map((k) => <Btn key={k} small tone={plat === k ? "gold" : "ghost"} onClick={() => setPlat(k)}>{PLATFORMS.find((x) => x.id === k)?.label}</Btn>)}
           </div>
@@ -335,10 +335,10 @@ function Social({ p, run }: { p: Player; run: Run }) {
             })}
           </div>
           <div className="mt-3 flex gap-2">
-            <Btn small tone="ghost" onClick={() => run({ t: "social", op: "collab", platform: plat })}>Collab with a creator</Btn>
-            <Btn small tone="ghost" onClick={() => run({ t: "social", op: "gear" })}>Upgrade gear</Btn>
+            <Btn small tone="ghost" onClick={() => run({ t: "social", op: "collab", platform: plat })}>{T("Collab with a creator", "Collab with creator")}</Btn>
+            <Btn small tone="ghost" onClick={() => run({ t: "social", op: "gear" })}>{T("Upgrade gear", "Upgrade gear")}</Btn>
           </div>
-          {s.sponsors.length > 0 && <p className="mt-3 text-xs text-white/60">Sponsors: {s.sponsors.map((x) => `${x.brand} (${naira(x.monthly)}/mo, ${x.monthsLeft}m)`).join(", ")}</p>}
+          {s.sponsors.length > 0 && <p className="mt-3 text-xs text-white/60">{T("Sponsors", "Sponsors")}: {s.sponsors.map((x) => `${x.brand} (${naira(x.monthly)}/${T("mo", "mo")}, ${x.monthsLeft}m)`).join(", ")}</p>}
         </Card>
       )}
     </>
@@ -350,8 +350,8 @@ function Betting({ p, run }: { p: Player; run: Run }) {
   const stakes = [2_000, 5_000, 20_000, 100_000].map((n) => I(p, n));
   return (
     <Card>
-      <H sub={`${p.bets.slotsLeft} slots left this year · Net ${betProfit(p) >= 0 ? "+" : ""}${naira(betProfit(p))} lifetime`}>Naija9ja Bet</H>
-      <p className="mb-2 text-xs text-white/50">The house always wins in the long run. Adults only.</p>
+      <H sub={T(`${p.bets.slotsLeft} slots left this year · Net ${betProfit(p) >= 0 ? "+" : ""}${naira(betProfit(p))} lifetime`, `${p.bets.slotsLeft} slots remain this year · Net ${betProfit(p) >= 0 ? "+" : ""}${naira(betProfit(p))} for life`)}>Naija9ja Bet</H>
+      <p className="mb-2 text-xs text-white/50">{T("The house always wins in the long run. Adults only.", "Betting house dey always win for long run. Na for adults only.")}</p>
       <div className="mb-3 flex flex-wrap gap-1.5">
         {stakes.map((s) => <Btn key={s} small tone={stake === s ? "gold" : "ghost"} onClick={() => setStake(s)}>{naira(s)}</Btn>)}
       </div>
@@ -361,12 +361,12 @@ function Betting({ p, run }: { p: Player; run: Run }) {
           return (
             <div key={k.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
               <div><div className="text-sm font-semibold">{k.label}</div><div className="text-[11px] text-white/50">{k.blurb}</div></div>
-              <Btn small disabled={Boolean(b)} onClick={() => run({ t: "bet", kind: k.id, stake })}>{b ?? "Bet"}</Btn>
+              <Btn small disabled={Boolean(b)} onClick={() => run({ t: "bet", kind: k.id, stake })}>{b ?? T("Bet", "Bet")}</Btn>
             </div>
           );
         })}
       </div>
-      {p.bets.compulsion > 50 && <p className="mt-2 text-xs text-red-300">You are betting compulsively.</p>}
+      {p.bets.compulsion > 50 && <p className="mt-2 text-xs text-red-300">{T("You are betting compulsively.", "You no fit stop to bet.")}</p>}
     </Card>
   );
 }
@@ -382,7 +382,7 @@ export function LedgerCard({ p }: { p: Player }) {
   const list = [...p.ledger].reverse().filter((t) => cat === "all" || t.category === cat).slice(0, 60);
   return (
     <Card>
-      <H sub="Every naira in and out is recorded.">Ledger</H>
+      <H sub={T("Every naira in and out is recorded.", "Every naira wey enter or comot dey recorded.")}>{T("Ledger", "Ledger")}</H>
       <div className="mb-2 flex gap-1.5">
         <Btn small tone={view === "summary" ? "gold" : "ghost"} onClick={() => setView("summary")}>{T("Yearly", "Yearly")}</Btn>
         <Btn small tone={view === "months" ? "gold" : "ghost"} onClick={() => setView("months")}>{T("Monthly", "Monthly")}</Btn>
@@ -409,25 +409,25 @@ export function LedgerCard({ p }: { p: Player }) {
         </ul>
       ) : view === "summary" ? (
         <div className="space-y-2">
-          {years.length === 0 && <p className="text-sm text-white/60">Nothing recorded yet.</p>}
+          {years.length === 0 && <p className="text-sm text-white/60">{T("Nothing recorded yet.", "Nothing dey yet.")}</p>}
           {years.slice(0, 8).map((y) => (
             <div key={y.age} className="rounded-xl bg-white/5 p-3 text-sm">
-              <div className="flex justify-between"><span className="font-semibold">Age {y.age}</span><span className={y.net >= 0 ? "text-emerald-300" : "text-red-300"}>{y.net >= 0 ? "+" : ""}{naira(y.net)}</span></div>
-              <div className="text-[11px] text-white/50">In {naira(y.income)} · Out {naira(y.expense)}</div>
-              {y.top.length > 0 && <div className="mt-1 text-[11px] text-white/60">Biggest costs: {y.top.map((t) => `${t.category} ${naira(t.amount)}`).join(", ")}</div>}
+              <div className="flex justify-between"><span className="font-semibold">{T("Age", "Age")} {y.age}</span><span className={y.net >= 0 ? "text-emerald-300" : "text-red-300"}>{y.net >= 0 ? "+" : ""}{naira(y.net)}</span></div>
+              <div className="text-[11px] text-white/50">{T("In", "In")} {naira(y.income)} · {T("Out", "Out")} {naira(y.expense)}</div>
+              {y.top.length > 0 && <div className="mt-1 text-[11px] text-white/60">{T("Biggest costs", "Biggest costs")}: {y.top.map((t) => `${t.category} ${naira(t.amount)}`).join(", ")}</div>}
             </div>
           ))}
         </div>
       ) : (
         <>
           <select value={cat} onChange={(e) => setCat(e.target.value)} className="mb-2 rounded-lg border border-white/15 bg-[#0b1d13] px-2 py-1 text-xs">
-            <option value="all">All categories</option>
+            <option value="all">{T("All categories", "All categories")}</option>
             {cats.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
           <ul className="space-y-1">
             {list.map((t) => (
               <li key={t.id} className="flex justify-between gap-2 rounded-lg bg-white/5 px-3 py-1.5 text-xs">
-                <span className="min-w-0 flex-1"><span className="block truncate text-white/90">{t.reason}</span><span className="text-[10px] text-white/40">age {t.age} · month {t.month} · {t.category} · bal {naira(t.after)}</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-white/90">{t.reason}</span><span className="text-[10px] text-white/40">{T("age", "age")} {t.age} · {T("month", "month")} {t.month} · {t.category} · {T("bal", "bal")} {naira(t.after)}</span></span>
                 <span className={cx("shrink-0 font-semibold", t.amount >= 0 ? "text-emerald-300" : "text-red-300")}>{t.amount >= 0 ? "+" : ""}{naira(t.amount)}</span>
               </li>
             ))}
@@ -447,15 +447,15 @@ export function NetWorthCard({ p }: { p: Player }) {
   const debt = totalDebt(p);
   return (
     <Card>
-      <H sub="Cash is not the same as wealth.">Assets and liabilities</H>
+      <H sub={T("Cash is not the same as wealth.", "Cash no be the same as wealth.")}>{T("Assets and liabilities", "Assets and debts")}</H>
       <dl className="space-y-1 text-sm">
-        <Row k="Cash" v={naira(p.money)} />
-        <Row k="Investments" v={naira(holdings)} />
-        <Row k="Property" v={naira(houses)} />
-        <Row k="Vehicles" v={naira(cars)} />
-        <Row k="Businesses" v={naira(biz)} />
-        <Row k="Owed to you" v={naira(owed)} />
-        <Row k="Debts" v={`-${naira(debt)}`} bad={debt > 0} />
+        <Row k={T("Cash", "Cash")} v={naira(p.money)} />
+        <Row k={T("Investments", "Investments")} v={naira(holdings)} />
+        <Row k={T("Property", "Property")} v={naira(houses)} />
+        <Row k={T("Vehicles", "Vehicles")} v={naira(cars)} />
+        <Row k={T("Businesses", "Businesses")} v={naira(biz)} />
+        <Row k={T("Owed to you", "Wetin people owe you")} v={naira(owed)} />
+        <Row k={T("Debts", "Debts")} v={`-${naira(debt)}`} bad={debt > 0} />
       </dl>
     </Card>
   );
@@ -466,8 +466,8 @@ export function HousingCard({ p, run }: { p: Player; run: Run }) {
   const st = STATE_BY_ID[p.state];
   return (
     <Card>
-      <H sub={h.type === "family" ? "You live with family." : `${h.type === "owned" ? "You own your home" : `Rent ${naira(h.annualRent)}/yr`}`}>Where you live</H>
-      {h.arrears > 0 && <p className="mb-2 text-xs text-red-300">Rent arrears: {naira(h.arrears)}. You could be evicted.</p>}
+      <H sub={h.type === "family" ? T("You live with family.", "You dey live with family.") : h.type === "owned" ? T("You own your home", "You get your own house") : T(`Rent ${naira(h.annualRent)}/yr`, `Rent ${naira(h.annualRent)}/yr`)}>{T("Where you live", "Where you dey stay")}</H>
+      {h.arrears > 0 && <p className="mb-2 text-xs text-red-300">{T(`Rent arrears: ${naira(h.arrears)}. You could be evicted.`, `Rent arrears: ${naira(h.arrears)}. Dem fit throw you out.`)}</p>}
       {p.age >= 18 && !st.abroad && (
         <div className="space-y-1.5">
           {HOME_TIERS.map((t) => (
@@ -476,7 +476,7 @@ export function HousingCard({ p, run }: { p: Player; run: Run }) {
               <Btn small tone="ghost" onClick={() => run({ t: "rent", tier: t.id })}>{naira(I(p, t.rent) * st.cost)}/yr</Btn>
             </div>
           ))}
-          {h.type !== "family" && <Btn small tone="ghost" onClick={() => run({ t: "moveHome" })}>Move back with family</Btn>}
+          {h.type !== "family" && <Btn small tone="ghost" onClick={() => run({ t: "moveHome" })}>{T("Move back with family", "Go back live with family")}</Btn>}
         </div>
       )}
     </Card>
@@ -487,34 +487,34 @@ export function GarageCard({ p, run }: { p: Player; run: Run }) {
   const [show, setShow] = useState(false);
   return (
     <Card>
-      <H sub="Cars cost fuel, repairs and insurance every month.">Garage</H>
+      <H sub={T("Cars cost fuel, repairs and insurance every month.", "Car dey chop fuel, repair and insurance every month.")}>{T("Garage", "Garage")}</H>
       {p.vehicles.map((v) => (
         <div key={v.id} className="mb-2 rounded-xl bg-white/5 p-3">
           <div className="flex justify-between text-sm"><span className="font-semibold">{v.name}</span><span className="text-[#f5b82e]">{naira(v.value)}</span></div>
-          <div className="text-[11px] text-white/50">Condition {v.condition}% · {v.role} · {isInsured(p, v) ? "insured" : "uninsured"}{v.loanId ? " · on finance" : ""}</div>
+          <div className="text-[11px] text-white/50">{T("Condition", "Condition")} {v.condition}% · {v.role} · {isInsured(p, v) ? T("insured", "insured") : T("uninsured", "no insurance")}{v.loanId ? T(" · on finance", " · on finance") : ""}</div>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            <Btn small tone="ghost" onClick={() => run({ t: "car", op: "repair", id: v.id })}>Repair ({naira(repairCost(p, v))})</Btn>
-            <Btn small tone="ghost" onClick={() => run({ t: "car", op: "insure", id: v.id })}>Insure</Btn>
+            <Btn small tone="ghost" onClick={() => run({ t: "car", op: "repair", id: v.id })}>{T("Repair", "Repair")} ({naira(repairCost(p, v))})</Btn>
+            <Btn small tone="ghost" onClick={() => run({ t: "car", op: "insure", id: v.id })}>{T("Insure", "Insure")}</Btn>
             {v.role === "personal" ? (
               <>
-                <Btn small tone="ghost" onClick={() => run({ t: "car", op: "taxi", id: v.id })}>Run as taxi</Btn>
-                <Btn small tone="ghost" onClick={() => run({ t: "car", op: "ridehail", id: v.id })}>Ride-hail</Btn>
+                <Btn small tone="ghost" onClick={() => run({ t: "car", op: "taxi", id: v.id })}>{T("Run as taxi", "Use as taxi")}</Btn>
+                <Btn small tone="ghost" onClick={() => run({ t: "car", op: "ridehail", id: v.id })}>{T("Ride-hail", "Ride-hail")}</Btn>
               </>
-            ) : <Btn small tone="ghost" onClick={() => run({ t: "car", op: "personal", id: v.id })}>Personal use</Btn>}
-            <Btn small tone="red" onClick={() => run({ t: "car", op: "sell", id: v.id })}>Sell</Btn>
+            ) : <Btn small tone="ghost" onClick={() => run({ t: "car", op: "personal", id: v.id })}>{T("Personal use", "Personal use")}</Btn>}
+            <Btn small tone="red" onClick={() => run({ t: "car", op: "sell", id: v.id })}>{T("Sell", "Sell")}</Btn>
           </div>
         </div>
       ))}
-      <Btn small tone="ghost" onClick={() => setShow(!show)}>{show ? "Hide dealership" : "Browse dealership"}</Btn>
+      <Btn small tone="ghost" onClick={() => setShow(!show)}>{show ? T("Hide dealership", "Hide dealership") : T("Browse dealership", "See car dealer")}</Btn>
       {show && (
         <div className="mt-2 space-y-1.5">
-          {p.age < 18 && <p className="text-xs text-white/50">You must be 18 to buy a vehicle.</p>}
+          {p.age < 18 && <p className="text-xs text-white/50">{T("You must be 18 to buy a vehicle.", "You must reach 18 to buy vehicle.")}</p>}
           {VEHICLE_MODELS.map((m) => (
             <div key={m.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
-              <div className="text-sm"><div className="font-semibold">{m.name}</div><div className="text-[11px] text-white/50">{m.kind}{m.revenue ? " · earns income" : ""}</div></div>
+              <div className="text-sm"><div className="font-semibold">{m.name}</div><div className="text-[11px] text-white/50">{m.kind}{m.revenue ? T(" · earns income", " · e dey bring money") : ""}</div></div>
               <div className="flex flex-col gap-1">
                 <Btn small tone="ghost" disabled={p.age < 18 || p.money < priceOf(p, m)} onClick={() => run({ t: "car", op: "buy", id: m.id })}>{naira(priceOf(p, m))}</Btn>
-                <Btn small tone="ghost" disabled={p.age < 18 || p.money < priceOf(p, m) * 0.3} onClick={() => run({ t: "car", op: "buyLoan", id: m.id })}>30% down</Btn>
+                <Btn small tone="ghost" disabled={p.age < 18 || p.money < priceOf(p, m) * 0.3} onClick={() => run({ t: "car", op: "buyLoan", id: m.id })}>{T("30% down", "30% deposit")}</Btn>
               </div>
             </div>
           ))}
@@ -528,9 +528,9 @@ export function SubsCard({ p }: { p: Player }) {
   if (p.subs.length === 0) return null;
   return (
     <Card>
-      <H>Recurring payments</H>
+      <H>{T("Recurring payments", "Recurring payments")}</H>
       <ul className="space-y-1 text-sm">
-        {p.subs.map((s) => <li key={s.id} className="flex justify-between"><span>{s.label}</span><span className="text-red-300">{naira(s.monthly)}/mo</span></li>)}
+        {p.subs.map((s) => <li key={s.id} className="flex justify-between"><span>{s.label}</span><span className="text-red-300">{naira(s.monthly)}/{T("mo", "mo")}</span></li>)}
       </ul>
     </Card>
   );
@@ -549,28 +549,28 @@ export function PeopleCard({ p, run }: { p: Player; run: Run }) {
   return (
     <>
       <Card>
-        <H sub={`${p.fam.label} · ${p.fam.structure.replace("-", " ")}`}>Background</H>
+        <H sub={`${p.fam.label} · ${p.fam.structure.replace("-", " ")}`}>{T("Background", "Background")}</H>
         <div className="flex flex-wrap gap-1.5">{p.fam.tags.map((t) => <Badge key={t} tone="gold">{t}</Badge>)}</div>
-        <p className="mt-2 text-xs text-white/50">Wealth and generosity are different things. Rich parents can be strict, and poor parents can be very giving.</p>
+        <p className="mt-2 text-xs text-white/50">{T("Wealth and generosity are different things. Rich parents can be strict, and poor parents can be very giving.", "Money and generosity no be the same thing. Rich parents fit be strict, poor parents fit dey give well.")}</p>
       </Card>
       <Card>
-        <H sub="Tap someone to ask for help, borrow, lend or give.">People</H>
+        <H sub={T("Tap someone to ask for help, borrow, lend or give.", "Tap person to ask for help, borrow, lend or give.")}>{T("People", "People")}</H>
         <div className="grid grid-cols-2 gap-2">
           {people.map((n) => (
             <button key={n.id} type="button" onClick={() => { setSel(n.id); setKind(null); }} className={cx("flex items-center gap-2 rounded-xl border p-2 text-left", sel === n.id ? "border-[#f5b82e]" : "border-white/10 bg-white/5")}>
               <Face n={n} p={p} size={44} />
-              <span className="min-w-0 text-xs"><span className="block truncate font-semibold">{n.name.split(" ")[0]}</span><span className="block text-[10px] capitalize text-white/50">{n.role} · close {Math.round(n.closeness)}</span></span>
+              <span className="min-w-0 text-xs"><span className="block truncate font-semibold">{n.name.split(" ")[0]}</span><span className="block text-[10px] capitalize text-white/50">{n.role} · {T("close", "close")} {Math.round(n.closeness)}</span></span>
             </button>
           ))}
         </div>
       </Card>
       {npc && (
         <Card className="border-[#f5b82e]/40">
-          <div className="flex items-center gap-3"><Face n={npc} p={p} size={64} /><div><div className="text-base font-bold">{npc.name}</div><div className="text-xs text-white/60">{npc.occupation} · age {p.age + npc.ageDelta}</div></div></div>
-          <div className="mt-3 grid grid-cols-3 gap-2"><Bar label="Close" value={npc.closeness} tone="gold" /><Bar label="Trust" value={npc.trust} tone="blue" /><Bar label="Generous" value={npc.generosity} /></div>
-          <p className="mt-2 text-[11px] text-white/50">{npc.traits.join(" · ")}{capacityOf(p, npc) <= 0 ? " · struggling financially" : ""}</p>
-          {npc.memories.length > 0 && <p className="mt-1 text-[11px] text-white/40">Remembers: {npc.memories[npc.memories.length - 1].text}</p>}
-          <H>Ask for money</H>
+          <div className="flex items-center gap-3"><Face n={npc} p={p} size={64} /><div><div className="text-base font-bold">{npc.name}</div><div className="text-xs text-white/60">{npc.occupation} · {T("age", "age")} {p.age + npc.ageDelta}</div></div></div>
+          <div className="mt-3 grid grid-cols-3 gap-2"><Bar label={T("Close", "Close")} value={npc.closeness} tone="gold" /><Bar label={T("Trust", "Trust")} value={npc.trust} tone="blue" /><Bar label={T("Generous", "Generous")} value={npc.generosity} /></div>
+          <p className="mt-2 text-[11px] text-white/50">{npc.traits.join(" · ")}{capacityOf(p, npc) <= 0 ? T(" · struggling financially", " · money dey tight for am") : ""}</p>
+          {npc.memories.length > 0 && <p className="mt-1 text-[11px] text-white/40">{T("Remembers", "E remember")}: {npc.memories[npc.memories.length - 1].text}</p>}
+          <H>{T("Ask for money", "Ask for money")}</H>
           <div className="flex flex-wrap gap-1.5">
             {kinds.map((k) => <Btn key={k} small tone={kind === k ? "gold" : "ghost"} onClick={() => { setKind(k); setAmt(defaultAmount(p, k)); }}>{SUPPORT_KINDS[k].label}</Btn>)}
           </div>
@@ -579,20 +579,20 @@ export function PeopleCard({ p, run }: { p: Player; run: Run }) {
               <div className="flex flex-wrap gap-1.5">
                 {[0.5, 1, 2].map((f) => <Btn key={f} small tone="ghost" onClick={() => setAmt(Math.round((defaultAmount(p, kind) * f) / 500) * 500)}>{naira(Math.round((defaultAmount(p, kind) * f) / 500) * 500)}</Btn>)}
               </div>
-              <Btn className="mt-2 w-full" tone="gold" onClick={() => run({ t: "ask", npc: npc.id, kind, amount: amt })}>Ask {npc.name.split(" ")[0]} for {naira(amt)}</Btn>
+              <Btn className="mt-2 w-full" tone="gold" onClick={() => run({ t: "ask", npc: npc.id, kind, amount: amt })}>{T(`Ask ${npc.name.split(" ")[0]} for ${naira(amt)}`, `Ask ${npc.name.split(" ")[0]} for ${naira(amt)}`)}</Btn>
             </div>
           )}
-          <H>Between you</H>
+          <H>{T("Between you", "Between una")}</H>
           <div className="flex flex-wrap gap-1.5">
-            {p.age >= 16 && <Btn small tone="ghost" onClick={() => run({ t: "borrow", npc: npc.id, amount: Math.round(defaultAmount(p, "loan")) })}>Borrow {naira(defaultAmount(p, "loan"))}</Btn>}
-            <Btn small tone="ghost" disabled={p.money < I(p, 50_000)} onClick={() => run({ t: "give", npc: npc.id, amount: I(p, 50_000), mode: "gift" })}>Gift {naira(I(p, 50_000))}</Btn>
-            <Btn small tone="ghost" disabled={p.money < I(p, 200_000)} onClick={() => run({ t: "give", npc: npc.id, amount: I(p, 200_000), mode: "loan" })}>Lend {naira(I(p, 200_000))}</Btn>
+            {p.age >= 16 && <Btn small tone="ghost" onClick={() => run({ t: "borrow", npc: npc.id, amount: Math.round(defaultAmount(p, "loan")) })}>{T("Borrow", "Borrow")} {naira(defaultAmount(p, "loan"))}</Btn>}
+            <Btn small tone="ghost" disabled={p.money < I(p, 50_000)} onClick={() => run({ t: "give", npc: npc.id, amount: I(p, 50_000), mode: "gift" })}>{T("Gift", "Gift")} {naira(I(p, 50_000))}</Btn>
+            <Btn small tone="ghost" disabled={p.money < I(p, 200_000)} onClick={() => run({ t: "give", npc: npc.id, amount: I(p, 200_000), mode: "loan" })}>{T("Lend", "Lend")} {naira(I(p, 200_000))}</Btn>
           </div>
         </Card>
       )}
       {activeOwedToMe(p).length > 0 && (
         <Card>
-          <H>People who owe you</H>
+          <H>{T("People who owe you", "People wey owe you")}</H>
           <ul className="space-y-1 text-sm">{activeOwedToMe(p).map((l) => <li key={l.id} className="flex justify-between"><span>{l.lenderName}</span><span>{naira(l.balance)}</span></li>)}</ul>
         </Card>
       )}
@@ -605,41 +605,41 @@ export function PeopleCard({ p, run }: { p: Player; run: Run }) {
 // ---------------------------------------------------------------------------
 export function HealthTab({ p, run }: { p: Player; run: Run }) {
   const plans = [
-    { id: "none" as const, label: "No cover", cost: "free" },
-    { id: "basic" as const, label: "Basic HMO", cost: naira(I(p, 60_000)) + "/yr" },
-    { id: "premium" as const, label: "Premium HMO", cost: naira(I(p, 400_000)) + "/yr" },
+    { id: "none" as const, label: T("No cover", "No cover"), cost: T("free", "free") },
+    { id: "basic" as const, label: T("Basic HMO", "Basic HMO"), cost: naira(I(p, 60_000)) + T("/yr", "/yr") },
+    { id: "premium" as const, label: T("Premium HMO", "Premium HMO"), cost: naira(I(p, 400_000)) + T("/yr", "/yr") },
   ];
   return (
     <>
       <Card>
-        <H>Condition</H>
-        <div className="space-y-2"><Bar label="Health" value={p.stats.health} /><Bar label="Fitness" value={p.stats.fitness} tone="blue" /><Bar label="Stress" value={p.stats.stress} invert /></div>
+        <H>{T("Condition", "Condition")}</H>
+        <div className="space-y-2"><Bar label={T("Health", "Health")} value={p.stats.health} /><Bar label={T("Fitness", "Fitness")} value={p.stats.fitness} tone="blue" /><Bar label={T("Stress", "Stress")} value={p.stats.stress} invert /></div>
         <div className="mt-3 flex gap-2">
-          <Btn small tone="ghost" onClick={() => run({ t: "checkup" })}>Check-up ({naira(I(p, 35_000))})</Btn>
-          <Btn small tone="ghost" disabled={Boolean(gymBlock(p)) && !p.subs.some((s) => s.id === "gym")} onClick={() => run({ t: "gym" })}>{p.subs.some((s) => s.id === "gym") ? "Cancel gym membership" : "Join gym"}</Btn>
+          <Btn small tone="ghost" onClick={() => run({ t: "checkup" })}>{T("Check-up", "Check-up")} ({naira(I(p, 35_000))})</Btn>
+          <Btn small tone="ghost" disabled={Boolean(gymBlock(p)) && !p.subs.some((s) => s.id === "gym")} onClick={() => run({ t: "gym" })}>{p.subs.some((s) => s.id === "gym") ? T("Cancel gym membership", "Cancel gym") : T("Join gym", "Join gym")}</Btn>
         </div>
       </Card>
       <Card>
-        <H sub="Cover reduces your share at private hospitals and clinics.">Insurance</H>
+        <H sub={T("Cover reduces your share at private hospitals and clinics.", "Cover dey reduce wetin you go pay for private hospital and clinic.")}>{T("Insurance", "Insurance")}</H>
         <div className="flex flex-wrap gap-1.5">
           {plans.map((pl) => <Btn key={pl.id} small tone={p.insurance.plan === pl.id ? "gold" : "ghost"} onClick={() => run({ t: "insure", plan: pl.id })}>{pl.label} · {pl.cost}</Btn>)}
         </div>
       </Card>
       <Card>
-        <H>Current conditions</H>
-        {p.conditions.length === 0 && <p className="text-sm text-white/60">You are not sick.</p>}
+        <H>{T("Current conditions", "Current conditions")}</H>
+        {p.conditions.length === 0 && <p className="text-sm text-white/60">{T("You are not sick.", "You no dey sick.")}</p>}
         <div className="space-y-2">
           {p.conditions.map((c) => (
             <div key={c.id} className="rounded-xl bg-white/5 p-3">
-              <div className="flex justify-between text-sm"><span className="font-semibold">{c.name}</span><Badge tone={c.severity >= 4 ? "red" : "gold"}>severity {c.severity}</Badge></div>
-              <div className="text-[11px] text-white/50">{c.treated ? "Treated" : "Untreated"}{c.monthsLeft >= 0 ? ` · ${c.monthsLeft} month(s) to recover` : " · chronic"}{c.needsSurgery ? " · needs surgery" : ""}{TEMPLATES[c.template]?.meds ? ` · meds ${naira(c.medMonthly)}/mo` : ""}</div>
+              <div className="flex justify-between text-sm"><span className="font-semibold">{c.name}</span><Badge tone={c.severity >= 4 ? "red" : "gold"}>{T("severity", "severity")} {c.severity}</Badge></div>
+              <div className="text-[11px] text-white/50">{c.treated ? T("Treated", "Don treat") : T("Untreated", "No treat yet")}{c.monthsLeft >= 0 ? T(` · ${c.monthsLeft} month(s) to recover`, ` · ${c.monthsLeft} month(s) to recover`) : T(" · chronic", " · chronic")}{c.needsSurgery ? T(" · needs surgery", " · need surgery") : ""}{TEMPLATES[c.template]?.meds ? T(` · meds ${naira(c.medMonthly)}/mo`, ` · drugs ${naira(c.medMonthly)}/mo`) : ""}</div>
               {!c.treated && (
                 <div className="mt-2 space-y-1">
                   {facilitiesFor(p, c).map((f) => {
                     const { total, mine } = treatmentCost(p, c, f);
                     return (
                       <div key={f.id} className="flex items-center justify-between rounded-lg bg-black/20 px-2 py-1.5 text-xs">
-                        <span>{f.label}<span className="block text-[10px] text-white/40">quality {f.quality}{mine < total ? ` · covered ${Math.round((1 - mine / total) * 100)}%` : ""}</span></span>
+                        <span>{f.label}<span className="block text-[10px] text-white/40">{T("quality", "quality")} {f.quality}{mine < total ? T(` · covered ${Math.round((1 - mine / total) * 100)}%`, ` · insurance cover ${Math.round((1 - mine / total) * 100)}%`) : ""}</span></span>
                         <Btn small tone="ghost" onClick={() => run({ t: "treat", cond: c.id, facility: f.id })}>{naira(mine)}</Btn>
                       </div>
                     );
@@ -651,8 +651,8 @@ export function HealthTab({ p, run }: { p: Player; run: Run }) {
         </div>
       </Card>
       <details className="rounded-2xl border border-white/10 bg-[#0e2218] p-4 text-xs text-white/60">
-        <summary className="cursor-pointer text-sm font-semibold text-white/70">Where you can get care</summary>
-        <ul className="mt-2 space-y-1">{FACILITIES.map((f) => <li key={f.id}>{f.label}: quality {f.quality}</li>)}</ul>
+        <summary className="cursor-pointer text-sm font-semibold text-white/70">{T("Where you can get care", "Where you fit get treatment")}</summary>
+        <ul className="mt-2 space-y-1">{FACILITIES.map((f) => <li key={f.id}>{f.label}: {T("quality", "quality")} {f.quality}</li>)}</ul>
       </details>
     </>
   );
@@ -666,13 +666,13 @@ export function SkillsCard({ p, run }: { p: Player; run: Run }) {
   return (
     <>
       <Card>
-        <H sub={`${p.actionsLeft} actions left this year`}>Learn a skill</H>
+        <H sub={T(`${p.actionsLeft} actions left this year`, `${p.actionsLeft} actions remain this year`)}>{T("Learn a skill", "Learn skill")}</H>
         <div className="space-y-2">
           {SKILLS.map((s) => {
             const b = learnBlock(p, s);
             return (
               <div key={s.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
-                <div><div className="text-sm font-semibold">{s.label} {skillLevel(p, s.id) > 0 && <Badge tone="green">level {skillLevel(p, s.id)}</Badge>}</div><div className="text-[11px] text-white/50">{s.blurb}</div></div>
+                <div><div className="text-sm font-semibold">{s.label} {skillLevel(p, s.id) > 0 && <Badge tone="green">{T("level", "level")} {skillLevel(p, s.id)}</Badge>}</div><div className="text-[11px] text-white/50">{s.blurb}</div></div>
                 <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "learn", id: s.id })}>{b ?? naira(I(p, s.cost))}</Btn>
               </div>
             );
@@ -680,7 +680,7 @@ export function SkillsCard({ p, run }: { p: Player; run: Run }) {
         </div>
       </Card>
       <Card>
-        <H>Self-improvement</H>
+        <H>{T("Self-improvement", "Self-improvement")}</H>
         <div className="grid grid-cols-2 gap-2">
           {GROWTH_ACTIVITIES.filter((a) => p.age >= a.minAge).map((a) => {
             const b = growthBlock(p, a);
@@ -693,8 +693,8 @@ export function SkillsCard({ p, run }: { p: Player; run: Run }) {
         </div>
         {p.age >= 18 && (() => { const b = enlistBlock(p); return (
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="w-full text-[11px] text-white/50">{b ?? "Join the armed forces"}</span>
-            {(["army", "navy", "airforce"] as const).map((br) => <Btn key={br} small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "enlist", branch: br })}>{br === "army" ? "Army" : br === "navy" ? "Navy" : "Air Force"}</Btn>)}
+            <span className="w-full text-[11px] text-white/50">{b ?? T("Join the armed forces", "Join the armed forces")}</span>
+            {(["army", "navy", "airforce"] as const).map((br) => <Btn key={br} small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "enlist", branch: br })}>{br === "army" ? T("Army", "Army") : br === "navy" ? T("Navy", "Navy") : T("Air Force", "Air Force")}</Btn>)}
           </div>
         ); })()}
       </Card>
@@ -708,25 +708,25 @@ export function BusinessCard({ p, run }: { p: Player; run: Run }) {
   if (p.age < 18) return null;
   return (
     <Card>
-      <H sub="Run it well and it grows. Run it badly and it eats your savings.">Businesses</H>
+      <H sub={T("Run it well and it grows. Run it badly and it eats your savings.", "Run am well and e go grow. Run am bad and e go chop your savings.")}>{T("Businesses", "Businesses")}</H>
       {p.businesses.filter((b) => b.status === "open").map((b) => (
         <div key={b.id} className="mb-2 rounded-xl bg-white/5 p-3">
           <div className="flex justify-between text-sm"><span className="font-semibold">{b.name}</span><span className="text-[#f5b82e]">{naira(valuation(p, b))}</span></div>
-          <div className="text-[11px] text-white/50">{BIZ_BY_ID[b.kind]?.label} · level {b.level} · {b.staff} staff · {STATE_BY_ID[b.stateId]?.name} · last month <span className={b.lastMonthProfit >= 0 ? "text-emerald-300" : "text-red-300"}>{naira(b.lastMonthProfit)}</span></div>
+          <div className="text-[11px] text-white/50">{BIZ_BY_ID[b.kind]?.label} · {T("level", "level")} {b.level} · {b.staff} {T("staff", "staff")} · {STATE_BY_ID[b.stateId]?.name} · {T("last month", "last month")} <span className={b.lastMonthProfit >= 0 ? "text-emerald-300" : "text-red-300"}>{naira(b.lastMonthProfit)}</span></div>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "upgrade", id: b.id })}>Upgrade ({naira(upgradeCost(p, b))})</Btn>
-            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "hire", id: b.id })}>Hire ({naira(hireCost(p, b))}/mo)</Btn>
-            <Btn small tone="ghost" disabled={b.staff <= 0} onClick={() => run({ t: "biz", op: "fire", id: b.id })}>Lay off</Btn>
-            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "manager", id: b.id })}>{b.manager ? "Fire manager" : "Hire manager"}</Btn>
-            <Btn small tone="gold" onClick={() => run({ t: "biz", op: "sell", id: b.id })}>Sell</Btn>
-            <Btn small tone="red" onClick={() => run({ t: "biz", op: "close", id: b.id })}>Close</Btn>
+            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "upgrade", id: b.id })}>{T("Upgrade", "Upgrade")} ({naira(upgradeCost(p, b))})</Btn>
+            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "hire", id: b.id })}>{T("Hire", "Hire")} ({naira(hireCost(p, b))}/{T("mo", "mo")})</Btn>
+            <Btn small tone="ghost" disabled={b.staff <= 0} onClick={() => run({ t: "biz", op: "fire", id: b.id })}>{T("Lay off", "Lay off")}</Btn>
+            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "manager", id: b.id })}>{b.manager ? T("Fire manager", "Sack manager") : T("Hire manager", "Hire manager")}</Btn>
+            <Btn small tone="gold" onClick={() => run({ t: "biz", op: "sell", id: b.id })}>{T("Sell", "Sell")}</Btn>
+            <Btn small tone="red" onClick={() => run({ t: "biz", op: "close", id: b.id })}>{T("Close", "Close")}</Btn>
           </div>
         </div>
       ))}
-      <Btn small tone="ghost" onClick={() => setShow(!show)}>{show ? "Hide" : "Start a business"}</Btn>
+      <Btn small tone="ghost" onClick={() => setShow(!show)}>{show ? T("Hide", "Hide") : T("Start a business", "Start business")}</Btn>
       {show && (
         <div className="mt-2 space-y-1.5">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Business name (optional)" maxLength={30} className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={T("Business name (optional)", "Business name (optional)")} maxLength={30} className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm" />
           {BIZ_KINDS.map((k) => {
             const b = startBlock(p, k.id);
             return (
@@ -750,21 +750,21 @@ export function LawTab({ p, run }: { p: Player; run: Run }) {
   return (
     <>
       <Card>
-        <H sub="Crime pays quickly and costs heavily. Cases are decided in court, not by luck alone.">Legal status</H>
-        {p.prison > 0 && <Badge tone="red">In prison · {p.prison} yr left</Badge>}
-        <div className="mt-2 grid grid-cols-2 gap-2"><Bar label="Police heat" value={p.crime.heat} invert /><Bar label="Criminal skill" value={p.crime.skill} tone="blue" /></div>
-        {open.map((c) => <p key={c.id} className="mt-2 text-sm text-red-300">Open case: {c.charge} ({c.stage})</p>)}
+        <H sub={T("Crime pays quickly and costs heavily. Cases are decided in court, not by luck alone.", "Crime dey pay fast but e dey cost well. Court dey decide cases, no be luck alone.")}>{T("Legal status", "Legal status")}</H>
+        {p.prison > 0 && <Badge tone="red">{T(`In prison · ${p.prison} yr left`, `You dey prison · ${p.prison} yr remain`)}</Badge>}
+        <div className="mt-2 grid grid-cols-2 gap-2"><Bar label={T("Police heat", "Police heat")} value={p.crime.heat} invert /><Bar label={T("Criminal skill", "Criminal skill")} value={p.crime.skill} tone="blue" /></div>
+        {open.map((c) => <p key={c.id} className="mt-2 text-sm text-red-300">{T("Open case", "Open case")}: {c.charge} ({c.stage})</p>)}
       </Card>
       {p.age >= 14 && (
         <Card>
-          <H sub="You may be caught. Consequences include arrest, a record, fines, prison and revenge.">Risky choices</H>
+          <H sub={T("You may be caught. Consequences include arrest, a record, fines, prison and revenge.", "Dem fit catch you. E fit bring arrest, record, fine, prison and revenge.")}>{T("Risky choices", "Risky choices")}</H>
           <div className="space-y-2">
             {CRIMES.map((c) => {
               const b = crimeBlock(p, c);
               return (
                 <div key={c.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
                   <div><div className="text-sm font-semibold">{c.label}</div><div className="text-[11px] text-white/50">{c.blurb}</div></div>
-                  <Btn small tone="red" disabled={Boolean(b)} onClick={() => run({ t: "crime", id: c.id })}>{b ?? "Do it"}</Btn>
+                  <Btn small tone="red" disabled={Boolean(b)} onClick={() => run({ t: "crime", id: c.id })}>{b ?? T("Do it", "Do am")}</Btn>
                 </div>
               );
             })}
@@ -772,9 +772,9 @@ export function LawTab({ p, run }: { p: Player; run: Run }) {
         </Card>
       )}
       <Card>
-        <H>Criminal record</H>
-        {p.crime.record.length === 0 ? <p className="text-sm text-white/60">Clean record.</p> : (
-          <ul className="space-y-1 text-sm">{p.crime.record.map((r, i) => <li key={i}>Age {r.age}: {r.charge} — {r.outcome}</li>)}</ul>
+        <H>{T("Criminal record", "Criminal record")}</H>
+        {p.crime.record.length === 0 ? <p className="text-sm text-white/60">{T("Clean record.", "Your record clean.")}</p> : (
+          <ul className="space-y-1 text-sm">{p.crime.record.map((r, i) => <li key={i}>{T("Age", "Age")} {r.age}: {r.charge} — {r.outcome}</li>)}</ul>
         )}
       </Card>
     </>
@@ -790,7 +790,7 @@ export function WillCard({ p, run }: { p: Player; run: Run }) {
   const pct = (id: string) => shares.find((s) => s.id === id)?.pct ?? 0;
   return (
     <Card>
-      <H sub={`Total allocated: ${totalPct(shares)}%. Without a will, the law splits your estate by default and families fight.`}>Your will</H>
+      <H sub={T(`Total allocated: ${totalPct(shares)}%. Without a will, the law splits your estate by default and families fight.`, `Total allocated: ${totalPct(shares)}%. If you no write will, law go share your property by default and family go fight.`)}>{T("Your will", "Your will")}</H>
       <div className="space-y-2">
         {people.map((b) => (
           <div key={b.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-sm">
@@ -813,17 +813,17 @@ export function WillCard({ p, run }: { p: Player; run: Run }) {
 export function TradeCard({ p, run }: { p: Player; run: Run }) {
   const b = tradeBlock(p);
   if (p.age < 15) return null;
-  if (p.flags.trade) return <Card><H>Vocational training</H><p className="text-sm text-white/70">Certified in {String(p.flags.trade)}.</p></Card>;
-  if (p.school?.type === "vocational") return <Card><H>Vocational training</H><p className="text-sm text-white/70">In training: {p.school.yearsLeft} year{p.school.yearsLeft === 1 ? "" : "s"} left.</p></Card>;
+  if (p.flags.trade) return <Card><H>{T("Vocational training", "Vocational training")}</H><p className="text-sm text-white/70">{T(`Certified in ${String(p.flags.trade)}.`, `You get certificate for ${String(p.flags.trade)}.`)}</p></Card>;
+  if (p.school?.type === "vocational") return <Card><H>{T("Vocational training", "Vocational training")}</H><p className="text-sm text-white/70">{T(`In training: ${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} left.`, `You dey train: ${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} remain.`)}</p></Card>;
   return (
     <Card>
-      <H sub="A trade certificate lifts your pay in related work, without a degree.">Vocational training</H>
+      <H sub={T("A trade certificate lifts your pay in related work, without a degree.", "Trade certificate fit raise your pay for that work, even without degree.")}>{T("Vocational training", "Vocational training")}</H>
       {b && <p className="mb-2 text-xs text-white/50">{b}</p>}
       <div className="space-y-2">
         {TRADES.map((t) => (
           <div key={t.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
-            <div><div className="text-sm font-semibold">{t.label}</div><div className="text-[11px] text-white/50">{t.years} yr · {t.blurb}</div></div>
-            <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "trade", id: t.id })}>Enrol</Btn>
+            <div><div className="text-sm font-semibold">{t.label}</div><div className="text-[11px] text-white/50">{t.years} {T("yr", "yr")} · {t.blurb}</div></div>
+            <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "trade", id: t.id })}>{T("Enrol", "Register")}</Btn>
           </div>
         ))}
       </div>
@@ -839,21 +839,21 @@ export function MortgageCard({ p, run }: { p: Player; run: Run }) {
   const owned = p.houses.filter((h) => h.loanId && mortgageBalance(p, h) > 0);
   return (
     <Card>
-      <H sub="Buy now, repay monthly. Miss payments and the bank takes the house.">Mortgage</H>
+      <H sub={T("Buy now, repay monthly. Miss payments and the bank takes the house.", "Buy now, pay small small every month. If you miss payment, bank go take the house.")}>{T("Mortgage", "Mortgage")}</H>
       <div className="flex flex-wrap gap-1.5">
         {(Object.keys(HOUSE_KINDS) as (keyof typeof HOUSE_KINDS)[]).filter((k) => k !== "land").map((k) => <Btn key={k} small tone={kind === k ? "gold" : "ghost"} onClick={() => setKind(k)}>{HOUSE_KINDS[k].label}</Btn>)}
       </div>
-      <div className="mt-2 flex items-center gap-1.5 text-xs">Term: {[10, 15, 20].map((y) => <Btn key={y} small tone={years === y ? "gold" : "ghost"} onClick={() => setYears(y)}>{y} yrs</Btn>)}</div>
+      <div className="mt-2 flex items-center gap-1.5 text-xs">{T("Term", "Term")}: {[10, 15, 20].map((y) => <Btn key={y} small tone={years === y ? "gold" : "ghost"} onClick={() => setYears(y)}>{y} {T("yrs", "yrs")}</Btn>)}</div>
       <dl className="mt-3 space-y-1 text-sm">
-        <Row k="Price" v={naira(q.price)} />
-        <Row k="Deposit now" v={naira(q.down)} />
-        <Row k="Bank fee" v={naira(q.fee)} />
-        <Row k="Monthly repayment" v={naira(q.monthly)} />
-        <Row k="Interest rate" v={`${(q.apr * 100).toFixed(0)}% a year`} />
-        <Row k="Total interest" v={naira(q.interest)} bad />
+        <Row k={T("Price", "Price")} v={naira(q.price)} />
+        <Row k={T("Deposit now", "Deposit now")} v={naira(q.down)} />
+        <Row k={T("Bank fee", "Bank fee")} v={naira(q.fee)} />
+        <Row k={T("Monthly repayment", "Monthly repayment")} v={naira(q.monthly)} />
+        <Row k={T("Interest rate", "Interest rate")} v={T(`${(q.apr * 100).toFixed(0)}% a year`, `${(q.apr * 100).toFixed(0)}% every year`)} />
+        <Row k={T("Total interest", "Total interest")} v={naira(q.interest)} bad />
       </dl>
-      <Btn className="mt-3 w-full" tone="gold" disabled={Boolean(q.block)} onClick={() => run({ t: "mortgage", kind, years })}>{q.block ?? "Accept the mortgage"}</Btn>
-      {owned.map((h) => <p key={h.id} className="mt-2 text-xs text-white/60">{HOUSE_KINDS[h.kind].label} in {STATE_BY_ID[h.state].name}: {naira(mortgageBalance(p, h))} still owed</p>)}
+      <Btn className="mt-3 w-full" tone="gold" disabled={Boolean(q.block)} onClick={() => run({ t: "mortgage", kind, years })}>{q.block ?? T("Accept the mortgage", "Accept the mortgage")}</Btn>
+      {owned.map((h) => <p key={h.id} className="mt-2 text-xs text-white/60">{HOUSE_KINDS[h.kind].label} {T("in", "for")} {STATE_BY_ID[h.state].name}: {naira(mortgageBalance(p, h))} {T("still owed", "still remain")}</p>)}
     </Card>
   );
 }

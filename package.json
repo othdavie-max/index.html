@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:game": "npx --yes tsx --test src/game/naija-life/tests/*.test.ts"
+    "test:game": "npx --yes tsx --test src/game/naija-life/tests/*.test.ts",
+    "test:e2e": "node src/game/naija-life/tests/e2e.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

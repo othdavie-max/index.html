@@ -31,7 +31,7 @@ import { STATE_BY_ID } from "../data";
 import { setSeed } from "../util";
 import type { FamilyArchetype, Game, Player } from "../types";
 
-const OPTS = { name: "Test Person", gender: "male" as const, stateId: "lagos", tribe: null, religion: null };
+const OPTS = { name: "Test Person", gender: "male" as const, stateId: "lagos", tribe: null, religion: null, lang: "en" as const };
 
 function resolveAll(g: Game, pick: "first" | "last" = "first"): Game {
   let n = 0;

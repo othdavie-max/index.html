@@ -1,11 +1,11 @@
 import { HOME_TIERS, STATE_BY_ID } from "./data";
 import { addCousin } from "./events6";
-import { DEFAULT_FAMILY_CONFIG, addFriend, capacityOf, generateFamily, npcAge, npcsByRole, primaryProvider, remember, syncLegacyFamily, type FamilyConfig } from "./family";
+import { DEFAULT_FAMILY_CONFIG, FAMILY_DEBT_TAGS, addFriend, capacityOf, generateFamily, npcAge, npcsByRole, primaryProvider, remember, syncLegacyFamily, type FamilyConfig } from "./family";
 import { allowanceCutoffAge, allowanceMonthly } from "./finance";
 import { stateOf } from "./helpers";
 import { monthIndex, transact } from "./ledger";
 import type { FamilyArchetype, Housing, Npc, Pending, Player, StateInfo } from "./types";
-import { chance, clamp, naira, randInt } from "./util";
+import { T, chance, clamp, naira, randInt } from "./util";
 
 export function familyHousing(stateId: string): Housing {
   return { type: "family", stateId, annualRent: 0, paidUntil: 0, arrears: 0, landlord: "" };
@@ -122,8 +122,8 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
   if (chance(0.035)) {
     const up = chance(0.5);
     p.fam.trend = up ? "rising" : "falling";
-    if (up && p.fam.income < 30e6) { rescaleFamily(p, 1.5); lines.push("Your family's fortunes improved. A good business year."); p.fam.tags = p.fam.tags.filter((t) => t !== "Family in debt"); }
-    else if (!up) { rescaleFamily(p, 0.65); p.fam.debts += Math.round(p.fam.income * 0.4); lines.push("Money problems hit your family. A business deal went badly and debts piled up."); }
+    if (up && p.fam.income < 30e6) { rescaleFamily(p, 1.5); lines.push(T("Your family's fortunes improved. A good business year.", "Your family money don improve. Business do well this year.")); p.fam.tags = p.fam.tags.filter((t) => !FAMILY_DEBT_TAGS.includes(t)); }
+    else if (!up) { rescaleFamily(p, 0.65); p.fam.debts += Math.round(p.fam.income * 0.4); lines.push(T("Money problems hit your family. A business deal went badly and debts piled up.", "Money wahala catch your family. One business deal spoil and debts pile up.")); }
   }
   p.fam.income = clamp(p.fam.income, 300_000, 3e9);
 
@@ -137,11 +137,11 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
     if (["dad", "mom", "guardian", "grandparent", "uncle", "aunt"].includes(n.role) && chance(deathHazard(age))) {
       n.alive = false;
       if (n.role === "grandparent" || n.role === "uncle" || n.role === "aunt") {
-        lines.push(`${n.name} has passed away.`);
+        lines.push(T(`${n.name} has passed away.`, `${n.name} don die.`));
         p.stats.happiness = clamp(p.stats.happiness - 8);
         pending.push({ kind: "event", id: "funeral", data: { who: n.name, month: month(), role: n.role } });
       } else {
-        lines.push(`Your ${n.role === "dad" ? "father" : n.role === "mom" ? "mother" : "guardian"}, ${n.name.split(" ")[0]}, has died.`);
+        lines.push(T(`Your ${n.role === "dad" ? "father" : n.role === "mom" ? "mother" : "guardian"}, ${n.name.split(" ")[0]}, has died.`, `Your ${n.role === "dad" ? "papa" : n.role === "mom" ? "mama" : "guardian"}, ${n.name.split(" ")[0]}, don die.`));
         p.stats.happiness = clamp(p.stats.happiness - 15);
         pending.push({ kind: "event", id: "funeral", data: { who: n.name, month: month(), role: n.role } });
         p.fam.providers = p.fam.providers.filter((id) => id !== n.id);
@@ -151,7 +151,7 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
           if (relative) {
             relative.role = relative.role === "dad" || relative.role === "mom" ? relative.role : "guardian";
             p.fam.providers = [relative.id];
-            lines.push(`${relative.name} took you in.`);
+            lines.push(T(`${relative.name} took you in.`, `${relative.name} take you in.`));
           }
         }
       }
@@ -160,7 +160,7 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
     if (n.role === "friend") {
       n.closeness = clamp(n.closeness - randInt(0, 4));
       if (n.closeness < 8 && chance(0.4)) {
-        lines.push(`You and ${n.name.split(" ")[0]} lost touch.`);
+        lines.push(T(`You and ${n.name.split(" ")[0]} lost touch.`, `You and ${n.name.split(" ")[0]} don lose touch.`));
         delete p.npcs[n.id];
       }
     }
@@ -170,7 +170,7 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
   // 3. New friends over a lifetime
   if ([6, 11, 16, 21, 26, 33].includes(p.age)) {
     const f = addFriend(p, p.age < 18 ? randInt(-1, 1) : randInt(-3, 4));
-    lines.push(`You made a new friend: ${f.name.split(" ")[0]}.`);
+    lines.push(T(`You made a new friend: ${f.name.split(" ")[0]}.`, `You get new padi: ${f.name.split(" ")[0]}.`));
     if (chance(0.4)) addFriend(p, randInt(-2, 2));
   }
 
@@ -181,18 +181,18 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
   const provider = primaryProvider(p);
   if (provider && p.age >= 10 && !p.possessions.phone && p.fam.income > 1_800_000 && chance(0.4 + provider.generosity / 250)) {
     p.possessions.phone = true;
-    transact(p, { amount: 0, memo: true, reason: `${provider.name.split(" ")[0]} bought you a basic phone`, category: "gift" });
-    lines.push("Your parents got you a basic phone.");
+    transact(p, { amount: 0, memo: true, reason: T(`${provider.name.split(" ")[0]} bought you a basic phone`, `${provider.name.split(" ")[0]} buy basic phone for you`), category: "gift" });
+    lines.push(T("Your parents got you a basic phone.", "Your parents buy basic phone for you."));
   }
   if (provider && p.age >= 13 && p.age <= 22 && p.possessions.phone && !p.possessions.smartphone && p.fam.income > 5e6 && capacityOf(p, provider) > 180_000 * p.index && chance(0.25 + provider.generosity / 300)) {
     p.possessions.smartphone = true;
-    transact(p, { amount: 0, memo: true, reason: `${provider.name.split(" ")[0]} bought you a smartphone`, category: "gift" });
-    lines.push("You received a smartphone from your family.");
+    transact(p, { amount: 0, memo: true, reason: T(`${provider.name.split(" ")[0]} bought you a smartphone`, `${provider.name.split(" ")[0]} buy smartphone for you`), category: "gift" });
+    lines.push(T("You received a smartphone from your family.", "Your family give you smartphone."));
   }
   if (provider && p.age >= 16 && p.age <= 24 && p.school?.stage === "tertiary" && !p.possessions.laptop && capacityOf(p, provider) > 450_000 * p.index && chance(0.3 + provider.generosity / 300 - provider.strictness / 400)) {
     p.possessions.laptop = true;
-    transact(p, { amount: 0, memo: true, reason: `${provider.name.split(" ")[0]} bought you a laptop for school`, category: "gift" });
-    lines.push("Your parents bought you a laptop for university.");
+    transact(p, { amount: 0, memo: true, reason: T(`${provider.name.split(" ")[0]} bought you a laptop for school`, `${provider.name.split(" ")[0]} buy laptop for you for school`), category: "gift" });
+    lines.push(T("Your parents bought you a laptop for university.", "Your parents buy laptop for you for university."));
   }
 
   // 5. Unprompted money from family
@@ -201,18 +201,18 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
       const amt = Math.round(Math.min(capacityOf(p, provider) * 0.08, 60_000 * p.index * (p.age < 14 ? 0.4 : 1)));
       if (amt > 500 * p.index) {
         p.month = month();
-        transact(p, { amount: amt, reason: `${provider.name.split(" ")[0]} sent you ${naira(amt)} ${p.age < 18 ? "for the week" : "for food"}`, category: "gift" });
+        transact(p, { amount: amt, reason: T(`${provider.name.split(" ")[0]} sent you ${naira(amt)} ${p.age < 18 ? "for the week" : "for food"}`, `${provider.name.split(" ")[0]} send ${naira(amt)} give you ${p.age < 18 ? "for the week" : "for chop"}`), category: "gift" });
         provider.gaveThisYear += amt / p.index;
-        lines.push(`${provider.name.split(" ")[0]} sent you ${naira(amt)}.`);
+        lines.push(T(`${provider.name.split(" ")[0]} sent you ${naira(amt)}.`, `${provider.name.split(" ")[0]} send ${naira(amt)} give you.`));
       }
     }
     if (p.housing.type === "rented" && p.age <= 28 && !p.fam.cutOff.includes("rent") && p.fam.income > 12e6 && chance(0.15 + provider.generosity / 400 - provider.strictness / 500)) {
       const amt = Math.min(p.housing.annualRent * 0.7, capacityOf(p, provider) * 0.5);
       if (amt > 50_000 * p.index) {
         p.month = month();
-        transact(p, { amount: amt, reason: `${provider.name.split(" ")[0]} transferred ${naira(amt)} to help with your accommodation`, category: "gift" });
+        transact(p, { amount: amt, reason: T(`${provider.name.split(" ")[0]} transferred ${naira(amt)} to help with your accommodation`, `${provider.name.split(" ")[0]} transfer ${naira(amt)} to help your accommodation`), category: "gift" });
         provider.gaveThisYear += amt / p.index;
-        lines.push(`${provider.name.split(" ")[0]} transferred ${naira(amt)} to help with your accommodation.`);
+        lines.push(T(`${provider.name.split(" ")[0]} transferred ${naira(amt)} to help with your accommodation.`, `${provider.name.split(" ")[0]} transfer ${naira(amt)} to help your accommodation.`));
       }
     }
   }
@@ -222,10 +222,10 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
     p.fam.cutOff.push("allowance", "rent");
     lines.push(
       provider && provider.strictness > 60
-        ? "Your parents have stopped sending you pocket money. \"You are old enough to manage your own finances.\""
-        : "Your family has decided to stop the regular pocket money now that you are grown.",
+        ? T("Your parents have stopped sending you pocket money. \"You are old enough to manage your own finances.\"", "Your parents don stop to send you pocket money. \"You don big reach to manage your own money.\"")
+        : T("Your family has decided to stop the regular pocket money now that you are grown.", "Your family don decide to stop the regular pocket money since you don grow."),
     );
-    if (provider) remember(p, provider, "Told you it was time to be financially independent.", "good");
+    if (provider) remember(p, provider, T("Told you it was time to be financially independent.", "Tell you say na time to stand on your own feet with money."), "good");
   }
 
   // 7. Moving out
@@ -250,17 +250,17 @@ export function rentPlace(p: Player, tierId: string): string {
   if (!tier) return "";
   const annual = Math.round(tier.rent * stateOf(p).cost * Math.pow(p.index, 0.95));
   const deposit = annual + Math.round(annual * 0.1);
-  if (p.money < deposit) return `You need ${naira(deposit)} (a year's rent plus agent fee).`;
-  transact(p, { amount: -annual, reason: `Rent for a ${tier.label.toLowerCase()} in ${stateOf(p).name}`, category: "rent" });
-  transact(p, { amount: -Math.round(annual * 0.1), reason: "Agent and legal fees", category: "rent" });
+  if (p.money < deposit) return T(`You need ${naira(deposit)} (a year's rent plus agent fee).`, `You need ${naira(deposit)} (one year rent plus agent fee).`);
+  transact(p, { amount: -annual, reason: T(`Rent for a ${tier.label.toLowerCase()} in ${stateOf(p).name}`, `Rent for ${tier.label.toLowerCase()} for ${stateOf(p).name}`), category: "rent" });
+  transact(p, { amount: -Math.round(annual * 0.1), reason: T("Agent and legal fees", "Agent and legal fees"), category: "rent" });
   p.housing = { type: "rented", stateId: p.state, annualRent: annual, paidUntil: monthIndex(p) + 12, arrears: 0, landlord: tier.id };
-  return `You moved into a ${tier.label.toLowerCase()}. Rent is ${naira(annual)} a year.`;
+  return T(`You moved into a ${tier.label.toLowerCase()}. Rent is ${naira(annual)} a year.`, `You move enter ${tier.label.toLowerCase()}. Rent na ${naira(annual)} for one year.`);
 }
 
 export function moveHomeToFamily(p: Player): string {
   p.housing = familyHousing(p.family.state);
   if (p.state !== p.family.state) p.state = p.family.state;
-  return "You moved back in with your family.";
+  return T("You moved back in with your family.", "You move go back live with your family.");
 }
 
 export function siblingsOf(p: Player): Npc[] {

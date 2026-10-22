@@ -3,21 +3,21 @@ import { STATE_BY_ID } from "./data";
 import { bizValue } from "./business";
 import { receivables, totalDebt } from "./loans";
 import type { KidnapState, Player } from "./types";
-import { chance, clamp, naira, pick, rand, randInt } from "./util";
+import { T, chance, clamp, naira, pick, rand, randInt } from "./util";
 
-const CAPTORS = [
-  "armed men in military camo stopped your vehicle",
-  "gunmen blocked the expressway and dragged you into the bush",
-  "men on motorbikes ambushed you near a petrol station",
-  "a fake police checkpoint turned out to be a gang",
-  "armed men broke into your compound at night",
-  "bandits swarmed the bus you were travelling in",
+const CAPTORS: readonly (readonly [string, string])[] = [
+  ["armed men in military camo stopped your vehicle", "armed men wey wear military camo stop your vehicle"],
+  ["gunmen blocked the expressway and dragged you into the bush", "gunmen block the expressway and drag you enter bush"],
+  ["men on motorbikes ambushed you near a petrol station", "men on motorbike ambush you near petrol station"],
+  ["a fake police checkpoint turned out to be a gang", "fake police checkpoint turn out to be gang"],
+  ["armed men broke into your compound at night", "armed men break enter your compound for night"],
+  ["bandits swarmed the bus you were travelling in", "bandits surround the bus wey you dey travel inside"],
 ];
-const PHONE_LINES = [
-  "\"Una think this one na joke? Bring the money.\"",
-  "\"Oga, we no dey play. Every day wey you delay, e go cost you more.\"",
-  "\"Your person dey hungry o. Make you hurry.\"",
-  "\"Na everybody dey feel the pain. Pay and we go release am.\"",
+const PHONE_LINES: readonly (readonly [string, string])[] = [
+  ["\"Do you think this is a joke? Bring the money.\"", "\"Una think this one na joke? Bring the money.\""],
+  ["\"Oga, we are not playing. Every day you delay will cost you more.\"", "\"Oga, we no dey play. Every day wey you delay, e go cost you more.\""],
+  ["\"Your person is hungry. Hurry up.\"", "\"Your person dey hungry o. Make you hurry.\""],
+  ["\"Everybody is feeling the pain. Pay and we will release him.\"", "\"Na everybody dey feel the pain. Pay and we go release am.\""],
 ];
 
 export function netWorth(p: Player): number {
@@ -50,13 +50,15 @@ export function kidnapRisk(p: Player): number {
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function makeKidnap(p: Player): KidnapState {
-  const captors = pick(CAPTORS);
+  const captorPair = pick(CAPTORS);
+  const captors = T(captorPair[0], captorPair[1]);
   const worth = Math.max(0, netWorth(p));
   const base = clamp(worth * 0.3, 2_000_000 * p.index, 900_000_000 * p.index);
   const demand = Math.round(base * rand(0.7, 1.4));
   const floor = Math.round(demand * rand(0.35, 0.7));
   const familyShare = p.classAtBirth === "rich" ? 0.18 : p.classAtBirth === "middle" ? 0.07 : 0.02;
   const poolBase = Math.round(demand * (familyShare + (p.stats.connections / 100) * 0.08) * rand(0.7, 1.3));
+  const phoneLine = pick(PHONE_LINES);
   return {
     demand,
     floor,
@@ -71,7 +73,10 @@ export function makeKidnap(p: Player): KidnapState {
     fundraised: false,
     borrowedOnce: false,
     stage: "raise",
-    history: [`${cap(captors)}. The call to your family came the next morning: ${pick(PHONE_LINES)} They want ${naira(demand)}.`, `Your family and church scraped together ${naira(poolBase)} so far.`],
+    history: [
+      T(`${cap(captors)}. The call to your family came the next morning: ${phoneLine[0]} They want ${naira(demand)}.`, `${cap(captors)}. Dem call your family the next morning: ${phoneLine[1]} Dem want ${naira(demand)}.`),
+      T(`Your family and church scraped together ${naira(poolBase)} so far.`, `Your family and church don gather ${naira(poolBase)} so far.`),
+    ],
     captors,
   };
 }
@@ -93,8 +98,11 @@ function endVictim(p: Player, k: KidnapState, outcome: NonNullable<KidnapState["
   const weeks = randInt(1, 14);
   if (outcome === "dead") {
     p.alive = false;
-    p.cause = "Killed by kidnappers";
-    k.summary = `You never came home. Your family mourned a long time. ${paid > 0 ? `They had paid ${naira(paid)}, but it was not enough.` : ""}`;
+    p.cause = T("Killed by kidnappers", "Kidnappers kill am");
+    k.summary = T(
+      `You never came home. Your family mourned a long time. ${paid > 0 ? `They had paid ${naira(paid)}, but it was not enough.` : ""}`,
+      `You no come house again. Your family mourn you for long time. ${paid > 0 ? `Dem don pay ${naira(paid)}, but e no reach.` : ""}`,
+    );
   } else {
     const leftover = Math.max(0, k.pool - paid);
     p.money += leftover;
@@ -102,7 +110,11 @@ function endVictim(p: Player, k: KidnapState, outcome: NonNullable<KidnapState["
     p.stats.happiness = clamp(p.stats.happiness - 15);
     p.stats.health = clamp(p.stats.health - (outcome === "freed" ? 10 : 6));
     p.stats.reputation = clamp(p.stats.reputation + 3);
-    const labels = { freed: `Ransom of ${naira(paid)} was paid. After ${weeks} weeks in the bush, you were dropped by the roadside.`, rescued: `Soldiers stormed the camp after ${weeks} weeks and rescued you. Nobody paid a kobo.`, escaped: `After ${weeks} weeks you found a gap, ran through the night and flagged down a farmer.` } as const;
+    const labels = {
+      freed: T(`Ransom of ${naira(paid)} was paid. After ${weeks} weeks in the bush, you were dropped by the roadside.`, `Dem pay ransom of ${naira(paid)}. After ${weeks} weeks for bush, dem drop you for roadside.`),
+      rescued: T(`Soldiers stormed the camp after ${weeks} weeks and rescued you. Nobody paid a kobo.`, `After ${weeks} weeks, soldiers storm the camp and rescue you. Nobody pay one kobo.`),
+      escaped: T(`After ${weeks} weeks you found a gap, ran through the night and flagged down a farmer.`, `After ${weeks} weeks you see gap, run through the night and stop one farmer for road.`),
+    } as const;
     k.summary = labels[outcome];
     if (!p.achievements.includes("Survived kidnapping")) p.achievements.push("Survived kidnapping");
   }
@@ -118,7 +130,7 @@ export function kidnapStep(p: Player, k: KidnapState, a: KidnapAction): void {
       k.savingsPut = p.money;
       k.pool += p.money;
       p.money = 0;
-      k.history.push(`Your family emptied your accounts: ${naira(k.savingsPut)}.`);
+      k.history.push(T(`Your family emptied your accounts: ${naira(k.savingsPut)}.`, `Your family comot all the money for your accounts: ${naira(k.savingsPut)}.`));
       return;
     }
     case "sell": {
@@ -129,7 +141,7 @@ export function kidnapStep(p: Player, k: KidnapState, a: KidnapAction): void {
       p.houses.splice(i, 1);
       k.sold += got;
       k.pool += got;
-      k.history.push(`A ${h.kind} in ${STATE_BY_ID[h.state].name} was sold in a hurry for ${naira(got)} (distress sale).`);
+      k.history.push(T(`A ${h.kind} in ${STATE_BY_ID[h.state].name} was sold in a hurry for ${naira(got)} (distress sale).`, `Dem sell ${h.kind} for ${STATE_BY_ID[h.state].name} in a hurry for ${naira(got)} (distress sale).`));
       return;
     }
     case "borrow": {
@@ -139,7 +151,7 @@ export function kidnapStep(p: Player, k: KidnapState, a: KidnapAction): void {
       k.borrowed += amt;
       k.pool += amt;
       p.debt += Math.round(amt * 1.25);
-      k.history.push(`Your people borrowed ${naira(amt)} from friends, cooperative and loan apps. Interest will bite.`);
+      k.history.push(T(`Your people borrowed ${naira(amt)} from friends, cooperative and loan apps. Interest will bite.`, `Your people borrow ${naira(amt)} from friends, cooperative and loan apps. Interest go bite well.`));
       return;
     }
     case "fundraise": {
@@ -147,21 +159,21 @@ export function kidnapStep(p: Player, k: KidnapState, a: KidnapAction): void {
       k.fundraised = true;
       const amt = Math.round(k.demand * rand(0.03, 0.12) * (0.6 + p.stats.reputation / 100));
       k.pool += amt;
-      k.history.push(`Church and community fundraiser ("Save ${p.name}") brought in ${naira(amt)}.`);
+      k.history.push(T(`Church and community fundraiser ("Save ${p.name}") brought in ${naira(amt)}.`, `Church and community fundraiser ("Save ${p.name}") bring in ${naira(amt)}.`));
       return;
     }
     case "start": {
       k.stage = "negotiate";
-      k.history.push(`The negotiation begins. They want ${naira(k.demand)}. You have ${naira(k.pool)} ready.`);
+      k.history.push(T(`The negotiation begins. They want ${naira(k.demand)}. You have ${naira(k.pool)} ready.`, `Negotiation don start. Dem want ${naira(k.demand)}. You get ${naira(k.pool)} ready.`));
       return;
     }
     case "police": {
       if (chance(0.4)) {
-        k.history.push("The police and soldiers traced the phone and hit the camp at dawn.");
+        k.history.push(T("The police and soldiers traced the phone and hit the camp at dawn.", "Police and soldiers trace the phone and storm the camp for dawn."));
         endVictim(p, k, "rescued", 0);
       } else {
         k.patience -= 2;
-        k.history.push("The kidnappers noticed the police. \"You called them? Now the price go change.\"");
+        k.history.push(T("The kidnappers noticed the police. \"You called them? Now the price will change.\"", "The kidnappers notice police. \"You call them? Now the price go change.\""));
         k.demand = Math.round(k.demand * 1.15);
         checkOver(p, k);
       }
@@ -177,18 +189,18 @@ export function kidnapStep(p: Player, k: KidnapState, a: KidnapAction): void {
       if (amt > k.pool) return;
       k.round += 1;
       if (amt >= k.floor) {
-        k.history.push(`You offered ${naira(amt)}. "Fine. Bring am."`);
+        k.history.push(T(`You offered ${naira(amt)}. "Fine. Bring it."`, `You offer ${naira(amt)}. "Fine. Bring am."`));
         payRansom(p, k, amt);
         return;
       }
       const ratio = amt / k.floor;
       if (ratio >= 0.6) {
         k.demand = Math.round(Math.max(k.floor * 1.05, k.demand * 0.85));
-        k.history.push(`You offered ${naira(amt)}. "Add small. Last price: ${naira(k.demand)}."`);
+        k.history.push(T(`You offered ${naira(amt)}. "Add a little. Last price: ${naira(k.demand)}."`, `You offer ${naira(amt)}. "Add small. Last price: ${naira(k.demand)}."`));
       } else {
         k.patience -= 1;
         k.demand = Math.round(k.demand * 1.06);
-        k.history.push(`You offered ${naira(amt)}. They shouted, slapped the phone and raised the price to ${naira(k.demand)}. Their patience is running out.`);
+        k.history.push(T(`You offered ${naira(amt)}. They shouted, slapped the phone and raised the price to ${naira(k.demand)}. Their patience is running out.`, `You offer ${naira(amt)}. Dem shout, slap the phone and raise price to ${naira(k.demand)}. Their patience dey finish.`));
       }
       checkOver(p, k);
       return;
@@ -197,7 +209,7 @@ export function kidnapStep(p: Player, k: KidnapState, a: KidnapAction): void {
 }
 
 function payRansom(p: Player, k: KidnapState, amount: number) {
-  k.history.push(`${naira(amount)} was dropped at a bush path at night.`);
+  k.history.push(T(`${naira(amount)} was dropped at a bush path at night.`, `Dem drop ${naira(amount)} for bush path for night.`));
   if (chance(0.8)) endVictim(p, k, "freed", amount);
   else endVictim(p, k, "dead", amount);
 }
@@ -205,7 +217,7 @@ function payRansom(p: Player, k: KidnapState, amount: number) {
 function checkOver(p: Player, k: KidnapState) {
   if (k.stage === "over") return;
   if (k.patience <= 0 || k.round >= 7) {
-    k.history.push("The line went dead. For days, nobody heard anything...");
+    k.history.push(T("The line went dead. For days, nobody heard anything...", "The line go dead. For days, nobody hear anything..."));
     if (chance(0.5)) endVictim(p, k, "dead", 0);
     else endVictim(p, k, chance(0.5) ? "rescued" : "escaped", 0);
   }
@@ -213,11 +225,11 @@ function checkOver(p: Player, k: KidnapState) {
 
 export function kidnapShareText(p: Player, k: KidnapState): string {
   const where = STATE_BY_ID[p.state].name;
-  const base = `🇳🇬 Naija Life: I was kidnapped in ${where} at age ${p.age}. They demanded ${naira(k.demand)}.`;
+  const base = T(`🇳🇬 Naija Life: I was kidnapped in ${where} at age ${p.age}. They demanded ${naira(k.demand)}.`, `🇳🇬 Naija Life: Dem kidnap me for ${where} at age ${p.age}. Dem demand ${naira(k.demand)}.`);
   switch (k.outcome) {
-    case "freed": return `${base} My family paid and I came home alive. Wahala be like bicycle! 😮‍💨`;
-    case "rescued": return `${base} Soldiers rescued me with no ransom! 🙏`;
-    case "escaped": return `${base} I escaped through the bush at night. 🏃‍♂️`;
-    default: return `${base} I did not survive. RIP. 🕯️`;
+    case "freed": return `${base} ${T("My family paid and I came home alive. Trouble comes in many forms! 😮‍💨", "My family pay and I reach house alive. Wahala be like bicycle! 😮‍💨")}`;
+    case "rescued": return `${base} ${T("Soldiers rescued me with no ransom! 🙏", "Soldiers rescue me and nobody pay ransom! 🙏")}`;
+    case "escaped": return `${base} ${T("I escaped through the bush at night. 🏃‍♂️", "I run comot through bush for night. 🏃‍♂️")}`;
+    default: return `${base} ${T("I did not survive. RIP. 🕯️", "I no survive. RIP. 🕯️")}`;
   }
 }

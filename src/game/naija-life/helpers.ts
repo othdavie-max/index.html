@@ -1,6 +1,6 @@
 import { JOBS, JOB_BY_ID, STATE_BY_ID, poolFor, type JobDef } from "./data";
 import type { Gender, Player, Stats } from "./types";
-import { clamp, pick } from "./util";
+import { T, clamp, pick } from "./util";
 
 export const stateOf = (p: Player) => STATE_BY_ID[p.state];
 
@@ -18,8 +18,8 @@ export function jobDef(p: Player): JobDef | null {
 
 export function jobTitle(p: Player): string {
   const j = jobDef(p);
-  if (p.politics && p.politics.office >= 0) return "Politician";
-  if (!j || !p.job) return p.school ? "Student" : p.age < 6 ? "Child" : "Unemployed";
+  if (p.politics && p.politics.office >= 0) return T("Politician", "Politician");
+  if (!j || !p.job) return p.school ? T("Student", "Student") : p.age < 6 ? T("Child", "Pikin") : T("Unemployed", "No job");
   return j.ladder[Math.min(p.job.rank, j.ladder.length - 1)].title;
 }
 
@@ -52,7 +52,7 @@ export function moveTo(p: Player, stateId: string): string {
   if (p.job) {
     const j = JOB_BY_ID[p.job.id];
     if (j && j.group !== "creative") {
-      note = ` You left your ${j.selfEmployed ? "business" : "job"} in ${from} behind.`;
+      note = T(` You left your ${j.selfEmployed ? "business" : "job"} in ${from} behind.`, ` You leave your ${j.selfEmployed ? "business" : "job"} for ${from} behind.`);
       p.job = null;
     }
   }
@@ -67,7 +67,7 @@ export function enterPrison(p: Player, years: number): string {
   p.job = null;
   bump(p, "reputation", -25);
   bump(p, "happiness", -20);
-  return `You was sentenced to ${years} year${years > 1 ? "s" : ""} for Kuje.${seized ? " EFCC seize half of your money." : ""} `;
+  return T(`You were sentenced to ${years} year${years > 1 ? "s" : ""} in Kuje.${seized ? " EFCC seized half of your money." : ""} `, `Dem sentence you to ${years} year${years > 1 ? "s" : ""} for Kuje.${seized ? " EFCC seize half of your money." : ""} `);
 }
 
 export function addLoot(p: Player, amount: number) {

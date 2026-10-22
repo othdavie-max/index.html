@@ -34,15 +34,15 @@ export function planQuote(p: Player, l: Listing) {
   const principal = l.price - down;
   const r = PLAN_RATE;
   const monthly = Math.round((principal * r) / (1 - Math.pow(1 + r, -PLAN_MONTHS)));
-  const block = p.age < 18 ? T("Adults only", "Adults only") : p.money < down ? T(`You need ${naira(down)} deposit`, `You need ${naira(down)} deposit`) : p.loans.some((x) => x.houseId && x.status === "active" && x.lenderType === "other") ? T("You already have a payment plan", "You get payment plan already") : null;
+  const block = p.age < 18 ? T("Adults only", "Na only adult") : p.money < down ? T(`You need ${naira(down)} deposit`, `You need ${naira(down)} for deposit`) : p.loans.some((x) => x.houseId && x.status === "active" && x.lenderType === "other") ? T("You already have a payment plan", "You don get payment plan already") : null;
   return { down, monthly, total: monthly * PLAN_MONTHS, interest: monthly * PLAN_MONTHS - principal, months: PLAN_MONTHS, block };
 }
 
 export function listingBlock(p: Player, l: Listing, mode: PurchaseMode, years = 15): string | null {
   if (p.prison > 0) return T("Not from prison", "No fit from prison");
-  if (p.age < 18) return T("Adults only", "Adults only");
+  if (p.age < 18) return T("Adults only", "Na only adult");
   if (stateOf(p).abroad) return T("Not available abroad", "No dey available abroad");
-  if (mode === "cash") return p.money < l.price ? T(`You need ${naira(l.price)}`, `You need ${naira(l.price)}`) : null;
+  if (mode === "cash") return p.money < l.price ? T(`You need ${naira(l.price)}`, `You need ${naira(l.price)} first`) : null;
   if (mode === "plan") return planQuote(p, l).block;
   if (l.kind === "land") return T("Banks do not lend on bare land", "Bank no dey lend for bare land");
   return mortgageQuote(p, l.kind, years, { price: l.price, cosign: mode === "cosign" }).block;

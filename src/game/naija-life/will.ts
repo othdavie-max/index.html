@@ -1,7 +1,7 @@
 import { bizValue } from "./business";
 import { totalDebt } from "./loans";
 import type { Player, WillShare } from "./types";
-import { chance, clamp } from "./util";
+import { T, chance, clamp } from "./util";
 
 export interface Beneficiary {
   id: string;
@@ -12,14 +12,14 @@ export interface Beneficiary {
 /** Everyone the player could name in a will. */
 export function beneficiaries(p: Player): Beneficiary[] {
   const out: Beneficiary[] = [];
-  if (p.spouse) out.push({ id: "spouse", label: `${p.spouse.name} (spouse)`, kind: "spouse" });
-  p.kids.forEach((k, i) => out.push({ id: `kid:${i}`, label: `${k.name} (${k.gender === "male" ? "son" : "daughter"}, ${k.age})`, kind: "kid" }));
+  if (p.spouse) out.push({ id: "spouse", label: T(`${p.spouse.name} (spouse)`, `${p.spouse.name} (spouse)`), kind: "spouse" });
+  p.kids.forEach((k, i) => out.push({ id: `kid:${i}`, label: T(`${k.name} (${k.gender === "male" ? "son" : "daughter"}, ${k.age})`, `${k.name} (${k.gender === "male" ? "pikin boy" : "pikin girl"}, ${k.age})`), kind: "kid" }));
   for (const n of Object.values(p.npcs)) {
     if (!n.alive) continue;
-    if (["dad", "mom", "grandparent"].includes(n.role)) out.push({ id: `npc:${n.id}`, label: `${n.name} (parent)`, kind: "parent" });
-    if (n.role === "sibling") out.push({ id: `npc:${n.id}`, label: `${n.name} (sibling)`, kind: "sibling" });
+    if (["dad", "mom", "grandparent"].includes(n.role)) out.push({ id: `npc:${n.id}`, label: T(`${n.name} (parent)`, `${n.name} (parent)`), kind: "parent" });
+    if (n.role === "sibling") out.push({ id: `npc:${n.id}`, label: T(`${n.name} (sibling)`, `${n.name} (sibling)`), kind: "sibling" });
   }
-  out.push({ id: "charity", label: "Charity and community", kind: "charity" });
+  out.push({ id: "charity", label: T("Charity and community", "Charity and community"), kind: "charity" });
   return out;
 }
 

@@ -3,7 +3,7 @@ import { bump } from "./helpers";
 import { monthIndex, transact } from "./ledger";
 import { netWorth } from "./kidnap";
 import type { HoldingKind, Player } from "./types";
-import { chance, clamp, naira, rand, uid } from "./util";
+import { T, chance, clamp, naira, rand, uid } from "./util";
 
 export function luxuryCost(p: Player, base: number): number {
   return Math.round(base * Math.pow(p.index, 0.95));
@@ -11,11 +11,11 @@ export function luxuryCost(p: Player, base: number): number {
 
 export function luxuryBlock(p: Player, id: string): string | null {
   const l = LUXURIES.find((x) => x.id === id);
-  if (!l) return "Unknown item";
-  if (p.prison > 0) return "You're in prison";
-  if (l.once && p.flags[`own_${id}`]) return "Already owned";
-  if (p.money < luxuryCost(p, l.cost)) return "Not enough cash";
-  if (l.minWealth && netWorth(p) < l.minWealth * Math.pow(p.index, 0.95)) return "Only for the very rich";
+  if (!l) return T("Unknown item", "Item no dey");
+  if (p.prison > 0) return T("You're in prison", "You dey prison");
+  if (l.once && p.flags[`own_${id}`]) return T("Already owned", "You don get am already");
+  if (p.money < luxuryCost(p, l.cost)) return T("Not enough cash", "Cash no reach");
+  if (l.minWealth && netWorth(p) < l.minWealth * Math.pow(p.index, 0.95)) return T("Only for the very rich", "Na only big rich people");
   return null;
 }
 
@@ -30,7 +30,7 @@ export function buyLuxury(p: Player, id: string): string {
   if (l.connections) bump(p, "connections", l.connections);
   if (l.happiness) bump(p, "happiness", l.happiness);
   if (l.good) p.goodDeeds += 1;
-  return `You spent ${naira(cost)} on: ${l.label}.`;
+  return T(`You spent ${naira(cost)} on: ${l.label}.`, `You spend ${naira(cost)} on: ${l.label}.`);
 }
 
 // ---------------------------------------------------------------------------
@@ -41,17 +41,17 @@ const priceOfKind = (p: Player, k: HoldingKind) => (k === "stocks" ? p.market.ng
 
 export function investBlock(p: Player, kind: HoldingKind, amount: number): string | null {
   const opt = INVESTMENTS.find((o) => o.kind === kind);
-  if (!opt) return "Unknown";
-  if (p.age < 18) return "Adults only";
-  if (amount < opt.min * p.index) return `Minimum ${naira(opt.min * p.index)}`;
-  if (p.money < amount) return "Not enough cash";
+  if (!opt) return T("Unknown", "Dem no know am");
+  if (p.age < 18) return T("Adults only", "Na only grown-ups");
+  if (amount < opt.min * p.index) return T(`Minimum ${naira(opt.min * p.index)}`, `Minimum na ${naira(opt.min * p.index)}`);
+  if (p.money < amount) return T("Not enough cash", "Cash no reach");
   return null;
 }
 
 export function invest(p: Player, kind: HoldingKind, amount: number): string {
   const opt = INVESTMENTS.find((o) => o.kind === kind);
   if (!opt) return "";
-  transact(p, { amount: -amount, reason: `Invested in ${opt.label.toLowerCase()}`, category: "investment" });
+  transact(p, { amount: -amount, reason: T(`Invested in ${opt.label.toLowerCase()}`, `Invest for ${opt.label.toLowerCase()}`), category: "investment" });
   const market = MARKET_KINDS.includes(kind);
   const units = market ? amount / priceOfKind(p, kind) : undefined;
   const existing = p.holdings.find((h) => h.kind === kind);
@@ -63,7 +63,7 @@ export function invest(p: Player, kind: HoldingKind, amount: number): string {
     p.holdings.push({ id: uid(), kind, label: opt.label, invested: amount, value: amount, units, since: monthIndex(p) });
   }
   if (kind === "school" || kind === "bank") p.prestige += 1;
-  return `You invested ${naira(amount)} in ${opt.label.toLowerCase()}.`;
+  return T(`You invested ${naira(amount)} in ${opt.label.toLowerCase()}.`, `You invest ${naira(amount)} for ${opt.label.toLowerCase()}.`);
 }
 
 export function divest(p: Player, id: string): string {
@@ -75,11 +75,11 @@ export function divest(p: Player, id: string): string {
   if (h.kind === "tbill" && h.since !== undefined && monthIndex(p) - h.since < 12) {
     const penalty = proceeds * 0.03;
     proceeds -= penalty;
-    note = ` (early sale cost ${naira(penalty)})`;
+    note = T(` (early sale cost ${naira(penalty)})`, ` (early sale cost ${naira(penalty)})`);
   }
-  transact(p, { amount: proceeds, reason: `Sold ${h.label.toLowerCase()}${proceeds - h.invested >= 0 ? " at a profit" : " at a loss"}`, category: "investment" });
+  transact(p, { amount: proceeds, reason: T(`Sold ${h.label.toLowerCase()}${proceeds - h.invested >= 0 ? " at a profit" : " at a loss"}`, `Sell ${h.label.toLowerCase()}${proceeds - h.invested >= 0 ? " with profit" : " with loss"}`), category: "investment" });
   p.holdings.splice(i, 1);
-  return `You cashed out ${h.label.toLowerCase()}: ${naira(proceeds)}${note}.`;
+  return T(`You cashed out ${h.label.toLowerCase()}: ${naira(proceeds)}${note}.`, `You cash out ${h.label.toLowerCase()}: ${naira(proceeds)}${note}.`);
 }
 
 /** Market prices and interest accrue every month. */
@@ -94,7 +94,7 @@ export function marketMonth(p: Player, lines: string[]) {
     if (MARKET_KINDS.includes(h.kind) && h.units !== undefined) h.value = Math.round(h.units * priceOfKind(p, h.kind));
     else if (h.kind === "savings") h.value = Math.round(h.value * (1 + m.savings / 12));
     else if (h.kind === "tbill") h.value = Math.round(h.value * (1 + m.tbill / 12));
-    else if (h.kind === "crypto" && chance(0.004)) { h.value = 0; lines.push("Your crypto platform collapsed overnight. The money is gone."); }
+    else if (h.kind === "crypto" && chance(0.004)) { h.value = 0; lines.push(T("Your crypto platform collapsed overnight. The money is gone.", "Your crypto platform crash overnight. Money don go.")); }
   }
   p.holdings = p.holdings.filter((h) => h.value > 0);
 }

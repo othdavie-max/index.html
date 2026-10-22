@@ -1,5 +1,5 @@
 import type { Player, Tx, TxCategory } from "./types";
-import { uid } from "./util";
+import { T, uid } from "./util";
 
 const LEDGER_CAP = 500;
 
@@ -81,11 +81,11 @@ export function auditBalance(p: Player) {
   const last = p.ledger[p.ledger.length - 1];
   const expected = last ? last.after : 0;
   const diff = p.money - expected;
-  if (Math.abs(diff) > 0.5) push(p, { id: uid(), amount: diff, reason: last ? "Adjustment (unrecorded change)" : "Balance carried over", category: "other", age: p.age, month: p.month, before: expected, after: p.money });
+  if (Math.abs(diff) > 0.5) push(p, { id: uid(), amount: diff, reason: last ? T("Adjustment (unrecorded change)", "Adjustment (change wey no dey recorded)") : T("Balance carried over", "Balance wey dem carry come"), category: "other", age: p.age, month: p.month, before: expected, after: p.money });
 }
 
 /** If cash went negative, record a borrowing entry so it never silently disappears. */
-export function coverShortfall(p: Player, reason = "Short of cash: borrowed to cover bills") {
+export function coverShortfall(p: Player, reason = T("Short of cash: borrowed to cover bills", "Cash short: you borrow to cover bills")) {
   if (p.money >= 0) return 0;
   const gap = -p.money;
   // Add the borrowing as money in, and as debt owed.

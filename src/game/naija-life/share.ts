@@ -1,3 +1,5 @@
+import { T } from "./util";
+
 export interface ShareCardInput {
   kicker: string;
   title: string;
@@ -29,7 +31,7 @@ export async function drawShareCard(input: ShareCardInput): Promise<Blob> {
   c.width = W;
   c.height = H;
   const ctx = c.getContext("2d");
-  if (!ctx) throw new Error("Canvas not supported");
+  if (!ctx) throw new Error(T("Canvas not supported", "Canvas no dey supported"));
 
   const bg = ctx.createLinearGradient(0, 0, W, H);
   bg.addColorStop(0, "#06150d");
@@ -95,9 +97,9 @@ export async function drawShareCard(input: ShareCardInput): Promise<Blob> {
   ctx.fillText("🇳🇬 NAIJA LIFE", left, H - 140);
   ctx.fillStyle = "#9ad8b3";
   ctx.font = "500 28px system-ui, sans-serif";
-  ctx.fillText(input.footer ?? "Who you know, what you know, and God.", left, H - 90);
+  ctx.fillText(input.footer ?? T("Who you know, what you know, and God.", "Who you know, wetin you know, and God."), left, H - 90);
 
-  return await new Promise<Blob>((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png"));
+  return await new Promise<Blob>((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error(T("Could not create the image", "Image no gree create")))), "image/png"));
 }
 
 /** Share the image via the native share sheet when possible, otherwise download it. */
