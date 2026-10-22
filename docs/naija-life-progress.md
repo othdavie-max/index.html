@@ -57,3 +57,14 @@ Status of the "complete life simulation" expansion. Only items marked **Done** a
 | creator | 62 | 59M | 186M | 17% |
 
 Business revenue growth, margins and creator payouts were reduced in this pass because the tycoon and creator bots became rich far too fast. Runs are unseeded so figures move between runs.
+
+## Latest pass: money, business, university, avatars
+
+- **Property**: ~26 Nigerian locations (Banana Island to Maiduguri) with price ranges, yield, growth and risk; build on land; development projects.
+- **Investments**: bonds, penny stocks, crypto funds, property funds; market moods (bull/steady/bear) and a news feed; financial adviser (3 tiers) who warns of upcoming news and Ponzi offers.
+- **Wealth view**: Overview / Assets / Liabilities / Belongings (vehicle art, property, licence, degree).
+- **Business mini-game**: policies (price, advertising, stock quality), real employees (skill, loyalty, wages; recruit, raise, train, fire), monthly report with tips, yearly history, cheap kinds (akara, POS, barbing, bukka...), manager option so you can own without working in it.
+- **University**: 31 universities (federal, state, private), 42 courses, JAMB cut-offs, fees by family wealth with merit aid, campus activities (study, clubs, class rep, SUG, SIWES, project, hustle, scholarship, "sorting", confraternity), ASUU strikes, GPA and class of degree; degree class and network lift pay, hiring odds and politics.
+- **Social**: Instagram, TikTok, YouTube, Facebook, Twitter with platform-specific content.
+- **Avatars**: new cartoon portrait style on a green tile (hairs, headwraps, caps, glasses, hoops, hoodies...).
+- Balance: medians for hustler/tycoon sit well above the earlier baseline (already drifting before this pass); not retuned.

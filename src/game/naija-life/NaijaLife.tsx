@@ -12,7 +12,7 @@ import {
 } from "./engine";
 import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
 import { Avatar } from "./Avatar";
-import { AdmissionCard, CampusCard, DegreeCard } from "./Campus";
+import { AdmissionCard, CampusCard, DegreeCard } from "./CampusUI";
 import { KidnapModal } from "./KidnapModal";
 import { BEARDS, GLASSES, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
