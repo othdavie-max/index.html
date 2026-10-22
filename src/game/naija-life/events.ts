@@ -3,6 +3,7 @@ import { I, bump, eligibleJobs, luckBonus, enterPrison, jobDef, moveTo, randomNa
 import type { AutoDef, Choice, EventDef, Pending, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt } from "./util";
 import { kidLook, lookToStr, randomLook, strToLook } from "./look";
+import { schoolHousing } from "./world";
 
 const isSelfEmployed = (p: Player) => Boolean(jobDef(p)?.selfEmployed);
 const adult = (p: Player) => p.age >= 18;
@@ -10,6 +11,8 @@ const evt = (id: string, data: Record<string, string | number | boolean> = {}): 
 
 function startTertiary(p: Player, type: "university" | "polytechnic"): void {
   p.school = { stage: "tertiary", yearsLeft: type === "university" ? 4 : 3, type };
+  p.flags.schoolType = type === "university" && ["nepo", "strictRich", "upperMiddle", "newlyRich"].includes(p.fam.archetype) && chance(0.45) ? "private" : "public";
+  schoolHousing(p, true);
 }
 
 // ---------------------------------------------------------------------------

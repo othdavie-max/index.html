@@ -1,7 +1,7 @@
 import { OFFICES } from "./data";
 import { I, addLoot, bump, enterPrison, moveTo, stateOf } from "./helpers";
 import type { EventDef, Nation, Pending, Player, Politics } from "./types";
-import { chance, clamp, naira, rand, randInt } from "./util";
+import { rng, chance, clamp, naira, rand, randInt } from "./util";
 
 export const freshNation = (): Nation => ({ economy: 50, security: 50, welfare: 45, approval: 55, heat: 0, projects: [] });
 
@@ -176,7 +176,7 @@ export function plotCoup(p: Player): { text: string; spawn?: Pending[] } {
     if (!p.achievements.includes("Seized power")) p.achievements.push("Seized power");
     return { text: "At dawn, martial music on every radio station. A voice announce: 'Fellow Nigerians...' You are now Military Head of State." };
   }
-  const r = Math.random();
+  const r = rng();
   if (r < 0.5) {
     p.job = null;
     return { text: `The plot leak. ${enterPrison(p, randInt(8, 18))}You was arrested for 'treason'. Dem say na coup, you say na lie.` };

@@ -5,15 +5,24 @@ import { AUTOS, EVENTS } from "./events";
 import { AUTOS2, EVENTS2 } from "./events2";
 import { AUTOS3, EVENTS3 } from "./events3";
 import { EVENTS4 } from "./events4";
+import { EVENTS5, graduationData } from "./events5";
+import { eligible } from "./eligibility";
+import { annualPay, runMonths } from "./finance";
+import { addFriend, classOf, makeNpc, npcsByRole, syncLegacyFamily } from "./family";
+import { auditBalance, coverShortfall, reconcile, snapshot, transact } from "./ledger";
+import { totalDebt } from "./loans";
+import { assignSchoolType, familyHousing, initWorld, migrateWorld, schoolHousing, yearlyWorld } from "./world";
 import { I, bump, expandCostFor, jobDef, jobTitle, luckBonus, moveTo, randomName, stateOf } from "./helpers";
 import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from "./kidnap";
 import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings, yearlyUpkeep } from "./lifestyle";
 import { POLITICS_EVENTS, canContest, canJoinPolitics, canPlotCoup, contestPending, freshNation, joinPolitics, migratePolitics, plotCoup, politicalRelease, powerMoveBlock, runGov, runPowerMove, yearlyPolitics, GOV_ACTIONS } from "./politics";
-import type { EventDef, Game, Gender, HoldingKind, House, HouseKind, HouseUse, LineageEntry, Pending, Player } from "./types";
-import { chance, clamp, naira, pick, rand, randInt, setDeflator, uid, weightedPick } from "./util";
-import { kidLook, parentLook, randomLook, type Look } from "./look";
+import type { EventDef, FamilyBg, Game, Gender, HoldingKind, House, HouseKind, HouseUse, Kid, LineageEntry, Pending, Player } from "./types";
+import { rng, chance, clamp, naira, pick, rand, randInt, setDeflator, uid, weightedPick } from "./util";
+import { kidLook, randomLook, type Look } from "./look";
+import type { FamilyConfig } from "./family";
+import type { FamilyArchetype } from "./types";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...POLITICS_EVENTS];
 const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -28,12 +37,9 @@ function addLog(p: Player, text: string) {
   if (p.log.length > 140) p.log.shift();
 }
 
-/** The game never shows negative cash: shortfalls become debt. */
+/** The game never shows negative cash: shortfalls become recorded debt. */
 function settle(p: Player) {
-  if (p.money < 0) {
-    p.debt += -p.money;
-    p.money = 0;
-  }
+  if (p.money < 0) coverShortfall(p, "Cash ran short: borrowed to cover costs");
   // Lenders only go so far: beyond this you cut back, sell things and write the rest off.
   const cap = 2_000_000 * Math.pow(p.index, 0.95);
   if (p.debt > cap) {
@@ -41,6 +47,7 @@ function settle(p: Player) {
     p.stats.stress += 3;
     p.stats.happiness -= 2;
   }
+  auditBalance(p);
   p.peakWorth = Math.max(p.peakWorth, netWorth(p));
   for (const k of Object.keys(p.stats) as (keyof Player["stats"])[]) p.stats[k] = clamp(p.stats[k]);
 }
@@ -52,10 +59,10 @@ export function migrate(g: Game): Game {
   const region = stateOf(p).region;
   if (!p.look) p.look = randomLook(p.gender, { region, religion: p.religion });
   if (typeof p.luck !== "number") p.luck = randInt(25, 75);
-  if (!p.family.dad) p.family.dad = parentLook(p.look, "male", region, p.religion);
-  if (!p.family.mom) p.family.mom = parentLook(p.look, "female", region, p.religion);
   if (p.spouse && !p.spouse.look) p.spouse.look = randomLook(p.gender === "male" ? "female" : "male", { region });
   for (const k of p.kids) if (!k.look) k.look = kidLook(p.gender === "male" ? p.look : p.spouse?.look, p.gender === "female" ? p.look : p.spouse?.look, k.gender);
+  migrateWorld(p);
+  syncLegacyFamily(p);
   return g;
 }
 
@@ -73,6 +80,26 @@ export interface NewLifeOptions {
   tribe: string | null;
   religion: string | null;
   look?: Look;
+  /** Optional overrides for testing or custom games. */
+  familyConfig?: FamilyConfig;
+  forceArchetype?: FamilyArchetype;
+}
+
+/** A short story of the family you were born into. */
+export function describeFamily(p: Player): string {
+  const dad = p.fam.dadId ? p.npcs[p.fam.dadId] : undefined;
+  const mom = p.fam.momId ? p.npcs[p.fam.momId] : undefined;
+  const bits: string[] = [`You were born into a ${p.fam.label.toLowerCase()}.`];
+  if (p.fam.structure === "two-parent" && dad && mom) bits.push(`Your father is a ${dad.occupation.toLowerCase()} and your mother is a ${mom.occupation.toLowerCase()}.`);
+  else if (p.fam.structure === "single-mother" && mom) bits.push(`Your mother, a ${mom.occupation.toLowerCase()}, raised you alone.`);
+  else if (p.fam.structure === "single-father" && dad) bits.push(`Your father, a ${dad.occupation.toLowerCase()}, raised you alone.`);
+  else if (p.fam.structure === "grandparents") bits.push("Your grandparents are raising you.");
+  else if (p.fam.structure === "relatives") bits.push("Relatives are raising you.");
+  else if (p.fam.structure === "divorced" && dad && mom) bits.push(`Your parents (a ${dad.occupation.toLowerCase()} and a ${mom.occupation.toLowerCase()}) have separated.`);
+  else if (p.fam.structure === "parents-abroad") bits.push("Your parents live abroad and send money home.");
+  else if (p.fam.structure === "orphan") bits.push("You lost your parents early. An aunt takes care of you.");
+  if (p.fam.siblings > 0) bits.push(`You have ${p.fam.siblings} sibling${p.fam.siblings > 1 ? "s" : ""}.`);
+  return bits.join(" ");
 }
 
 function pickBirthState(): string {
@@ -83,7 +110,7 @@ function pickBirthState(): string {
 function rollClass(opp: number): "struggling" | "middle" | "rich" {
   const rich = 0.03 + opp * 0.012;
   const mid = 0.22 + opp * 0.03;
-  const r = Math.random();
+  const r = rng();
   if (r < rich) return "rich";
   if (r < rich + mid) return "middle";
   return "struggling";
@@ -108,15 +135,13 @@ export function newGame(opts: NewLifeOptions): Game {
   const st = STATE_BY_ID[stateId];
   const tribe = opts.tribe ?? pick(TRIBES_BY_REGION[st.region]);
   const religion = opts.religion ?? defaultReligion(st.region);
-  const cls = rollClass(st.opp);
   const surnamePool = poolFor(tribe).surnames;
   const raw = opts.name.trim();
   const [first, ...rest] = raw.split(/\s+/);
   const given = first || randomName(tribe, opts.gender);
   const surname = rest.join(" ") || pick(surnamePool);
   const look = opts.look ?? randomLook(opts.gender, { region: st.region, religion });
-  const conn = cls === "rich" ? randInt(30, 55) : cls === "middle" ? randInt(10, 25) : randInt(3, 10);
-  const p: Player = {
+  const p = {
     id: uid(),
     name: given,
     surname,
@@ -130,8 +155,8 @@ export function newGame(opts: NewLifeOptions): Game {
     generation: 1,
     alive: true,
     cause: "",
-    classAtBirth: cls,
-    stats: { health: randInt(70, 100), happiness: randInt(70, 95), smarts: randInt(20, 80), looks: randInt(20, 90), stress: 5, connections: conn, reputation: 50 },
+    classAtBirth: "middle",
+    stats: { health: randInt(70, 100), happiness: randInt(70, 95), smarts: randInt(20, 80), looks: randInt(20, 90), stress: 5, connections: 5, reputation: 50, fitness: 45 },
     money: 0,
     debt: 0,
     index: 1,
@@ -143,7 +168,7 @@ export function newGame(opts: NewLifeOptions): Game {
     holdings: [],
     look,
     luck: randInt(20, 80),
-    family: { state: stateId, happy: 70, parentsAlive: true, dad: parentLook(look, "male", st.region, religion), mom: parentLook(look, "female", st.region, religion) },
+    family: { state: stateId, happy: 70, parentsAlive: true },
     spouse: null,
     kids: [],
     traveled: false,
@@ -159,9 +184,11 @@ export function newGame(opts: NewLifeOptions): Game {
     achievements: [],
     peakWorth: 0,
     log: [],
-  };
+  } as unknown as Player;
+  initWorld(p, st, opts.familyConfig, opts.forceArchetype);
   setDeflator(1);
-  addLog(p, `You were born in ${st.capital}, ${st.name} State, to ${CLASS_TEXT[cls]}. You are ${tribe}, ${religion}.`);
+  addLog(p, `You were born in ${st.capital}, ${st.name} State. You are ${tribe}, ${religion}.`);
+  addLog(p, describeFamily(p));
   if (st.opp <= 3) addLog(p, "Opportunities are few in your area. Many people here dream of moving to Abuja or Lagos.");
   return { p, queue: [], dynasty: { surname, lineage: [] } };
 }
@@ -209,6 +236,67 @@ function ensureRecorded(g: Game) {
   addLog(p, `You died at ${p.age}: ${entry.cause}.`);
 }
 
+/** Builds the heir's family from who is left: the surviving spouse, siblings, grandparents and relatives. */
+function buildHeirWorld(old: Player, kid: Kid, p: Player, estateReal: number) {
+  const archetype: FamilyArchetype = estateReal > 250e6 ? "nepo" : estateReal > 60e6 ? "upperMiddle" : estateReal > 6e6 ? "middle" : estateReal > 1.5e6 ? "struggling" : "lapo";
+  const income = Math.round(clamp(estateReal * 0.05, 600_000, 500_000_000));
+  const ageShift = old.age - kid.age;
+  const oldSelf = makeNpc({ role: old.gender === "male" ? "dad" : "mom", gender: old.gender, ageDelta: ageShift, tribe: old.tribe, surname: old.surname, name: `${old.name} ${old.surname}`, look: old.look, income: 0, stateId: old.state });
+  oldSelf.alive = false;
+  const npcs: Record<string, ReturnType<typeof makeNpc>> = { [oldSelf.id]: oldSelf };
+  const providers: string[] = [];
+  let spouseNpc: ReturnType<typeof makeNpc> | undefined;
+  if (old.spouse) {
+    spouseNpc = makeNpc({ role: old.gender === "male" ? "mom" : "dad", gender: old.gender === "male" ? "female" : "male", ageDelta: ageShift, tribe: old.tribe, name: old.spouse.name, look: old.spouse.look, income, generosity: randInt(35, 80), strictness: randInt(25, 75), responsibility: randInt(40, 85), closeness: randInt(60, 95), stateId: old.state });
+    npcs[spouseNpc.id] = spouseNpc;
+    providers.push(spouseNpc.id);
+  }
+  for (const k of old.kids) {
+    if (k === kid) continue;
+    const s = makeNpc({ role: "sibling", gender: k.gender, ageDelta: k.age - kid.age || 1, tribe: old.tribe, name: `${k.name} ${old.surname}`, look: k.look, income: 0, closeness: randInt(50, 90) });
+    npcs[s.id] = s;
+  }
+  for (const n of Object.values(old.npcs)) {
+    if (["dad", "mom", "guardian", "grandparent"].includes(n.role) && n.alive) {
+      const g = { ...n, role: "grandparent" as const, ageDelta: old.age + n.ageDelta - kid.age };
+      npcs[g.id] = g;
+      if (!spouseNpc && kid.age < 18 && providers.length === 0) providers.push(g.id);
+    } else if (n.role === "sibling" && n.alive) {
+      const u = { ...n, role: n.gender === "male" ? ("uncle" as const) : ("aunt" as const), ageDelta: old.age + n.ageDelta - kid.age, income: Math.max(n.income, 1_500_000) };
+      npcs[u.id] = u;
+      if (!spouseNpc && kid.age < 18 && providers.length === 0) providers.push(u.id);
+    } else if (n.role === "uncle" || n.role === "aunt") {
+      if (n.alive) npcs[n.id] = { ...n, ageDelta: old.age + n.ageDelta - kid.age };
+    }
+  }
+  if (providers.length === 0 && kid.age < 18) {
+    const aunt = makeNpc({ role: "guardian", gender: "female", ageDelta: randInt(28, 42), tribe: old.tribe, income: Math.max(income, 2_000_000), stateId: old.state, surname: old.surname, look: randomLook("female", { region: stateOf(old).region }) });
+    npcs[aunt.id] = aunt;
+    providers.push(aunt.id);
+  }
+  const fam: FamilyBg = {
+    archetype, label: old.spouse ? "Family carrying on after a loss" : "Family carrying on after a loss", structure: spouseNpc ? (old.gender === "male" ? "single-mother" : "single-father") : kid.age < 18 ? "relatives" : "orphan",
+    income: providers.length ? income : Math.round(income * 0.3), generosity: randInt(35, 80), strictness: randInt(25, 75), responsibility: randInt(40, 85), closeness: randInt(55, 90),
+    trend: "steady", debts: 0, connections: old.stats.connections > 40, siblings: old.kids.length - 1, tags: [`Heir to ${old.name} ${old.surname}`], cutOff: [], given: [], providers,
+    dadId: spouseNpc?.role === "dad" ? spouseNpc.id : oldSelf.role === "dad" ? oldSelf.id : undefined,
+    momId: spouseNpc?.role === "mom" ? spouseNpc.id : oldSelf.role === "mom" ? oldSelf.id : undefined, expectContribution: false,
+  };
+  p.fam = fam;
+  p.npcs = npcs;
+  p.month = 1;
+  p.ledger = [];
+  p.fin = [];
+  p.loans = [];
+  p.credit = clamp(old.credit - 5, 30, 75);
+  p.subs = [];
+  p.skills = { ...old.skills };
+  p.possessions = { phone: kid.age >= 10, smartphone: kid.age >= 13 && estateReal > 4e6, laptop: kid.age >= 16 && estateReal > 4e6 };
+  p.vehicles = old.vehicles.map((v) => ({ ...v, loanId: undefined }));
+  p.housing = kid.age >= 18 && p.houses.some((h) => h.state === p.state && h.use === "owner") ? { type: "owned", stateId: p.state, annualRent: 0, paidUntil: 0, arrears: 0, landlord: "" } : familyHousing(p.state);
+  for (let i = 0; i < 2; i++) addFriend(p);
+  syncLegacyFamily(p);
+}
+
 export function startHeir(g0: Game, kidIndex: number): Game {
   const g = structuredClone(g0);
   const old = g.p;
@@ -217,8 +305,7 @@ export function startHeir(g0: Game, kidIndex: number): Game {
   const deathYear = old.birthYear + old.age;
   const wealthNow = Math.max(0, netWorth(old));
   const estate = 0.7;
-  const idxWealth = (wealthNow * estate) / old.index;
-  const cls = idxWealth > 200_000_000 ? "rich" : idxWealth > 5_000_000 ? "middle" : "struggling";
+  const estateReal = (wealthNow * estate) / old.index;
   const p: Player = {
     ...structuredClone(old),
     id: uid(),
@@ -230,13 +317,13 @@ export function startHeir(g0: Game, kidIndex: number): Game {
     alive: true,
     cause: "",
     birthState: old.state,
-    classAtBirth: cls,
+    classAtBirth: classOf(estateReal * 0.1),
     stats: {
       health: randInt(65, 100), happiness: randInt(55, 90), smarts: clamp(old.stats.smarts + randInt(-20, 20), 15, 95), looks: randInt(25, 90),
-      stress: 10, connections: Math.round(old.stats.connections * 0.6), reputation: Math.round(30 + old.stats.reputation * 0.5),
+      stress: 10, connections: Math.round(old.stats.connections * 0.6), reputation: Math.round(30 + old.stats.reputation * 0.5), fitness: randInt(35, 65),
     },
-    money: Math.round(old.money * estate),
-    debt: Math.round(old.debt),
+    money: 0,
+    debt: 0,
     edu: "none",
     course: null,
     school: null,
@@ -245,7 +332,7 @@ export function startHeir(g0: Game, kidIndex: number): Game {
     holdings: old.holdings.map((h) => ({ ...h, invested: Math.round(h.invested * estate), value: Math.round(h.value * estate) })),
     look: kid.look ?? randomLook(kid.gender, { region: stateOf(old).region, religion: old.religion }),
     luck: clamp(old.luck + randInt(-20, 20), 10, 90),
-    family: { state: old.state, happy: 60, parentsAlive: false, dad: old.gender === "male" ? old.look : old.spouse?.look, mom: old.gender === "female" ? old.look : old.spouse?.look },
+    family: { state: old.state, happy: 60, parentsAlive: false },
     spouse: null,
     kids: [],
     traveled: false,
@@ -263,13 +350,18 @@ export function startHeir(g0: Game, kidIndex: number): Game {
     log: [],
   };
   setDeflator(p.index);
+  buildHeirWorld(old, kid, p, estateReal);
   enrollByAge(p);
-  if (p.age >= 18 && cls === "rich" && chance(0.6)) {
+  assignSchoolType(p);
+  if (p.age >= 18 && estateReal > 30e6 && chance(0.6)) {
     p.edu = "tertiary";
     p.course = pick(["Law", "Medicine", "Engineering", "Accounting"]);
   }
   p.houses = p.houses.map((h) => ({ ...h, use: h.state === p.state ? "owner" : "empty" }));
   p.flags.dynasty = old.generation;
+  const cash = Math.round(old.money * estate);
+  if (cash > 0) transact(p, { amount: cash, reason: `Inheritance from ${old.name} ${old.surname}`, category: "inheritance" });
+  if (old.houses.length) transact(p, { amount: 0, memo: true, reason: `Inherited ${old.houses.length} propert${old.houses.length > 1 ? "ies" : "y"} from ${old.name}`, category: "inheritance" });
   settle(p);
   addLog(p, `You are ${p.name} ${p.surname}, the ${old.gender === "male" ? "son" : "daughter"} of ${old.name}. ${old.name} left you ${naira(p.money)} in cash${p.houses.length ? `, ${p.houses.length} house${p.houses.length > 1 ? "s" : ""}` : ""}${p.holdings.length ? " and investments" : ""}. The family name is now in your hands.`);
   return { p, queue: [], dynasty: g.dynasty };
@@ -297,7 +389,9 @@ const CAUSES = ["Heart attack", "Stroke", "Complications of malaria", "A short i
 function schoolTick(p: Player, lines: string[], pending: Pending[]) {
   if (!p.school && p.age === 6 && p.edu === "none") {
     p.school = { stage: "primary", yearsLeft: 6, type: "school" };
-    lines.push(p.classAtBirth === "rich" ? "You start primary school for one private school with school bus." : "You start primary school for the local school.");
+    assignSchoolType(p);
+    const t = p.flags.schoolType;
+    lines.push(t === "elite" ? "You start primary school at an expensive international school." : t === "private" ? "You start primary school at a private school with a school bus." : "You start primary school at the local public school.");
     return;
   }
   if (!p.school) return;
@@ -309,6 +403,7 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
   if (stage === "primary") {
     p.edu = "primary";
     p.school = { stage: "secondary", yearsLeft: 6, type: "school" };
+    assignSchoolType(p);
     lines.push("You pass Common Entrance and start secondary school.");
   } else if (stage === "secondary") {
     p.edu = "secondary";
@@ -318,6 +413,9 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
     p.edu = "tertiary";
     lines.push(`You graduate${p.course ? ` with degree in ${p.course}` : ""}. Your family throw small party.`);
     bump(p, "smarts", 3);
+    schoolHousing(p, false);
+    const grad = graduationData(p, true);
+    if (grad) pending.push({ kind: "event", id: "graduation_support", data: grad });
     if (!p.flags.nysc && p.age < 32) pending.push({ kind: "event", id: "nysc", data: { posted: pick(TRAVEL_STATES.filter((s) => s.id !== "abuja" && s.id !== "lagos")).id } });
   }
 }
@@ -352,14 +450,11 @@ export function ageUp(g0: Game): Game {
     bump(p, "happiness", -4);
     lines.push(p.prison > 0 ? "Another year for Kuje prison." : "You was released from prison.");
     if (p.prison === 0) politicalRelease(p, pending);
-  } else if (p.age >= 16) {
-    let income = 0;
+  } else {
+    let yearPay = 0;
     const j = jobDef(p);
-    if (p.job && j) {
-      const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
-      const volatility = j.group === "formal" ? rand(0.92, 1.08) : rand(0.55, 1.4);
-      const pay = rung.pay * PAY_SCALE[j.group] * payMult(j, st) * Math.pow(p.index, j.group === "formal" ? 0.86 : 0.92) * volatility;
-      income += p.flags.investorShare ? pay * 0.88 : pay;
+    if (p.age >= 16 && p.job && j) {
+      yearPay = annualPay(p);
       p.job.years += 1;
       if (!j.selfEmployed && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
         const base = j.group === "creative" ? 0.05 + (p.stats.looks + p.stats.smarts) / 1800 : 0.07 + p.stats.connections / 500 + p.stats.smarts / 700;
@@ -372,44 +467,21 @@ export function ageUp(g0: Game): Game {
       }
       if (j.id === "yahoo" && chance(0.08 + p.job.rank * 0.07 + (p.money > 40_000_000 * p.index ? 0.07 : 0))) pending.push({ kind: "event", id: "arrested", data: {} });
       if (j.id === "kidnapper" && chance(0.1 + p.job.rank * 0.04)) pending.push({ kind: "event", id: "arrested", data: {} });
-      lines.push(`Income: ${naira(pay)}${j.selfEmployed ? ` from your ${j.title.toLowerCase()} business` : ` as ${rung.title}`}.`);
     }
-    for (const h of p.houses) {
-      if (h.use === "rent" && chance(0.88)) {
-        income += HOUSE_KINDS[h.kind].rent * STATE_BY_ID[h.state].cost * Math.pow(p.index, 0.9) * rand(0.9, 1.1);
-      }
-    }
-    let living = 0;
-    let rent = 0;
-    if (p.age >= 18) {
-      const atHome = p.age < 24 && p.family.state === p.state;
-      living = 420_000 * st.cost * Math.pow(p.index, 0.95) * (1 + 0.2 * Math.min(p.kids.length, 4)) * (atHome ? 0.5 : 1);
-      const homeHere = p.houses.some((h) => h.state === p.state && (h.use === "owner" || h.use === "family"));
-      rent = homeHere || atHome ? 0 : 180_000 * st.cost * Math.pow(p.index, 0.95);
-    }
-    if (!p.job && !p.school && p.age >= 18 && !(p.politics && p.politics.office >= 0)) {
-      // Odd jobs, family support and small small hustle keep you afloat.
-      income += 220_000 * (0.6 + st.opp / 10) * Math.pow(p.index, 0.92) * rand(0.6, 1.2);
-    }
-    const upkeep = yearlyUpkeep(p);
-    p.money += income - living - rent - upkeep;
-    if (p.money > 0) p.money *= 1.04; // bank interest
-    if (p.debt > 0) {
-      p.debt *= 1.12;
-      const repay = Math.min(p.debt, Math.max(0, p.money) * 0.35);
-      p.money -= repay;
-      p.debt -= repay;
-    }
-    if (p.money < 0) {
-      bump(p, "stress", 10);
-      bump(p, "happiness", -6);
-      lines.push("Money tight o. You borrow to survive.");
-    }
+    runMonths(p, { lines, pending, yearPay, rate });
     settle(p);
     yearlyHoldings(p, rate, lines);
+    const fy = p.fin.find((f) => f.age === p.age);
+    if (p.age >= 14 && fy && (fy.income > 0 || fy.expense > 0)) lines.push(`Money this year: ${naira(fy.income)} in, ${naira(fy.expense)} out.`);
   }
+  yearlyWorld(p, lines, pending);
+  if (p.age === 22 && p.edu === "secondary" && !p.fam.given.includes("graduationGift")) {
+    const grad = graduationData(p, false);
+    if (grad) pending.push({ kind: "event", id: "graduation_support", data: grad });
+  }
+  p.credit = clamp(p.credit + (p.loans.some((l) => l.direction === "owed" && l.missed > 0) ? 0 : 1));
 
-  yearlyPolitics(p, lines, pending);
+  { const snap = snapshot(p); yearlyPolitics(p, lines, pending); reconcile(p, snap, "Government pay and allowances", "salary"); }
   if (p.flags.efccWatch && (p.politics?.office ?? -1) < 0 && p.loot > 0 && chance(0.12)) pending.push({ kind: "event", id: "efcc", data: {} });
 
   // Body and mind
@@ -422,14 +494,6 @@ export function ageUp(g0: Game): Game {
   p.stats.looks -= p.age > 35 ? rand(0, 1.2) : 0;
   if (p.spouse) p.spouse.happy = clamp(p.spouse.happy + rand(-6, 5));
 
-  // Parents
-  if (p.family.parentsAlive && p.age >= 40 && chance((p.age - 38) / 140)) {
-    p.family.parentsAlive = false;
-    bump(p, "happiness", -15);
-    lines.push("Your parent don die.");
-    pending.push({ kind: "event", id: "funeral", data: {} });
-  }
-
   // Kidnapping is rare and random.
   if (chance(kidnapRisk(p))) pending.unshift({ kind: "kidnap", k: makeKidnap(p) });
 
@@ -438,19 +502,23 @@ export function ageUp(g0: Game): Game {
   if (p.age >= 6 && p.prison >= 0) {
     const tries = p.prison > 0 ? 1 : chance(p.age < 13 ? 0.28 : 0.7) ? 1 : 0;
     for (let i = 0; i < tries; i++) {
-      const ev = weightedPick(ALL_EVENTS.filter((e) => !used.has(e.id)).map((e) => ({ item: e, w: e.weight(p) })));
+      const ev = weightedPick(ALL_EVENTS.filter((e) => !used.has(e.id) && eligible(p, e.id)).map((e) => ({ item: e, w: e.weight(p) })));
       if (ev) {
         used.add(ev.id);
-        pending.push({ kind: "event", id: ev.id, data: ev.init ? ev.init(p) : {} });
+        pending.push({ kind: "event", id: ev.id, data: { ...(ev.init ? ev.init(p) : {}), month: randInt(1, 12) } });
       }
     }
     const autos = chance(0.55) ? 2 : 1;
     const taken = new Set<string>();
     for (let i = 0; i < autos; i++) {
-      const au = weightedPick(ALL_AUTOS.filter((a) => !taken.has(a.id)).map((a) => ({ item: a, w: a.weight(p) })));
+      const au = weightedPick(ALL_AUTOS.filter((a) => !taken.has(a.id) && eligible(p, a.id)).map((a) => ({ item: a, w: a.weight(p) })));
       if (au) {
         taken.add(au.id);
-        lines.push(au.run(p));
+        p.month = randInt(1, 12);
+        const snap = snapshot(p);
+        const msg = au.run(p);
+        reconcile(p, snap, msg.length > 70 ? `${msg.slice(0, 67)}...` : msg, "event");
+        lines.push(msg);
       }
     }
   }
@@ -463,6 +531,7 @@ export function ageUp(g0: Game): Game {
   }
 
   p.traveled = false;
+  p.month = 12;
   for (const l of lines) addLog(p, l);
   if (lines.length === 0 && pending.length === 0) addLog(p, "Quiet year. No wahala.");
   g.queue = p.alive ? pending : [];
@@ -511,7 +580,11 @@ export function choose(g0: Game, idx: number): { g: Game; text: string } {
   const choice = def.choices(g.p, pe.data)[idx];
   if (!choice || choice.disabled) return { g: g0, text: "" };
   g.queue.shift();
+  g.p.month = Number(pe.data.month ?? 12) || 12;
+  const snap = snapshot(g.p);
   const res = choice.run(g.p);
+  reconcile(g.p, snap, `${def.title}: ${choice.label}`, "event", pe.id);
+  g.p.month = 12;
   const text = typeof res === "string" ? res : res.text;
   if (typeof res !== "string" && res.spawn) g.queue.unshift(...res.spawn);
   addLog(g.p, text);
@@ -526,7 +599,9 @@ export function kidnapAction(g0: Game, a: KidnapAction): Game {
   setDeflator(g.p.index);
   const pe = g.queue[0];
   if (!pe || pe.kind !== "kidnap") return g0;
+  const snap = snapshot(g.p);
   kidnapStep(g.p, pe.k, a);
+  reconcile(g.p, snap, "Kidnap emergency: ransom arrangements", "emergency");
   settle(g.p);
   return g;
 }
@@ -608,11 +683,37 @@ export function buildCost(p: Player, kind: HouseKind): number {
   return Math.round(HOUSE_KINDS[kind].build * stateOf(p).cost * Math.pow(p.index, 0.95));
 }
 
+function actionMeta(a: Action): { reason: string; category: import("./types").TxCategory } {
+  switch (a.t) {
+    case "apply": return a.bribe ? { reason: "Bribe to get a job", category: "other" } : { reason: "Started a business", category: "business" };
+    case "quit": return { reason: "Left your job", category: "other" };
+    case "expand": return { reason: "Business expansion", category: "business" };
+    case "travel": return { reason: "Travel costs", category: "transport" };
+    case "build": return { reason: "Property purchase", category: "asset" };
+    case "sell": return { reason: "Sold property", category: "asset" };
+    case "use": return { reason: "Property change", category: "asset" };
+    case "send": return { reason: "Money sent home", category: "family" };
+    case "activity": return { reason: `Activity: ${a.id}`, category: "personal" };
+    case "japa": return { reason: "Japa application costs", category: "other" };
+    case "luxury": return { reason: "Luxury spending", category: "personal" };
+    case "invest": return { reason: "Investment purchase", category: "investment" };
+    case "divest": return { reason: "Investment sold", category: "investment" };
+    case "joinPolitics": return { reason: "Party membership and forms", category: "other" };
+    case "contest": return { reason: "Campaign", category: "other" };
+    case "gov": return { reason: "Public office proceeds", category: "crime" };
+    case "power": return { reason: "Political power-building", category: "other" };
+    case "coup": return { reason: "Coup", category: "crime" };
+  }
+}
+
 export function act(g0: Game, a: Action): { g: Game; msg: string } {
   const g = structuredClone(g0);
   const p = g.p;
   setDeflator(p.index);
+  const snap = snapshot(p);
   const out = (msg: string) => {
+    const meta = actionMeta(a);
+    reconcile(p, snap, meta.reason, meta.category);
     addLog(p, msg);
     settle(p);
     ensureRecorded(g);

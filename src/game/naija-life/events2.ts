@@ -1,4 +1,5 @@
 import { STATE_BY_ID, TRAVEL_STATES, travelCost } from "./data";
+import { applySupport, defaultAmount, evaluateSupport, primaryProvider } from "./family";
 import { I, bump, expandCostFor, jobDef, luckBonus, ownsHouseIn, stateOf } from "./helpers";
 import type { AutoDef, EventDef, Player } from "./types";
 import { chance, clamp, naira, pick, rand } from "./util";
@@ -38,7 +39,7 @@ export const EVENTS2: EventDef[] = [
     choices: (p) => [
       { label: "Borrow from loan app", run: (q) => { q.money += I(q, 100_000); q.debt += I(q, 160_000); bump(q, "stress", 7); return "The loan enter in 2 minutes. The interest enter your life for 2 years."; } },
       { label: "Sell your phone", run: (q) => { q.money += I(q, 200_000); bump(q, "happiness", -8); return "You sell the phone and buy 'Tecno small' for ₦20K. Life continues."; } },
-      { label: "Beg family for help", disabled: p.family.happy < 25 ? "Family never dey talk to you" : false, run: (q) => { q.money += I(q, 150_000); q.family.happy = clamp(q.family.happy - 4); return "Mama send small money with long sermon attached."; } },
+      { label: "Beg family for help", disabled: p.family.happy < 25 ? "Family never dey talk to you" : false, run: (q) => { const n = primaryProvider(q); if (!n) return "You have nobody to ask."; return applySupport(q, n, "emergency", evaluateSupport(q, n, "emergency", defaultAmount(q, "food") * 3)); } },
       { label: "Hustle on any side gig", run: (q) => { q.money += I(q, rand(100_000, 300_000)); bump(q, "stress", 6); return "You wash cars, sell recharge cards, carry loads. Hustle no dey sleep."; } },
     ],
   },

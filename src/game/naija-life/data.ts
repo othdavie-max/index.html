@@ -1,4 +1,5 @@
 import type { Edu, HoldingKind, HouseKind, Region, StateInfo } from "./types";
+import { rng } from "./util";
 
 // ---------------------------------------------------------------------------
 // States. opp = opportunity, cost = cost of living, risk = insecurity.
@@ -84,7 +85,7 @@ export const ALL_TRIBES = ["Hausa", "Fulani", "Yoruba", "Igbo", "Tiv", "Nupe", "
 export const RELIGIONS = ["Christian", "Muslim", "Traditional"];
 export function defaultReligion(region: Region): string {
   const north = region === "North West" || region === "North East";
-  const r = Math.random();
+  const r = rng();
   if (north) return r < 0.85 ? "Muslim" : r < 0.97 ? "Christian" : "Traditional";
   if (region === "North Central") return r < 0.5 ? "Christian" : r < 0.97 ? "Muslim" : "Traditional";
   if (region === "South West") return r < 0.5 ? "Christian" : r < 0.97 ? "Muslim" : "Traditional";
@@ -293,6 +294,8 @@ export function payMult(job: JobDef, st: StateInfo): number {
 // Houses
 // ---------------------------------------------------------------------------
 export const HOUSE_KINDS: Record<HouseKind, { label: string; build: number; rent: number }> = {
+  land: { label: "Plot of land", build: 4_000_000, rent: 0 },
+  apartment: { label: "Apartment", build: 22_000_000, rent: 2_200_000 },
   bungalow: { label: "Bungalow", build: 10_000_000, rent: 1_100_000 },
   duplex: { label: "Duplex", build: 35_000_000, rent: 3_500_000 },
   flats: { label: "Block of flats", build: 90_000_000, rent: 9_000_000 },
@@ -376,3 +379,33 @@ export const INVESTMENTS: InvestOption[] = [
   { kind: "school", label: "Private school chain", desc: "Steady fees. Parents always find a way.", min: 20_000_000 },
   { kind: "bank", label: "Buy a stake in a bank", desc: "Slow, very stable returns and plenty of prestige.", min: 5_000_000_000 },
 ];
+
+// ---------------------------------------------------------------------------
+// Housing tiers (annual rent in base-year naira before the state's cost factor)
+// ---------------------------------------------------------------------------
+export interface HomeTier {
+  id: string;
+  label: string;
+  rent: number;
+  comfort: number;
+  blurb: string;
+}
+export const HOME_TIERS: HomeTier[] = [
+  { id: "room", label: "Shared room", rent: 110_000, comfort: -2, blurb: "A room in a compound, shared bathroom." },
+  { id: "selfcon", label: "Self-contain", rent: 300_000, comfort: 0, blurb: "Your own room with a private bathroom." },
+  { id: "onebed", label: "1-bedroom flat", rent: 700_000, comfort: 2, blurb: "A proper small flat." },
+  { id: "twobed", label: "2-bedroom flat", rent: 1_500_000, comfort: 4, blurb: "Room for family and a visitor." },
+  { id: "duplex", label: "Rented duplex", rent: 4_500_000, comfort: 7, blurb: "A fine house in a good estate." },
+];
+
+// ---------------------------------------------------------------------------
+// School fees per year in base-year naira
+// ---------------------------------------------------------------------------
+export type SchoolType = "public" | "private" | "elite";
+export const SCHOOL_FEES: Record<string, Record<SchoolType, number>> = {
+  primary: { public: 30_000, private: 350_000, elite: 1_800_000 },
+  secondary: { public: 60_000, private: 600_000, elite: 2_800_000 },
+  tertiary: { public: 180_000, private: 1_200_000, elite: 3_500_000 },
+};
+export const POLY_FEE = 140_000;
+export const VOCATIONAL_FEE = 250_000;

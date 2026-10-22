@@ -1,11 +1,29 @@
-export const rand = (a: number, b: number) => a + Math.random() * (b - a);
+/** Seedable random source so tests and bug reports can be reproduced. */
+let source: () => number = Math.random;
+export function setSeed(seed: number | null) {
+  if (seed === null) {
+    source = Math.random;
+    return;
+  }
+  let a = seed >>> 0;
+  source = () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+export const rng = () => source();
+
+export const rand = (a: number, b: number) => a + rng() * (b - a);
 export const randInt = (a: number, b: number) => Math.floor(rand(a, b + 1));
-export const chance = (p: number) => Math.random() < p;
-export const pick = <T,>(arr: readonly T[]): T => arr[Math.floor(Math.random() * arr.length)];
+export const chance = (p: number) => rng() < p;
+export const pick = <T,>(arr: readonly T[]): T => arr[Math.floor(rng() * arr.length)];
 export const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 
 let uidCounter = 0;
-export const uid = () => `${Date.now().toString(36)}${(uidCounter++).toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`;
+export const uid = () => `${(uidCounter++).toString(36)}${Math.floor(rng() * 1e6).toString(36)}`;
 
 /**
  * All amounts are shown in "today's naira": the engine works in nominal money that
@@ -33,7 +51,7 @@ export function weightedPick<T>(items: { item: T; w: number }[]): T | null {
   const live = items.filter((i) => i.w > 0);
   const total = live.reduce((s, i) => s + i.w, 0);
   if (total <= 0) return null;
-  let r = Math.random() * total;
+  let r = rng() * total;
   for (const i of live) {
     r -= i.w;
     if (r <= 0) return i.item;

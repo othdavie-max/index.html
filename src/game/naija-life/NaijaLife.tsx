@@ -21,7 +21,7 @@ import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, cur
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
-import { naira, setDeflator } from "./util";
+import { chance, naira, setDeflator } from "./util";
 
 const SAVE_KEY = "naija-life-save-v1";
 type Tab = "life" | "work" | "money" | "family" | "map" | "power" | "legacy";
@@ -1040,7 +1040,7 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
         ) : (
           <>
             <p className="text-sm text-white/80">You had no children. The bloodline ends here.</p>
-            <Btn className="w-full" onClick={() => onNew({ name: "", gender: Math.random() < 0.5 ? "male" : "female", stateId: null, tribe: null, religion: null })}>Start a brand-new family</Btn>
+            <Btn className="w-full" onClick={() => onNew({ name: "", gender: chance(0.5) ? "male" : "female", stateId: null, tribe: null, religion: null })}>Start a brand-new family</Btn>
           </>
         )}
         <Btn tone="gold" className="w-full" onClick={share}>Share this life</Btn>

@@ -1,5 +1,5 @@
 import type { Gender } from "./types";
-import { chance, clamp, pick, randInt } from "./util";
+import { rng, chance, clamp, pick, randInt } from "./util";
 
 export interface Look {
   skin: number;
@@ -71,7 +71,7 @@ interface LookCtx {
 /** A believable random Nigerian look. */
 export function randomLook(gender: Gender, ctx: LookCtx = {}): Look {
   const male = gender === "male";
-  const skin = clamp(Math.round((ctx.skinBase ?? 3 + Math.random() * 3.2) + (Math.random() - 0.5) * 1.6), 0, SKINS.length - 1);
+  const skin = clamp(Math.round((ctx.skinBase ?? 3 + rng() * 3.2) + (rng() - 0.5) * 1.6), 0, SKINS.length - 1);
   const hair = male ? pick(["low", "low", "fade", "afro", "cornrows", "dreads", "twists", "bald", "knots"]) : pick(["puff", "braids", "weave", "cornrows", "knots", "afro", "shuku", "low", "twists"]);
   const north = ctx.region === "North West" || ctx.region === "North East" || ctx.region === "North Central";
   let wear = "none";
@@ -94,14 +94,14 @@ export function randomLook(gender: Gender, ctx: LookCtx = {}): Look {
 export function kidLook(dad: Look | null | undefined, mom: Look | null | undefined, gender: Gender): Look {
   const a = dad ?? randomLook("male");
   const b = mom ?? randomLook("female");
-  const skin = clamp(Math.round((a.skin + b.skin) / 2 + (Math.random() - 0.5) * 1.8), 0, SKINS.length - 1);
+  const skin = clamp(Math.round((a.skin + b.skin) / 2 + (rng() - 0.5) * 1.8), 0, SKINS.length - 1);
   const base = randomLook(gender, { skinBase: skin });
   return { ...base, skin, hairColor: chance(0.5) ? a.hairColor : b.hairColor, beard: "none", wear: "none", outfit: pick(["tshirt", "ankara", "jersey"]) };
 }
 
 /** A parent who looks related to their child. */
 export function parentLook(child: Look, gender: Gender, region?: string, religion?: string): Look {
-  const base = randomLook(gender, { region, religion, skinBase: child.skin + (Math.random() - 0.5) * 1.4 });
+  const base = randomLook(gender, { region, religion, skinBase: child.skin + (rng() - 0.5) * 1.4 });
   return { ...base, hair: gender === "male" ? pick(["low", "low", "bald", "afro"]) : pick(["weave", "braids", "puff", "low"]), outfit: pick(gender === "male" ? ["agbada", "kaftan", "suit", "ankara"] : ["ankara", "ankara", "kaftan"]) };
 }
 

@@ -28,9 +28,10 @@ export interface Stats {
   /** "Who you know" meter. */
   connections: number;
   reputation: number;
+  fitness: number;
 }
 
-export type HouseKind = "bungalow" | "duplex" | "flats";
+export type HouseKind = "land" | "apartment" | "bungalow" | "duplex" | "flats";
 export type HouseUse = "owner" | "family" | "rent" | "empty";
 export interface House {
   id: string;
@@ -129,6 +130,20 @@ export interface Player {
   look: Look;
   /** Hidden fortune stat, 0-100. Shapes windfalls and disasters. */
   luck: number;
+  /** Month within the current age year, 1-12. */
+  month: number;
+  ledger: Tx[];
+  fin: FinYear[];
+  npcs: Record<string, Npc>;
+  fam: FamilyBg;
+  loans: Loan[];
+  /** 0-100. Affects digital loans and bank eligibility. */
+  credit: number;
+  housing: Housing;
+  subs: Sub[];
+  possessions: Possessions;
+  skills: Record<string, number>;
+  vehicles: Vehicle[];
   family: { state: string; happy: number; parentsAlive: boolean; dad?: Look; mom?: Look };
   spouse: { name: string; happy: number; look?: Look } | null;
   kids: Kid[];
@@ -145,6 +160,173 @@ export interface Player {
   achievements: string[];
   peakWorth: number;
   log: LogEntry[];
+}
+
+// ---------------------------------------------------------------------------
+// Money records
+// ---------------------------------------------------------------------------
+export type TxCategory =
+  | "salary" | "business" | "gift" | "allowance" | "loan" | "repayment" | "interest" | "rent" | "food" | "transport"
+  | "utilities" | "airtime" | "education" | "health" | "dating" | "family" | "vehicle" | "tax" | "betting"
+  | "investment" | "legal" | "emergency" | "asset" | "social" | "inheritance" | "personal" | "event" | "crime" | "other";
+
+export interface Tx {
+  id: string;
+  /** Positive = money in, negative = money out. */
+  amount: number;
+  reason: string;
+  category: TxCategory;
+  age: number;
+  month: number;
+  eventId?: string;
+  before: number;
+  after: number;
+  recurring?: string;
+}
+
+export interface FinYear {
+  age: number;
+  income: number;
+  expense: number;
+  /** Money borrowed this year (loan proceeds are not income). */
+  borrowed: number;
+  cats: Record<string, number>;
+}
+
+// ---------------------------------------------------------------------------
+// People
+// ---------------------------------------------------------------------------
+export type NpcRole = "dad" | "mom" | "guardian" | "sibling" | "friend" | "cousin" | "uncle" | "aunt" | "grandparent" | "partner" | "ex" | "match" | "colleague";
+
+export interface NpcMemory {
+  age: number;
+  text: string;
+  tone: "good" | "bad";
+}
+
+export interface Npc {
+  id: string;
+  name: string;
+  gender: Gender;
+  role: NpcRole;
+  look: Look;
+  /** NPC age = player's age + ageDelta (so parents stay older). */
+  ageDelta: number;
+  alive: boolean;
+  occupation: string;
+  stateId: string;
+  /** Annual income in base-year naira (inflated by the price index when used). */
+  income: number;
+  /** Savings cushion in base-year naira. */
+  savings: number;
+  generosity: number;
+  strictness: number;
+  responsibility: number;
+  materialism: number;
+  /** How close you are, 0-100. */
+  closeness: number;
+  /** Whether they trust you with money, 0-100. */
+  trust: number;
+  /** How many times you asked recently. Decays yearly. */
+  asks: number;
+  /** Total they gave you this year, base-year naira. */
+  gaveThisYear: number;
+  traits: string[];
+  memories: NpcMemory[];
+}
+
+export type FamilyArchetype = "nepo" | "upperMiddle" | "middle" | "strictRich" | "struggling" | "lapo" | "newlyRich" | "fallenRich";
+export type FamilyStructure = "two-parent" | "single-mother" | "single-father" | "grandparents" | "relatives" | "divorced" | "parents-abroad" | "orphan";
+
+export interface FamilyBg {
+  archetype: FamilyArchetype;
+  label: string;
+  structure: FamilyStructure;
+  /** Household income in base-year naira per year. */
+  income: number;
+  generosity: number;
+  strictness: number;
+  responsibility: number;
+  closeness: number;
+  trend: "rising" | "steady" | "falling";
+  debts: number;
+  connections: boolean;
+  siblings: number;
+  tags: string[];
+  /** Support the family has stopped giving (e.g. "pocketMoney", "rent"). */
+  cutOff: string[];
+  /** Support already given once (e.g. "graduationGift"). */
+  given: string[];
+  /** NPC ids of the adults who provide for you. */
+  providers: string[];
+  dadId?: string;
+  momId?: string;
+  /** Parents expect you to contribute to household costs once you earn. */
+  expectContribution: boolean;
+}
+
+export interface Loan {
+  id: string;
+  direction: "owed" | "owedToMe";
+  lenderType: "friend" | "relative" | "parent" | "digital" | "bank" | "cooperative" | "other";
+  lenderId?: string;
+  lenderName: string;
+  principal: number;
+  balance: number;
+  /** Annual rate used for interest on installment loans. */
+  apr: number;
+  fee: number;
+  termMonths: number;
+  monthly: number;
+  startAge: number;
+  startMonth: number;
+  /** Informal loans are due in one go at this absolute month index (age*12+month). */
+  dueIndex?: number;
+  informal: boolean;
+  missed: number;
+  status: "active" | "paid" | "defaulted";
+  /** Prevents charging the same month twice. */
+  lastCharged: number;
+  note?: string;
+}
+
+export interface Housing {
+  type: "family" | "rented" | "owned" | "hostel" | "shared";
+  stateId: string;
+  annualRent: number;
+  /** Rent is paid until this absolute month index (age*12+month). */
+  paidUntil: number;
+  arrears: number;
+  landlord: string;
+}
+
+export interface Sub {
+  id: string;
+  label: string;
+  monthly: number;
+  category: TxCategory;
+  /** Absolute month index it started. */
+  since: number;
+}
+
+export interface Vehicle {
+  id: string;
+  modelId: string;
+  name: string;
+  kind: "used" | "new";
+  value: number;
+  condition: number;
+  role: "personal" | "taxi" | "ridehail";
+  insuredUntil: number;
+  bought: number;
+  luxury: boolean;
+  loanId?: string;
+}
+
+export interface Possessions {
+  phone: boolean;
+  smartphone: boolean;
+  laptop: boolean;
 }
 
 export type EventData = Record<string, string | number | boolean>;

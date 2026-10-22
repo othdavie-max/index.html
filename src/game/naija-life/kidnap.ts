@@ -1,4 +1,5 @@
 import { STATE_BY_ID } from "./data";
+import { receivables, totalDebt } from "./loans";
 import type { KidnapState, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt } from "./util";
 
@@ -20,7 +21,8 @@ const PHONE_LINES = [
 export function netWorth(p: Player): number {
   const houses = p.houses.reduce((s, h) => s + h.value, 0);
   const hold = p.holdings.reduce((s, h) => s + h.value, 0);
-  return p.money + houses + hold - p.debt;
+  const cars = (p.vehicles ?? []).reduce((s, v) => s + v.value, 0);
+  return p.money + houses + hold + cars + receivables(p) - totalDebt(p);
 }
 
 export function kidnapRisk(p: Player): number {
