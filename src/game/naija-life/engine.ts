@@ -6,12 +6,29 @@ import { AUTOS2, EVENTS2 } from "./events2";
 import { AUTOS3, EVENTS3 } from "./events3";
 import { EVENTS4 } from "./events4";
 import { EVENTS5, graduationData } from "./events5";
+import { HEALTH_EVENTS, developCondition, yearlyHealth } from "./health";
+import { REL_EVENTS, yearlyRelationships } from "./relationships";
+import { BIZ_EVENTS, bizValue } from "./business";
+import { BET_EVENTS } from "./betting";
+import { CRIME_EVENTS, commitCrime, crimeBlock, CRIME_BY_ID, yearlyCrime } from "./crime";
+import { LIFE_EVENTS, yearlyGrowth } from "./life";
+import { SOCIAL_EVENTS, SOCIAL_JOBS, ensureAccount, fameBonus, yearlySocial } from "./social";
 import { eligible } from "./eligibility";
 import { annualPay, runMonths } from "./finance";
-import { addFriend, classOf, makeNpc, npcsByRole, syncLegacyFamily } from "./family";
+import { SUPPORT_KINDS, addFriend, applySupport, classOf, evaluateSupport, makeNpc, syncLegacyFamily, type SupportKind } from "./family";
 import { auditBalance, coverShortfall, reconcile, snapshot, transact } from "./ledger";
-import { totalDebt } from "./loans";
-import { assignSchoolType, familyHousing, initWorld, migrateWorld, schoolHousing, yearlyWorld } from "./world";
+import { lenderOffers, loanBlock, repayLoan, takeLoan, totalDebt, borrowFrom, giftTo, lendTo } from "./loans";
+import { planEstate } from "./will";
+import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
+import { VEHICLE_MODELS, buyVehicle, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
+import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
+import { askOnDate, breakUp, chat, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
+import { closeBusiness, fireStaff, hireStaff, sellBusiness, startBusiness, toggleManager, upgradeBusiness } from "./business";
+import { placeBet, type BetKind } from "./betting";
+import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
+import { setShare } from "./will";
+import { doGrowth, enlist, learnSkill, toggleGym } from "./life";
+import type { Platform } from "./types";
 import { I, bump, expandCostFor, jobDef, jobTitle, luckBonus, moveTo, randomName, stateOf } from "./helpers";
 import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from "./kidnap";
 import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings, yearlyUpkeep } from "./lifestyle";
@@ -22,7 +39,7 @@ import { kidLook, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -39,6 +56,9 @@ function addLog(p: Player, text: string) {
 
 /** The game never shows negative cash: shortfalls become recorded debt. */
 function settle(p: Player) {
+  // Defensive: never let a bad calculation poison the save.
+  if (!Number.isFinite(p.money)) p.money = 0;
+  if (!Number.isFinite(p.debt)) p.debt = 0;
   if (p.money < 0) coverShortfall(p, "Cash ran short: borrowed to cover costs");
   // Lenders only go so far: beyond this you cut back, sell things and write the rest off.
   const cap = 2_000_000 * Math.pow(p.index, 0.95);
@@ -285,6 +305,7 @@ function buildHeirWorld(old: Player, kid: Kid, p: Player, estateReal: number) {
   p.npcs = npcs;
   p.month = 1;
   p.ledger = [];
+  p.txCount = 0;
   p.fin = [];
   p.loans = [];
   p.credit = clamp(old.credit - 5, 30, 75);
@@ -292,6 +313,15 @@ function buildHeirWorld(old: Player, kid: Kid, p: Player, estateReal: number) {
   p.skills = { ...old.skills };
   p.possessions = { phone: kid.age >= 10, smartphone: kid.age >= 13 && estateReal > 4e6, laptop: kid.age >= 16 && estateReal > 4e6 };
   p.vehicles = old.vehicles.map((v) => ({ ...v, loanId: undefined }));
+  p.conditions = [];
+  p.insurance = { plan: "none" };
+  p.rel = { profile: null, deck: [], partners: [], swipesLeft: 12, chatsLeft: 10 };
+  p.social = null;
+  p.businesses = [];
+  p.market = { ...old.market };
+  p.bets = { staked: 0, won: 0, count: 0, slotsLeft: 8, compulsion: 0 };
+  p.crime = { record: [], heat: 0, skill: 10, violence: 0, cases: [] };
+  p.will = null;
   p.housing = kid.age >= 18 && p.houses.some((h) => h.state === p.state && h.use === "owner") ? { type: "owned", stateId: p.state, annualRent: 0, paidUntil: 0, arrears: 0, landlord: "" } : familyHousing(p.state);
   for (let i = 0; i < 2; i++) addFriend(p);
   syncLegacyFamily(p);
@@ -303,9 +333,21 @@ export function startHeir(g0: Game, kidIndex: number): Game {
   const kid = old.kids[kidIndex];
   if (!kid) return g;
   const deathYear = old.birthYear + old.age;
-  const wealthNow = Math.max(0, netWorth(old));
-  const estate = 0.7;
-  const estateReal = (wealthNow * estate) / old.index;
+  const plan = planEstate(old, kidIndex);
+  const f = plan.heirFraction;
+  // Debts are paid out of the estate first: cash, then investments.
+  let owed = totalDebt(old);
+  let cash = old.money;
+  const fromCash = Math.min(cash, owed);
+  cash -= fromCash;
+  owed -= fromCash;
+  const holdTotal = old.holdings.reduce((s, h) => s + h.value, 0);
+  const holdScale = holdTotal > 0 ? Math.max(0, holdTotal - Math.min(holdTotal, owed)) / holdTotal : 0;
+  const houses = [...old.houses].sort((a, b) => b.value - a.value);
+  const nHouses = f >= 0.99 ? houses.length : Math.max(f > 0.3 && houses.length ? 1 : 0, Math.round(houses.length * f));
+  const cars = [...old.vehicles].sort((a, b) => b.value - a.value);
+  const nCars = f >= 0.99 ? cars.length : Math.round(cars.length * f);
+  const estateReal = (cash * f + holdTotal * holdScale * f + houses.slice(0, nHouses).reduce((s, h) => s + h.value, 0)) / old.index;
   const p: Player = {
     ...structuredClone(old),
     id: uid(),
@@ -328,8 +370,8 @@ export function startHeir(g0: Game, kidIndex: number): Game {
     course: null,
     school: null,
     job: null,
-    houses: old.houses.map((h) => ({ ...h, value: h.value })),
-    holdings: old.holdings.map((h) => ({ ...h, invested: Math.round(h.invested * estate), value: Math.round(h.value * estate) })),
+    houses: houses.slice(0, nHouses).map((h) => ({ ...h })),
+    holdings: old.holdings.map((h) => ({ ...h, invested: Math.round(h.invested * holdScale * f), value: Math.round(h.value * holdScale * f), units: h.units !== undefined ? h.units * holdScale * f : undefined })).filter((h) => h.value > 0),
     look: kid.look ?? randomLook(kid.gender, { region: stateOf(old).region, religion: old.religion }),
     luck: clamp(old.luck + randInt(-20, 20), 10, 90),
     family: { state: old.state, happy: 60, parentsAlive: false },
@@ -350,6 +392,7 @@ export function startHeir(g0: Game, kidIndex: number): Game {
     log: [],
   };
   setDeflator(p.index);
+  old.vehicles = cars.slice(0, nCars);
   buildHeirWorld(old, kid, p, estateReal);
   enrollByAge(p);
   assignSchoolType(p);
@@ -359,12 +402,18 @@ export function startHeir(g0: Game, kidIndex: number): Game {
   }
   p.houses = p.houses.map((h) => ({ ...h, use: h.state === p.state ? "owner" : "empty" }));
   p.flags.dynasty = old.generation;
-  const cash = Math.round(old.money * estate);
-  if (cash > 0) transact(p, { amount: cash, reason: `Inheritance from ${old.name} ${old.surname}`, category: "inheritance" });
-  if (old.houses.length) transact(p, { amount: 0, memo: true, reason: `Inherited ${old.houses.length} propert${old.houses.length > 1 ? "ies" : "y"} from ${old.name}`, category: "inheritance" });
+  const inherit = Math.round((cash + bizValue(old)) * f);
+  if (inherit > 0) transact(p, { amount: inherit, reason: `Inheritance from ${old.name} ${old.surname}${plan.hasWill ? " (as set out in the will)" : " (no will)"}`, category: "inheritance" });
+  if (nHouses > 0) transact(p, { amount: 0, memo: true, reason: `Inherited ${nHouses} propert${nHouses > 1 ? "ies" : "y"} from ${old.name}`, category: "inheritance" });
+  if (plan.charityPct > 0) p.stats.reputation = clamp(p.stats.reputation + Math.round(plan.charityPct / 5));
   settle(p);
-  addLog(p, `You are ${p.name} ${p.surname}, the ${old.gender === "male" ? "son" : "daughter"} of ${old.name}. ${old.name} left you ${naira(p.money)} in cash${p.houses.length ? `, ${p.houses.length} house${p.houses.length > 1 ? "s" : ""}` : ""}${p.holdings.length ? " and investments" : ""}. The family name is now in your hands.`);
-  return { p, queue: [], dynasty: g.dynasty };
+  const parts: string[] = [`You are ${p.name} ${p.surname}, the ${old.gender === "male" ? "son" : "daughter"} of ${old.name}.`];
+  parts.push(plan.hasWill ? `Under the will, you inherit ${Math.round(f * 100)}% of the estate: ${naira(p.money)} in cash${p.houses.length ? `, ${p.houses.length} propert${p.houses.length > 1 ? "ies" : "y"}` : ""}${p.holdings.length ? " and investments" : ""}.` : `${old.name} left no will, so the law divided the estate. You receive ${naira(p.money)}${p.houses.length ? ` and ${p.houses.length} propert${p.houses.length > 1 ? "ies" : "y"}` : ""}.`);
+  if (plan.others.length) parts.push(`Others named: ${plan.others.map((o) => `${o.label} ${o.pct}%`).join(", ")}.`);
+  addLog(p, parts.join(" "));
+  const queue: Pending[] = [];
+  if (chance(plan.disputeChance) && estateReal > 2e6) queue.push({ kind: "event", id: "inheritance_dispute", data: { month: randInt(1, 12), claim: Math.round(p.money * 0.25 + p.houses.reduce((s, h) => s + h.value, 0) * 0.1) } });
+  return { p, queue, dynasty: g.dynasty };
 }
 
 export function startNewFamily(g: Game, opts: NewLifeOptions): Game {
@@ -456,8 +505,8 @@ export function ageUp(g0: Game): Game {
     if (p.age >= 16 && p.job && j) {
       yearPay = annualPay(p);
       p.job.years += 1;
-      if (!j.selfEmployed && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
-        const base = j.group === "creative" ? 0.05 + (p.stats.looks + p.stats.smarts) / 1800 : 0.07 + p.stats.connections / 500 + p.stats.smarts / 700;
+      if (!j.selfEmployed && !SOCIAL_JOBS.includes(j.id) && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
+        const base = j.group === "creative" ? 0.05 + (p.stats.looks + p.stats.smarts) / 1800 + fameBonus(p) : 0.07 + p.stats.connections / 500 + p.stats.smarts / 700;
         if (chance(base + p.stats.connections / 800 + luckBonus(p) / 3)) {
           p.job.rank += 1;
           p.job.years = 0;
@@ -465,8 +514,8 @@ export function ageUp(g0: Game): Game {
           if (j.id === "kidnapper" || j.id === "yahoo") bump(p, "reputation", -2);
         }
       }
-      if (j.id === "yahoo" && chance(0.08 + p.job.rank * 0.07 + (p.money > 40_000_000 * p.index ? 0.07 : 0))) pending.push({ kind: "event", id: "arrested", data: {} });
-      if (j.id === "kidnapper" && chance(0.1 + p.job.rank * 0.04)) pending.push({ kind: "event", id: "arrested", data: {} });
+      if (j.id === "yahoo" && chance(0.08 + p.job.rank * 0.07 + (p.money > 40_000_000 * p.index ? 0.07 : 0))) pending.push({ kind: "event", id: "arrested", data: { ...(EVENT_DEFS.arrested.init?.(p) ?? {}), month: randInt(1, 12) } });
+      if (j.id === "kidnapper" && chance(0.1 + p.job.rank * 0.04)) pending.push({ kind: "event", id: "arrested", data: { ...(EVENT_DEFS.arrested.init?.(p) ?? {}), month: randInt(1, 12) } });
     }
     runMonths(p, { lines, pending, yearPay, rate });
     settle(p);
@@ -475,6 +524,13 @@ export function ageUp(g0: Game): Game {
     if (p.age >= 14 && fy && (fy.income > 0 || fy.expense > 0)) lines.push(`Money this year: ${naira(fy.income)} in, ${naira(fy.expense)} out.`);
   }
   yearlyWorld(p, lines, pending);
+  yearlyHealth(p, lines, pending);
+  yearlyRelationships(p, lines, pending);
+  yearlyCrime(p, lines, pending);
+  yearlyGrowth(p);
+  yearlySocial(p, lines, (id, data) => pending.push({ kind: "event", id, data: { month: randInt(1, 12), ...(data ?? {}) } }));
+  p.bets.slotsLeft = 8;
+  p.bets.compulsion = clamp(p.bets.compulsion - 4);
   if (p.age === 22 && p.edu === "secondary" && !p.fam.given.includes("graduationGift")) {
     const grad = graduationData(p, false);
     if (grad) pending.push({ kind: "event", id: "graduation_support", data: grad });
@@ -521,6 +577,13 @@ export function ageUp(g0: Game): Game {
         lines.push(msg);
       }
     }
+  }
+
+  if (typeof p.flags.spawnCondition === "string") {
+    const r = developCondition(p, p.flags.spawnCondition);
+    lines.push(...r.lines);
+    pending.push(...r.pending);
+    delete p.flags.spawnCondition;
   }
 
   // Debt, tax and illness interplay with death
@@ -639,7 +702,29 @@ export type Action =
   | { t: "contest" }
   | { t: "gov"; id: string }
   | { t: "power"; id: string }
-  | { t: "coup" };
+  | { t: "coup" }
+  | { t: "loanTake"; offer: string; amount: number; term: number }
+  | { t: "loanRepay"; id: string; amount: number }
+  | { t: "ask"; npc: string; kind: SupportKind; amount: number }
+  | { t: "borrow"; npc: string; amount: number }
+  | { t: "give"; npc: string; amount: number; mode: "gift" | "loan" }
+  | { t: "rent"; tier: string }
+  | { t: "moveHome" }
+  | { t: "car"; op: "buy" | "buyLoan" | "sell" | "repair" | "insure" | "taxi" | "ridehail" | "personal"; id: string }
+  | { t: "insure"; plan: "none" | "basic" | "premium" }
+  | { t: "checkup" }
+  | { t: "treat"; cond: string; facility: string }
+  | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
+  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close"; id: string; name?: string }
+  | { t: "bet"; kind: BetKind; stake: number }
+  | { t: "social"; op: "account" | "post" | "collab" | "gear"; platform?: Platform; content?: ContentKind }
+  | { t: "crime"; id: string }
+  | { t: "will"; id: string; pct: number }
+  | { t: "learn"; id: string }
+  | { t: "growth"; id: string }
+  | { t: "gym" }
+  | { t: "enlist" }
+  | { t: "buy"; item: "phone" | "smartphone" | "laptop" };
 
 export interface ActivityDef {
   id: string;
@@ -703,6 +788,21 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "gov": return { reason: "Public office proceeds", category: "crime" };
     case "power": return { reason: "Political power-building", category: "other" };
     case "coup": return { reason: "Coup", category: "crime" };
+    case "loanTake": case "loanRepay": return { reason: "Loan", category: "loan" };
+    case "ask": case "borrow": case "give": return { reason: "Family and friends", category: "family" };
+    case "rent": case "moveHome": return { reason: "Housing", category: "rent" };
+    case "car": return { reason: "Vehicle", category: "vehicle" };
+    case "insure": case "checkup": case "treat": return { reason: "Healthcare", category: "health" };
+    case "dating": return { reason: "Dating", category: "dating" };
+    case "biz": return { reason: "Business", category: "business" };
+    case "bet": return { reason: "Betting", category: "betting" };
+    case "social": return { reason: "Social media", category: "social" };
+    case "crime": return { reason: "Crime", category: "crime" };
+    case "will": case "gym": return { reason: "Personal", category: "personal" };
+    case "learn": return { reason: "Learning", category: "education" };
+    case "growth": return { reason: "Activity", category: "personal" };
+    case "enlist": return { reason: "Enlistment", category: "other" };
+    case "buy": return { reason: "Purchase", category: "personal" };
   }
 }
 
@@ -740,6 +840,12 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         p.money -= fee;
         pr += 0.3;
         if (chance(0.15)) bump(p, "reputation", -10);
+      }
+      if (SOCIAL_JOBS.includes(j.id)) {
+        if (!p.possessions.smartphone) return { g: g0, msg: "You need a smartphone to start a creator career." };
+        p.job = { id: j.id, rank: 0, years: 0 };
+        ensureAccount(p, j.id === "youtuber" || j.id === "streamer" ? "vidtube" : j.id === "influencer" ? "gram" : "toktik");
+        return out(`You start your ${j.title.toLowerCase()} journey as ${p.social?.handle}.`);
       }
       if (chance(clamp(pr + luckBonus(p), 0.05, 0.97))) {
         p.job = { id: j.id, rank: 0, years: 0 };
@@ -888,6 +994,140 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       if (res.spawn) g.queue.unshift(...res.spawn);
       return out(res.text);
     }
+    case "loanTake": {
+          const offer = lenderOffers(p).find((o) => o.id === a.offer);
+          if (!offer) return { g: g0, msg: "" };
+          const block = loanBlock(p, offer, a.amount);
+          if (block) return { g: g0, msg: block };
+          return out(takeLoan(p, offer, a.amount, clamp(a.term, offer.minTerm, offer.maxTerm)));
+        }
+        case "loanRepay": {
+          const paid = repayLoan(p, a.id, a.amount);
+          if (paid <= 0) return { g: g0, msg: "Nothing to repay, or you are short of cash." };
+          return out(`You repaid ${naira(paid)}.`);
+        }
+        case "ask": {
+          const n = p.npcs[a.npc];
+          if (!n || !n.alive) return { g: g0, msg: "" };
+          const spec = SUPPORT_KINDS[a.kind];
+          if (!spec || p.age < spec.minAge) return { g: g0, msg: "You are too young to ask for that." };
+          const reply = evaluateSupport(p, n, a.kind, a.amount);
+          const msg = applySupport(p, n, a.kind, reply);
+          return out(msg);
+        }
+        case "borrow": {
+          const n = p.npcs[a.npc];
+          if (!n || !n.alive || a.amount <= 0) return { g: g0, msg: "" };
+          const r = borrowFrom(p, n, a.amount, (pp, nn, aa) => evaluateSupport(pp, nn, "loan", aa));
+          return out(r.text);
+        }
+        case "give": {
+          const n = p.npcs[a.npc];
+          if (!n || !n.alive || a.amount <= 0) return { g: g0, msg: "" };
+          return out(a.mode === "gift" ? giftTo(p, n, a.amount) : lendTo(p, n, a.amount));
+        }
+        case "rent": return out(rentPlace(p, a.tier));
+        case "moveHome": return out(moveHomeToFamily(p));
+        case "car": {
+          if (a.op === "buy" || a.op === "buyLoan") return out(buyVehicle(p, a.id, a.op === "buyLoan"));
+          if (a.op === "sell") return out(sellVehicle(p, a.id));
+          if (a.op === "repair") return out(repairVehicle(p, a.id));
+          if (a.op === "insure") return out(insureVehicle(p, a.id));
+          return out(setRole(p, a.id, a.op === "taxi" ? "taxi" : a.op === "ridehail" ? "ridehail" : "personal"));
+        }
+        case "insure": return out(setInsurance(p, a.plan));
+        case "checkup": {
+          const cost = Math.round(I(p, 35_000));
+          if (p.money < cost) return { g: g0, msg: `A check-up costs ${naira(cost)}.` };
+          transact(p, { amount: -cost, reason: "Health check-up", category: "health" });
+          p.flags.checkupAge = p.age;
+          bump(p, "health", 2);
+          return out("A thorough check-up. Your doctor says you are doing well, and advises more exercise.");
+        }
+        case "treat": {
+          const cond = p.conditions.find((c) => c.id === a.cond);
+          const fac = FACILITY_BY_ID[a.facility as keyof typeof FACILITY_BY_ID];
+          if (!cond || !fac) return { g: g0, msg: "" };
+          const { mine } = treatmentCost(p, cond, fac);
+          const pay = payForTreatment(p, cond, fac, p.money >= mine ? "cash" : "plan");
+          if (!pay.ok) return { g: g0, msg: pay.note };
+          return out(`${applyTreatment(p, cond, fac)}${pay.note}`);
+        }
+        case "dating": {
+          switch (a.op) {
+            case "profile": return out(createProfile(p, a.bio ?? "", a.interests ?? [], a.looking ?? (p.gender === "male" ? "women" : "men")));
+            case "swipe": if (!a.npc) { refreshDeck(p); return out(""); } return out(swipe(p, a.npc, Boolean(a.like)));
+            case "chat": return out(chat(p, a.npc ?? "", a.tone ?? "genuine"));
+            case "date": return out(askOnDate(p, a.npc ?? "", a.plan ?? "cheap"));
+            case "spend": return out(spendTime(p, a.npc ?? ""));
+            case "official": return out(makeOfficial(p, a.npc ?? ""));
+            case "breakup": return out(breakUp(p, a.npc ?? ""));
+            case "night": return out(spendTheNight(p, a.npc ?? "", a.prot ?? "condom"));
+            case "propose": {
+          const r = partnerOf(p, a.npc ?? "");
+          const n = p.npcs[a.npc ?? ""];
+          if (!r || !n || r.stage !== "exclusive") return { g: g0, msg: "You need to be exclusive first." };
+          if (r.affection < 70) return { g: g0, msg: `${n.name.split(" ")[0]} is not ready yet. Build more affection.` };
+          if (p.age < 20) return { g: g0, msg: "You need to be at least 20 to marry." };
+          r.stage = "engaged";
+          p.flags.dating = n.name;
+          p.flags.datingLook = [n.look.skin, n.look.hair, n.look.hairColor, n.look.beard, n.look.wear, n.look.outfit, n.look.outfitColor].join("|");
+          p.flags.datingNpc = n.id;
+          const def = EVENT_DEFS.proposal;
+          g.queue.unshift({ kind: "event", id: "proposal", data: { ...(def.init?.(p) ?? {}), month: randInt(1, 12) } });
+          return out(`${n.name.split(" ")[0]} says yes. Now the families need to meet.`);
+        }
+        case "marry": { const r = partnerOf(p, a.npc ?? ""); if (!r || r.stage !== "engaged") return { g: g0, msg: "You need to be engaged first." }; marry(p, a.npc ?? ""); return out("You are married!"); }
+          }
+          return { g: g0, msg: "" };
+        }
+        case "biz": {
+          switch (a.op) {
+            case "start": return out(startBusiness(p, a.id, a.name ?? ""));
+            case "upgrade": return out(upgradeBusiness(p, a.id));
+            case "hire": return out(hireStaff(p, a.id));
+            case "fire": return out(fireStaff(p, a.id));
+            case "manager": return out(toggleManager(p, a.id));
+            case "sell": return out(sellBusiness(p, a.id));
+            case "close": return out(closeBusiness(p, a.id));
+          }
+          return { g: g0, msg: "" };
+        }
+        case "bet": return out(placeBet(p, a.kind, a.stake));
+        case "social": {
+          switch (a.op) {
+            case "account": return out(createAccount(p, a.platform ?? "gram"));
+            case "post": return out(post(p, a.platform ?? "gram", a.content ?? "photo"));
+            case "collab": return out(collab(p, a.platform ?? "gram"));
+            case "gear": return out(buyGear(p));
+          }
+          return { g: g0, msg: "" };
+        }
+        case "crime": {
+          const c = CRIME_BY_ID[a.id];
+          if (!c) return { g: g0, msg: "" };
+          const block = crimeBlock(p, c);
+          if (block) return { g: g0, msg: block };
+          const res = commitCrime(p, a.id);
+          g.queue.unshift(...res.spawn);
+          return out(res.text);
+        }
+        case "will": setShare(p, a.id, a.pct); return out("Your will has been updated.");
+        case "buy": {
+      const price = Math.round(I(p, a.item === "phone" ? 25_000 : a.item === "smartphone" ? 180_000 : 450_000));
+      if (p.age < 10) return { g: g0, msg: "Ask your family." };
+      if (p.money < price) return { g: g0, msg: `You need ${naira(price)}.` };
+      if ((a.item === "phone" && p.possessions.phone) || (a.item === "smartphone" && p.possessions.smartphone) || (a.item === "laptop" && p.possessions.laptop)) return { g: g0, msg: "You already have one." };
+      transact(p, { amount: -price, reason: a.item === "phone" ? "Basic phone" : a.item === "smartphone" ? "Smartphone" : "Laptop", category: "personal" });
+      if (a.item === "phone") p.possessions.phone = true;
+      if (a.item === "smartphone") { p.possessions.phone = true; p.possessions.smartphone = true; }
+      if (a.item === "laptop") p.possessions.laptop = true;
+      return out(`You bought a ${a.item === "phone" ? "basic phone" : a.item}.`);
+    }
+    case "learn": return out(learnSkill(p, a.id));
+        case "growth": return out(doGrowth(p, a.id));
+        case "gym": return out(toggleGym(p));
+        case "enlist": { const res = enlist(p); g.queue.unshift(...res.spawn); return out(res.text); }
     case "gov": {
       const def = GOV_ACTIONS.find((x) => x.id === a.id);
       const office = p.politics?.office ?? -1;

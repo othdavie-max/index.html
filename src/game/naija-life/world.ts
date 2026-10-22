@@ -17,6 +17,7 @@ export function initWorld(p: Player, st: StateInfo, cfg: FamilyConfig = DEFAULT_
   p.npcs = Object.fromEntries(gen.npcs.map((n) => [n.id, n]));
   p.month = 1;
   p.ledger = [];
+  p.txCount = 0;
   p.fin = [];
   p.loans = [];
   p.credit = 50;
@@ -25,6 +26,15 @@ export function initWorld(p: Player, st: StateInfo, cfg: FamilyConfig = DEFAULT_
   p.possessions = { phone: false, smartphone: false, laptop: false };
   p.skills = {};
   p.vehicles = [];
+  p.conditions = [];
+  p.insurance = { plan: "none" };
+  p.rel = { profile: null, deck: [], partners: [], swipesLeft: 12, chatsLeft: 10 };
+  p.social = null;
+  p.businesses = [];
+  p.market = { ngx: 100, fund: 100, crypto: 100, tbill: 0.15, savings: 0.08 };
+  p.bets = { staked: 0, won: 0, count: 0, slotsLeft: 8, compulsion: 0 };
+  p.crime = { record: [], heat: 0, skill: 10, violence: 0, cases: [] };
+  p.will = null;
   p.stats.fitness = randInt(30, 60);
   p.family.parentsAlive = gen.fam.structure !== "orphan";
   syncLegacyFamily(p);
@@ -36,12 +46,29 @@ export function initWorld(p: Player, st: StateInfo, cfg: FamilyConfig = DEFAULT_
 export function migrateWorld(p: Player) {
   if (typeof p.month !== "number") p.month = 12;
   if (!p.ledger) p.ledger = [];
+  if (typeof p.txCount !== "number") p.txCount = p.ledger.length;
   if (!p.fin) p.fin = [];
   if (!p.loans) p.loans = [];
   if (typeof p.credit !== "number") p.credit = 50;
   if (!p.subs) p.subs = [];
   if (!p.skills) p.skills = {};
   if (!p.vehicles) p.vehicles = [];
+  if (!p.conditions) p.conditions = [];
+  if (!p.insurance) p.insurance = { plan: "none" };
+  if (!p.rel) p.rel = { profile: null, deck: [], partners: [], swipesLeft: 12, chatsLeft: 10 };
+  if (p.social === undefined) p.social = null;
+  if (!p.businesses) p.businesses = [];
+  if (!p.market) p.market = { ngx: 100, fund: 100, crypto: 100, tbill: 0.15, savings: 0.08 };
+  if (!p.bets) p.bets = { staked: 0, won: 0, count: 0, slotsLeft: 8, compulsion: 0 };
+  if (!p.crime) p.crime = { record: [], heat: 0, skill: 10, violence: 0, cases: [] };
+  if (p.will === undefined) p.will = null;
+  for (const h of p.holdings) {
+    if ((h.kind === "stocks" || h.kind === "crypto" || h.kind === "fund") && h.units === undefined) {
+      const price = h.kind === "stocks" ? p.market.ngx : h.kind === "crypto" ? p.market.crypto : p.market.fund;
+      h.units = h.value / price;
+    }
+    if (h.since === undefined) h.since = p.age * 12;
+  }
   if (typeof p.stats.fitness !== "number") p.stats.fitness = 45;
   if (!p.possessions) p.possessions = { phone: p.age >= 16, smartphone: p.age >= 16, laptop: p.edu === "tertiary" };
   if (!p.housing) p.housing = p.houses.some((h) => h.state === p.state && h.use === "owner") ? { type: "owned", stateId: p.state, annualRent: 0, paidUntil: 0, arrears: 0, landlord: "" } : p.age < 24 || p.family.state === p.state ? familyHousing(p.state) : { type: "rented", stateId: p.state, annualRent: Math.round(HOME_TIERS[1].rent * stateOf(p).cost * Math.pow(p.index, 0.95)), paidUntil: p.age * 12 + 12, arrears: 0, landlord: "selfcon" };

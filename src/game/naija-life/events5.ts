@@ -305,6 +305,20 @@ export const EVENTS5: EventDef[] = [
     ],
   },
   {
+    id: "inheritance_dispute",
+    title: "The family disputes the estate",
+    weight: () => 0,
+    text: (p, d) => `Relatives contest the estate. A cousin says the deceased promised them a share, and a lawyer's letter demands ${naira(Number(d.claim ?? 0))}.`,
+    choices: (p, d) => {
+      const claim = Number(d.claim ?? 0);
+      return [
+        { label: "Settle amicably", sub: naira(claim * 0.4), run: (q) => { const pay = Math.min(q.money, Math.round(claim * 0.4)); if (pay > 0) transact(q, { amount: -pay, reason: "Settlement with relatives over the estate", category: "legal" }); for (const n of Object.values(q.npcs)) if (["uncle", "aunt", "sibling", "cousin"].includes(n.role)) n.closeness = clamp(n.closeness + 3); return `You pay ${naira(pay)} and keep the family together.`; } },
+        { label: "Fight it in court", sub: naira(claim * 0.15), run: (q) => { const fee = Math.min(q.money, Math.round(claim * 0.15)); if (fee > 0) transact(q, { amount: -fee, reason: "Legal fees in the inheritance dispute", category: "legal" }); if (chance(0.55)) { for (const n of Object.values(q.npcs)) if (["uncle", "aunt", "sibling", "cousin"].includes(n.role)) n.closeness = clamp(n.closeness - 8); return "The court upholds the will. Relatives stop speaking to you."; } const loss = Math.min(q.money, Math.round(claim * 0.7)); if (loss > 0) transact(q, { amount: -loss, reason: "Court-ordered payment to relatives", category: "legal" }); return `You lose the case and have to pay ${naira(loss)}.`; } },
+        { label: "Negotiate privately", sub: naira(claim * 0.2), run: (q) => { const pay = Math.min(q.money, Math.round(claim * 0.2)); if (pay > 0) transact(q, { amount: -pay, reason: "Private settlement with relatives", category: "legal" }); return "A family meeting with the elders settles it for less."; } },
+      ];
+    },
+  },
+  {
     id: "unexpected_inheritance",
     title: "A relative remembers you",
     weight: (p) => (p.age >= 22 ? 0.25 : 0),

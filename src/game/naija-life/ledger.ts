@@ -20,6 +20,7 @@ function bumpFin(p: Player, tx: Tx) {
 }
 
 function push(p: Player, tx: Tx) {
+  p.txCount = (p.txCount ?? p.ledger.length) + 1;
   p.ledger.push(tx);
   if (p.ledger.length > LEDGER_CAP) p.ledger.splice(0, p.ledger.length - LEDGER_CAP);
   bumpFin(p, tx);
@@ -52,34 +53,25 @@ export function transact(p: Player, o: TxInput): number {
  * changed as one understandable entry, so no money ever moves without a reason.
  */
 export function withLedger<T>(p: Player, reason: string, category: TxCategory, fn: () => T, eventId?: string): T {
-  const startMoney = p.money;
-  const startLen = p.ledger.length;
-  const startTotal = p.ledger.reduce((s, t) => s + t.amount, 0);
+  const snap = snapshot(p);
   const out = fn();
-  // Explicit transactions made inside fn already moved the money.
-  const added = p.ledger.slice(startLen);
-  const explicit = added.reduce((s, t) => s + t.amount, 0);
-  const remainder = p.money - startMoney - explicit;
-  if (Math.abs(remainder) > 0.5) {
-    const tx: Tx = { id: uid(), amount: remainder, reason, category, age: p.age, month: p.month, eventId, before: p.money - remainder, after: p.money };
-    push(p, tx);
-  }
-  void startTotal;
+  reconcile(p, snap, reason, category, eventId);
   return out;
 }
 
 export interface Snapshot {
   money: number;
-  len: number;
+  count: number;
 }
-export const snapshot = (p: Player): Snapshot => ({ money: p.money, len: p.ledger.length });
+export const snapshot = (p: Player): Snapshot => ({ money: p.money, count: p.txCount ?? p.ledger.length });
 
 /**
  * Records any cash change since `snap` that was not already recorded explicitly,
  * so older code that edits `p.money` directly still leaves an understandable trail.
  */
 export function reconcile(p: Player, snap: Snapshot, reason: string, category: TxCategory, eventId?: string) {
-  const explicit = p.ledger.slice(snap.len).reduce((s, t) => s + t.amount, 0);
+  const added = Math.max(0, (p.txCount ?? p.ledger.length) - snap.count);
+  const explicit = added > 0 ? p.ledger.slice(-Math.min(added, p.ledger.length)).reduce((s, t) => s + t.amount, 0) : 0;
   const remainder = p.money - snap.money - explicit;
   if (Math.abs(remainder) > 0.5) push(p, { id: uid(), amount: remainder, reason, category, age: p.age, month: p.month, eventId, before: p.money - remainder, after: p.money });
 }

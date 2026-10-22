@@ -3,6 +3,8 @@ import { I, bump, eligibleJobs, luckBonus, enterPrison, jobDef, moveTo, randomNa
 import type { AutoDef, Choice, EventDef, Pending, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt } from "./util";
 import { kidLook, lookToStr, randomLook, strToLook } from "./look";
+import { developCondition } from "./health";
+import { addPartner, marry } from "./relationships";
 import { schoolHousing } from "./world";
 
 const isSelfEmployed = (p: Player) => Boolean(jobDef(p)?.selfEmployed);
@@ -63,8 +65,8 @@ export const EVENTS: EventDef[] = [
     },
     text: (_p, d) => `You meet ${d.name} ${d.where}. Something dey there o.`,
     choices: (p, d) => [
-      { label: "Shoot your shot", run: (q) => { if (chance(0.3 + q.stats.looks / 250 + q.stats.happiness / 400 + q.stats.reputation / 400)) { q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); bump(q, "happiness", 12); return `${d.name} said yes! You are officially dating.`; } bump(q, "happiness", -6); return `${d.name} leave you on 'seen'. Chai.`; } },
-      { label: "Spend on a fancy date", sub: naira(I(p, 80_000)), disabled: p.money < I(p, 80_000) ? "Not enough cash" : false, run: (q) => { q.money -= I(q, 80_000); if (chance(0.7)) { q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); bump(q, "happiness", 14); return `The jollof, the music, the vibes sweet die. ${d.name} is now your girlfriend/boyfriend.`; } return "You spent it all and got friend-zoned. Painful."; } },
+      { label: "Shoot your shot", run: (q) => { if (chance(0.3 + q.stats.looks / 250 + q.stats.happiness / 400 + q.stats.reputation / 400)) { { const g2 = q.gender === "male" ? "female" : "male"; const pn = addPartner(q, { name: String(d.name), look: strToLook(String(d.look)) ?? randomLook(g2), gender: g2 }, "exclusive"); q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); q.flags.datingNpc = pn.id; } bump(q, "happiness", 12); return `${d.name} said yes! You are officially dating.`; } bump(q, "happiness", -6); return `${d.name} leave you on 'seen'. Chai.`; } },
+      { label: "Spend on a fancy date", sub: naira(I(p, 80_000)), disabled: p.money < I(p, 80_000) ? "Not enough cash" : false, run: (q) => { q.money -= I(q, 80_000); if (chance(0.7)) { { const g2 = q.gender === "male" ? "female" : "male"; const pn = addPartner(q, { name: String(d.name), look: strToLook(String(d.look)) ?? randomLook(g2), gender: g2 }, "exclusive"); q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); q.flags.datingNpc = pn.id; } bump(q, "happiness", 14); return `The jollof, the music, the vibes sweet die. ${d.name} is now your girlfriend/boyfriend.`; } return "You spent it all and got friend-zoned. Painful."; } },
       { label: "Not interested", run: () => "You waka go. Maybe next time." },
     ],
   },
@@ -76,7 +78,7 @@ export const EVENTS: EventDef[] = [
     text: (p, d) => `You and ${p.flags.dating} don dey serious. Their family wan meet yours. The bride price list don land: ${naira(Number(d.bride))} plus yam tubers, wrappers, and 'miscellaneous'.`,
     choices: (p, d) => {
       const price = Number(d.bride);
-      const finish = (q: Player, cost: number, family: number): string => { q.money -= cost; q.spouse = { name: String(q.flags.dating), happy: 80, look: strToLook(String(q.flags.datingLook ?? "")) ?? randomLook(q.gender === "male" ? "female" : "male", { region: stateOf(q).region }) }; delete q.flags.dating; delete q.flags.datingLook; q.family.happy = clamp(q.family.happy + family); bump(q, "happiness", 15); return `You don marry! ${q.spouse.name} is now your spouse.`; };
+      const finish = (q: Player, cost: number, family: number): string => { q.money -= cost; let sid = String(q.flags.datingNpc ?? ""); if (!sid || !q.npcs[sid]) { const g2 = q.gender === "male" ? "female" : "male"; sid = addPartner(q, { name: String(q.flags.dating), look: strToLook(String(q.flags.datingLook ?? "")) ?? randomLook(g2, { region: stateOf(q).region }), gender: g2 }, "engaged").id; } marry(q, sid); q.family.happy = clamp(q.family.happy + family); bump(q, "happiness", 15); return `You don marry! ${q.spouse?.name ?? "Your partner"} is now your spouse.`; };
       return [
         { label: "Full traditional wedding", sub: naira(price * 2), disabled: p.money < price * 2 ? "Need more money" : false, run: (q) => finish(q, price * 2, 12) },
         { label: "Negotiate the price", sub: naira(price * 0.6), run: (q) => { if (chance(0.6)) return finish(q, price * 0.6, 5); bump(q, "happiness", -8); delete q.flags.dating; return "The negotiation turn argument. Dem cancel the wedding."; } },
@@ -88,7 +90,7 @@ export const EVENTS: EventDef[] = [
   {
     id: "hospital",
     title: "You are sick",
-    weight: (p) => (p.stats.health < 55 || p.age > 55 ? 4 : p.age > 30 ? 0.8 : 0),
+    weight: () => 0,
     text: () => "Body dey hot, joints dey ache, head dey pound. Na malaria? Typhoid? Or something worse?",
     choices: (p) => [
       { label: "Government hospital", sub: naira(I(p, 30_000)), run: (q) => { q.money -= I(q, 30_000); if (chance(0.7)) { bump(q, "health", 10); return "You wait 6 hours but dem treat you. Cheap, but e tire you."; } bump(q, "health", -6); return "Doctors dey strike. You go back home without treatment."; } },
@@ -175,7 +177,7 @@ export const EVENTS: EventDef[] = [
     text: () => "Midnight. Armed robbers jump your fence and enter sitting room. \"Where the money dey?!\"",
     choices: () => [
       { label: "Hand over everything", run: (q) => { const lost = Math.max(0, q.money * rand(0.1, 0.3)); q.money -= lost; bump(q, "stress", 14); return `They left with ${naira(lost)}, your phones and your generator. You are alive.`; } },
-      { label: "Fight back", run: (q) => { if (chance(0.45)) { bump(q, "reputation", 10); return "You raise alarm; neighbours come; robbers run. You be hero now."; } bump(q, "health", -30); const lost = Math.max(0, q.money * 0.3); q.money -= lost; return `They shot you in the arm and took ${naira(lost)}. You survived.`; } },
+      { label: "Fight back", run: (q) => { if (chance(0.45)) { bump(q, "reputation", 10); return "You raise alarm; neighbours come; robbers run. You be hero now."; } const lost = Math.max(0, q.money * 0.3); q.money -= lost; const r = developCondition(q, "gunshot"); return { text: `They shot you and took ${naira(lost)}. You are bleeding badly.`, spawn: r.pending }; } },
     ],
   },
   {
@@ -363,7 +365,7 @@ export const AUTOS: AutoDef[] = [
     if (j && p.job && p.job.rank < j.ladder.length - 1) { p.job.rank += 1; p.flags.viral = (Number(p.flags.viral) || 0) + 1; return `Your ${j.group === "creative" ? "post" : "business"} go VIRAL! You move up to: ${j.ladder[p.job.rank].title}.`; }
     bump(p, "reputation", 3); return "Your stuff go viral again. People dey recognise you everywhere.";
   } },
-  { id: "okada", weight: (p) => (["keke", "conductor", "rideapp"].includes(p.job?.id ?? "") ? 4 : 0), run: (p) => { bump(p, "health", -10); p.money -= I(p, 90_000); return "Trailer hit your vehicle. Nobody die, but you spend weeks for recovery."; } },
+  { id: "okada", weight: (p) => (["keke", "conductor", "rideapp"].includes(p.job?.id ?? "") ? 4 : 0), run: (p) => { p.flags.spawnCondition = chance(0.5) ? "fracture" : "sprain"; return "A trailer hit your vehicle on the highway. You are injured."; } },
   { id: "rain", weight: (p) => (["akara", "corn", "suya", "purewater"].includes(p.job?.id ?? "") ? 3.5 : 0), run: (p) => { p.money -= I(p, 60_000); return "Heavy rain wash away your sales for one week."; } },
   { id: "layoff", weight: (p) => (p.job && jobDef(p)?.group === "formal" && p.job.years > 1 ? 1.2 : 0), run: (p) => { p.job = null; bump(p, "stress", 12); return "Company dey downsize. Dem sack you. Welcome to the job market."; } },
   { id: "roadside", weight: (p) => (p.traveled ? 3 : 0), run: (p) => { bump(p, "stress", 4); return "Your bus break down halfway. You chop suya for roadside and make two new friends."; } },

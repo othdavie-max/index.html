@@ -2,7 +2,9 @@ import { INVESTMENTS } from "./data";
 import { I, bump, jobDef, randomName, stateOf } from "./helpers";
 import type { AutoDef, EventDef, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt } from "./util";
-import { lookToStr, randomLook } from "./look";
+import { lookToStr, randomLook, strToLook } from "./look";
+import { addPartner } from "./relationships";
+import { developCondition } from "./health";
 
 const adult = (p: Player) => p.age >= 18;
 const food = (p: Player) => ["akara", "corn", "suya", "purewater"].includes(p.job?.id ?? "");
@@ -92,7 +94,7 @@ export const EVENTS3: EventDef[] = [
     init: (p) => { const g = p.gender === "male" ? "female" : "male"; return { name: randomName(p.tribe, g), look: lookToStr(randomLook(g, { region: stateOf(p).region, religion: p.religion })) }; },
     text: (_p, d) => `Aunty call you after service: 'I don see one very good person for you, ${d.name} from our church/mosque. Responsible, hardworking, fine too. No dull yourself!'`,
     choices: (_p, d) => [
-      { label: "Meet them for a date", run: (q) => { if (chance(0.4 + q.stats.looks / 300)) { q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); bump(q, "happiness", 8); return "The date go very well. Aunty don start planning the aso-ebi."; } bump(q, "happiness", -2); return "No spark at all. Aunty vex but she go find another."; } },
+      { label: "Meet them for a date", run: (q) => { if (chance(0.4 + q.stats.looks / 300)) { { const g2 = q.gender === "male" ? "female" : "male"; const pn = addPartner(q, { name: String(d.name), look: strToLook(String(d.look)) ?? randomLook(g2), gender: g2 }, "dating"); q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); q.flags.datingNpc = pn.id; } bump(q, "happiness", 8); return "The date go very well. Aunty don start planning the aso-ebi."; } bump(q, "happiness", -2); return "No spark at all. Aunty vex but she go find another."; } },
       { label: "Politely refuse", run: (q) => { q.family.happy = clamp(q.family.happy - 3); return "Aunty hiss and say 'you go regret this one'."; } },
     ],
   },
@@ -243,7 +245,7 @@ export const EVENTS3: EventDef[] = [
     text: () => "You board an unmarked bus at night and notice everyone for the back dey silent. The door lock click. 'This na one chance.'",
     choices: () => [
       { label: "Hand over everything quietly", run: (q) => { const l = Math.max(0, q.money * rand(0.05, 0.2)); q.money -= l; bump(q, "stress", 12); return `They empty your pockets (${naira(l)}), take your phone and drop you far from anywhere. You are alive.`; } },
-      { label: "Shout and fight", run: (q) => { if (chance(0.35)) { bump(q, "reputation", 4); return "Passengers wake up and fight with you. The robbers jump out. Local heroes."; } bump(q, "health", -25); q.money -= Math.max(0, q.money * 0.2); return "They beat you badly and dump you by the roadside."; } },
+      { label: "Shout and fight", run: (q) => { if (chance(0.35)) { bump(q, "reputation", 4); return "Passengers wake up and fight with you. The robbers jump out. Local heroes."; } q.money -= Math.max(0, q.money * 0.2); const r = developCondition(q, "stab"); return { text: "They stab and beat you badly before dumping you by the roadside.", spawn: r.pending }; } },
     ],
   },
   {

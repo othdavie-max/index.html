@@ -278,7 +278,7 @@ export const AUTOS2: AutoDef[] = [
   { id: "salary_delay", weight: (p) => (p.job && jobDef(p)?.group === "formal" ? 2 : 0), run: (p) => { p.money -= I(p, 100_000); bump(p, "stress", 5); return "Salary no come on time again. 'System upgrade,' dem tell you."; } },
   { id: "wedding_jollof", weight: (p) => (adult(p) ? 2 : 0), run: (p) => { bump(p, "happiness", 5); p.money -= I(p, 60_000); return "You attend three weddings the same weekend and wear the same aso-ebi to two."; } },
   { id: "gist", weight: (p) => (p.age >= 12 ? 2 : 0), run: (p) => { bump(p, "happiness", 3); return "Your neighbour tell you the best gist of the year. You can't repeat am, but you will."; } },
-  { id: "malaria", weight: (p) => (p.age >= 3 ? 2 : 0), run: (p) => { bump(p, "health", -6); p.money -= adult(p) ? I(p, 40_000) : 0; return "Malaria visit again. Three days of cold, shivering and Lonart."; } },
+  { id: "malaria", weight: (p) => (p.age >= 3 ? 1.5 : 0), run: (p) => { p.flags.spawnCondition = "malaria"; return "Malaria visits again: cold, shivering, and a very bad headache."; } },
   { id: "rebase", weight: (p) => (p.age >= 20 && p.age <= 40 ? 1.5 : 0), run: (p) => { bump(p, "happiness", 3); return "Friends plan 'Detty December' trip to Lagos. You dey look at your account balance like say na horror film."; } },
   { id: "move", weight: (p) => (adult(p) && stateOf(p).opp >= 8 ? 1 : 0), run: (p) => { bump(p, "connections", 1); return "You meet one big man for Lagos/Abuja party who say 'let us talk next week'. He no call, but now you know him."; } },
 ];

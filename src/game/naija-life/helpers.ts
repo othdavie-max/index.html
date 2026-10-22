@@ -39,6 +39,7 @@ export function eligibleJobs(p: Player): JobDef[] {
     if (j.courses && (!p.course || !j.courses.includes(p.course))) return false;
     if (st.opp < j.minOpp) return false;
     if (j.id === "kidnapper") return false;
+    if (j.group === "formal" && !["police", "soldier"].includes(j.id) && (p.crime?.record ?? []).some((r) => r.severity >= 3 && r.outcome === "convicted")) return false;
     return true;
   });
 }

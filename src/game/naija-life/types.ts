@@ -41,13 +41,17 @@ export interface House {
   use: HouseUse;
 }
 
-export type HoldingKind = "usd" | "stocks" | "crypto" | "oil" | "school" | "farm" | "bank";
+export type HoldingKind = "usd" | "stocks" | "crypto" | "oil" | "school" | "farm" | "bank" | "fund" | "savings" | "tbill";
 export interface Holding {
   id: string;
   kind: HoldingKind;
   label: string;
   invested: number;
   value: number;
+  /** Units held, for market-priced assets. */
+  units?: number;
+  /** Absolute month index it was bought. */
+  since?: number;
 }
 
 export interface JobState {
@@ -93,6 +97,7 @@ export interface Kid {
   age: number;
   gender: Gender;
   look?: Look;
+  otherParentId?: string;
 }
 
 export interface LogEntry {
@@ -133,6 +138,8 @@ export interface Player {
   /** Month within the current age year, 1-12. */
   month: number;
   ledger: Tx[];
+  /** Total transactions ever recorded, so snapshots survive the ledger cap. */
+  txCount: number;
   fin: FinYear[];
   npcs: Record<string, Npc>;
   fam: FamilyBg;
@@ -144,8 +151,17 @@ export interface Player {
   possessions: Possessions;
   skills: Record<string, number>;
   vehicles: Vehicle[];
+  conditions: Condition[];
+  insurance: Insurance;
+  rel: DatingState;
+  social: SocialState | null;
+  businesses: Business[];
+  market: Market;
+  bets: Bets;
+  crime: CrimeState;
+  will: Will | null;
   family: { state: string; happy: number; parentsAlive: boolean; dad?: Look; mom?: Look };
-  spouse: { name: string; happy: number; look?: Look } | null;
+  spouse: { name: string; happy: number; look?: Look; npcId?: string } | null;
   kids: Kid[];
   traveled: boolean;
   actionsLeft: number;
@@ -196,7 +212,7 @@ export interface FinYear {
 // ---------------------------------------------------------------------------
 // People
 // ---------------------------------------------------------------------------
-export type NpcRole = "dad" | "mom" | "guardian" | "sibling" | "friend" | "cousin" | "uncle" | "aunt" | "grandparent" | "partner" | "ex" | "match" | "colleague";
+export type NpcRole = "dad" | "mom" | "guardian" | "sibling" | "friend" | "cousin" | "uncle" | "aunt" | "grandparent" | "partner" | "ex" | "match" | "colleague" | "victim";
 
 export interface NpcMemory {
   age: number;
@@ -327,6 +343,174 @@ export interface Possessions {
   phone: boolean;
   smartphone: boolean;
   laptop: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Health
+// ---------------------------------------------------------------------------
+export interface Condition {
+  id: string;
+  template: string;
+  name: string;
+  severity: number;
+  cause: "illness" | "injury" | "violence" | "accident";
+  sinceAge: number;
+  sinceMonth: number;
+  /** Months left until recovery. -1 means chronic. */
+  monthsLeft: number;
+  treated: boolean;
+  needsSurgery: boolean;
+  /** Months you cannot work at all. */
+  bedridden: number;
+  medMonthly: number;
+  followUpIn: number | null;
+  /** Delay before reaching care: 0 fast, 1 slow, 2 very slow. */
+  delay: number;
+}
+
+export interface Insurance {
+  plan: "none" | "basic" | "premium";
+}
+
+// ---------------------------------------------------------------------------
+// Relationships and dating
+// ---------------------------------------------------------------------------
+export type RelStage = "chatting" | "dating" | "exclusive" | "engaged" | "married" | "ex";
+
+export interface PartnerRel {
+  npcId: string;
+  stage: RelStage;
+  affection: number;
+  trust: number;
+  satisfaction: number;
+  since: number;
+  lastInteract: number;
+  moneyRequests: number;
+  cheated: boolean;
+  exitReason?: string;
+}
+
+export interface Candidate extends Npc {
+  attractiveness: number;
+  interests: string[];
+  kindness: number;
+  ambition: number;
+  jealousy: number;
+}
+
+export interface DatingState {
+  profile: { bio: string; interests: string[]; quality: number; looking: "men" | "women" | "everyone" } | null;
+  deck: Candidate[];
+  partners: PartnerRel[];
+  swipesLeft: number;
+  chatsLeft: number;
+}
+
+// ---------------------------------------------------------------------------
+// Social media and fame
+// ---------------------------------------------------------------------------
+export type Platform = "gram" | "toktik" | "vidtube";
+
+export interface SocialAccount {
+  followers: number;
+  engagement: number;
+  posts: number;
+}
+
+export interface Sponsorship {
+  id: string;
+  brand: string;
+  monthly: number;
+  monthsLeft: number;
+}
+
+export interface SocialState {
+  handle: string;
+  accounts: Partial<Record<Platform, SocialAccount>>;
+  skill: number;
+  brand: number;
+  controversy: number;
+  sponsors: Sponsorship[];
+  niche: string;
+  postsLeft: number;
+  collabs: number;
+  lastPostMonth: number;
+  gear: number;
+}
+
+// ---------------------------------------------------------------------------
+// Business, markets, betting
+// ---------------------------------------------------------------------------
+export interface Business {
+  id: string;
+  kind: string;
+  name: string;
+  stateId: string;
+  level: number;
+  quality: number;
+  staff: number;
+  invested: number;
+  manager: boolean;
+  startedAt: number;
+  /** Cumulative profit for valuation and history. */
+  profit: number;
+  lastMonthProfit: number;
+  status: "open" | "closed";
+  debt: number;
+  lossStreak: number;
+}
+
+export interface Market {
+  ngx: number;
+  fund: number;
+  crypto: number;
+  /** Annual rates, updated yearly. */
+  tbill: number;
+  savings: number;
+}
+
+export interface Bets {
+  staked: number;
+  won: number;
+  count: number;
+  slotsLeft: number;
+  compulsion: number;
+}
+
+// ---------------------------------------------------------------------------
+// Crime and law
+// ---------------------------------------------------------------------------
+export interface LegalCase {
+  id: string;
+  charge: string;
+  severity: number;
+  stage: "arrested" | "bail" | "trial" | "closed";
+  openedAge: number;
+  evidence: number;
+  victimId?: string;
+  outcome?: string;
+  lawyer: "none" | "public" | "private";
+  loot: number;
+  remand: boolean;
+  confessed: boolean;
+  trialAge: number;
+}
+
+export interface CrimeState {
+  record: { age: number; charge: string; outcome: string; severity: number }[];
+  heat: number;
+  skill: number;
+  violence: number;
+  cases: LegalCase[];
+}
+
+export interface WillShare {
+  id: string;
+  pct: number;
+}
+export interface Will {
+  shares: WillShare[];
+  updatedAge: number;
 }
 
 export type EventData = Record<string, string | number | boolean>;

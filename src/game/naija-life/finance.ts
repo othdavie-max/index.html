@@ -3,7 +3,12 @@ import { capacityOf, primaryProvider } from "./family";
 import { jobDef, stateOf } from "./helpers";
 import { coverShortfall, monthIndex, transact } from "./ledger";
 import { adjustCredit, processLoansMonth, totalDebt } from "./loans";
-import { yearlyUpkeep } from "./lifestyle";
+import { businessMonth } from "./business";
+import { growthMonth } from "./life";
+import { healthMonth, incomeFactor } from "./health";
+import { spouseMonth } from "./relationships";
+import { SOCIAL_JOBS, socialMonth } from "./social";
+import { marketMonth, yearlyUpkeep } from "./lifestyle";
 import { ownsPersonalCar, vehicleMonth } from "./vehicles";
 import type { Pending, Player } from "./types";
 import { chance, clamp, naira, rand } from "./util";
@@ -50,7 +55,7 @@ export function schoolFeeFor(p: Player): number {
     else if (p.school.type === "vocational") fee = 250_000;
     else fee = SCHOOL_FEES.tertiary[(p.flags.schoolType as SchoolType) ?? "public"];
   } else fee = SCHOOL_FEES[st][(p.flags.schoolType as SchoolType) ?? "public"];
-  return fee * Math.pow(p.index, 0.92);
+  return fee * Math.pow(p.index, 0.92) * (p.flags.scholarship ? 0.3 : 1);
 }
 
 export function allowanceMonthly(p: Player): number {
@@ -114,7 +119,7 @@ function monthTick(p: Player, ctx: MonthCtx) {
   if (p.age >= 16 && p.job && ctx.yearPay > 0) {
     const j = jobDef(p);
     const noise = j && j.selfEmployed ? rand(0.7, 1.3) : j && j.group === "creative" ? rand(0.5, 1.5) : 1;
-    const amt = (ctx.yearPay / 12) * noise;
+    const amt = (ctx.yearPay / 12) * noise * incomeFactor(p);
     transact(p, { amount: amt, reason: j?.selfEmployed ? `Business income: ${j.title}` : `Salary: ${j?.title ?? "work"}`, category: j?.selfEmployed ? "business" : "salary", recurring: "income" });
     incomeThisMonth += amt;
   }
@@ -151,6 +156,7 @@ function monthTick(p: Player, ctx: MonthCtx) {
       transact(p, { amount: -l.utilities, reason: p.flags.solar ? "Electricity and water (solar helps)" : "Electricity, fuel and water", category: "utilities", recurring: "living" });
       if (l.airtime) transact(p, { amount: -l.airtime, reason: "Airtime and data", category: "airtime", recurring: "living" });
       transact(p, { amount: -l.personal, reason: "Personal spending", category: "personal", recurring: "living" });
+      spouseMonth(p, l.food + l.transport + l.utilities + l.airtime + l.personal);
     } else if (p.possessions.phone && p.age >= 12) {
       transact(p, { amount: -Math.min(l.airtime * scale + 500 * p.index, Math.max(0, p.money)), reason: "Airtime and data", category: "airtime", recurring: "living" });
     }
@@ -183,7 +189,12 @@ function monthTick(p: Player, ctx: MonthCtx) {
   const upkeep = yearlyUpkeep(p) / 12;
   if (upkeep > 0) transact(p, { amount: -upkeep, reason: "Upkeep on your luxuries", category: "personal", recurring: "luxury-upkeep" });
 
+  growthMonth(p);
+  marketMonth(p, ctx.lines);
+  socialMonth(p, ctx.lines);
+  businessMonth(p, ctx.lines);
   vehicleMonth(p, ctx.lines);
+  healthMonth(p, ctx.lines, ctx.pending);
   processLoansMonth(p, ctx.lines, ctx.pending);
   void now;
   const gap = coverShortfall(p, "Cash ran short: borrowed to cover bills");
@@ -209,6 +220,7 @@ export function annualPay(p: Player): number {
   const j = jobDef(p);
   if (!p.job || !j) return 0;
   const st = stateOf(p);
+  if (SOCIAL_JOBS.includes(j.id)) return 0;
   const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
   const volatility = j.group === "formal" ? rand(0.92, 1.08) : rand(0.8, 1.2);
   const pay = rung.pay * PAY_SCALE[j.group] * payMult(j, st) * Math.pow(p.index, j.group === "formal" ? 0.86 : 0.92) * volatility;
