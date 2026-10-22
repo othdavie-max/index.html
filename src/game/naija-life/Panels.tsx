@@ -25,7 +25,7 @@ import { VehicleArt } from "./VehicleArt";
 import { UNI_BY_ID } from "./universities";
 import { beneficiaries, currentShares, totalPct } from "./will";
 import type { Business, Candidate, Npc, PartnerRel, Platform, Player, StateInfo } from "./types";
-import { Badge, Bar, Btn, Card, H, Sheet, cx } from "./ui";
+import { Badge, Bar, Btn, Card, H, Sheet, SubTabs, cx } from "./ui";
 import { riskLabel, transportOptions } from "./travel";
 import { PRISON_OPS, appealCost, prisonBlockOp } from "./prison";
 import { T, naira } from "./util";
@@ -591,9 +591,19 @@ const CAT_LABEL: Record<string, () => string> = {
   yacht: () => T("Yachts", "Yachts"),
 };
 
+const CAT_ONE: Record<string, () => string> = {
+  taxi: () => T("Commercial", "Commercial"), car: () => T("Sedan", "Sedan"), suv: () => T("SUV", "SUV"), luxury: () => T("Luxury", "Luxury"), supercar: () => T("Supercar", "Supercar"),
+  hypercar: () => T("Hypercar", "Hypercar"), helicopter: () => T("Helicopter", "Helicopter"), jet: () => T("Jet", "Jet"), boat: () => T("Boat", "Boat"), yacht: () => T("Yacht", "Yacht"),
+};
+
 export function GarageCard({ p, run }: { p: Player; run: Run }) {
-  const [show, setShow] = useState(false);
+  const [view, setView] = useState<"fleet" | "dealer">("fleet");
   const [cat, setCat] = useState("car");
+  const [buy, setBuy] = useState<string | null>(null);
+  const [openV, setOpenV] = useState<string | null>(null);
+  const buyModel = buy ? modelOf(buy) ?? null : null;
+  const openVeh = openV ? p.vehicles.find((v) => v.id === openV) ?? null : null;
+  const openM = openVeh ? modelOf(openVeh.modelId) : undefined;
   const lic = licenseBlock(p);
   return (
     <Card>
@@ -607,61 +617,72 @@ export function GarageCard({ p, run }: { p: Player; run: Run }) {
           </div>
         )}
       </div>
-      {p.vehicles.map((v) => {
-        const m = modelOf(v.modelId);
-        return (
-          <div key={v.id} className="mb-2 rounded-xl bg-slate-50 p-3">
-            <div className="flex gap-3">
-              <VehicleArt art={m?.art ?? "sedan"} color={m?.color ?? "#64748b"} size={84} />
-              <div className="min-w-0 flex-1">
-                <div className="flex justify-between text-[13px]"><span className="truncate font-bold text-[#0b2a6b]">{v.name}</span><span className="shrink-0 text-blue-600">{naira(v.value)}</span></div>
-                <div className="text-[11px] text-slate-500">{T("Condition", "Condition")} {v.condition}% · {v.role === "personal" ? T("personal", "personal") : v.role === "rental" ? T("for hire", "for hire") : v.role} · {isInsured(p, v) ? T("insured", "insured") : T("uninsured", "no insurance")}{v.loanId ? T(" · on finance", " · dem still dey owe") : ""}</div>
+      <SubTabs value={view} onChange={setView} tabs={[{ id: "fleet", label: T("My fleet", "My fleet"), badge: p.vehicles.length || undefined }, { id: "dealer", label: T("Dealerships", "Dealerships") }]} />
+      {view === "fleet" && (
+        <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100">
+          {p.vehicles.length === 0 && <p className="p-3 text-xs text-slate-500">{T("You own no vehicles yet. Visit the dealerships.", "You no get vehicle yet. Go dealership.")}</p>}
+          {p.vehicles.map((v) => {
+            const m = modelOf(v.modelId);
+            return (
+              <div key={v.id} className="flex items-center gap-2.5 bg-white px-2.5 py-2">
+                <div className="w-14 shrink-0"><VehicleArt art={m?.art ?? "sedan"} color={m?.color ?? "#64748b"} size={56} /></div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[14px] font-extrabold text-[#0b2a6b]">{v.name} <span className="font-medium text-slate-500">({m ? CAT_ONE[m.cat]() : ""})</span></div>
+                  <div className="text-[12px] text-slate-600">{naira(v.value)} · {v.condition}% · {v.role === "personal" ? T("personal", "personal") : v.role === "rental" ? T("for hire", "for hire") : v.role}</div>
+                </div>
+                <button type="button" aria-label={T("Options", "Options")} onClick={() => setOpenV(v.id)} className="shrink-0 px-2 text-xl font-black text-blue-700">⋯</button>
               </div>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <Btn small tone="ghost" onClick={() => run({ t: "car", op: "repair", id: v.id })}>{T("Repair", "Repair")} ({naira(repairCost(p, v))})</Btn>
-              <Btn small tone="ghost" onClick={() => run({ t: "car", op: "insure", id: v.id })}>{T("Insure", "Insure")}</Btn>
-              {v.role === "personal" ? (
-                <>
-                  {m?.rentYield ? <Btn small tone="ghost" onClick={() => run({ t: "car", op: "rental", id: v.id })}>{m.cat === "jet" || m.cat === "helicopter" ? T("Charter it out", "Put am for charter") : m.cat === "boat" || m.cat === "yacht" ? T("Hire it out", "Hire am out") : T("Rent it out", "Rent am out")}</Btn> : null}
-                  {m && ["taxi", "car"].includes(m.cat) && <Btn small tone="ghost" onClick={() => run({ t: "car", op: "taxi", id: v.id })}>{T("Run as taxi", "Use as taxi")}</Btn>}
-                </>
-              ) : <Btn small tone="ghost" onClick={() => run({ t: "car", op: "personal", id: v.id })}>{T("Personal use", "Personal use")}</Btn>}
-              <Btn small tone="red" onClick={() => run({ t: "car", op: "sell", id: v.id })}>{T("Sell", "Sell")}</Btn>
-            </div>
-          </div>
-        );
-      })}
-      <Btn small tone="ghost" onClick={() => setShow(!show)}>{show ? T("Hide showroom", "Hide showroom") : T("Browse the showroom", "See the showroom")}</Btn>
-      {show && (
-        <div className="mt-3">
-          <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1">
+            );
+          })}
+        </div>
+      )}
+      {view === "dealer" && (
+        <div>
+          <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {Object.keys(CAT_LABEL).map((c) => <button key={c} type="button" onClick={() => setCat(c)} className={cx("shrink-0 rounded-full px-3 py-1 text-[11.5px] font-bold", cat === c ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600")}>{CAT_LABEL[c]()}</button>)}
           </div>
           {p.age < 18 && <p className="mb-2 text-xs text-slate-500">{T("You must be 18 to buy a vehicle.", "You must reach 18 to buy vehicle.")}</p>}
-          <div className="space-y-2">
-            {VEHICLE_MODELS.filter((m) => m.cat === cat).map((m) => {
-              const price = priceOf(p, m);
-              const noLic = needsLicense(m) && !p.possessions.license;
-              return (
-                <div key={m.id} className="rounded-xl bg-slate-50 p-2.5">
-                  <div className="flex gap-3">
-                    <VehicleArt art={m.art} color={m.color} size={92} />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-bold text-[#0b2a6b]">{m.name}</div>
-                      <div className="text-[11px] text-slate-500">{m.kind === "new" ? T("Brand new", "Brand new") : T("Tokunbo / used", "Tokunbo / used")}{m.revenue ? T(" · earns income", " · e dey bring money") : ""}{m.rentYield ? T(" · can be rented out", " · you fit rent am out") : ""}</div>
-                      <div className="mt-0.5 text-[13px] font-extrabold text-blue-600">{naira(price)}</div>
-                    </div>
-                  </div>
-                  <div className="mt-2 flex gap-1.5">
-                    <Btn small tone="gold" disabled={p.age < 18 || p.money < price || noLic} onClick={() => run({ t: "car", op: "buy", id: m.id })}>{noLic ? T("Needs licence", "Need licence") : T("Buy", "Buy")}</Btn>
-                    <Btn small tone="ghost" disabled={p.age < 18 || p.money < price * 0.3 || noLic} onClick={() => run({ t: "car", op: "buyLoan", id: m.id })}>{T("30% down", "30% deposit")}</Btn>
-                  </div>
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100">
+            {VEHICLE_MODELS.filter((m) => m.cat === cat).sort((x, y) => y.price - x.price).map((m) => (
+              <div key={m.id} className="flex items-center gap-2.5 bg-white px-2.5 py-2">
+                <div className="w-14 shrink-0"><VehicleArt art={m.art} color={m.color} size={56} /></div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[14px] font-extrabold leading-tight text-[#0b2a6b]">{m.name} <span className="font-medium text-slate-500">({m.kind === "new" ? T("New", "New") : T("Used", "Used")} {CAT_ONE[m.cat]()})</span></div>
+                  <div className="text-[12px] font-semibold text-blue-700">{naira(priceOf(p, m))}</div>
                 </div>
-              );
-            })}
+                <button type="button" aria-label={T("Options", "Options")} onClick={() => setBuy(m.id)} className="shrink-0 px-2 text-xl font-black text-blue-700">⋯</button>
+              </div>
+            ))}
           </div>
         </div>
+      )}
+      {buyModel && (
+        <Sheet title={buyModel.name} onClose={() => setBuy(null)}>
+          <div className="flex justify-center"><VehicleArt art={buyModel.art} color={buyModel.color} size={170} /></div>
+          <p className="mt-1 text-center text-xs text-slate-500">{CAT_ONE[buyModel.cat]()} · {buyModel.kind === "new" ? T("Brand new", "Brand new") : T("Tokunbo / used", "Tokunbo / used")}{buyModel.revenue ? T(" · earns income", " · e dey bring money") : ""}{buyModel.rentYield ? T(" · can be rented out", " · you fit rent am out") : ""}</p>
+          <div className="my-2 text-center text-xl font-extrabold text-blue-700">{naira(priceOf(p, buyModel))}</div>
+          <div className="grid grid-cols-2 gap-2">
+            <Btn tone="gold" disabled={p.age < 18 || p.money < priceOf(p, buyModel) || (needsLicense(buyModel) && !p.possessions.license)} onClick={() => { run({ t: "car", op: "buy", id: buyModel.id }); setBuy(null); }}>{needsLicense(buyModel) && !p.possessions.license ? T("Needs licence", "Need licence") : T("Buy", "Buy")}</Btn>
+            <Btn tone="ghost" disabled={p.age < 18 || p.money < priceOf(p, buyModel) * 0.3 || (needsLicense(buyModel) && !p.possessions.license)} onClick={() => { run({ t: "car", op: "buyLoan", id: buyModel.id }); setBuy(null); }}>{T("30% down", "30% deposit")}</Btn>
+          </div>
+        </Sheet>
+      )}
+      {openVeh && (
+        <Sheet title={openVeh.name} onClose={() => setOpenV(null)}>
+          <div className="flex justify-center"><VehicleArt art={openM?.art ?? "sedan"} color={openM?.color ?? "#64748b"} size={150} /></div>
+          <p className="mt-1 text-center text-xs text-slate-500">{naira(openVeh.value)} · {T("Condition", "Condition")} {openVeh.condition}% · {isInsured(p, openVeh) ? T("insured", "insured") : T("uninsured", "no insurance")}{openVeh.loanId ? T(" · on finance", " · dem still dey owe") : ""}</p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <Btn small tone="ghost" onClick={() => run({ t: "car", op: "repair", id: openVeh.id })}>{T("Repair", "Repair")} ({naira(repairCost(p, openVeh))})</Btn>
+            <Btn small tone="ghost" onClick={() => run({ t: "car", op: "insure", id: openVeh.id })}>{T("Insure", "Insure")}</Btn>
+            {openVeh.role === "personal" ? (
+              <>
+                {openM?.rentYield ? <Btn small tone="ghost" onClick={() => run({ t: "car", op: "rental", id: openVeh.id })}>{openM.cat === "jet" || openM.cat === "helicopter" ? T("Charter it out", "Put am for charter") : openM.cat === "boat" || openM.cat === "yacht" ? T("Hire it out", "Hire am out") : T("Rent it out", "Rent am out")}</Btn> : null}
+                {openM && ["taxi", "car"].includes(openM.cat) && <Btn small tone="ghost" onClick={() => run({ t: "car", op: "taxi", id: openVeh.id })}>{T("Run as taxi", "Use as taxi")}</Btn>}
+              </>
+            ) : <Btn small tone="ghost" onClick={() => run({ t: "car", op: "personal", id: openVeh.id })}>{T("Personal use", "Personal use")}</Btn>}
+            <Btn small tone="red" onClick={() => { run({ t: "car", op: "sell", id: openVeh.id }); setOpenV(null); }}>{T("Sell", "Sell")}</Btn>
+          </div>
+        </Sheet>
       )}
     </Card>
   );
