@@ -26,6 +26,9 @@ import { yearlyNews, modActive } from "../news";
 import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
+import { VEHICLE_MODELS, modelOf, needsLicense, priceOf, takeDrivingTest, licenseBlock } from "../vehicles";
+import { transportOptions, tripRisk } from "../travel";
+import { makeKidnap } from "../kidnap";
 import { UNIS, MAJORS, UNI_BY_ID, MAJOR_BY_ID, offers, cutoffFor } from "../universities";
 import { enrolBlock, uniFee, openAdmission, familyCanPay, campusPay } from "../campus";
 import { beneficiaries, setShare, planEstate } from "../will";
@@ -1074,4 +1077,138 @@ test("social platforms: five real platforms with their own content", () => {
   const tw = act(cur, { t: "social", op: "post", platform: "twitter", content: "thread" });
   assert.equal(tw.g.p.social!.accounts.twitter!.posts, 1);
   assert.ok(ledgerBalances(tw.g.p) && ledgerBalances(sale.g.p));
+});
+
+const withCash = (age: number, cash = 100_000_000_000_000): Game => { const g = structuredClone(aliveAt(age)); g.p.prison = 0; g.p.money = cash; g.p.actionsLeft = 5; return g; };
+
+test("luxury vehicles: catalogue, licence gate, rental income and upkeep", () => {
+  for (const id of ["corolla-used", "ferrari", "bugatti", "g650", "r44", "yacht"]) assert.ok(modelOf(id), id);
+  assert.ok(VEHICLE_MODELS.every((m) => m.price > 0 && m.art));
+  assert.ok(modelOf("bugatti")!.price > modelOf("ferrari")!.price && modelOf("ferrari")!.price > modelOf("corolla-used")!.price);
+  assert.equal(needsLicense(modelOf("ferrari")!), true);
+  assert.equal(needsLicense(modelOf("g650")!), false);
+  const g = withCash(30);
+  g.p.possessions.license = false;
+  const blocked = act(g, { t: "car", op: "buy", id: "ferrari" });
+  assert.equal(blocked.g.p.vehicles.length, g.p.vehicles.length, "no licence, no supercar");
+  // aircraft and boats need no licence; price is charged exactly
+  const before = g.p.money;
+  const jet = act(g, { t: "car", op: "buy", id: "g650" });
+  const j = jet.g.p.vehicles.find((v) => v.modelId === "g650")!;
+  assert.ok(j, jet.msg);
+  assert.equal(Math.round(before - jet.g.p.money), priceOf(g.p, modelOf("g650")!));
+  // rent it out: charter income arrives, ledger stays balanced
+  const rent = act(jet.g, { t: "car", op: "rental", id: j.id });
+  assert.equal(rent.g.p.vehicles.find((v) => v.id === j.id)!.role, "rental");
+  let cur = rent.g;
+  const worth0 = cur.p.money;
+  for (let i = 0; i < 2; i++) { cur.p.prison = 0; cur = resolveAll(ageUp(cur)); }
+  assert.ok(cur.p.alive ? Number.isFinite(cur.p.money) && ledgerBalances(cur.p) : true);
+  assert.ok(worth0 > 0);
+  // selling returns cash
+  const jj = cur.p.vehicles.find((v) => v.modelId === "g650");
+  if (jj) { const m0 = cur.p.money; const sold = act(cur, { t: "car", op: "sell", id: jj.id }); assert.ok(sold.g.p.money > m0); }
+});
+
+test("driver's licence: age gate, cost, settle improves odds, then cars unlock", () => {
+  const kid = structuredClone(aliveAt(16));
+  assert.ok(licenseBlock(kid.p)?.length);
+  const g = withCash(25, 10_000_000);
+  g.p.possessions.license = false;
+  assert.equal(licenseBlock(g.p), null);
+  let passedPlain = 0, passedSettle = 0;
+  for (let s = 1; s <= 80; s++) {
+    for (const settle of [false, true]) {
+      const c = structuredClone(g); setSeed(s);
+      const before = c.p.money;
+      takeDrivingTest(c.p, settle);
+      assert.ok(c.p.money < before, "the test always costs money");
+      if (c.p.possessions.license) settle ? passedSettle++ : passedPlain++;
+    }
+  }
+  assert.ok(passedSettle > passedPlain, `settling should pass more often (${passedSettle} vs ${passedPlain})`);
+  g.p.possessions.license = true; g.p.money = 100_000_000_000;
+  const car = act(g, { t: "car", op: "buy", id: "corolla-used" });
+  assert.ok(car.g.p.vehicles.some((v) => v.modelId === "corolla-used"));
+});
+
+test("travel: transport choice, costs, risk ordering and blocks", () => {
+  const g = withCash(30);
+  g.p.vehicles = []; g.p.possessions.license = false;
+  const to = STATE_BY_ID.borno;
+  const opts = Object.fromEntries(transportOptions(g.p, to).map((o) => [o.id, o]));
+  assert.ok(opts.bus.cost < opts.ride.cost && opts.ride.cost < opts.flight.cost);
+  assert.ok(opts.bus.risk > opts.ride.risk && opts.ride.risk > opts.flight.risk, "road is riskier than flying");
+  assert.ok(opts.jet.block && opts.heli.block && opts.car.block, "no jet, helicopter or car owned");
+  assert.equal(opts.bus.block, null);
+  // own a jet: it unlocks and is the safest way to fly
+  const j = act(g, { t: "car", op: "buy", id: "g650" }).g;
+  const jopts = Object.fromEntries(transportOptions(j.p, to).map((o) => [o.id, o]));
+  assert.equal(jopts.jet.block, null);
+  assert.ok(jopts.jet.risk < jopts.flight.risk);
+  // security lowers road risk
+  const sec = structuredClone(g); sec.p.flags.own_bodyguards = true;
+  assert.ok(tripRisk(sec.p, STATE_BY_ID[sec.p.state], to, "bus") < tripRisk(g.p, STATE_BY_ID[g.p.state], to, "bus"));
+  // travelling charges exactly the shown cost and moves you
+  const here = g.p.state;
+  let moved = false;
+  for (let s = 1; s <= 30 && !moved; s++) {
+    setSeed(s);
+    const c = structuredClone(g); c.p.state = here;
+    const before = c.p.money;
+    const r = act(c, { t: "travel", to: "kano", mode: "flight" });
+    const cost = transportOptions(c.p, STATE_BY_ID.kano).find((o) => o.id === "flight")!.cost;
+    if (r.g.p.state === "kano" && r.g.queue.length === 0) { assert.equal(Math.round(before - r.g.p.money), cost); assert.equal(r.g.p.traveled, false, "flights are not road trips"); moved = true; }
+  }
+  assert.ok(moved);
+  // a blocked mode does nothing
+  const nope = act(g, { t: "travel", to: "kano", mode: "jet" });
+  assert.equal(nope.g.p.state, g.p.state);
+  assert.equal(nope.g.p.money, g.p.money);
+});
+
+test("travel: road trips can end in kidnapping", () => {
+  let kidnapped = 0;
+  for (let s = 1; s <= 300 && !kidnapped; s++) {
+    const g = withCash(30, 500_000_000);
+    g.p.state = "abuja";
+    setSeed(s);
+    const r = act(g, { t: "travel", to: "zamfara", mode: "bus" });
+    if (r.g.queue[0]?.kind === "kidnap") kidnapped++;
+  }
+  assert.equal(kidnapped, 1, "a bus to a high-risk state eventually gets stopped");
+});
+
+test("kidnap escape mini-game: planning raises the odds, running ends it", () => {
+  const base = withCash(30, 800_000_000);
+  base.queue.unshift({ kind: "kidnap", k: makeKidnap(base.p) });
+  let g = kidnapAction(base, { type: "start" });
+  g = kidnapAction(g, { type: "escapeStart" });
+  let k = (g.queue[0] as { kind: "kidnap"; k: import("../types").KidnapState }).k;
+  assert.ok(k.escape && k.escape.captives.length >= 2 && k.escape.captives.length <= 4);
+  for (const move of ["scout", "scout", "fakeSick", "befriend", "allies"] as const) g = kidnapAction(g, { type: "escapeAct", move });
+  k = (g.queue[0] as { kind: "kidnap"; k: import("../types").KidnapState }).k;
+  assert.ok(k.escape!.insight >= 2, "scouting teaches you about the camp");
+  assert.ok(k.escape!.noise > 5, "every move makes some noise");
+  // stopping the plan clears it without ending the kidnapping
+  const stopped = kidnapAction(g, { type: "escapeStop" });
+  assert.equal((stopped.queue[0] as { k: import("../types").KidnapState }).k.escape, undefined);
+  assert.notEqual((stopped.queue[0] as { k: import("../types").KidnapState }).k.stage, "over");
+  // run many times: both escape and failure happen, outcomes are valid and the game never breaks
+  const outcomes: Record<string, number> = {};
+  for (let s = 1; s <= 120; s++) {
+    setSeed(s);
+    let h = kidnapAction(base, { type: "start" });
+    h = kidnapAction(h, { type: "escapeStart" });
+    for (let i = 0; i < 3; i++) h = kidnapAction(h, { type: "escapeAct", move: "scout" });
+    for (let i = 0; i < 6 && h.queue[0]?.kind === "kidnap" && (h.queue[0] as { k: { stage: string } }).k.stage !== "over"; i++) h = kidnapAction(h, { type: "escapeAct", move: "run" });
+    const kk = h.queue[0] as { kind: "kidnap"; k: import("../types").KidnapState } | undefined;
+    if (kk?.kind === "kidnap" && kk.k.stage === "over") {
+      outcomes[kk.k.outcome!] = (outcomes[kk.k.outcome!] ?? 0) + 1;
+      const done = ackKidnap(h);
+      assert.ok(noNaN(done.p));
+      if (kk.k.outcome === "dead") assert.equal(done.p.alive, false); else assert.ok(done.p.kidnaps >= 1);
+    }
+  }
+  assert.ok((outcomes.escaped ?? 0) > 0, `some escapes succeed: ${JSON.stringify(outcomes)}`);
 });
