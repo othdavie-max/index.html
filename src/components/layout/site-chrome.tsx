@@ -11,12 +11,12 @@ import { ChatLauncherMobile } from "@/components/chat/chat-launcher-mobile";
 import { ConsentBanner } from "@/components/layout/consent-banner";
 import { cn } from "@/lib/utils";
 
-/** Public site chrome — hidden entirely on /admin, which has its own shell.
+/** Public site chrome — hidden entirely on /admin and /naija-life, which have their own shells.
  * The floating WhatsApp/chat/book bar is also hidden on /book itself, so
  * nothing distracts from finishing the booking flow. */
 export function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin");
+  const isAdmin = pathname?.startsWith("/admin") || pathname?.startsWith("/naija-life");
   const isBooking = pathname === "/book";
   const [chatOpen, setChatOpen] = useState(false);
 
