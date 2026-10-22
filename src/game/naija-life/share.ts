@@ -114,10 +114,7 @@ export async function shareCard(input: ShareCardInput, text: string): Promise<"s
     }
   }
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "naija-life.png";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  // Show the card on screen so it can be saved or screenshotted even where downloads are blocked.
+  window.dispatchEvent(new CustomEvent("naija-share-image", { detail: { url, text } }));
   return "downloaded";
 }

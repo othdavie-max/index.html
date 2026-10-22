@@ -9,13 +9,13 @@ import {
   type JobDef,
 } from "./data";
 import {
-  ACTIVITIES, act, activityBlock, ageUp, ackKidnap, applyBlock, buildCost, choose, describePending, expandCost, kidnapAction, newGame, startHeir, startNewFamily,
+  ACTIVITIES, act, activityBlock, ageUp, ackKidnap, applyBlock, buildCost, choose, describePending, expandCost, kidnapAction, migrate, newGame, startHeir, startNewFamily,
   type Action, worth,
 } from "./engine";
 import { eduAtLeast, eligibleJobs, jobDef, jobTitle } from "./helpers";
 import { KidnapModal } from "./KidnapModal";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
-import { GOV_ACTIONS, canContest, canJoinPolitics, officeTitle } from "./politics";
+import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
@@ -39,7 +39,7 @@ function loadSave(): Game | null {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const g = JSON.parse(raw) as Game;
-    return g && g.p && g.dynasty ? g : null;
+    return g && g.p && g.dynasty ? migrate(g) : null;
   } catch {
     return null;
   }
@@ -61,11 +61,18 @@ export default function NaijaLife() {
   const [result, setResult] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [menu, setMenu] = useState(false);
+  const [cardImg, setCardImg] = useState<{ url: string; text: string } | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaved(loadSave());
     setReady(true);
+  }, []);
+
+  useEffect(() => {
+    const onImg = (e: Event) => setCardImg((e as CustomEvent<{ url: string; text: string }>).detail);
+    window.addEventListener("naija-share-image", onImg);
+    return () => window.removeEventListener("naija-share-image", onImg);
   }, []);
 
   useEffect(() => {
@@ -200,6 +207,15 @@ export default function NaijaLife() {
           onHeir={(i) => { setGame(startHeir(game, i)); setTab("life"); }}
           onNew={(o) => { setGame(startNewFamily(game, o)); setTab("life"); }}
         />
+      )}
+
+      {cardImg && (
+        <Sheet title="Your card" onClose={() => setCardImg(null)}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={cardImg.url} alt="Share card" className="w-full rounded-xl" />
+          <p className="mt-3 text-xs text-white/60">Press and hold the image to save it, or take a screenshot, then post it.</p>
+          <Btn tone="ghost" className="mt-3 w-full" onClick={() => { try { void navigator.clipboard.writeText(cardImg.text); } catch { /* clipboard blocked */ } }}>Copy caption</Btn>
+        </Sheet>
       )}
 
       {menu && (
@@ -693,17 +709,53 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
 // ---------------------------------------------------------------------------
 // Power tab
 // ---------------------------------------------------------------------------
+function RoutesCard() {
+  const routes: [string, string][] = [
+    ["The Ballot Box", "Councillor, LG chairman, Rep, Senator, Governor, then President. Slow, expensive and the most common road."],
+    ["The Kingmaker", "As a governor or big financier, build the party machine, bankroll loyalists in other states, capture the electoral umpire and the courts, win the party ticket, then run."],
+    ["The General", "Rise in the army to Captain or above and plot a coup. If it fails you may go to prison, but a prisoner of conscience can come out a hero, get anointed by the elders and return as a civilian president."],
+    ["The Understudy", "Be offered the Vice President slot. If the president dies or falls ill, you step in."],
+    ["The Exile", "Speak out against a regime, flee abroad, and come back as a hero when democracy returns."],
+  ];
+  return (
+    <Card>
+      <H sub="Different people got to the top different ways.">Roads to the Villa</H>
+      <div className="space-y-2">
+        {routes.map(([t, d]) => (
+          <div key={t} className="rounded-xl bg-white/5 p-3">
+            <div className="text-sm font-semibold text-[#f5b82e]">{t}</div>
+            <div className="text-[11px] leading-snug text-white/60">{d}</div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const pol = p.politics;
+  const coupBlock = canPlotCoup(p);
+  const showCoup = p.job?.id === "soldier" || Boolean(pol?.militaryRuler);
+  const coupCard = showCoup && (
+    <Card>
+      <H sub="High risk. Success makes you head of state. Failure means prison, or worse.">Plot a coup</H>
+      <Btn tone="red" disabled={Boolean(coupBlock)} onClick={() => run({ t: "coup" })}>Seize power</Btn>
+      {coupBlock && <p className="mt-1 text-xs text-white/50">{coupBlock}</p>}
+    </Card>
+  );
   if (!pol) {
     const block = canJoinPolitics(p);
     return (
-      <Card>
-        <H>Politics</H>
-        <p className="text-sm text-white/80">From councillor to President. It costs money, connections and (sometimes) your conscience. Once you hold power you can build the country, or loot it.</p>
-        <Btn className="mt-3" tone="gold" disabled={Boolean(block)} onClick={() => run({ t: "joinPolitics" })}>Join a political party ({naira(2_000_000 * p.index)})</Btn>
-        {block && <p className="mt-2 text-xs text-red-300">{block}</p>}
-      </Card>
+      <>
+        <Card>
+          <H>Politics</H>
+          <p className="text-sm text-white/80">From councillor to President. It costs money, connections and (sometimes) your conscience. Once you hold power you can build the country, or loot it.</p>
+          <Btn className="mt-3" tone="gold" disabled={Boolean(block)} onClick={() => run({ t: "joinPolitics" })}>Join a political party ({naira(2_000_000 * p.index)})</Btn>
+          {block && <p className="mt-2 text-xs text-red-300">{block}</p>}
+        </Card>
+        {coupCard}
+        <RoutesCard />
+      </>
     );
   }
   const holding = pol.office >= 0 ? OFFICES[pol.office] : null;
@@ -711,19 +763,54 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const block = canContest(p);
   const n = p.nation;
   const ruler = p.loot > 0 && p.goodDeeds <= 3 ? "Looter" : p.goodDeeds >= 6 && p.loot === 0 ? "Reformer" : p.goodDeeds > 0 && p.loot > 0 ? "Mixed record" : "Unknown";
+  const zone = currentZone(p);
+  const mine = playerZone(p);
   return (
     <>
       <Card>
-        <H>{holding ? holding.title : "Out of office"}</H>
-        {holding && <p className="text-sm text-white/80">Term {pol.terms}, {pol.yearsLeft} year{pol.yearsLeft === 1 ? "" : "s"} left · {naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay</p>}
-        {next && (
-          <div className="mt-2">
+        <H>{officeTitle(p) ?? "Out of office"}</H>
+        {holding && !pol.militaryRuler && <p className="text-sm text-white/80">Term {pol.terms}, {pol.yearsLeft} year{pol.yearsLeft === 1 ? "" : "s"} left · {naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay</p>}
+        {pol.militaryRuler && <p className="text-sm text-white/80">You rule by decree. Watch out for counter-coups.</p>}
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {pol.anointed && <Badge tone="gold">Anointed</Badge>}
+          {pol.hero && <Badge tone="green">People&apos;s hero</Badge>}
+          {pol.vp && <Badge tone="gold">Vice President</Badge>}
+          {pol.godfather && <Badge tone="red">Owes a godfather</Badge>}
+          {pol.defected && <Badge>Defected</Badge>}
+          {pol.kingmaker > 0 && <Badge tone="gold">Kingmaker ×{pol.kingmaker}</Badge>}
+        </div>
+        <p className="mt-2 text-xs text-white/60">Zoning: this cycle the presidency is zoned to the <b className="text-white/90">{zone}</b>. You are from the {mine}{zone === mine ? ". Advantage!" : ". Disadvantage."}</p>
+        {next && !pol.militaryRuler && (
+          <div className="mt-3">
             <Btn tone="gold" disabled={Boolean(block)} onClick={() => run({ t: "contest" })}>Run for {next.title}</Btn>
             {block && <p className="mt-1 text-xs text-white/50">{block}</p>}
           </div>
         )}
         <p className="mt-3 text-xs text-white/50">Reputation as a ruler: <b className="text-white/80">{ruler}</b> · Stolen: {naira(p.loot)} · Good deeds: {p.goodDeeds}</p>
       </Card>
+
+      <Card>
+        <H sub="These decide who wins the ticket, the vote and the court case.">Power bases</H>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          <Bar label="Party machine" value={pol.machine} tone="gold" />
+          <Bar label="Electoral umpire (INEC)" value={pol.umpire} tone="gold" />
+          <Bar label="Courts" value={pol.courts} tone="gold" />
+          <Bar label="Security chiefs" value={pol.military} tone="gold" />
+        </div>
+        <div className="mt-3 space-y-2">
+          {POWER_MOVES.map((m) => {
+            const b = powerMoveBlock(p, m.id);
+            return (
+              <button key={m.id} type="button" disabled={Boolean(b)} onClick={() => run({ t: "power", id: m.id })} className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-left disabled:opacity-40">
+                <span className="flex justify-between text-sm font-semibold"><span>{m.label}</span><span className="text-[#f5b82e]">{naira(powerMoveCost(p, m.id))}</span></span>
+                <span className="block text-[11px] text-white/50">{b ?? m.desc}</span>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      {coupCard}
 
       {holding && (
         <>
@@ -757,6 +844,7 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           ))}
         </>
       )}
+      <RoutesCard />
     </>
   );
 }
@@ -786,7 +874,7 @@ function LegacyTab({ g }: { g: Game }) {
   const share = async () => {
     const card = lineageCard(g.dynasty, g.p);
     const r = await shareCard(card, `${card.title} on Naija Life: ${card.stats.map((s) => `${s.label} ${s.value}`).join(" · ")}`);
-    setMsg(r === "shared" ? "Shared!" : "Image downloaded. Post it!");
+    setMsg(r === "shared" ? "Shared!" : "Card ready. Save it or screenshot it!");
   };
   const p = g.p;
   return (
@@ -841,7 +929,7 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
       },
       `${p.name} ${p.surname} lived ${p.age} years in Naija Life. ${entry?.epitaph ?? ""}`,
     );
-    setMsg(r === "shared" ? "Shared!" : "Image downloaded. Post it!");
+    setMsg(r === "shared" ? "Shared!" : "Card ready. Save it or screenshot it!");
   };
   return (
     <Sheet title="Your life has ended">

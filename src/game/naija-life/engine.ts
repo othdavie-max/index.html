@@ -2,14 +2,16 @@ import {
   HOUSE_KINDS, JOB_BY_ID, OFFICES, STATE_BY_ID, TRAVEL_STATES, TRIBES_BY_REGION, birthWeight, defaultReligion, payMult, poolFor, travelCost,
 } from "./data";
 import { AUTOS, EVENTS } from "./events";
-import { I, bump, jobDef, jobTitle, moveTo, randomName, stateOf } from "./helpers";
+import { AUTOS2, EVENTS2 } from "./events2";
+import { I, bump, expandCostFor, jobDef, jobTitle, moveTo, randomName, stateOf } from "./helpers";
 import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from "./kidnap";
 import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings, yearlyUpkeep } from "./lifestyle";
-import { POLITICS_EVENTS, canContest, canJoinPolitics, contestPending, freshNation, joinPolitics, runGov, yearlyPolitics, GOV_ACTIONS } from "./politics";
+import { POLITICS_EVENTS, canContest, canJoinPolitics, canPlotCoup, contestPending, freshNation, joinPolitics, migratePolitics, plotCoup, politicalRelease, powerMoveBlock, runGov, runPowerMove, yearlyPolitics, GOV_ACTIONS } from "./politics";
 import type { EventDef, Game, Gender, HoldingKind, House, HouseKind, HouseUse, LineageEntry, Pending, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt, uid, weightedPick } from "./util";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...POLITICS_EVENTS];
+const ALL_AUTOS = [...AUTOS, ...AUTOS2];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
 
@@ -31,6 +33,12 @@ function settle(p: Player) {
   }
   p.peakWorth = Math.max(p.peakWorth, netWorth(p));
   for (const k of Object.keys(p.stats) as (keyof Player["stats"])[]) p.stats[k] = clamp(p.stats[k]);
+}
+
+/** Fill in fields that older saves do not have. */
+export function migrate(g: Game): Game {
+  migratePolitics(g.p);
+  return g;
 }
 
 export function worth(p: Player): number {
@@ -263,7 +271,7 @@ const CAUSES = ["Heart attack", "Stroke", "Complications of malaria", "A short i
 function schoolTick(p: Player, lines: string[], pending: Pending[]) {
   if (!p.school && p.age === 6 && p.edu === "none") {
     p.school = { stage: "primary", yearsLeft: 6, type: "school" };
-    lines.push(p.classAtBirth === "rich" ? "You started primary school at a private school with a school bus." : "You started primary school at the local school.");
+    lines.push(p.classAtBirth === "rich" ? "You start primary school for one private school with school bus." : "You start primary school for the local school.");
     return;
   }
   if (!p.school) return;
@@ -275,14 +283,14 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
   if (stage === "primary") {
     p.edu = "primary";
     p.school = { stage: "secondary", yearsLeft: 6, type: "school" };
-    lines.push("You passed Common Entrance and started secondary school.");
+    lines.push("You pass Common Entrance and start secondary school.");
   } else if (stage === "secondary") {
     p.edu = "secondary";
-    lines.push("You finished secondary school. WAEC results are out.");
+    lines.push("You finish secondary school. WAEC result don come out.");
     pending.push({ kind: "event", id: "jamb", data: {} });
   } else {
     p.edu = "tertiary";
-    lines.push(`You graduated${p.course ? ` with a degree in ${p.course}` : ""}. Your family threw a small party.`);
+    lines.push(`You graduate${p.course ? ` with degree in ${p.course}` : ""}. Your family throw small party.`);
     bump(p, "smarts", 3);
     if (!p.flags.nysc && p.age < 32) pending.push({ kind: "event", id: "nysc", data: { posted: pick(TRAVEL_STATES.filter((s) => s.id !== "abuja" && s.id !== "lagos")).id } });
   }
@@ -302,7 +310,7 @@ export function ageUp(g0: Game): Game {
   if (chance(0.06)) {
     const shock = rand(0.08, 0.2);
     rate += shock;
-    lines.push(`Economic shock: prices jumped ${Math.round(rate * 100)}% this year.`);
+    lines.push(`Economic shock: prices jump ${Math.round(rate * 100)}% this year.`);
   }
   p.index *= 1 + rate;
   for (const h of p.houses) h.value = Math.round(h.value * (1 + rate * 0.9));
@@ -315,7 +323,8 @@ export function ageUp(g0: Game): Game {
     p.prison -= 1;
     bump(p, "health", -3);
     bump(p, "happiness", -4);
-    lines.push(p.prison > 0 ? "Another year in Kuje prison." : "You were released from prison.");
+    lines.push(p.prison > 0 ? "Another year for Kuje prison." : "You was released from prison.");
+    if (p.prison === 0) politicalRelease(p, pending);
   } else if (p.age >= 16) {
     let income = 0;
     const j = jobDef(p);
@@ -329,7 +338,7 @@ export function ageUp(g0: Game): Game {
         if (chance(base + p.stats.connections / 600)) {
           p.job.rank += 1;
           p.job.years = 0;
-          lines.push(`Promotion! You are now: ${j.ladder[p.job.rank].title}.`);
+          lines.push(`Promotion! You don become: ${j.ladder[p.job.rank].title}.`);
           if (j.id === "kidnapper" || j.id === "yahoo") bump(p, "reputation", -2);
         }
       }
@@ -361,13 +370,14 @@ export function ageUp(g0: Game): Game {
     if (p.money < 0) {
       bump(p, "stress", 10);
       bump(p, "happiness", -6);
-      lines.push("Money was tight. You borrowed to survive.");
+      lines.push("Money tight o. You borrow to survive.");
     }
     settle(p);
     yearlyHoldings(p, rate, lines);
   }
 
   yearlyPolitics(p, lines, pending);
+  if (p.flags.efccWatch && (p.politics?.office ?? -1) < 0 && p.loot > 0 && chance(0.12)) pending.push({ kind: "event", id: "efcc", data: {} });
 
   // Body and mind
   if (p.age > 45) p.stats.health -= (p.age - 45) * 0.03 + rand(0, 0.8);
@@ -383,7 +393,7 @@ export function ageUp(g0: Game): Game {
   if (p.family.parentsAlive && p.age >= 40 && chance((p.age - 38) / 140)) {
     p.family.parentsAlive = false;
     bump(p, "happiness", -15);
-    lines.push("Your parent passed away.");
+    lines.push("Your parent don die.");
     pending.push({ kind: "event", id: "funeral", data: {} });
   }
 
@@ -404,7 +414,7 @@ export function ageUp(g0: Game): Game {
     const autos = chance(0.55) ? 2 : 1;
     const taken = new Set<string>();
     for (let i = 0; i < autos; i++) {
-      const au = weightedPick(AUTOS.filter((a) => !taken.has(a.id)).map((a) => ({ item: a, w: a.weight(p) })));
+      const au = weightedPick(ALL_AUTOS.filter((a) => !taken.has(a.id)).map((a) => ({ item: a, w: a.weight(p) })));
       if (au) {
         taken.add(au.id);
         lines.push(au.run(p));
@@ -421,7 +431,7 @@ export function ageUp(g0: Game): Game {
 
   p.traveled = false;
   for (const l of lines) addLog(p, l);
-  if (lines.length === 0 && pending.length === 0) addLog(p, "A quiet year.");
+  if (lines.length === 0 && pending.length === 0) addLog(p, "Quiet year. No wahala.");
   g.queue = p.alive ? pending : [];
   prune(g);
   ensureRecorded(g);
@@ -516,7 +526,9 @@ export type Action =
   | { t: "divest"; id: string }
   | { t: "joinPolitics" }
   | { t: "contest" }
-  | { t: "gov"; id: string };
+  | { t: "gov"; id: string }
+  | { t: "power"; id: string }
+  | { t: "coup" };
 
 export interface ActivityDef {
   id: string;
@@ -554,13 +566,7 @@ export function applyBlock(p: Player, jobId: string): string | null {
   return null;
 }
 
-export function expandCost(p: Player): number | null {
-  const j = jobDef(p);
-  if (!p.job || !j || !j.selfEmployed) return null;
-  const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
-  if (!rung.upgrade) return null;
-  return Math.round(rung.upgrade * Math.pow(p.index, 0.85));
-}
+export const expandCost = expandCostFor;
 
 export function buildCost(p: Player, kind: HouseKind): number {
   return Math.round(HOUSE_KINDS[kind].build * stateOf(p).cost * Math.pow(p.index, 0.95));
@@ -730,6 +736,19 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       if (!pe) return { g: g0, msg: "" };
       g.queue.unshift(pe);
       return { g, msg: "" };
+    }
+    case "power": {
+      const block = powerMoveBlock(p, a.id);
+      if (block) return { g: g0, msg: block };
+      return out(runPowerMove(p, a.id));
+    }
+    case "coup": {
+      const block = canPlotCoup(p);
+      if (block) return { g: g0, msg: block };
+      p.actionsLeft = Math.max(0, p.actionsLeft - 1);
+      const res = plotCoup(p);
+      if (res.spawn) g.queue.unshift(...res.spawn);
+      return out(res.text);
     }
     case "gov": {
       const def = GOV_ACTIONS.find((x) => x.id === a.id);

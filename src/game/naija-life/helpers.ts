@@ -72,3 +72,12 @@ export function addLoot(p: Player, amount: number) {
 }
 
 export const I = (p: Player, n: number) => n * p.index;
+
+/** Cost to grow a self-employed business to its next rung, or null. */
+export function expandCostFor(p: Player): number | null {
+  const j = jobDef(p);
+  if (!p.job || !j || !j.selfEmployed) return null;
+  const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
+  if (!rung.upgrade) return null;
+  return Math.round(rung.upgrade * Math.pow(p.index, 0.85));
+}

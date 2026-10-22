@@ -26,7 +26,7 @@ export function KidnapModal({ p, k, onAction, onDone }: { p: Player; k: KidnapSt
       },
       kidnapShareText(p, k),
     );
-    setShared(res === "shared" ? "Shared!" : "Image downloaded. Post it!");
+    setShared(res === "shared" ? "Shared!" : "Card ready. Save it or screenshot it!");
   };
 
   if (k.stage === "over") {

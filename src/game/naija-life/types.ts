@@ -71,6 +71,18 @@ export interface Politics {
   godfather: boolean;
   /** Highest office ever held (-1 none). */
   highest: number;
+  /** Power bases, 0-100. */
+  machine: number;
+  umpire: number;
+  courts: number;
+  military: number;
+  kingmaker: number;
+  vp: boolean;
+  vpYears: number;
+  anointed: boolean;
+  hero: boolean;
+  militaryRuler: boolean;
+  defected: boolean;
 }
 
 export interface Kid {
