@@ -2,7 +2,7 @@ import { HOUSE_KINDS } from "./data";
 import { monthIndex, transact } from "./ledger";
 import { previewLoan, takeLoan, type LoanOffer, type LoanPreview } from "./loans";
 import { stateOf, bump } from "./helpers";
-import { capacityOf, primaryProvider, remember } from "./family";
+import { primaryProvider, remember } from "./family";
 import type { House, HouseKind, Player } from "./types";
 import { T, naira, uid } from "./util";
 

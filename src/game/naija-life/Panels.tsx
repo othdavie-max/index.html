@@ -185,9 +185,7 @@ function Spark({ p, run }: { p: Player; run: Run }) {
   const blocked = datingAllowed(p);
   const partners = activePartners(p);
   const [bio, setBio] = useState("");
-  const [open, setOpen] = useState<string | null>(null);
   if (blocked) return <Card><H>Spark</H><p className="text-sm text-white/70">{blocked}</p></Card>;
-  const choosePlan = (id: string, plan: "cheap" | "nice" | "luxury") => run({ t: "dating", op: "date", npc: id, plan });
   return (
     <>
       {!d.profile ? (

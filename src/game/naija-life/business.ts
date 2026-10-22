@@ -144,10 +144,10 @@ export function businessMonth(p: Player, lines: string[]) {
     const demand = 0.55 + st.opp / 9;
     const mgmt = businessMultiplier(p) * (b.manager ? 0.88 : 1) * (p.prison > 0 && !b.manager ? 0.3 : 1); // unattended while you are locked up
     const staffLift = 1 + 0.11 * Math.min(b.staff, b.level * 4);
-    const rev = sc(p, k.baseRevenue) * Math.pow(b.level, 1.38) * demand * (b.quality / 60) * staffLift * season * rand(0.62, 1.38) * mgmt;
+    const rev = sc(p, k.baseRevenue) * Math.pow(b.level, 1.12) * demand * (b.quality / 60) * staffLift * season * rand(0.62, 1.38) * mgmt * 0.42;
     const stock = rev * k.stockPct;
     const wages = b.staff * sc(p, k.wage);
-    const overheads = rev * 0.07;
+    const overheads = rev * 0.12;
     const tax = rev * 0.01;
     let net = rev - stock - wages - overheads - tax;
     if (p.month === 1) net -= (sc(p, k.rent) * st.cost) * Math.max(1, b.level * 0.8);

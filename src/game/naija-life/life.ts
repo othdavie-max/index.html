@@ -190,7 +190,7 @@ export const LIFE_EVENTS: EventDef[] = [
     title: dual("Trouble at school", "Wahala for school"),
     weight: (p) => (inSchool(p) && p.age >= 8 ? 1.8 : 0),
     text: () => T("An older boy keeps taking your lunch money and shoving you in the corridor. Other children laugh.", "One big boy dey always collect your lunch money and dey shove you for corridor. Other pikin dey laugh."),
-    choices: (p) => [
+    choices: () => [
       { label: T("Tell a teacher", "Report to teacher"), run: (q) => { if (chance(0.6)) { bump(q, "stress", -3); return T("The teacher punishes the bully. He leaves you alone for a while.", "Teacher punish the bully. E leave you alone for some time."); } bump(q, "reputation", -2); bump(q, "stress", 4); return T("The teacher shrugs. The bully gets angrier.", "Teacher no gree take am serious. The bully come vex pass."); } },
       { label: T("Tell your parents", "Tell your parent"), run: (q) => { const prov = primaryProvider(q); if (prov) { prov.closeness = clamp(prov.closeness + 2); } bump(q, "stress", -2); return T("Your parent goes to the school and has a word with the principal.", "Your parent go school go talk to the principal."); } },
       { label: T("Fight back", "Fight am back"), run: (q) => { if (chance(0.45 + q.stats.fitness / 300)) { bump(q, "reputation", 4); bump(q, "fitness", 1); return T("You stand your ground. The bully backs off, and so does everyone else.", "You hold your ground. The bully back down, everybody else too."); } bump(q, "health", -3); bump(q, "reputation", -2); return T("You lose the fight, but you went down swinging.", "You lose the fight, but you try well."); } },
@@ -326,7 +326,7 @@ export const LIFE_EVENTS: EventDef[] = [
     id: "deployment",
     title: dual("Deployment orders", "Deployment orders"),
     weight: (p) => (isMilitary(p) && !p.flags.training ? 2.2 : 0),
-    text: (p) => {
+    text: () => {
       const place = pick([
         ["the North East", "North East"],
         ["the North West", "North West"],

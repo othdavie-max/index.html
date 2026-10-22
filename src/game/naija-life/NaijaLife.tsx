@@ -122,6 +122,7 @@ export default function NaijaLife() {
 
   useEffect(() => {
     if (!ready || !game) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSlots((s) => {
       const next = [...s];
       next[slot] = game;

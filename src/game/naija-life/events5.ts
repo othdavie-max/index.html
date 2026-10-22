@@ -344,7 +344,7 @@ export const EVENTS5: EventDef[] = [
     title: dual("A relative remembers you", "Relative remember you"),
     weight: (p) => (p.age >= 22 ? 0.25 : 0),
     text: () => T("A lawyer's letter arrives: a distant relative has passed away and named you in the will.", "Lawyer letter land: one far relative don die and put your name for the will."),
-    choices: (p) => [
+    choices: () => [
       { label: T("Attend the reading", "Go the will reading"), run: (q) => {
         if (chance(0.25)) { const h = giftHouse(q, "land", T("a distant relative", "a far relative"), 3_000_000); return T(`You inherit a plot of land worth ${naira(h.value)}. Relatives start sending messages.`, `You inherit plot of land wey worth ${naira(h.value)}. Relatives start to send message.`); }
         const amt = Math.round(I(q, rand(300_000, 3_500_000)));

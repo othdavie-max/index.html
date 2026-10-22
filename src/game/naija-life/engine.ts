@@ -1,5 +1,5 @@
 import {
-  HOUSE_KINDS, JOB_BY_ID, PAY_SCALE, OFFICES, STATE_BY_ID, TRAVEL_STATES, TRIBES_BY_REGION, birthWeight, defaultReligion, payMult, poolFor, travelCost,
+  HOUSE_KINDS, JOB_BY_ID, OFFICES, STATE_BY_ID, TRAVEL_STATES, TRIBES_BY_REGION, birthWeight, defaultReligion, poolFor, travelCost,
 } from "./data";
 import { AUTOS, EVENTS } from "./events";
 import { AUTOS2, EVENTS2 } from "./events2";
@@ -28,7 +28,7 @@ import { auditBalance, coverShortfall, reconcile, snapshot, transact } from "./l
 import { lenderOffers, loanBlock, repayLoan, takeLoan, totalDebt, borrowFrom, giftTo, lendTo } from "./loans";
 import { planEstate } from "./will";
 import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
-import { VEHICLE_MODELS, buyVehicle, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
+import { buyVehicle, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
 import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
 import { closeBusiness, fireStaff, hireStaff, sellBusiness, startBusiness, toggleManager, upgradeBusiness } from "./business";
@@ -40,10 +40,10 @@ import { doGrowth, enlist, enrollTrade, finishTrade, learnSkill, toggleGym } fro
 import type { Platform } from "./types";
 import { I, bump, expandCostFor, jobDef, jobTitle, luckBonus, moveTo, randomName, stateOf } from "./helpers";
 import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from "./kidnap";
-import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings, yearlyUpkeep } from "./lifestyle";
+import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings } from "./lifestyle";
 import { POLITICS_EVENTS, canContest, canJoinPolitics, canPlotCoup, contestPending, freshNation, joinPolitics, migratePolitics, plotCoup, politicalRelease, powerMoveBlock, runGov, runPowerMove, yearlyPolitics, GOV_ACTIONS } from "./politics";
 import type { EventDef, FamilyBg, Game, Gender, HoldingKind, House, HouseKind, HouseUse, Kid, LineageEntry, Pending, Player } from "./types";
-import { T, rng, chance, clamp, naira, pick, rand, randInt, setDeflator, setLang, setSeed, tx, uid, weightedPick } from "./util";
+import { T, chance, clamp, naira, pick, rand, randInt, setDeflator, setLang, setSeed, tx, uid, weightedPick } from "./util";
 import { kidLook, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
@@ -140,21 +140,6 @@ function pickBirthState(): string {
   const items = TRAVEL_STATES.map((s) => ({ item: s.id, w: birthWeight(s.id) }));
   return weightedPick(items) ?? "niger";
 }
-
-function rollClass(opp: number): "struggling" | "middle" | "rich" {
-  const rich = 0.03 + opp * 0.012;
-  const mid = 0.22 + opp * 0.03;
-  const r = rng();
-  if (r < rich) return "rich";
-  if (r < rich + mid) return "middle";
-  return "struggling";
-}
-
-const CLASS_TEXT = {
-  get struggling() { return T("a struggling family that depends on faith and small trading", "family wey dey struggle and dey depend on faith and small trading"); },
-  get middle() { return T("a middle-class family with a modest house and steady jobs", "middle class family wey get small house and steady work"); },
-  get rich() { return T("a wealthy family with a big compound and big connections", "rich family wey get big compound and big connections"); },
-};
 
 function enrollByAge(p: Player) {
   p.edu = "none";
@@ -518,7 +503,6 @@ export function ageUp(g0: Game): Game {
 
   schoolTick(p, lines, pending);
 
-  const st = stateOf(p);
   if (p.prison > 0) {
     p.prison -= 1;
     bump(p, "health", -3);

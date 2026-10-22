@@ -23,19 +23,34 @@ Status of the "complete life simulation" expansion. Only items marked **Done** a
 - Dating message history: every match keeps a persistent thread (your lines, their replies, and notes for dates, milestones and breakups), shown as chat bubbles in Spark and saved with the game.
 
 ## Tests
-`npm run test:game` runs 26 node:test cases (seeded determinism, distributions, support replies, loans, ledger continuity over whole lives, rent schedule, eligibility, hospital costs, dating, social, vehicles, investments, crime and trials, wills and heirs, save migration, cross-system chaos).
+`npm run test:game` runs 34 node:test cases (seeded determinism, distributions, support replies, loans, ledger continuity over whole lives, rent schedule, eligibility, hospital costs, dating, social, vehicles, investments, crime and trials, wills and heirs, save migration, cross-system chaos).
 
-## Partial / not done
-- Balance was measured with simple bots (below), not by human playtesting.
-- Some `no-unused-vars` lint warnings remain (no lint errors).
+## Added in the latest pass
+- English and Pidgin: chosen on the start screen (and switchable from the Menu). All game text, events and UI exist in both voices through `T(en, pcm)`; static tables use lazy getters.
+- Prison now closes every outside action (phone, travel, shopping, work, dating, betting, crime, property, investing). Inside you can work, study, appeal, try to escape, see visitors, ask family for help, see a doctor or make a will; loans, rent, investments and businesses keep running while you are inside.
+- Parent replies need an answer (loan, conditions, "why?", chores, "later" with a follow-up).
+- National headlines with lasting effects (fuel, strikes, naira crash, insecurity, oil boom, floods, grid collapse); alerts and history sheet; monthly summary and upcoming payments in the ledger.
+- Navy, Air Force and Police join the Army in the promotion-board system; postgraduate study; boarding school; children's events; property market with cash, mortgage, parent co-signer and a developer payment plan.
+- Save slots (3), seed and family-mix controls on the start screen.
+- Love life: meet people without a phone, date, make it official, move in, propose, wedding choices, marry, protection options (condom, pill, none), try for a baby, emergency pill, antenatal care choices, birth outcomes (twins, complications, loss), naming ceremony, child support, adoption, fertility treatment, divorce.
+- Browser smoke test (`npm run test:e2e`) plays a life in both languages through the real UI.
 
-## Balance snapshot (150 unseeded bot lives per strategy, real base-year naira, after all additions)
-| strategy | median age at death | median worth @40 | @60 | kidnapped |
+## Not done / limits
+- Saves live in this browser only (three slots). There is no account or online storage.
+- The game is not deployed on the Baseline site itself; only the standalone artifact is published.
+- Text stored in saved state (business names, NPC memories, tags, case charges) stays in the language that was active when it was written.
+- Balance comes from scripted bots, not human play (see below).
+
+## Balance snapshot (100 unseeded bot lives per strategy, real base-year naira, latest)
+| strategy | median age at death | worth @40 | worth @60 | kidnapped |
 |---|---|---|---|---|
-| idle | 59 | about -0.1M | 2.5M | 16% |
-| hustler | 60 | 43M | 179M | 12% |
-| graduate | 58 | 39M | 92M | 16% |
-| crook | 61 | 16M | 31M (8.5 prison years avg) | 15% |
-| politician | 61 | 81M | 119M (11 of 150 became president) | 15% |
+| idle | 60 | -0.5M | -0.5M | 15% |
+| hustler | 60 | 12.8M | 111M | 15% |
+| graduate | 63 | 26M | 86M | 12% |
+| crook | 60 | 11M | 28M (10 prison years avg) | 13% |
+| politician | 61 | 86M | 131M (11 of 100 president) | 13% |
+| tycoon (businesses + mortgage) | 61 | 9M | 266M | 11% |
+| gambler | 59 | 29M | 83M | 13% |
+| creator | 62 | 59M | 186M | 17% |
 
-The bots use jobs, expansion, building and political actions only; they do not use mortgages, trades, businesses, betting or the dating app, so those systems are not covered by this balance check. Runs are unseeded, so figures move a few percent between runs.
+Business revenue growth, margins and creator payouts were reduced in this pass because the tycoon and creator bots became rich far too fast. Runs are unseeded so figures move between runs.

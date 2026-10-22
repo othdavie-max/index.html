@@ -566,7 +566,6 @@ export const REL_EVENTS: EventDef[] = [
       return T(`${first(n)} messages you: "Babe, I need ${naira(Number(d.amount ?? 0) || I(p, 40_000))} for ${String(d.why ?? "something small")}. Can you help?"`, `${first(n)} message you: "Babe, I need ${naira(Number(d.amount ?? 0) || I(p, 40_000))} for ${String(d.why ?? "something small")}. You fit help me?"`);
     },
     choices: (p, d) => {
-      const n = npc(p, d.npcId);
       const r = rel(p, d.npcId);
       const amt = Number(d.amount ?? I(p, 40_000));
       return [
@@ -598,7 +597,7 @@ export const REL_EVENTS: EventDef[] = [
     text: (p, d) => T(`${first(npc(p, d.npcId))} has found out you have been seeing someone else. The screenshots are on the table.`, `${first(npc(p, d.npcId))} don find out say you dey see another person. The screenshots dey for table.`),
     choices: (p, d) => [
       { label: T("Confess and beg forgiveness", "Confess and beg for forgiveness"), run: (q) => { const rr = rel(q, d.npcId); const nn = npc(q, d.npcId); if (rr) { rr.cheated = true; rr.trust = clamp(rr.trust - 30); if (chance(0.45 + rr.affection / 250)) { rr.affection = clamp(rr.affection - 10); remember(q, nn, T("Cheated on you but begged for forgiveness.", "Cheat on you but beg for forgiveness."), "bad"); return T(`${first(nn)} cries, then stays. "One more chance. Only one."`, `${first(nn)} cry, then stay. "One more chance. Na only one."`); } } return breakUp(q, String(d.npcId), T("you cheated", "you cheat")); } },
-      { label: T("Deny everything", "Deny everything"), run: (q) => { const rr = rel(q, d.npcId); const nn = npc(q, d.npcId); if (chance(0.25)) { return T(`${first(nn)} wavers. "I want to believe you."`, `${first(nn)} dey shake. "I wan believe you."`); } bump(q, "reputation", -4); return breakUp(q, String(d.npcId), T("you lied about cheating", "you lie about cheating")); } },
+      { label: T("Deny everything", "Deny everything"), run: (q) => { const nn = npc(q, d.npcId); if (chance(0.25)) { return T(`${first(nn)} wavers. "I want to believe you."`, `${first(nn)} dey shake. "I wan believe you."`); } bump(q, "reputation", -4); return breakUp(q, String(d.npcId), T("you lied about cheating", "you lie about cheating")); } },
       { label: T("Blame them", "Blame am for them"), run: (q) => { bump(q, "reputation", -5); return breakUp(q, String(d.npcId), T("you cheated and blamed them", "you cheat and blame dem")); } },
     ],
   },

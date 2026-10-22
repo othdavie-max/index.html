@@ -153,7 +153,7 @@ export function socialMonth(p: Player, lines: string[]) {
   if (p.age >= 18) {
     let payout = 0;
     for (const [plat, acc] of Object.entries(s.accounts) as [Platform, SocialAccount][]) {
-      payout += (acc.followers / 1000) * PLATFORM_BY_ID[plat].payoutPer1k * (acc.engagement / 0.05) * idx * rand(0.7, 1.3);
+      payout += (acc.followers / 1000) * PLATFORM_BY_ID[plat].payoutPer1k * (acc.engagement / 0.05) * idx * rand(0.7, 1.3) * 0.5;
     }
     if (payout > 0) transact(p, { amount: payout, reason: T("Platform payouts (views and ads)", "Platform payout (views and ads)"), category: "social", recurring: "social-payout" });
   }
@@ -190,7 +190,7 @@ export const SOCIAL_EVENTS: EventDef[] = [
     title: dual("A brand wants you", "Brand dey find you"),
     weight: () => 0,
     valid: (p) => Boolean(p.social),
-    init: (p) => ({ brand: pick(["a telecom giant", "a new fintech app", "a skincare brand", "a fashion label", "a beverage company", "a betting platform"]), monthly: Math.round(totalFollowers(p) * rand(0.8, 2.4) * Math.pow(p.index, 0.92)), months: randInt(3, 12) }),
+    init: (p) => ({ brand: pick(["a telecom giant", "a new fintech app", "a skincare brand", "a fashion label", "a beverage company", "a betting platform"]), monthly: Math.round(totalFollowers(p) * rand(0.5, 1.6) * Math.pow(p.index, 0.92)), months: randInt(3, 12) }),
     text: (p, d) => T(`${String(d.brand)} offers a ${d.months}-month sponsorship for ${naira(Number(d.monthly))} a month if you post about their product regularly.`, `${String(d.brand)} dey offer ${d.months}-month sponsorship for ${naira(Number(d.monthly))} every month if you go dey post their product regularly.`),
     choices: (p, d) => [
       { label: T("Accept the deal", "Take the deal"), run: (q) => { q.social?.sponsors.push({ id: uid(), brand: String(d.brand), monthly: Number(d.monthly), monthsLeft: Number(d.months) }); if (String(d.brand).includes("betting")) { bump(q, "reputation", -2); } return T("You sign the contract. Time to make content.", "You sign the contract. Na time to make content."); } },
