@@ -155,6 +155,8 @@ export interface Player {
   index: number;
   edu: Edu;
   course: string | null;
+  /** University life: set when you enrol, kept after you graduate. */
+  campus?: Campus;
   school: { stage: "primary" | "secondary" | "tertiary"; yearsLeft: number; type: string } | null;
   job: JobState | null;
   houses: House[];
@@ -679,4 +681,33 @@ export interface Game {
   p: Player;
   queue: Pending[];
   dynasty: Dynasty;
+}
+
+export interface Campus {
+  uni: string;
+  major: string;
+  /** Year of study, starting at 1. */
+  year: number;
+  payer: "family" | "self";
+  /** Share of the fee covered by a scholarship, 0-1. */
+  aid: number;
+  /** Effort this year; study and the like push grades up. */
+  effort: number;
+  used: string[];
+  gpas: number[];
+  cgpa: number;
+  network: number;
+  lead: number;
+  clubs: string[];
+  sug: "none" | "deptRep" | "won" | "lost";
+  siwes: boolean;
+  /** An employer promised a job after graduation. */
+  offer: boolean;
+  project: boolean;
+  /** Disciplinary record, 0-100. */
+  trouble: number;
+  strikes: number;
+  graduated?: boolean;
+  cls?: string;
+  gradAge?: number;
 }

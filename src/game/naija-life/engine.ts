@@ -9,6 +9,7 @@ import { EVENTS5, graduationData } from "./events5";
 import { EVENTS6 } from "./events6";
 import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
+import { campusDo, campusHire, campusYearEnd, enrol, graduateCampus, writeJamb } from "./campus";
 import { transportOptions, type TransportMode } from "./travel";
 import { buyListing, completeProjects, developLand, houseYear, refreshListings, type PurchaseMode } from "./property";
 import { defaultLocationFor, locationOf } from "./locations";
@@ -450,8 +451,14 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
     lines.push(t === "elite" ? T("You start primary school at an expensive international school.", "You start primary school for expensive international school.") : t === "private" ? T("You start primary school at a private school with a school bus.", "You start primary school for private school wey get school bus.") : T("You start primary school at the local public school.", "You start primary school for the local public school."));
     return;
   }
+  if (p.flags.admOpen && !p.school && p.age > Number(p.flags.admAge ?? 0) + 1) {
+    delete p.flags.admOpen;
+    lines.push(T("Your admission window closes. You will need to write JAMB again.", "Your admission window don close. You go write JAMB again."));
+  }
   if (!p.school) return;
   if (p.school.stage !== "tertiary") bump(p, "smarts", chance(0.5) ? 1 : 0);
+  if (p.school.stage === "tertiary" && p.school.type === "university") campusYearEnd(p, lines);
+  if (!p.school) return;
   p.school.yearsLeft -= 1;
   if (p.school.yearsLeft > 0) return;
   const stage = p.school.stage;
@@ -473,7 +480,8 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
     lines.push(finishPostgrad(p));
   } else {
     p.edu = "tertiary";
-    lines.push(T(`You graduate${p.course ? ` with a degree in ${p.course}` : ""}. Your family throws a small party.`, `You graduate${p.course ? ` with degree for ${p.course}` : ""}. Your family throw small party.`));
+    if (p.campus) graduateCampus(p, lines);
+    else lines.push(T(`You graduate${p.course ? ` with a degree in ${p.course}` : ""}. Your family throws a small party.`, `You graduate${p.course ? ` with degree for ${p.course}` : ""}. Your family throw small party.`));
     bump(p, "smarts", 3);
     schoolHousing(p, false);
     const grad = graduationData(p, true);
@@ -750,6 +758,9 @@ export type Action =
   | { t: "trade"; id: string }
   | { t: "postgrad"; id: string }
   | { t: "adopt" }
+  | { t: "jamb"; cheat?: boolean }
+  | { t: "enrol"; uni: string; major: string; pay: "family" | "self" | "aid" }
+  | { t: "campus"; op: string; arg?: string }
   | { t: "advisor"; op: "hire" | "fire"; tier?: 1 | 2 | 3 }
   | { t: "develop"; id: string; kind: HouseKind }
   | { t: "surrender" }
@@ -813,6 +824,9 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "postgrad": return { reason: T("Postgraduate study", "Postgraduate study"), category: "education" };
     case "adopt": return { reason: T("Adoption", "Adoption"), category: "family" };
     case "advisor": return { reason: T("Financial adviser", "Financial adviser"), category: "investment" };
+    case "jamb": return { reason: T("JAMB registration", "JAMB registration"), category: "education" };
+    case "enrol": return { reason: T("University admission", "University admission"), category: "education" };
+    case "campus": return { reason: T("Campus life", "Campus life"), category: "education" };
     case "develop": return { reason: T("Property development", "Property development"), category: "asset" };
     case "license": return { reason: T("Driving test", "Driving test"), category: "personal" };
     case "surrender": return { reason: T("Surrendered to life", "Surrender for life"), category: "other" };
@@ -877,7 +891,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         p.job = { id: j.id, rank: 0, years: 0 };
         return out(T(`You started your own business: ${j.title}. ${j.ladder[0].title}.`, `You start your own business: ${j.title}. ${j.ladder[0].title}.`));
       }
-      let pr = j.group === "creative" ? 0.4 : j.group === "crime" ? 0.9 : 0.35 + p.stats.smarts / 250 + p.stats.connections / 150 + st.opp * 0.02;
+      let pr = j.group === "creative" ? 0.4 : j.group === "crime" ? 0.9 : 0.35 + p.stats.smarts / 250 + p.stats.connections / 150 + st.opp * 0.02 + campusHire(p);
       if (j.group === "petty") pr = Math.max(pr, 0.75);
       if (a.bribe) {
         const fee = I(p, 300_000);
@@ -951,6 +965,9 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "trade": return out(enrollTrade(p, a.id));
     case "postgrad": return out(enrollPostgrad(p, a.id));
     case "adopt": return out(adoptChild(p));
+    case "jamb": return out(writeJamb(p, Boolean(a.cheat)));
+    case "enrol": return out(enrol(p, a.uni, a.major, a.pay));
+    case "campus": return out(campusDo(p, a.op, a.arg));
     case "advisor": return out(a.op === "hire" ? hireAdvisor(p, a.tier ?? 1) : fireAdvisor(p));
     case "develop": return out(developLand(p, a.id, a.kind));
     case "license": return out(takeDrivingTest(p, Boolean(a.settle)));

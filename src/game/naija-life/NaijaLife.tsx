@@ -12,6 +12,7 @@ import {
 } from "./engine";
 import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
 import { Avatar } from "./Avatar";
+import { AdmissionCard, CampusCard, DegreeCard } from "./Campus";
 import { KidnapModal } from "./KidnapModal";
 import { BEARDS, GLASSES, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
@@ -184,7 +185,7 @@ export default function NaijaLife() {
         {EXPLORE_TABS.includes(tab) && <ExploreChips tab={tab} setTab={setTab} />}
         {tab === "explore" && <ExploreHub setTab={setTab} />}
         {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}
-        {tab === "life" && <><PrisonCard p={p} run={run} /><HeadlinesCard p={p} /><LifeFeed g={game} run={run} /></>}
+        {tab === "life" && <><PrisonCard p={p} run={run} /><AdmissionCard p={p} run={run} /><CampusCard p={p} run={run} /><HeadlinesCard p={p} /><LifeFeed g={game} run={run} /></>}
         {tab === "phone" && p.prison <= 0 && <PhoneTab p={p} run={run} />}
         {tab === "health" && <HealthTab p={p} run={run} />}
         {tab === "law" && <LawTab p={p} run={run} />}
@@ -552,6 +553,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
             ? T(`Currently in ${p.school.stage === "tertiary" ? "tertiary school" : `${p.school.stage} school`} (${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} left).`, `You dey ${p.school.stage === "tertiary" ? "tertiary school" : `${p.school.stage} school` } now (${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} remain).`)
             : p.edu === "none" ? T("No schooling yet.", "You never go school yet.") : T(`Highest level: ${p.edu}${p.course ? ` (${p.course})` : ""}.`, `Highest level: ${p.edu}${p.course ? ` (${p.course})` : ""}.`)}
         </p>
+        <DegreeCard p={p} run={run} />
       </Card>
 
       <Card>

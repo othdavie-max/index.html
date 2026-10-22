@@ -3,6 +3,7 @@ import { transact } from "./ledger";
 import type { EventDef, Player } from "./types";
 import { T, chance, clamp, dual, naira, randInt } from "./util";
 import { primaryProvider, capacityOf } from "./family";
+import { campusPay } from "./campus";
 
 export const POSTGRAD = [
   { id: "masters", en: "Master's degree", pcm: "Master's degree", years: 1 },
@@ -42,7 +43,7 @@ export function finishPostgrad(p: Player): string {
 }
 
 /** Extra pay for advanced degrees. */
-export const degreeBonus = (p: Player) => (p.flags.postgrad === "PhD" ? 1.2 : p.flags.postgrad === "Masters" ? 1.1 : 1);
+export const degreeBonus = (p: Player) => (p.flags.postgrad === "PhD" ? 1.2 : p.flags.postgrad === "Masters" ? 1.1 : 1) * campusPay(p);
 
 export const EDU_EVENTS: EventDef[] = [
   {

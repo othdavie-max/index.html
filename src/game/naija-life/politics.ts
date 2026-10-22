@@ -1,6 +1,7 @@
 import { OFFICES } from "./data";
 import { I, addLoot, bump, enterPrison, moveTo, stateOf } from "./helpers";
 import type { EventDef, Nation, Pending, Player, Politics } from "./types";
+import { campusPolitics } from "./campus";
 import { rng, chance, clamp, naira, rand, randInt, T, dual } from "./util";
 
 export const freshNation = (): Nation => ({ economy: 50, security: 50, welfare: 45, approval: 55, heat: 0, projects: [] });
@@ -47,7 +48,7 @@ const zoningBonus = (p: Player) => (currentZone(p) === playerZone(p) ? 0.08 : -0
 function swayFor(p: Player): number {
   const pol = p.politics;
   if (!pol) return 0;
-  return 0.2 + p.stats.connections / 250 + p.stats.reputation / 500 + (pol.godfather ? 0.15 : 0) + pol.machine / 400 + pol.umpire / 300 + (pol.anointed ? 0.25 : 0) + (pol.hero ? 0.08 : 0) + zoningBonus(p);
+  return 0.2 + p.stats.connections / 250 + p.stats.reputation / 500 + (pol.godfather ? 0.15 : 0) + pol.machine / 400 + pol.umpire / 300 + (pol.anointed ? 0.25 : 0) + (pol.hero ? 0.08 : 0) + zoningBonus(p) + campusPolitics(p);
 }
 
 export function canJoinPolitics(p: Player): string | null {

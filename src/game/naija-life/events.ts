@@ -7,6 +7,7 @@ import { kidLook, lookToStr, randomLook, strToLook } from "./look";
 import { developCondition } from "./health";
 import { addPartner, marry } from "./relationships";
 import { schoolHousing } from "./world";
+import { openAdmission } from "./campus";
 
 const isSelfEmployed = (p: Player) => Boolean(jobDef(p)?.selfEmployed);
 const adult = (p: Player) => p.age >= 18;
@@ -118,7 +119,7 @@ export const EVENTS: EventDef[] = [
     weight: () => 0,
     text: (_p, d) => T(`Your JAMB score is ${d.score}. Cut-off marks are everything. Where will you go?`, `Your JAMB score na ${d.score}. Cut-off mark na everything. Where you wan go?`),
     choices: (p, d) => [
-      { label: T("University", "University"), sub: T("4 years", "4 years"), disabled: Number(d.score) < 200 ? T("Score too low", "Score too low") : false, run: (q) => { startTertiary(q, "university"); q.edu = "secondary"; return { text: T("You got into university! Welcome to campus life.", "You enter university! Welcome to campus life."), spawn: [evt("course")] }; } },
+      { label: T("University", "University"), sub: T("Pick your school and course", "Pick your school and course"), disabled: Number(d.score) < 140 ? T("Score too low", "Score too low") : false, run: (q) => { q.edu = "secondary"; openAdmission(q, Number(d.score)); return T(`Admissions are open with your score of ${d.score}. Open the Life tab and pick a university and a course.`, `Admission don open with your score of ${d.score}. Go Life tab and pick university and course.`); } },
       { label: T("Polytechnic", "Polytechnic"), sub: T("3 years", "3 years"), disabled: Number(d.score) < 150 ? T("Score too low", "Score too low") : false, run: (q) => { startTertiary(q, "polytechnic"); q.course = "Engineering"; return T("You enrolled at a polytechnic. Practical skills, real work.", "You register for polytechnic. Practical skills, real work."); } },
       { label: T("Vocational training", "Learn a trade"), sub: T("1-2 years, learn a trade", "1-2 years, learn work with hand"), run: (q) => { q.edu = "secondary"; return { text: T("You choose to learn a trade instead of a degree.", "You choose to learn trade instead of degree."), spawn: [evt("trade_choice")] }; } },
       { label: T("Retake JAMB next year", "Write JAMB again next year"), run: (q) => { bump(q, "stress", 6); q.edu = "secondary"; return T("You will try again.", "You go try again."); } },

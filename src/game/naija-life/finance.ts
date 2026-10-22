@@ -14,6 +14,7 @@ import type { Pending, Player } from "./types";
 import { costMultiplier, payMultiplier } from "./news";
 import { locationOf } from "./locations";
 import { degreeBonus } from "./education";
+import { MAJOR_BY_ID, UNI_BY_ID } from "./universities";
 import { T, chance, clamp, naira, rand } from "./util";
 
 export interface MonthCtx {
@@ -57,6 +58,7 @@ export function schoolFeeFor(p: Player): number {
     if (p.school.type === "polytechnic") fee = 140_000;
     else if (p.school.type === "vocational") fee = 250_000;
     else if (p.school.type === "postgrad") fee = p.flags.postgradTrack === "phd" ? 450_000 : 700_000;
+    else if (p.campus && !p.campus.graduated) { const u = UNI_BY_ID[p.campus.uni]; const mj = MAJOR_BY_ID[p.campus.major]; fee = u && mj ? u.fee * mj.fee * (1 - p.campus.aid) : SCHOOL_FEES.tertiary.public; return fee * Math.pow(p.index, 0.92) * (p.flags.scholarship ? 0.7 : 1); }
     else fee = SCHOOL_FEES.tertiary[(p.flags.schoolType as SchoolType) ?? "public"];
   } else fee = SCHOOL_FEES[st][(p.flags.schoolType as SchoolType) ?? "public"] * (st === "secondary" && p.flags.boarding ? 1.6 : 1);
   return fee * Math.pow(p.index, 0.92) * (p.flags.scholarship ? 0.3 : 1);
@@ -197,7 +199,7 @@ function monthTick(p: Player, ctx: MonthCtx) {
     const fee = schoolFeeFor(p) / 3;
     if (fee > 0) {
       const payer = primaryProvider(p);
-      const parentsPay = p.age < 18 || (p.age < 25 && !p.fam.cutOff.includes("schoolFees"));
+      const parentsPay = p.campus?.payer === "self" ? false : p.age < 18 || (p.age < 25 && !p.fam.cutOff.includes("schoolFees"));
       if (parentsPay && payer) {
         transact(p, { amount: 0, memo: true, reason: T(`${payer.name.split(" ")[0]} paid ${naira(fee)} of your school fees this term`, `${payer.name.split(" ")[0]} pay ${naira(fee)} of your school fees this term`), category: "education" });
       } else {

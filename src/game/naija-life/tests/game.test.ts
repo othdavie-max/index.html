@@ -26,6 +26,8 @@ import { yearlyNews, modActive } from "../news";
 import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
+import { UNIS, MAJORS, UNI_BY_ID, MAJOR_BY_ID, offers, cutoffFor } from "../universities";
+import { enrolBlock, uniFee, openAdmission, familyCanPay, campusPay } from "../campus";
 import { beneficiaries, setShare, planEstate } from "../will";
 import { randomLook } from "../look";
 import { STATE_BY_ID } from "../data";
@@ -808,7 +810,7 @@ test("property market: cash, mortgage, parent co-sign and payment plan", () => {
   assert.ok(rm.g.p.loans.some((x) => x.houseId), rm.msg);
   const cs = structuredClone(g); cs.p.listings = p.listings; cs.p.money = l.price * 0.2;
   const prov = Object.values(cs.p.npcs).find((n) => n.role === "dad" || n.role === "mom" || n.role === "guardian")!;
-  prov.closeness = 90; prov.trust = 90; prov.income = 500_000_000;
+  prov.alive = true; if (!cs.p.fam.providers.includes(prov.id)) cs.p.fam.providers.push(prov.id); prov.closeness = 90; prov.trust = 90; prov.income = 500_000_000;
   const rc = act(cs, { t: "property", id: l.id, mode: "cosign", years: 15 });
   const cl = rc.g.p.loans.find((x) => x.houseId);
   assert.ok(cl && cl.cosignerId, rc.msg);
@@ -978,4 +980,49 @@ test("new asset classes and the financial adviser", () => {
   assert.ok((q.market.feed ?? []).length <= 16);
   assert.ok(q.holdings.every((h) => Number.isFinite(h.value)));
   assert.equal(act(r.g, { t: "advisor", op: "fire" }).g.p.advisor, undefined);
+});
+
+test("universities: catalogue, affordability by family wealth, campus life and graduation", () => {
+  assert.ok(UNIS.length >= 30 && MAJORS.length >= 35);
+  for (const id of ["unilag", "ui", "oau", "unn", "abu", "uniben", "unilorin", "uniport", "futa", "buk", "lasu", "covenant", "babcock", "bowen", "abuad", "landmark", "redeemers", "pau", "bingham", "madonna", "aun", "nile", "baze"]) assert.ok(UNI_BY_ID[id], id);
+  for (const u of UNIS) assert.ok(MAJORS.some((m) => offers(u, m.id)), `${u.id} offers something`);
+  // a poor family can afford a federal school but not a top private one; a rich family can afford both
+  const poor = aliveAt(17, "lapo");
+  const rich = aliveAt(17, "nepo");
+  for (const g of [poor, rich]) { g.p.edu = "secondary"; g.p.school = null; g.p.prison = 0; openAdmission(g.p, 330); g.p.money = 0; }
+  const law = MAJOR_BY_ID.law;
+  const unilag = UNI_BY_ID.unilag, cov = UNI_BY_ID.covenant;
+  assert.equal(familyCanPay(poor.p, uniFee(poor.p, cov, law)), false, "lapo baby cannot fund Covenant");
+  assert.equal(enrolBlock(poor.p, cov, law, "family") !== null, true);
+  assert.equal(enrolBlock(rich.p, cov, law, "family"), null, "a nepo baby can");
+  assert.ok(uniFee(rich.p, cov, law) > uniFee(rich.p, unilag, law) * 5, "private costs far more than federal");
+  // a poor student on merit aid at a private school, high score
+  assert.equal(enrolBlock(poor.p, cov, law, "aid"), null, "merit aid opens private doors to the brilliant");
+  // cut-offs bite
+  openAdmission(poor.p, 150);
+  assert.ok(enrolBlock(poor.p, unilag, law, "family")?.includes("Cut-off"));
+  // enrol and live the whole degree
+  let g = structuredClone(rich);
+  openAdmission(g.p, 300);
+  g = act(g, { t: "enrol", uni: "unilag", major: "law", pay: "family" }).g;
+  assert.ok(g.p.school && g.p.campus && g.p.course === "Law");
+  assert.ok(Object.values(g.p.npcs).length > 0);
+  for (let i = 0; i < 6 && g.p.school; i++) {
+    g.p.prison = 0;
+    const c = g.p.campus!;
+    for (const op of ["study", "group", "club", "dept", "sug", "siwes", "project", "hustle", "scholar"]) {
+      g = act(g, { t: "campus", op, arg: op === "club" ? "debate" : op === "sug" ? "high" : undefined }).g;
+      g.p.money = Math.max(g.p.money, 50_000_000);
+    }
+    assert.ok(c.used.length > 0 || g.p.campus);
+    g = resolveAll(ageUp(g));
+    if (!g.p.alive) break;
+  }
+  if (g.p.alive && g.p.campus?.graduated) {
+    assert.equal(g.p.edu, "tertiary");
+    assert.ok(["First Class", "Second Class Upper", "Second Class Lower", "Third Class", "Pass"].includes(g.p.campus.cls!));
+    assert.ok(campusPay(g.p) > 0.8 && campusPay(g.p) < 1.4);
+  }
+  assert.ok(ledgerBalances(g.p));
+  assert.ok(cutoffFor(unilag, law) > cutoffFor(unilag, MAJOR_BY_ID.edu));
 });
