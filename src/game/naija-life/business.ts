@@ -4,7 +4,6 @@ import { businessMultiplier } from "./news";
 import type { Business, EventDef, Player, Worker, BizReport } from "./types";
 import { T, chance, clamp, dual, naira, rand, uid } from "./util";
 import { I, bump, randomName, stateOf } from "./helpers";
-import { pick } from "./util";
 
 export interface BizKind {
   id: string;

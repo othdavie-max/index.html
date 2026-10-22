@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
-  Brain, Briefcase, ChevronRight, ClipboardList, Compass, Crown, Gavel, Heart, HeartPulse, Hourglass, Map as MapIcon, MapPin, Menu as MenuIcon,
+  Brain, Briefcase, ChevronRight, Compass, Crown, Gavel, Heart, HeartPulse, Hourglass, Map as MapIcon, MapPin, Menu as MenuIcon,
   ShieldCheck, Smartphone, Smile, Sparkles, Trophy, TrendingUp, User, Users, Wallet, Zap,
 } from "lucide-react";
 import { ACTIVITIES, activityBlock, type Action } from "./engine";
@@ -235,59 +235,65 @@ function stageOf(age: number): string {
 }
 
 /** Activities (collapsible) and the life story as a timeline. */
+const ACT_EMOJI: Record<string, string> = { study: "📚", gym: "⚽", worship: "🙏", hawk: "🛍️", network: "🥂", gig: "💵", date: "❤️", godfather: "🤝" };
+const ACT_TILE: Record<string, string> = { study: "bg-violet-100", gym: "bg-emerald-100", worship: "bg-amber-100", hawk: "bg-orange-100", network: "bg-pink-100", gig: "bg-green-100", date: "bg-rose-100", godfather: "bg-sky-100" };
+
 export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
   const p = g.p;
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const logs = useMemo(() => [...p.log].reverse(), [p.log]);
   return (
-    <section className="rounded-2xl border border-slate-100 bg-white p-2.5 shadow-[0_6px_20px_-12px_rgba(30,64,175,0.3)]">
-      <button type="button" onClick={() => setOpen(!open)} data-tour="activities" className="flex w-full items-center gap-2.5 px-1 py-1 text-left" aria-expanded={open}>
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100"><ClipboardList size={18} className="text-blue-600" /></span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{T("Activities", "Activities")}</span>
-          <span className="block text-[11.5px] text-slate-500">{T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`)}</span>
-        </span>
-        <ChevronRight size={17} className={cx("shrink-0 text-slate-500 transition-transform", open && "rotate-90")} />
-      </button>
-      {open && (
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {ACTIVITIES.filter((a) => p.age >= a.minAge - 2).map((a) => {
-            const block = activityBlock(p, a);
-            return (
-              <button key={a.id} type="button" disabled={Boolean(block)} onClick={() => run({ t: "activity", id: a.id })} className="rounded-2xl border border-slate-100 bg-slate-50 p-2.5 text-left text-xs transition hover:bg-blue-50 disabled:opacity-45">
-                <span className="block font-bold text-[#0b2a6b]">{a.label}</span>
-                <span className="block text-[11px] text-slate-500">{block ?? (a.cost ? `${naira(a.cost * p.index)} · ${a.desc}` : a.desc)}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-      <div className="mt-3 border-t border-slate-100 pt-3">
-        <ol data-tour="timeline" className="relative space-y-2">
-          {logs.map((e, idx) => {
-            const c = DOTS[(e.age + 5) % DOTS.length];
-            return (
-              <li key={`${e.age}-${idx}`} className="relative flex gap-3">
-                <div className="relative flex w-5 shrink-0 justify-center">
-                  {idx < logs.length - 1 && <span className="absolute top-5 -bottom-3 w-px bg-slate-200" />}
-                  <span className="relative z-10 mt-3.5 h-3 w-3 rounded-full ring-4 ring-white" style={{ background: c.dot }} />
-                </div>
-                <div className={cx("flex-1 rounded-xl bg-slate-50/90 px-3 py-2.5", idx === 0 && "ring-1 ring-blue-200")}>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[14.5px] font-extrabold leading-tight text-[#0b2a6b]">{T("Age", "Age")} {e.age}</span>
-                    <span className="flex shrink-0 items-center gap-1">
-                      <span className={cx("rounded-full px-2 py-0.5 text-[10.5px] font-bold", c.chip)}>{stageOf(e.age)}</span>
-                    </span>
+    <div className="space-y-4">
+      <section>
+        <button type="button" onClick={() => setOpen(!open)} data-tour="activities" className="mb-1.5 flex w-full items-center justify-between px-1" aria-expanded={open}>
+          <span className="text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Activities", "Activities")}</span>
+          <span className="flex items-center gap-1 text-[11.5px] font-semibold text-slate-500">{T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`)}<ChevronRight size={15} className={cx("transition-transform", open && "rotate-90")} /></span>
+        </button>
+        {open && (
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+            {ACTIVITIES.filter((a) => p.age >= a.minAge - 2).map((a) => {
+              const block = activityBlock(p, a);
+              return (
+                <button key={a.id} type="button" disabled={Boolean(block)} onClick={() => run({ t: "activity", id: a.id })} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition active:bg-slate-50 disabled:opacity-45">
+                  <span className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[24px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-extrabold leading-tight text-[#0b2a6b]">{a.label}</span>
+                    <span className="block text-[12px] leading-snug text-slate-500">{block ?? (a.cost ? `${naira(a.cost * p.index)} · ${a.desc}` : a.desc)}</span>
+                  </span>
+                  <span className="shrink-0 text-xl font-black text-blue-500">›</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+      <section>
+        <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Life story", "Life story")}</h2>
+        <div className="rounded-2xl border border-slate-100 bg-white p-2.5 shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+          <ol data-tour="timeline" className="relative space-y-2">
+            {logs.map((e, idx) => {
+              const c = DOTS[(e.age + 5) % DOTS.length];
+              return (
+                <li key={`${e.age}-${idx}`} className="relative flex gap-3">
+                  <div className="relative flex w-5 shrink-0 justify-center">
+                    {idx < logs.length - 1 && <span className="absolute top-5 -bottom-3 w-px bg-slate-200" />}
+                    <span className="relative z-10 mt-3.5 h-3 w-3 rounded-full ring-4 ring-white" style={{ background: c.dot }} />
                   </div>
-                  <ul className="mt-1 space-y-1">
-                    {e.lines.map((l, i) => <li key={i} className="text-[12.5px] leading-snug text-slate-600">{l}</li>)}
-                  </ul>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-    </section>
+                  <div className={cx("flex-1 rounded-xl bg-slate-50/90 px-3 py-2.5", idx === 0 && "ring-1 ring-blue-200")}>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[14.5px] font-extrabold leading-tight text-[#0b2a6b]">{T("Age", "Age")} {e.age}</span>
+                      <span className={cx("shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold", c.chip)}>{stageOf(e.age)}</span>
+                    </div>
+                    <ul className="mt-1 space-y-1">
+                      {e.lines.map((l, i) => <li key={i} className="text-[12.5px] leading-snug text-slate-600">{l}</li>)}
+                    </ul>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      </section>
+    </div>
   );
 }
