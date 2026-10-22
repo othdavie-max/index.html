@@ -59,11 +59,14 @@ export function moveTo(p: Player, stateId: string): string {
 }
 
 export function enterPrison(p: Player, years: number): string {
+  const crimeJob = jobDef(p)?.group === "crime";
+  const seized = crimeJob || p.loot > 0 ? 0.5 : 0;
+  if (seized) p.money *= 1 - seized;
   p.prison = years;
   p.job = null;
   bump(p, "reputation", -25);
   bump(p, "happiness", -20);
-  return `You were sentenced to ${years} year${years > 1 ? "s" : ""} in Kuje. `;
+  return `You was sentenced to ${years} year${years > 1 ? "s" : ""} for Kuje.${seized ? " EFCC seize half of your money." : ""} `;
 }
 
 export function addLoot(p: Player, amount: number) {
@@ -79,5 +82,5 @@ export function expandCostFor(p: Player): number | null {
   if (!p.job || !j || !j.selfEmployed) return null;
   const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
   if (!rung.upgrade) return null;
-  return Math.round(rung.upgrade * Math.pow(p.index, 0.85));
+  return Math.round(rung.upgrade * Math.pow(p.index, 0.9));
 }

@@ -155,8 +155,8 @@ export interface JobDef {
 
 function ladder(names: string[], base: number, growth: number): Rung[] {
   return names.map((title, i) => {
-    const pay = Math.round(base * Math.pow(growth, i));
-    return { title, pay, upgrade: i < names.length - 1 ? Math.round(pay * 1.4) : undefined };
+    const pay = Math.round(base * Math.pow(growth * 0.84, i));
+    return { title, pay, upgrade: i < names.length - 1 ? Math.round(pay * 1.1) : undefined };
   });
 }
 function fixed(rows: [string, number][]): Rung[] {
@@ -270,7 +270,7 @@ export const JOBS: JobDef[] = [
   // ---- Crime ----
   { id: "yahoo", title: "Yahoo Boy (Online Fraud)", group: "crime", selfEmployed: false, startCost: 0, minAge: 17, edu: "none", minOpp: 2,
     blurb: "Easy money until EFCC knocks on the door.",
-    ladder: fixed([["Small-time scammer", 1_500_000], ["Mid-level scammer", 8_000_000], ["Big-time fraudster", 35_000_000]]) },
+    ladder: fixed([["Small-time scammer", 1_200_000], ["Mid-level scammer", 5_000_000], ["Big-time fraudster", 18_000_000]]) },
   { id: "kidnapper", title: "Highway Kidnapper (Gang)", group: "crime", selfEmployed: false, startCost: 0, minAge: 18, edu: "none", minOpp: 1,
     blurb: "Dangerous, violent, and very likely to end badly.",
     ladder: fixed([["Lookout", 1_800_000], ["Gang member", 7_000_000], ["Commander", 25_000_000]]) },
@@ -280,7 +280,7 @@ export const JOB_BY_ID: Record<string, JobDef> = Object.fromEntries(JOBS.map((j)
 export function payMult(job: JobDef, st: StateInfo): number {
   switch (job.group) {
     case "formal": return 0.55 + 0.1 * st.opp;
-    case "petty": return 0.7 + 0.08 * st.opp;
+    case "petty": return 0.7 + 0.09 * st.opp;
     case "creative": return 0.5 + 0.1 * st.opp;
     default: return 0.8 + 0.04 * st.opp;
   }

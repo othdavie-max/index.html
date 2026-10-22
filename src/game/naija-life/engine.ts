@@ -3,6 +3,7 @@ import {
 } from "./data";
 import { AUTOS, EVENTS } from "./events";
 import { AUTOS2, EVENTS2 } from "./events2";
+import { AUTOS3, EVENTS3 } from "./events3";
 import { I, bump, expandCostFor, jobDef, jobTitle, moveTo, randomName, stateOf } from "./helpers";
 import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from "./kidnap";
 import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings, yearlyUpkeep } from "./lifestyle";
@@ -10,8 +11,8 @@ import { POLITICS_EVENTS, canContest, canJoinPolitics, canPlotCoup, contestPendi
 import type { EventDef, Game, Gender, HoldingKind, House, HouseKind, HouseUse, LineageEntry, Pending, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt, uid, weightedPick } from "./util";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...POLITICS_EVENTS];
-const ALL_AUTOS = [...AUTOS, ...AUTOS2];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...POLITICS_EVENTS];
+const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
 
@@ -306,7 +307,7 @@ export function ageUp(g0: Game): Game {
   const pending: Pending[] = [];
 
   // Inflation
-  let rate = rand(0.03, 0.15);
+  let rate = rand(0.03, 0.13);
   if (chance(0.06)) {
     const shock = rand(0.08, 0.2);
     rate += shock;
@@ -330,7 +331,7 @@ export function ageUp(g0: Game): Game {
     const j = jobDef(p);
     if (p.job && j) {
       const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
-      const pay = rung.pay * payMult(j, st) * Math.pow(p.index, 0.8) * rand(0.75, 1.25);
+      const pay = rung.pay * payMult(j, st) * Math.pow(p.index, j.group === "formal" ? 0.86 : 0.92) * rand(0.75, 1.25);
       income += pay;
       p.job.years += 1;
       if (!j.selfEmployed && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
@@ -342,8 +343,8 @@ export function ageUp(g0: Game): Game {
           if (j.id === "kidnapper" || j.id === "yahoo") bump(p, "reputation", -2);
         }
       }
-      if (j.id === "yahoo" && chance(0.1)) pending.push({ kind: "event", id: "arrested", data: {} });
-      if (j.id === "kidnapper" && chance(0.07)) pending.push({ kind: "event", id: "arrested", data: {} });
+      if (j.id === "yahoo" && chance(0.08 + p.job.rank * 0.07 + (p.money > 40_000_000 * p.index ? 0.07 : 0))) pending.push({ kind: "event", id: "arrested", data: {} });
+      if (j.id === "kidnapper" && chance(0.1 + p.job.rank * 0.04)) pending.push({ kind: "event", id: "arrested", data: {} });
       lines.push(`Income: ${naira(pay)}${j.selfEmployed ? ` from your ${j.title.toLowerCase()} business` : ` as ${rung.title}`}.`);
     }
     for (const h of p.houses) {
@@ -355,14 +356,19 @@ export function ageUp(g0: Game): Game {
     let rent = 0;
     if (p.age >= 18) {
       const atHome = p.age < 24 && p.family.state === p.state;
-      living = 700_000 * st.cost * p.index * (1 + 0.2 * Math.min(p.kids.length, 4)) * (atHome ? 0.5 : 1);
+      living = 550_000 * st.cost * Math.pow(p.index, 0.95) * (1 + 0.2 * Math.min(p.kids.length, 4)) * (atHome ? 0.5 : 1);
       const homeHere = p.houses.some((h) => h.state === p.state && (h.use === "owner" || h.use === "family"));
-      rent = homeHere || atHome ? 0 : 300_000 * st.cost * p.index;
+      rent = homeHere || atHome ? 0 : 250_000 * st.cost * Math.pow(p.index, 0.95);
+    }
+    if (!p.job && !p.school && p.age >= 18 && !(p.politics && p.politics.office >= 0)) {
+      // Odd jobs, family support and small small hustle keep you afloat.
+      income += 300_000 * (0.6 + st.opp / 10) * Math.pow(p.index, 0.92) * rand(0.7, 1.2);
     }
     const upkeep = yearlyUpkeep(p);
     p.money += income - living - rent - upkeep;
+    if (p.money > 0) p.money *= 1.04; // bank interest
     if (p.debt > 0) {
-      p.debt *= 1.15;
+      p.debt *= 1.12;
       const repay = Math.min(p.debt, Math.max(0, p.money) * 0.35);
       p.money -= repay;
       p.debt -= repay;
@@ -562,7 +568,7 @@ export function applyBlock(p: Player, jobId: string): string | null {
   if (!j) return "Unknown job";
   if (p.prison > 0) return "In prison";
   if (p.actionsLeft <= 0) return "No actions left this year";
-  if (j.selfEmployed && p.money < j.startCost * Math.pow(p.index, 0.85)) return `Needs ${naira(j.startCost * Math.pow(p.index, 0.85))} to start`;
+  if (j.selfEmployed && p.money < j.startCost * Math.pow(p.index, 0.9)) return `Needs ${naira(j.startCost * Math.pow(p.index, 0.9))} to start`;
   return null;
 }
 
@@ -590,7 +596,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       if (!j || block) return { g: g0, msg: block ?? "" };
       p.actionsLeft -= 1;
       if (j.selfEmployed) {
-        p.money -= j.startCost * Math.pow(p.index, 0.85);
+        p.money -= j.startCost * Math.pow(p.index, 0.9);
         p.job = { id: j.id, rank: 0, years: 0 };
         return out(`You started your own business: ${j.title}. ${j.ladder[0].title}.`);
       }

@@ -395,7 +395,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const st = STATE_BY_ID[p.state];
   const cur = jobDef(p);
   const eligible = eligibleJobs(p);
-  const estPay = (j: JobDef) => naira(j.ladder[0].pay * payMult(j, st) * Math.pow(p.index, 0.8));
+  const estPay = (j: JobDef) => naira(j.ladder[0].pay * payMult(j, st) * Math.pow(p.index, 0.92));
   const group = (title: string, jobs: JobDef[], sub?: string) =>
     jobs.length > 0 && (
       <Card>
@@ -414,7 +414,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <Btn small disabled={Boolean(block)} onClick={() => run({ t: "apply", job: j.id })}>
-                    {j.selfEmployed ? `Start (${naira(j.startCost * Math.pow(p.index, 0.85))})` : "Apply"}
+                    {j.selfEmployed ? `Start (${naira(j.startCost * Math.pow(p.index, 0.9))})` : "Apply"}
                   </Btn>
                   {!j.selfEmployed && j.group === "formal" && (
                     <Btn small tone="ghost" disabled={Boolean(block) || p.money < 300_000 * p.index} onClick={() => run({ t: "apply", job: j.id, bribe: true })}>

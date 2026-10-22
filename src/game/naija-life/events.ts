@@ -337,7 +337,7 @@ export const EVENTS: EventDef[] = [
 // Automatic events (no decisions)
 // ---------------------------------------------------------------------------
 export const AUTOS: AutoDef[] = [
-  { id: "nepa", weight: (p) => (p.age >= 6 ? 4 : 0), run: (p) => { p.money -= I(p, 80_000) * (p.age >= 18 ? 1 : 0); bump(p, "stress", 4); return "NEPA take light for three weeks. You dey buy fuel for generator. Chai."; } },
+  { id: "nepa", weight: (p) => (p.age >= 6 ? 4 : 0), run: (p) => { if (p.flags.solar) return "NEPA take light again, but your solar carry the whole house. Neighbours dey envy you."; p.money -= I(p, 80_000) * (p.age >= 18 ? 1 : 0); bump(p, "stress", 4); return "NEPA take light for three weeks. You dey buy fuel for generator. Chai."; } },
   { id: "fuel", weight: (p) => (p.age >= 16 ? 3 : 0), run: (p) => { bump(p, "stress", 3); return "Fuel scarcity! Queue dey every filling station. One litre now cost like small rice."; } },
   { id: "subsidy", weight: (p) => (p.age >= 10 ? 1.5 : 0), run: (p) => { p.index *= 1.12; bump(p, "stress", 4); return "Government announce fuel subsidy removal. Transport fare double overnight."; } },
   { id: "naira", weight: (p) => (p.age >= 10 ? 1.5 : 0), run: (p) => { p.index *= 1.1; return "Naira crash against dollar. Market price jump again."; } },
