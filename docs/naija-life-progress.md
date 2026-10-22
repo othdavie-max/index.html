@@ -20,11 +20,12 @@ Status of the "complete life simulation" expansion. Only items marked **Done** a
 - Military promotion board: soldiers are no longer auto-promoted; a board sits every 2 years in rank (5 for the top rank) with merit, godfather, bribe (risk of exposure and demotion or dismissal) or wait options.
 - Relatives' money events: weddings, hospital bills, school fees, business capital (loan or profit share) and family levies, driven by persistent uncles, aunts, cousins and siblings; cousins join the family over the years.
 
+- Dating message history: every match keeps a persistent thread (your lines, their replies, and notes for dates, milestones and breakups), shown as chat bubbles in Spark and saved with the game.
+
 ## Tests
-`npm run test:game` runs 25 node:test cases (seeded determinism, distributions, support replies, loans, ledger continuity over whole lives, rent schedule, eligibility, hospital costs, dating, social, vehicles, investments, crime and trials, wills and heirs, save migration, cross-system chaos).
+`npm run test:game` runs 26 node:test cases (seeded determinism, distributions, support replies, loans, ledger continuity over whole lives, rent schedule, eligibility, hospital costs, dating, social, vehicles, investments, crime and trials, wills and heirs, save migration, cross-system chaos).
 
 ## Partial / not done
-- Swipe/chat UI is minimal: chat tone and date choices exist but there is no message transcript.
 - Balance was measured with simple bots (below), not by human playtesting.
 - Some `no-unused-vars` lint warnings remain (no lint errors).
 

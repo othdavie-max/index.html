@@ -610,3 +610,35 @@ test("relatives: money events draw on persistent relatives, record cash, and sha
   const w = EVENTS6.find((e) => e.id === "relative_wedding")!;
   assert.ok(w.choices(poor, w.init!(poor)).some((c) => c.disabled));
 });
+
+test("dating message history persists per partner, caps its length and survives save/load", () => {
+  let q = structuredClone(aliveAt(26));
+  q.p.possessions.smartphone = true;
+  q.p.money = 1_000_000_000 * q.p.index;
+  q = act(q, { t: "dating", op: "profile", bio: "hello there friend", interests: ["music", "food"] }).g;
+  setSeed(9);
+  for (let i = 0; i < 12 && q.p.rel.deck.length; i++) q = act(q, { t: "dating", op: "swipe", npc: q.p.rel.deck[0].id, like: true }).g;
+  const rel = q.p.rel.partners[q.p.rel.partners.length - 1];
+  assert.ok(rel && rel.messages && rel.messages.length >= 2, "a match opens the conversation");
+  assert.equal(rel.messages![0].from, "note");
+  assert.ok(rel.messages!.some((m) => m.from === "them"), "they say hello first");
+  const id = rel.npcId;
+  q.p.rel.chatsLeft = 5;
+  q = act(q, { t: "dating", op: "chat", npc: id, tone: "funny" }).g;
+  let r2 = q.p.rel.partners.find((x) => x.npcId === id)!;
+  const tail = r2.messages!.slice(-2);
+  if (r2.stage !== "ex") assert.deepEqual(tail.map((m) => m.from).sort(), ["me", "them"], "a chat adds your line and their reply");
+  q.p.rel.partners.find((x) => x.npcId === id)!.affection = 80;
+  q = act(q, { t: "dating", op: "date", npc: id, plan: "nice" }).g;
+  r2 = q.p.rel.partners.find((x) => x.npcId === id)!;
+  assert.ok(r2.messages!.some((m) => m.from === "note" && m.text.length > 5), "key moments are logged as notes");
+  for (let i = 0; i < 100; i++) { q.p.rel.chatsLeft = 5; q = act(q, { t: "dating", op: "chat", npc: id, tone: "genuine" }).g; if (q.p.rel.partners.find((x) => x.npcId === id)!.stage === "ex") break; }
+  assert.ok(q.p.rel.partners.find((x) => x.npcId === id)!.messages!.length <= 80, "thread is capped");
+  const copy = migrate(JSON.parse(JSON.stringify(q)) as Game);
+  assert.deepEqual(copy.p.rel.partners.find((x) => x.npcId === id)!.messages, q.p.rel.partners.find((x) => x.npcId === id)!.messages);
+  // older saves without messages still work
+  const old = JSON.parse(JSON.stringify(q)) as Game;
+  for (const x of old.p.rel.partners) delete (x as { messages?: unknown }).messages;
+  const m = act(migrate(old), { t: "dating", op: "chat", npc: id, tone: "flirty" });
+  assert.ok(ledgerBalances(m.g.p));
+});

@@ -17,7 +17,7 @@ import { STAGE_LABEL, activePartners, dateCost, datingAllowed, intimacyBlock } f
 import { CONTENT, PLATFORMS, postBlock, socialBlock, totalFollowers } from "./social";
 import { VEHICLE_MODELS, priceOf, repairCost, isInsured } from "./vehicles";
 import { beneficiaries, currentShares, totalPct } from "./will";
-import type { Candidate, Npc, Platform, Player } from "./types";
+import type { Candidate, Npc, PartnerRel, Platform, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, cx } from "./ui";
 import { naira } from "./util";
 
@@ -222,6 +222,7 @@ function Spark({ p, run }: { p: Player; run: Run }) {
                 </div>
                 {open === npc.id && (
                   <div className="mt-2 space-y-2 border-t border-white/10 pt-2">
+                    <Thread rel={rel} />
                     <div className="flex flex-wrap gap-1.5 text-xs">
                       <span className="w-full text-white/50">Chat</span>
                       {(["flirty", "funny", "genuine", "boring"] as const).map((tn) => <Btn key={tn} small tone="ghost" onClick={() => run({ t: "dating", op: "chat", npc: npc.id, tone: tn })}>{tn}</Btn>)}
@@ -251,6 +252,24 @@ function Spark({ p, run }: { p: Player; run: Run }) {
         </Card>
       )}
     </>
+  );
+}
+
+function Thread({ rel }: { rel: PartnerRel }) {
+  const msgs = (rel.messages ?? []).slice(-10);
+  if (msgs.length === 0) return <p className="text-[11px] text-white/40">No messages yet. Say hello.</p>;
+  return (
+    <div className="max-h-52 space-y-1.5 overflow-y-auto rounded-xl bg-black/20 p-2">
+      {msgs.map((m, i) =>
+        m.from === "note" ? (
+          <p key={i} className="text-center text-[10px] italic text-white/40">{m.text} · age {m.age}</p>
+        ) : (
+          <div key={i} className={cx("flex", m.from === "me" ? "justify-end" : "justify-start")}>
+            <span className={cx("max-w-[80%] rounded-2xl px-3 py-1.5 text-xs", m.from === "me" ? "bg-[#1f9d55] text-white" : "bg-white/10 text-white/90")}>{m.text}</span>
+          </div>
+        ),
+      )}
+    </div>
   );
 }
 

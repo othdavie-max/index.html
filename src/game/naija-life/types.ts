@@ -392,6 +392,15 @@ export interface PartnerRel {
   moneyRequests: number;
   cheated: boolean;
   exitReason?: string;
+  /** Conversation and key moments with this person, newest last. */
+  messages?: ChatMsg[];
+}
+
+export interface ChatMsg {
+  from: "me" | "them" | "note";
+  text: string;
+  age: number;
+  month: number;
 }
 
 export interface Candidate extends Npc {

@@ -24,7 +24,7 @@ import { planEstate } from "./will";
 import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
 import { VEHICLE_MODELS, buyVehicle, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
-import { askOnDate, breakUp, chat, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
+import { askOnDate, breakUp, chat, logMsg, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
 import { closeBusiness, fireStaff, hireStaff, sellBusiness, startBusiness, toggleManager, upgradeBusiness } from "./business";
 import { placeBet, type BetKind } from "./betting";
 import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
@@ -1067,15 +1067,16 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           return out(`${applyTreatment(p, cond, fac)}${pay.note}`);
         }
         case "dating": {
+          const dm = (text: string) => { if (a.npc) logMsg(p, a.npc, "note", text); return out(text); };
           switch (a.op) {
             case "profile": return out(createProfile(p, a.bio ?? "", a.interests ?? [], a.looking ?? (p.gender === "male" ? "women" : "men")));
             case "swipe": if (!a.npc) { refreshDeck(p); return out(""); } return out(swipe(p, a.npc, Boolean(a.like)));
             case "chat": return out(chat(p, a.npc ?? "", a.tone ?? "genuine"));
-            case "date": return out(askOnDate(p, a.npc ?? "", a.plan ?? "cheap"));
-            case "spend": return out(spendTime(p, a.npc ?? ""));
-            case "official": return out(makeOfficial(p, a.npc ?? ""));
-            case "breakup": return out(breakUp(p, a.npc ?? ""));
-            case "night": return out(spendTheNight(p, a.npc ?? "", a.prot ?? "condom"));
+            case "date": return dm(askOnDate(p, a.npc ?? "", a.plan ?? "cheap"));
+            case "spend": return dm(spendTime(p, a.npc ?? ""));
+            case "official": return dm(makeOfficial(p, a.npc ?? ""));
+            case "breakup": return dm(breakUp(p, a.npc ?? ""));
+            case "night": return dm(spendTheNight(p, a.npc ?? "", a.prot ?? "condom"));
             case "propose": {
           const r = partnerOf(p, a.npc ?? "");
           const n = p.npcs[a.npc ?? ""];
@@ -1088,9 +1089,9 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           p.flags.datingNpc = n.id;
           const def = EVENT_DEFS.proposal;
           g.queue.unshift({ kind: "event", id: "proposal", data: { ...(def.init?.(p) ?? {}), month: randInt(1, 12) } });
-          return out(`${n.name.split(" ")[0]} says yes. Now the families need to meet.`);
+          return dm(`${n.name.split(" ")[0]} says yes. Now the families need to meet.`);
         }
-        case "marry": { const r = partnerOf(p, a.npc ?? ""); if (!r || r.stage !== "engaged") return { g: g0, msg: "You need to be engaged first." }; marry(p, a.npc ?? ""); return out("You are married!"); }
+        case "marry": { const r = partnerOf(p, a.npc ?? ""); if (!r || r.stage !== "engaged") return { g: g0, msg: "You need to be engaged first." }; marry(p, a.npc ?? ""); return dm("You are married!"); }
           }
           return { g: g0, msg: "" };
         }

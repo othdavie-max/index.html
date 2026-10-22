@@ -88,7 +88,9 @@ export function swipe(p: Player, candId: string, like: boolean): string {
   const npc: Npc = { ...rest, traits: [`kind ${kindness}`, `ambition ${ambition}`, `jealous ${jealousy}`, ...interests] };
   p.npcs[npc.id] = npc;
   void attractiveness;
-  p.rel.partners.push({ npcId: npc.id, stage: "chatting", affection: 30, trust: 50, satisfaction: 50, since: idxNow(p), lastInteract: idxNow(p), moneyRequests: 0, cheated: false });
+  p.rel.partners.push({ npcId: npc.id, stage: "chatting", affection: 30, trust: 50, satisfaction: 50, since: idxNow(p), lastInteract: idxNow(p), moneyRequests: 0, cheated: false, messages: [] });
+  logMsg(p, npc.id, "note", "You matched on Spark.");
+  logMsg(p, npc.id, "them", `Hey ${p.name}! Saw that we matched. ${interestsOf(npc)[0] ? `I am into ${interestsOf(npc)[0]}.` : "How are you?"}`);
   return `It's a match! You and ${first(c)} can start chatting.`;
 }
 
@@ -97,6 +99,26 @@ function traitNum(n: Npc, key: string, dflt: number): number {
   return t ? Number(t.split(" ")[1]) : dflt;
 }
 const interestsOf = (n: Npc) => n.traits.filter((t) => !/^(kind|ambition|jealous) \d+/.test(t));
+
+const THREAD_CAP = 80;
+
+/** Adds a line to the conversation with a partner. "note" lines record moments such as dates. */
+export function logMsg(p: Player, npcId: string, from: "me" | "them" | "note", text: string) {
+  const r = partnerOf(p, npcId);
+  if (!r || !text) return;
+  (r.messages ??= []).push({ from, text, age: p.age, month: p.month });
+  if (r.messages.length > THREAD_CAP) r.messages.splice(0, r.messages.length - THREAD_CAP);
+}
+
+const MY_LINES: Record<string, string[]> = {
+  flirty: ["Hey you. Your profile just made my evening.", "I was going to say something smooth, but I forgot after your photo.", "Be honest: are you always this fine or is it the lighting?"],
+  funny: ["Quick question: jollof rice, party or ghana? Choose wisely, your answer decides everything.", "My phone said I should text someone interesting. Here I am.", "I promise I am only 40% chaos."],
+  genuine: ["Hi. I liked what you wrote. How has your week been?", "I would like to get to know you properly. What do you enjoy doing?", "Your profile felt honest. That is rare here."],
+  boring: ["hi", "wyd", "hello"],
+};
+const THEIR_WARM = ["Haha, you actually made me laugh out loud. Go on.", "Now you have my attention. Tell me more.", "This is the best chat I have had on here all week."];
+const THEIR_OK = ["Hey! Doing well, thanks. And you?", "That is sweet. Good to meet you.", "Not bad at all. What do you do?"];
+const THEIR_DRY = ["ok", "lol", "hmm. busy, I will reply later."];
 
 export type ChatTone = "flirty" | "funny" | "genuine" | "boring";
 
@@ -112,7 +134,11 @@ export function chat(p: Player, npcId: string, tone: ChatTone): string {
   const base = tone === "boring" ? -6 : tone === "flirty" ? 6 + p.stats.looks / 40 : tone === "funny" ? 7 + p.stats.smarts / 40 : 5 + kind / 25;
   const delta = Math.round(base + common * 3 + rand(-5, 6));
   r.affection = clamp(r.affection + delta);
+  logMsg(p, npcId, "me", pick(MY_LINES[tone]));
+  const shared = interestsOf(n).find((i) => p.rel.profile?.interests.includes(i));
+  logMsg(p, npcId, "them", delta >= 8 ? `${pick(THEIR_WARM)}${shared ? ` I love ${shared} too.` : ""}` : delta >= 2 ? pick(THEIR_OK) : pick(THEIR_DRY));
   if (r.affection < 12 && chance(0.55)) {
+    logMsg(p, npcId, "note", "They stopped replying.");
     r.stage = "ex";
     r.exitReason = "ghosted";
     return `${first(n)} stopped replying. You have been ghosted.`;
