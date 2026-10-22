@@ -571,6 +571,7 @@ export function HousingCard({ p, run }: { p: Player; run: Run }) {
   );
 }
 
+const CAT_EMOJI: Record<string, string> = { taxi: "🛵", car: "🚗", suv: "🚙", luxury: "🚘", supercar: "🏎️", hypercar: "🏁", helicopter: "🚁", jet: "🛩️", boat: "🚤", yacht: "🛥️" };
 const CAT_LABEL: Record<string, () => string> = {
   taxi: () => T("Work vehicles", "Work vehicles"),
   car: () => T("Everyday cars", "Everyday cars"),
@@ -590,8 +591,8 @@ const CAT_ONE: Record<string, () => string> = {
 };
 
 export function GarageCard({ p, run }: { p: Player; run: Run }) {
-  const [view, setView] = useState<"fleet" | "dealer">("fleet");
-  const [cat, setCat] = useState("car");
+  const [view, setView] = useState<"fleet" | "dealer" | null>(null);
+  const [cat, setCat] = useState<string | null>(null);
   const [buy, setBuy] = useState<string | null>(null);
   const [openV, setOpenV] = useState<string | null>(null);
   const buyModel = buy ? modelOf(buy) ?? null : null;
@@ -614,9 +615,14 @@ export function GarageCard({ p, run }: { p: Player; run: Run }) {
           </div>
         )}
       </div>
-      <SubTabs value={view} onChange={setView} tabs={[{ id: "fleet", label: T("My fleet", "My fleet"), badge: p.vehicles.length || undefined }, { id: "dealer", label: T("Dealerships", "Dealerships") }]} />
+      {view === null ? (
+        <HubList onPick={(r) => setView(r.id as "fleet" | "dealer")} groups={[{ rows: [
+          { id: "fleet", emoji: "🚘", tile: "bg-rose-100", name: T("My fleet", "My fleet"), desc: p.vehicles.length ? T(`${p.vehicles.length} vehicle${p.vehicles.length === 1 ? "" : "s"} · repair, insure, rent out`, `${p.vehicles.length} vehicle · repair, insure, rent out`) : T("You own no vehicles yet", "You no get vehicle yet") },
+          { id: "dealer", emoji: "🏬", tile: "bg-amber-100", name: T("Dealerships", "Dealerships"), desc: T("Cars, jets, helicopters, boats, yachts", "Cars, jets, helicopters, boats, yachts") },
+        ] }]} />
+      ) : <BackPill label={view === "dealer" && cat ? T("Dealerships", "Dealerships") : T("Garage", "Garage")} onClick={() => (view === "dealer" && cat ? setCat(null) : setView(null))} />}
       {view === "fleet" && (
-        <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100">
+        <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
           {p.vehicles.length === 0 && <p className="p-3 text-xs text-slate-500">{T("You own no vehicles yet. Visit the dealerships.", "You no get vehicle yet. Go dealership.")}</p>}
           {p.vehicles.map((v) => {
             const m = modelOf(v.modelId);
@@ -633,13 +639,13 @@ export function GarageCard({ p, run }: { p: Player; run: Run }) {
           })}
         </div>
       )}
-      {view === "dealer" && (
+      {view === "dealer" && cat === null && (
+        <HubList onPick={(r) => setCat(r.id)} groups={[{ rows: Object.keys(CAT_LABEL).map((c) => ({ id: c, emoji: CAT_EMOJI[c] ?? "🚗", tile: "bg-sky-100", name: CAT_LABEL[c](), desc: T(`${VEHICLE_MODELS.filter((m) => m.cat === c).length} models`, `${VEHICLE_MODELS.filter((m) => m.cat === c).length} models`) })) }]} />
+      )}
+      {view === "dealer" && cat !== null && (
         <div>
-          <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {Object.keys(CAT_LABEL).map((c) => <button key={c} type="button" onClick={() => setCat(c)} className={cx("shrink-0 rounded-full px-3 py-1 text-[11.5px] font-bold", cat === c ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600")}>{CAT_LABEL[c]()}</button>)}
-          </div>
           {p.age < 18 && <p className="mb-2 text-xs text-slate-500">{T("You must be 18 to buy a vehicle.", "You must reach 18 to buy vehicle.")}</p>}
-          <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100">
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
             {VEHICLE_MODELS.filter((m) => m.cat === cat).sort((x, y) => y.price - x.price).map((m) => (
               <div key={m.id} className="flex items-center gap-2.5 bg-white px-2.5 py-2">
                 <div className="w-14 shrink-0"><VehicleArt art={m.art} color={m.color} size={56} /></div>
