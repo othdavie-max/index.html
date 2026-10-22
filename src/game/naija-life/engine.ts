@@ -6,6 +6,8 @@ import { AUTOS2, EVENTS2 } from "./events2";
 import { AUTOS3, EVENTS3 } from "./events3";
 import { EVENTS4 } from "./events4";
 import { EVENTS5, graduationData } from "./events5";
+import { EVENTS6 } from "./events6";
+import { MILITARY_EVENTS, boardDue } from "./military";
 import { HEALTH_EVENTS, developCondition, yearlyHealth } from "./health";
 import { REL_EVENTS, yearlyRelationships } from "./relationships";
 import { BIZ_EVENTS, bizValue } from "./business";
@@ -40,7 +42,7 @@ import { kidLook, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -509,7 +511,7 @@ export function ageUp(g0: Game): Game {
     if (p.age >= 16 && p.job && j) {
       yearPay = annualPay(p);
       p.job.years += 1;
-      if (!j.selfEmployed && !SOCIAL_JOBS.includes(j.id) && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
+      if (!j.selfEmployed && j.id !== "soldier" && !SOCIAL_JOBS.includes(j.id) && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
         const base = j.group === "creative" ? 0.05 + (p.stats.looks + p.stats.smarts) / 1800 + fameBonus(p) : 0.07 + p.stats.connections / 500 + p.stats.smarts / 700;
         if (chance(base + p.stats.connections / 800 + luckBonus(p) / 3)) {
           p.job.rank += 1;
@@ -518,6 +520,7 @@ export function ageUp(g0: Game): Game {
           if (j.id === "kidnapper" || j.id === "yahoo") bump(p, "reputation", -2);
         }
       }
+      if (boardDue(p)) pending.push({ kind: "event", id: "promotion_board", data: { month: randInt(1, 12) } });
       if (j.id === "yahoo" && chance(0.08 + p.job.rank * 0.07 + (p.money > 40_000_000 * p.index ? 0.07 : 0))) pending.push({ kind: "event", id: "arrested", data: { ...(EVENT_DEFS.arrested.init?.(p) ?? {}), month: randInt(1, 12) } });
       if (j.id === "kidnapper" && chance(0.1 + p.job.rank * 0.04)) pending.push({ kind: "event", id: "arrested", data: { ...(EVENT_DEFS.arrested.init?.(p) ?? {}), month: randInt(1, 12) } });
     }

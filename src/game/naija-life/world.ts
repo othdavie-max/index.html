@@ -1,4 +1,5 @@
 import { HOME_TIERS, STATE_BY_ID } from "./data";
+import { addCousin } from "./events6";
 import { DEFAULT_FAMILY_CONFIG, addFriend, capacityOf, generateFamily, npcAge, npcsByRole, primaryProvider, remember, syncLegacyFamily, type FamilyConfig } from "./family";
 import { allowanceCutoffAge, allowanceMonthly } from "./finance";
 import { stateOf } from "./helpers";
@@ -171,6 +172,9 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
     lines.push(`You made a new friend: ${f.name.split(" ")[0]}.`);
     if (chance(0.4)) addFriend(p, randInt(-2, 2));
   }
+
+  // 3b. The extended family grows
+  if ([9, 15, 20, 26, 32].includes(p.age) && Object.values(p.npcs).filter((n) => n.role === "cousin").length < 4) addCousin(p);
 
   // 4. Phones and laptops are earned through family support, not handed out automatically
   const provider = primaryProvider(p);

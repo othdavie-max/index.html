@@ -19,6 +19,7 @@ import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, displ
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
 import { MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
+import { meritOf } from "./military";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
@@ -534,7 +535,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         {p.job && cur ? (
           <div>
             <div className="text-lg font-bold">{cur.ladder[Math.min(p.job.rank, cur.ladder.length - 1)].title}</div>
-            <div className="text-xs text-white/60">{cur.title} · {p.job.years} yr in this role · Rank {p.job.rank + 1}/{cur.ladder.length}</div>
+            <div className="text-xs text-white/60">{cur.id === "soldier" ? `Service record ${meritOf(p)}/100 · the promotion board decides your next rank. ` : ""}{cur.title} · {p.job.years} yr in this role · Rank {p.job.rank + 1}/{cur.ladder.length}</div>
             <div className="mt-3 flex flex-wrap gap-2">
               {cost !== null && (
                 <Btn small tone="gold" disabled={p.money < cost} onClick={() => run({ t: "expand" })}>

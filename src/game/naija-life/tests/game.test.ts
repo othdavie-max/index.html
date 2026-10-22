@@ -16,6 +16,8 @@ import { invest, divest, marketMonth } from "../lifestyle";
 import { buyVehicle, sellVehicle } from "../vehicles";
 import { CRIME_BY_ID, crimeBlock } from "../crime";
 import { mortgageQuote } from "../mortgage";
+import { MILITARY_EVENTS, boardDue, meritOf } from "../military";
+import { EVENTS6, addCousin } from "../events6";
 import { beneficiaries, setShare, planEstate } from "../will";
 import { randomLook } from "../look";
 import { STATE_BY_ID } from "../data";
@@ -516,7 +518,9 @@ test("mortgages: terms, deposit only, monthly repayments, foreclosure and sale p
   // defaulting loses the house
   const broke = structuredClone(q);
   broke.p.money = 0;
-  broke.p.loans.find((l) => l.id === loan.id)!.missed = 3;
+  const bl = broke.p.loans.find((l) => l.id === loan.id)!;
+  bl.missed = 3;
+  bl.monthly = bl.balance * 50; // an instalment no income could cover
   let b = broke;
   for (let i = 0; i < 2 && b.p.alive; i++) { b.p.money = 0; b = resolveAll(ageUp(b)); }
   assert.equal(b.p.loans.find((l) => l.id === loan.id)!.status, "defaulted");
@@ -524,4 +528,85 @@ test("mortgages: terms, deposit only, monthly repayments, foreclosure and sale p
   // minors and poor credit blocked
   const kid = structuredClone(aliveAt(16)).p;
   assert.ok(mortgageQuote(kid, "bungalow", 15).block);
+});
+
+test("military promotion board: merit, godfather and bribe routes, exposure risk", () => {
+  const board = MILITARY_EVENTS.find((e) => e.id === "promotion_board")!;
+  const base26 = aliveAt(26);
+  const mk = () => {
+    const p = structuredClone(base26.p);
+    p.job = { id: "soldier", rank: 0, years: 2 };
+    p.flags.training = undefined as never;
+    p.prison = 0;
+    p.stats.connections = 70; p.stats.fitness = 90; p.stats.smarts = 80; p.stats.reputation = 70;
+    p.money = 500_000_000 * p.index;
+    return p;
+  };
+  assert.ok(boardDue(mk()), "board sits after the minimum years in rank");
+  const young = mk(); young.job!.years = 1;
+  assert.equal(boardDue(young), false);
+  assert.ok(meritOf(mk()) > 40);
+  const lowCon = mk(); lowCon.stats.connections = 5;
+  assert.ok(board.choices(lowCon, {})[1].disabled, "godfather route needs connections");
+  const outcomes = { promoted: 0, passed: 0, punished: 0 };
+  for (let s = 1; s <= 120; s++) {
+    const p = mk();
+    setSeed(s);
+    const c = board.choices(p, {});
+    const res = c[2].run(p);
+    const text = typeof res === "string" ? res : res.text;
+    if (p.job === null || (p.job && p.job.rank === 0 && /demoted|dismissed/.test(text))) outcomes.punished++;
+    else if (p.job && p.job.rank === 1) outcomes.promoted++;
+    else outcomes.passed++;
+  }
+  assert.ok(outcomes.promoted > 40, `bribe often works: ${JSON.stringify(outcomes)}`);
+  assert.ok(outcomes.punished > 3, `bribes are sometimes exposed: ${JSON.stringify(outcomes)}`);
+  const m = mk(); m.job!.rank = 3;
+  assert.equal(boardDue(m), false, "generals have no higher rank");
+  // soldiers are no longer promoted automatically, only by the board
+  let g = structuredClone(aliveAt(26));
+  g.p.job = { id: "soldier", rank: 0, years: 0 }; g.p.flags.training = undefined as never; g.p.prison = 0;
+  setSeed(3);
+  let sawBoard = false;
+  for (let i = 0; i < 4 && g.p.alive; i++) { g = ageUp(g); if (g.queue.some((q) => q.kind === "event" && q.id === "promotion_board")) sawBoard = true; assert.ok(g.p.job?.rank === 0 || sawBoard, "no promotion without the board"); g = resolveAll(g, "first"); if (!g.p.job || g.p.job.id !== "soldier") break; }
+  assert.ok(sawBoard || !g.p.job, "the board convenes for serving soldiers");
+});
+
+test("relatives: money events draw on persistent relatives, record cash, and shape closeness", () => {
+  const base = structuredClone(aliveAt(30));
+  const p0 = base.p;
+  assert.ok(Object.values(p0.npcs).some((n) => ["uncle", "aunt", "cousin", "sibling"].includes(n.role)) || (addCousin(p0), true));
+  for (let i = 0; i < 3; i++) addCousin(p0);
+  assert.ok(Object.values(p0.npcs).filter((n) => n.role === "cousin").length >= 3);
+  for (const ev of EVENTS6) {
+    const p = structuredClone(p0);
+    p.money = 1_000_000_000 * p.index;
+    const d = ev.init?.(p) ?? {};
+    assert.ok(ev.weight(p) > 0, `${ev.id} can occur for an adult with relatives`);
+    const kid = structuredClone(aliveAt(10).p);
+    assert.equal(eligible(kid, ev.id), false, `${ev.id} never hits a child`);
+    const rel = p.npcs[String(d.relId)];
+    assert.ok(rel, `${ev.id} picks a real relative`);
+    const before = rel.closeness;
+    const cash0 = p.money;
+    const choices = ev.choices(p, d);
+    const gen = choices[0].run(p);
+    assert.ok(typeof gen === "string" || typeof gen.text === "string");
+    assert.ok(p.money < cash0 || p.loans.some((l) => l.direction === "owedToMe"), `${ev.id}: helping costs money or creates a receivable`);
+    assert.ok(ledgerBalances(p));
+    const p2 = structuredClone(p0);
+    p2.money = 1_000_000_000 * p2.index;
+    const d2 = ev.init?.(p2) ?? {};
+    const refuse = ev.choices(p2, d2).slice(-1)[0];
+    const c0 = p2.npcs[String(d2.relId)].closeness;
+    const cash2 = p2.money;
+    refuse.run(p2);
+    assert.ok(p2.money >= cash2 - 1, `${ev.id}: refusing costs nothing`);
+    assert.ok(p2.npcs[String(d2.relId)].closeness <= c0 || ev.id === "relative_business", `${ev.id}: refusing does not make them closer`);
+    void before;
+  }
+  // broke players see disabled options
+  const poor = structuredClone(p0); poor.money = 0;
+  const w = EVENTS6.find((e) => e.id === "relative_wedding")!;
+  assert.ok(w.choices(poor, w.init!(poor)).some((c) => c.disabled));
 });

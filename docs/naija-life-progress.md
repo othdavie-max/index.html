@@ -17,11 +17,13 @@ Status of the "complete life simulation" expansion. Only items marked **Done** a
 - Vocational training: 5 trades (1-2 years) from the JAMB admission screen or the Work tab; fees apply, a certificate raises the matching skill and pay, no degree or NYSC.
 - Mortgages: 10-20 year bank mortgage with deposit, fee, monthly instalments, one at a time; selling pays the bank first; 4 missed payments means repossession.
 
+- Military promotion board: soldiers are no longer auto-promoted; a board sits every 2 years in rank (5 for the top rank) with merit, godfather, bribe (risk of exposure and demotion or dismissal) or wait options.
+- Relatives' money events: weddings, hospital bills, school fees, business capital (loan or profit share) and family levies, driven by persistent uncles, aunts, cousins and siblings; cousins join the family over the years.
+
 ## Tests
-`npm run test:game` runs 23 node:test cases (seeded determinism, distributions, support replies, loans, ledger continuity over whole lives, rent schedule, eligibility, hospital costs, dating, social, vehicles, investments, crime and trials, wills and heirs, save migration, cross-system chaos).
+`npm run test:game` runs 25 node:test cases (seeded determinism, distributions, support replies, loans, ledger continuity over whole lives, rent schedule, eligibility, hospital costs, dating, social, vehicles, investments, crime and trials, wills and heirs, save migration, cross-system chaos).
 
 ## Partial / not done
-- Military promotion board and some NPC life events (e.g. relatives' weddings with money asks) are missing.
 - Swipe/chat UI is minimal: chat tone and date choices exist but there is no message transcript.
 - Balance was measured with simple bots (below), not by human playtesting.
 - Some `no-unused-vars` lint warnings remain (no lint errors).

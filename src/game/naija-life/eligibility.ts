@@ -69,6 +69,12 @@ const GATES: Record<string, Gate> = {
   friend_help: { minAge: 14 },
   sibling_ask: { minAge: 14 },
   unexpected_inheritance: { minAge: 22 },
+  relative_wedding: { minAge: 18 },
+  relative_medical: { minAge: 18 },
+  relative_school_fees: { minAge: 20 },
+  relative_business: { minAge: 22 },
+  relative_levy: { minAge: 22 },
+  promotion_board: { minAge: 18, needs: ["job"] },
 };
 
 const has = (p: Player, n: Need): boolean => {

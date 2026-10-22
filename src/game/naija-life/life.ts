@@ -310,7 +310,7 @@ export const LIFE_EVENTS: EventDef[] = [
     weight: (p) => (p.job?.id === "soldier" && !p.flags.training ? 2.2 : 0),
     text: (p) => `Your unit is ordered to deploy to a troubled area of ${pick(["the North East", "the North West", "the Niger Delta", "a peacekeeping mission abroad"])}.`,
     choices: (p) => [
-      { label: "Go and do your duty", run: (q) => { const hazard = chance(0.22); transact(q, { amount: Math.round(I(q, 450_000)), reason: "Deployment allowance", category: "salary" }); bump(q, "reputation", 3); bump(q, "stress", 10); if (hazard) { q.flags.spawnCondition = chance(0.5) ? "gunshot" : "stab"; return "You complete the tour, but you are hurt in an ambush."; } if (q.job && chance(0.35)) { q.job.years += 1; } return "You return safely with a medal, a bonus and heavy memories."; } },
+      { label: "Go and do your duty", run: (q) => { const hazard = chance(0.22); q.flags.tours = (Number(q.flags.tours) || 0) + 1; transact(q, { amount: Math.round(I(q, 450_000)), reason: "Deployment allowance", category: "salary" }); bump(q, "reputation", 3); bump(q, "stress", 10); if (hazard) { q.flags.spawnCondition = chance(0.5) ? "gunshot" : "stab"; return "You complete the tour, but you are hurt in an ambush."; } if (q.job && chance(0.35)) { q.job.years += 1; } return "You return safely with a medal, a bonus and heavy memories."; } },
       { label: "Seek an exemption", sub: "Needs connections", disabled: p.stats.connections < 30 ? "Not enough connections" : false, run: (q) => { bump(q, "reputation", -2); return "A phone call from the right person keeps you in barracks."; } },
       { label: "Refuse the order", run: (q) => { q.job = null; bump(q, "reputation", -8); return enterPrison(q, 2); } },
     ],
