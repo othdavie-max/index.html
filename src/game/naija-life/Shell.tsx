@@ -236,6 +236,10 @@ function stageOf(age: number): string {
 
 /** Activities (collapsible) and the life story as a timeline. */
 const ACT_EMOJI: Record<string, string> = { study: "📚", gym: "⚽", worship: "🙏", hawk: "🛍️", network: "🥂", gig: "💵", date: "❤️", godfather: "🤝" };
+const ACT_SHORT: Record<string, () => string> = {
+  study: () => T("Study", "Read"), gym: () => T("Exercise", "Exercise"), worship: () => T("Worship", "Worship"), hawk: () => T("Hawk", "Hawk"),
+  network: () => T("Network", "Network"), gig: () => T("Side gig", "Side gig"), date: () => T("Love", "Love"), godfather: () => T("Godfather", "Godfather"),
+};
 const ACT_TILE: Record<string, string> = { study: "bg-violet-100", gym: "bg-emerald-100", worship: "bg-amber-100", hawk: "bg-orange-100", network: "bg-pink-100", gig: "bg-green-100", date: "bg-rose-100", godfather: "bg-sky-100" };
 
 export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
@@ -250,17 +254,14 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
           <span className="flex items-center gap-1 text-[11.5px] font-semibold text-slate-500">{T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`)}<ChevronRight size={15} className={cx("transition-transform", open && "rotate-90")} /></span>
         </button>
         {open && (
-          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+          <div className="grid grid-cols-4 gap-2">
             {ACTIVITIES.filter((a) => p.age >= a.minAge - 2).map((a) => {
               const block = activityBlock(p, a);
               return (
-                <button key={a.id} type="button" disabled={Boolean(block)} onClick={() => run({ t: "activity", id: a.id })} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition active:bg-slate-50 disabled:opacity-45">
-                  <span className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[24px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[15px] font-extrabold leading-tight text-[#0b2a6b]">{a.label}</span>
-                    <span className="block text-[12px] leading-snug text-slate-500">{block ?? (a.cost ? `${naira(a.cost * p.index)} · ${a.desc}` : a.desc)}</span>
-                  </span>
-                  <span className="shrink-0 text-xl font-black text-blue-500">›</span>
+                <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => run({ t: "activity", id: a.id })} className="flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border border-slate-100 bg-white p-1 text-center shadow-[0_6px_16px_-12px_rgba(30,64,175,0.4)] transition active:scale-95 disabled:opacity-40">
+                  <span className={cx("flex h-9 w-9 items-center justify-center rounded-xl text-[20px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
+                  <span className="line-clamp-2 text-[10.5px] font-bold leading-tight text-[#0b2a6b]">{ACT_SHORT[a.id]?.() ?? a.label}</span>
+                  {a.cost ? <span className="-mt-0.5 text-[9px] font-semibold text-slate-500">{naira(a.cost * p.index)}</span> : null}
                 </button>
               );
             })}
