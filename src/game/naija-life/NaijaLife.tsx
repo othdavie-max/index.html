@@ -13,7 +13,7 @@ import {
 import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
 import { Avatar } from "./Avatar";
 import { KidnapModal } from "./KidnapModal";
-import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
+import { BEARDS, GLASSES, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
 import { PortfolioCard, TravelSheet, RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, MarketNewsCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
@@ -419,6 +419,13 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
         <div>
           <span className="text-xs text-slate-600">{T("Cap or headwear", "Cap or head wear")}</span>
           <div className="mt-1.5 flex flex-wrap gap-1.5">{WEARS.map((w) => <Chip key={w.id} active={look.wear === w.id} onClick={() => set({ wear: w.id })}>{w.label}</Chip>)}</div>
+        </div>
+        <div>
+          <span className="text-xs text-slate-600">{T("Glasses and earrings", "Glasses and earrings")}</span>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {GLASSES.map((x) => <Chip key={x.id} active={(look.glasses ?? "none") === x.id} onClick={() => set({ glasses: x.id })}>{x.label}</Chip>)}
+            <Chip active={Boolean(look.hoops)} onClick={() => set({ hoops: !look.hoops })}>{T("Gold hoops", "Gold hoops")}</Chip>
+          </div>
         </div>
         <div>
           <span className="text-xs text-slate-600">{T("Outfit", "Outfit")}</span>

@@ -47,7 +47,7 @@ import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings } f
 import { POLITICS_EVENTS, canContest, canJoinPolitics, canPlotCoup, contestPending, freshNation, joinPolitics, migratePolitics, plotCoup, politicalRelease, powerMoveBlock, runGov, runPowerMove, yearlyPolitics, GOV_ACTIONS } from "./politics";
 import type { EventDef, FamilyBg, Game, Gender, HoldingKind, House, HouseKind, HouseUse, Kid, LineageEntry, Pending, Player } from "./types";
 import { T, chance, clamp, naira, pick, rand, randInt, setDeflator, setLang, setSeed, tx, uid, weightedPick } from "./util";
-import { kidLook, randomLook, type Look } from "./look";
+import { kidLook, lookToStr, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
@@ -1151,7 +1151,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           if (p.age < 20) return { g: g0, msg: T("You need to be at least 20 to marry.", "You must reach at least 20 before you marry.") };
           r.stage = "engaged";
           p.flags.dating = n.name;
-          p.flags.datingLook = [n.look.skin, n.look.hair, n.look.hairColor, n.look.beard, n.look.wear, n.look.outfit, n.look.outfitColor].join("|");
+          p.flags.datingLook = lookToStr(n.look);
           p.flags.datingNpc = n.id;
           const def = EVENT_DEFS.proposal;
           g.queue.unshift({ kind: "event", id: "proposal", data: { ...(def.init?.(p) ?? {}), month: randInt(1, 12) } });
