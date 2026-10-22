@@ -29,11 +29,13 @@ Status of the "complete life simulation" expansion. Only items marked **Done** a
 - Balance was measured with simple bots (below), not by human playtesting.
 - Some `no-unused-vars` lint warnings remain (no lint errors).
 
-## Balance snapshot (150 bot lives per strategy, real base-year naira)
+## Balance snapshot (150 unseeded bot lives per strategy, real base-year naira, after all additions)
 | strategy | median age at death | median worth @40 | @60 | kidnapped |
 |---|---|---|---|---|
-| idle | 61 | about -0.2M | 1.2M | 10% |
-| hustler | 61 | 41M | 164M | 12% |
-| graduate | 60 | 53M | 99M | 18% |
-| crook | 59 | 12M | 24M (8 prison years avg) | 10% |
-| politician | 61 | 95M | 136M (14 of 150 became president) | 18% |
+| idle | 59 | about -0.1M | 2.5M | 16% |
+| hustler | 60 | 43M | 179M | 12% |
+| graduate | 58 | 39M | 92M | 16% |
+| crook | 61 | 16M | 31M (8.5 prison years avg) | 15% |
+| politician | 61 | 81M | 119M (11 of 150 became president) | 15% |
+
+The bots use jobs, expansion, building and political actions only; they do not use mortgages, trades, businesses, betting or the dating app, so those systems are not covered by this balance check. Runs are unseeded, so figures move a few percent between runs.
