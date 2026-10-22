@@ -35,6 +35,28 @@ export function setDeflator(index: number) {
   deflator = Math.max(1, index);
 }
 
+/**
+ * Language support. The game is written in two voices: standard English ("en") and
+ * Nigerian Pidgin ("pcm"). The engine sets the language from the player before it
+ * builds any text, so T() can be used inline wherever a string is built at render time.
+ */
+export type Lang = "en" | "pcm";
+let lang: Lang = "pcm";
+export function setLang(l: Lang | undefined) {
+  lang = l === "en" ? "en" : "pcm";
+}
+export const getLang = () => lang;
+/** Pick the wording for the current language. */
+export const T = (en: string, pcm: string): string => (lang === "en" ? en : pcm);
+/** A pair of wordings for text that is defined once, in a static table. */
+export interface Dual {
+  en: string;
+  pcm: string;
+}
+export const dual = (en: string, pcm: string): Dual => ({ en, pcm });
+/** Resolve a plain string or a Dual to the current language. */
+export const tx = (v: string | Dual): string => (typeof v === "string" ? v : lang === "en" ? v.en : v.pcm);
+
 /** Compact naira formatting: ₦1.2M, ₦450K, ₦3.4B, ₦1.1T */
 export function naira(n: number): string {
   const sign = n < 0 ? "-" : "";

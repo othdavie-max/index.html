@@ -107,13 +107,32 @@ function payRent(p: Player, ctx: MonthCtx) {
   }
 }
 
+/** Inside, there is no pay or living cost, but the outside world keeps moving. */
+function prisonMonth(p: Player, ctx: MonthCtx) {
+  for (const h of p.houses) {
+    if (h.use === "rent" && chance(0.9)) {
+      const rent = (HOUSE_RENT[h.kind] * STATE_BY_ID[h.state].cost * Math.pow(p.index, 0.9)) / 12;
+      transact(p, { amount: rent, reason: `Rent from your ${h.kind} in ${STATE_BY_ID[h.state].name}`, category: "business", recurring: h.id });
+    }
+  }
+  payRent(p, ctx);
+  for (const s of p.subs) transact(p, { amount: -s.monthly * Math.pow(p.index, 0.9), reason: s.label, category: s.category, recurring: s.id });
+  marketMonth(p, ctx.lines);
+  businessMonth(p, ctx.lines);
+  vehicleMonth(p, ctx.lines);
+  healthMonth(p, ctx.lines, ctx.pending);
+  processLoansMonth(p, ctx.lines, ctx.pending);
+  const gap = coverShortfall(p, "Cash ran short while you were locked up: borrowed to cover bills");
+  if (gap > 0) { p.stats.stress = clamp(p.stats.stress + 3); adjustCredit(p, -1); }
+}
+
 function monthTick(p: Player, ctx: MonthCtx) {
   const st = stateOf(p);
   const now = monthIndex(p);
   const adult = p.age >= 18;
   let incomeThisMonth = 0;
 
-  if (p.prison > 0) return;
+  if (p.prison > 0) { prisonMonth(p, ctx); return; }
 
   // --- Income ---
   if (p.age >= 16 && p.job && ctx.yearPay > 0) {

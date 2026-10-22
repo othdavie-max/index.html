@@ -18,7 +18,7 @@ import { KidnapModal } from "./KidnapModal";
 import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, displayLook, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
-import { MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
+import { PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { meritOf } from "./military";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
@@ -129,15 +129,17 @@ export default function NaijaLife() {
     <Shell>
       <Header p={p} onMenu={() => setMenu(true)} />
       <main className="flex-1 space-y-3 px-4 pb-44 pt-3">
-        {tab === "life" && <LifeTab g={game} run={run} />}
-        {tab === "phone" && <PhoneTab p={p} run={run} />}
+        {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}
+        {tab === "life" && <><PrisonCard p={p} run={run} /><LifeTab g={game} run={run} /></>}
+        {tab === "phone" && p.prison <= 0 && <PhoneTab p={p} run={run} />}
         {tab === "health" && <HealthTab p={p} run={run} />}
         {tab === "law" && <LawTab p={p} run={run} />}
-        {tab === "work" && <WorkTab p={p} run={run} />}
+        {tab === "work" && p.prison > 0 && <PrisonCard p={p} run={run} full />}
+        {tab === "work" && p.prison <= 0 && <WorkTab p={p} run={run} />}
         {tab === "money" && <MoneyTab p={p} run={run} />}
         {tab === "family" && <FamilyTab p={p} run={run} />}
-        {tab === "map" && <MapTab p={p} run={run} />}
-        {tab === "power" && <PowerTab p={p} run={run} />}
+        {tab === "map" && p.prison <= 0 && <MapTab p={p} run={run} />}
+        {tab === "power" && p.prison <= 0 && <PowerTab p={p} run={run} />}
         {tab === "legacy" && <LegacyTab g={game} />}
       </main>
 
@@ -535,7 +537,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         {p.job && cur ? (
           <div>
             <div className="text-lg font-bold">{cur.ladder[Math.min(p.job.rank, cur.ladder.length - 1)].title}</div>
-            <div className="text-xs text-white/60">{cur.id === "soldier" ? `Service record ${meritOf(p)}/100 · the promotion board decides your next rank. ` : ""}{cur.title} · {p.job.years} yr in this role · Rank {p.job.rank + 1}/{cur.ladder.length}</div>
+            <div className="text-xs text-white/60">{["soldier", "navy", "airforce", "police"].includes(cur.id) ? `Service record ${meritOf(p)}/100 · the promotion board decides your next rank. ` : ""}{cur.title} · {p.job.years} yr in this role · Rank {p.job.rank + 1}/{cur.ladder.length}</div>
             <div className="mt-3 flex flex-wrap gap-2">
               {cost !== null && (
                 <Btn small tone="gold" disabled={p.money < cost} onClick={() => run({ t: "expand" })}>

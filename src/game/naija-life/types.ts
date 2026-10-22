@@ -137,6 +137,8 @@ export interface Player {
   look: Look;
   /** Hidden fortune stat, 0-100. Shapes windfalls and disasters. */
   luck: number;
+  /** Language the game is told in. */
+  lang: "en" | "pcm";
   /** Month within the current age year, 1-12. */
   month: number;
   ledger: Tx[];
@@ -540,7 +542,7 @@ export interface Choice {
 
 export interface EventDef {
   id: string;
-  title: string;
+  title: string | import("./util").Dual;
   weight: (p: Player) => number;
   /** Queued events are dropped before showing if this returns false. */
   valid?: (p: Player) => boolean;

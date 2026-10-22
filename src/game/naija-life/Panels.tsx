@@ -19,7 +19,8 @@ import { VEHICLE_MODELS, priceOf, repairCost, isInsured } from "./vehicles";
 import { beneficiaries, currentShares, totalPct } from "./will";
 import type { Candidate, Npc, PartnerRel, Platform, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, cx } from "./ui";
-import { naira } from "./util";
+import { PRISON_OPS, appealCost, prisonBlockOp } from "./prison";
+import { T, naira } from "./util";
 
 type Run = (a: Action) => void;
 const I = (p: Player, n: number) => Math.round(n * Math.pow(p.index, 0.92));
@@ -667,7 +668,12 @@ export function SkillsCard({ p, run }: { p: Player; run: Run }) {
             );
           })}
         </div>
-        {p.age >= 18 && (() => { const b = enlistBlock(p); return <Btn small tone="ghost" className="mt-3" disabled={Boolean(b)} onClick={() => run({ t: "enlist" })}>{b ?? "Enlist in the military"}</Btn>; })()}
+        {p.age >= 18 && (() => { const b = enlistBlock(p); return (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="w-full text-[11px] text-white/50">{b ?? "Join the armed forces"}</span>
+            {(["army", "navy", "airforce"] as const).map((br) => <Btn key={br} small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "enlist", branch: br })}>{br === "army" ? "Army" : br === "navy" ? "Navy" : "Air Force"}</Btn>)}
+          </div>
+        ); })()}
       </Card>
     </>
   );
@@ -825,6 +831,30 @@ export function MortgageCard({ p, run }: { p: Player; run: Run }) {
       </dl>
       <Btn className="mt-3 w-full" tone="gold" disabled={Boolean(q.block)} onClick={() => run({ t: "mortgage", kind, years })}>{q.block ?? "Accept the mortgage"}</Btn>
       {owned.map((h) => <p key={h.id} className="mt-2 text-xs text-white/60">{HOUSE_KINDS[h.kind].label} in {STATE_BY_ID[h.state].name}: {naira(mortgageBalance(p, h))} still owed</p>)}
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Prison
+// ---------------------------------------------------------------------------
+export function PrisonCard({ p, run, full }: { p: Player; run: Run; full?: boolean }) {
+  if (p.prison <= 0) return null;
+  return (
+    <Card className="border-red-400/40">
+      <H sub={T(`${p.prison} year${p.prison === 1 ? "" : "s"} left. Phones, work, travel, shopping, dating and betting are not possible from inside.`, `${p.prison} year${p.prison === 1 ? "" : "s"} remain. Phone, work, travel, shopping, dating and betting no dey work from inside.`)}>{T("In prison", "You dey prison")}</H>
+      {full && <p className="mb-2 text-sm text-white/70">{T("This section is closed while you are locked up. You can still study, work on the prison detail, appeal, ask family for help, see a doctor or make a will.", "This section closed as you dey prison. You fit still read, work prison detail, appeal, ask family for help, see doctor or write will.")}</p>}
+      <div className="grid grid-cols-2 gap-2">
+        {PRISON_OPS.map((o) => {
+          const b = prisonBlockOp(p, o.id);
+          return (
+            <button key={o.id} type="button" disabled={Boolean(b)} onClick={() => run({ t: "prison", op: o.id })} className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-left text-xs disabled:opacity-40">
+              <span className="block font-semibold">{T(o.en, o.pcm)}</span>
+              <span className="block text-white/50">{b ?? (o.id === "appeal" ? `${naira(appealCost(p))} · ` : "") + T(o.subEn, o.subPcm)}</span>
+            </button>
+          );
+        })}
+      </div>
     </Card>
   );
 }

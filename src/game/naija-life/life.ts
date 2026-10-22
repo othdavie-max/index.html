@@ -3,7 +3,7 @@ import { monthIndex, transact } from "./ledger";
 import { remember } from "./family";
 import { primaryProvider } from "./family";
 import type { Choice, EventDef, Pending, Player } from "./types";
-import { chance, clamp, naira, pick, rand, randInt } from "./util";
+import { T, chance, clamp, naira, pick, rand, randInt } from "./util";
 
 // ---------------------------------------------------------------------------
 // Skills
@@ -307,7 +307,7 @@ export const LIFE_EVENTS: EventDef[] = [
   {
     id: "deployment",
     title: "Deployment orders",
-    weight: (p) => (p.job?.id === "soldier" && !p.flags.training ? 2.2 : 0),
+    weight: (p) => (isMilitary(p) && !p.flags.training ? 2.2 : 0),
     text: (p) => `Your unit is ordered to deploy to a troubled area of ${pick(["the North East", "the North West", "the Niger Delta", "a peacekeeping mission abroad"])}.`,
     choices: (p) => [
       { label: "Go and do your duty", run: (q) => { const hazard = chance(0.22); q.flags.tours = (Number(q.flags.tours) || 0) + 1; transact(q, { amount: Math.round(I(q, 450_000)), reason: "Deployment allowance", category: "salary" }); bump(q, "reputation", 3); bump(q, "stress", 10); if (hazard) { q.flags.spawnCondition = chance(0.5) ? "gunshot" : "stab"; return "You complete the tour, but you are hurt in an ambush."; } if (q.job && chance(0.35)) { q.job.years += 1; } return "You return safely with a medal, a bonus and heavy memories."; } },
@@ -318,7 +318,7 @@ export const LIFE_EVENTS: EventDef[] = [
   {
     id: "retire_option",
     title: "Retirement from the service",
-    weight: (p) => (p.job?.id === "soldier" && p.job.years >= 20 ? 6 : 0),
+    weight: (p) => (isMilitary(p) && p.job && p.job.years >= 20 ? 6 : 0),
     text: () => "You have served twenty years. The service offers you retirement with a pension.",
     choices: () => [
       { label: "Retire with a pension", run: (q) => { const j = q.job; q.flags.pension = true; q.flags.pensionAnnual = Math.round(1_800_000 * Math.pow(q.index, 0.9) * (1 + (j?.rank ?? 0) * 0.8)); q.job = null; return "You hand in your uniform. A modest pension will arrive every month."; } },
@@ -332,17 +332,21 @@ export function enlistBlock(p: Player): string | null {
   if (p.edu === "none" || p.edu === "primary") return "Needs secondary education";
   if (p.stats.health < 50) return "Health too low";
   if (p.stats.fitness < 30) return "Fitness too low";
-  if (p.job?.id === "soldier") return "Already serving";
+  if (isMilitary(p)) return T("Already serving", "You don dey service already");
   if (p.prison > 0) return "In prison";
   return null;
 }
 
-export function enlist(p: Player): { text: string; spawn: Pending[] } {
+export const MILITARY_BRANCHES = { army: "soldier", navy: "navy", airforce: "airforce" } as const;
+export const isMilitary = (p: Player) => Boolean(p.job && ["soldier", "navy", "airforce"].includes(p.job.id));
+
+export function enlist(p: Player, branch: keyof typeof MILITARY_BRANCHES = "army"): { text: string; spawn: Pending[] } {
   const block = enlistBlock(p);
   if (block) return { text: block, spawn: [] };
   const pr = clamp(0.4 + p.stats.fitness / 250 + p.stats.smarts / 300 + p.stats.connections / 400 + luckBonus(p), 0.1, 0.9);
   if (!chance(pr)) return { text: "Your recruitment application is not successful this time.", spawn: [] };
-  p.job = { id: "soldier", rank: 0, years: 0 };
+  p.job = { id: MILITARY_BRANCHES[branch], rank: 0, years: 0 };
+  p.flags.branch = branch;
   p.flags.training = 1;
   return { text: "You are accepted into the army. Training begins.", spawn: [{ kind: "event", id: "military_training", data: { month: randInt(1, 12) } }] };
 }

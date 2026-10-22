@@ -642,3 +642,55 @@ test("dating message history persists per partner, caps its length and survives 
   const m = act(migrate(old), { t: "dating", op: "chat", npc: id, tone: "flirty" });
   assert.ok(ledgerBalances(m.g.p));
 });
+
+test("prison closes outside actions, freezes nothing financial, and offers prison options", () => {
+  let g = structuredClone(aliveAt(25));
+  g.p.possessions.smartphone = true;
+  g.p.money = 500_000_000 * g.p.index;
+  g.p.prison = 3;
+  g.p.actionsLeft = 3;
+  const blocked: Action[] = [
+    { t: "buy", item: "laptop" }, { t: "invest", kind: "stocks", amount: 1_000_000 }, { t: "bet", kind: "single", stake: 1000 },
+    { t: "rent", tier: "selfcon" }, { t: "social", op: "account", platform: "gram" }, { t: "dating", op: "profile", bio: "x", interests: [] },
+    { t: "crime", id: "pickpocket" }, { t: "loanTake", offer: "pocketcash", amount: 20_000, term: 2 }, { t: "send", amount: 1000 }, { t: "travel", to: "abuja" },
+    { t: "biz", op: "start", id: "provisions" }, { t: "car", op: "buy", id: "keke" }, { t: "luxury", id: "x" }, { t: "mortgage", kind: "bungalow", years: 15 },
+  ];
+  for (const a of blocked) {
+    const r = act(g, a);
+    assert.equal(r.g, g, `${a.t} must not change the game from prison`);
+    assert.ok(r.msg.length > 0, `${a.t} explains why`);
+  }
+  assert.equal(eligible(g.p, "relative_wedding"), false);
+  assert.equal(eligible(g.p, "prison_visit"), true);
+  const r = act(g, { t: "prison", op: "work" });
+  assert.ok(r.g.p.money > g.p.money, "prison work pays a little");
+  const study = act(g, { t: "prison", op: "study" });
+  assert.ok(study.g.p.stats.smarts >= g.p.stats.smarts);
+  // the outside world keeps moving: a loan keeps charging while you are inside
+  g.p.credit = 80; g.p.possessions.phone = true; g.p.money = 1_000_000 * g.p.index;
+  g = act(g, { t: "prison", op: "work" }).g;
+  let q = structuredClone(aliveAt(25));
+  q.p.prison = 0;
+  q = act(q, { t: "loanTake", offer: "nairaflex", amount: 100_000, term: 6 }).g;
+  q.p.prison = 2;
+  q.p.money = 0;
+  const bal0 = q.p.loans.find((l) => l.status === "active")?.balance ?? 0;
+  q = resolveAll(ageUp(q));
+  const l = q.p.loans.find((x) => x.lenderName.includes("NairaFlex"));
+  assert.ok(!l || l.status !== "active" || l.balance !== bal0 || l.missed > 0, "loans keep running while you are inside");
+  assert.ok(ledgerBalances(q.p));
+  // appeal can shorten the sentence; escape makes you a fugitive
+  let cut = 0, free = 0;
+  const base25 = aliveAt(25);
+  for (let s = 1; s <= 80; s++) {
+    const x = structuredClone(base25);
+    setSeed(s);
+    x.p.prison = 5; x.p.money = 500_000_000 * x.p.index; x.p.actionsLeft = 3;
+    const ap = act(x, { t: "prison", op: "appeal" });
+    if (ap.g.p.prison < 5) cut++;
+    const es = act(x, { t: "prison", op: "escape" });
+    if (es.g.p.prison === 0 && es.g.p.flags.fugitive) free++;
+  }
+  assert.ok(cut > 3, `appeals sometimes work (${cut})`);
+  assert.ok(free > 0 && free < 40, `escapes sometimes work (${free})`);
+});

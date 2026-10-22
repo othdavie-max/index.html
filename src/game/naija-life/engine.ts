@@ -7,7 +7,8 @@ import { AUTOS3, EVENTS3 } from "./events3";
 import { EVENTS4 } from "./events4";
 import { EVENTS5, graduationData } from "./events5";
 import { EVENTS6 } from "./events6";
-import { MILITARY_EVENTS, boardDue } from "./military";
+import { PRISON_EVENTS, fugitiveYear, prisonBlock, prisonOp } from "./prison";
+import { MILITARY_EVENTS, SERVICE_JOBS, boardDue } from "./military";
 import { HEALTH_EVENTS, developCondition, yearlyHealth } from "./health";
 import { REL_EVENTS, yearlyRelationships } from "./relationships";
 import { BIZ_EVENTS, bizValue } from "./business";
@@ -37,12 +38,12 @@ import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from 
 import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings, yearlyUpkeep } from "./lifestyle";
 import { POLITICS_EVENTS, canContest, canJoinPolitics, canPlotCoup, contestPending, freshNation, joinPolitics, migratePolitics, plotCoup, politicalRelease, powerMoveBlock, runGov, runPowerMove, yearlyPolitics, GOV_ACTIONS } from "./politics";
 import type { EventDef, FamilyBg, Game, Gender, HoldingKind, House, HouseKind, HouseUse, Kid, LineageEntry, Pending, Player } from "./types";
-import { rng, chance, clamp, naira, pick, rand, randInt, setDeflator, uid, weightedPick } from "./util";
+import { T, rng, chance, clamp, naira, pick, rand, randInt, setDeflator, setLang, setSeed, tx, uid, weightedPick } from "./util";
 import { kidLook, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -82,6 +83,7 @@ export function migrate(g: Game): Game {
   const region = stateOf(p).region;
   if (!p.look) p.look = randomLook(p.gender, { region, religion: p.religion });
   if (typeof p.luck !== "number") p.luck = randInt(25, 75);
+  if (p.lang !== "en" && p.lang !== "pcm") p.lang = "pcm";
   if (p.spouse && !p.spouse.look) p.spouse.look = randomLook(p.gender === "male" ? "female" : "male", { region });
   for (const k of p.kids) if (!k.look) k.look = kidLook(p.gender === "male" ? p.look : p.spouse?.look, p.gender === "female" ? p.look : p.spouse?.look, k.gender);
   migrateWorld(p);
@@ -106,6 +108,9 @@ export interface NewLifeOptions {
   /** Optional overrides for testing or custom games. */
   familyConfig?: FamilyConfig;
   forceArchetype?: FamilyArchetype;
+  lang?: "en" | "pcm";
+  /** Makes the whole life reproducible for this session. */
+  seed?: number | null;
 }
 
 /** A short story of the family you were born into. */
@@ -154,6 +159,8 @@ function enrollByAge(p: Player) {
 }
 
 export function newGame(opts: NewLifeOptions): Game {
+  if (opts.seed !== undefined && opts.seed !== null) setSeed(opts.seed);
+  setLang(opts.lang);
   const stateId = opts.stateId ?? pickBirthState();
   const st = STATE_BY_ID[stateId];
   const tribe = opts.tribe ?? pick(TRIBES_BY_REGION[st.region]);
@@ -165,6 +172,7 @@ export function newGame(opts: NewLifeOptions): Game {
   const surname = rest.join(" ") || pick(surnamePool);
   const look = opts.look ?? randomLook(opts.gender, { region: st.region, religion });
   const p = {
+    lang: (opts.lang ?? "pcm") as "en" | "pcm",
     id: uid(),
     name: given,
     surname,
@@ -394,7 +402,7 @@ export function startHeir(g0: Game, kidIndex: number): Game {
     peakWorth: 0,
     log: [],
   };
-  setDeflator(p.index);
+  setDeflator(p.index); setLang(p.lang);
   old.vehicles = cars.slice(0, nCars);
   buildHeirWorld(old, kid, p, estateReal);
   enrollByAge(p);
@@ -492,7 +500,7 @@ export function ageUp(g0: Game): Game {
     lines.push(`Economic shock: prices jump ${Math.round(rate * 100)}% this year.`);
   }
   p.index *= 1 + rate;
-  setDeflator(p.index);
+  setDeflator(p.index); setLang(p.lang);
   for (const h of p.houses) h.value = Math.round(h.value * (1 + rate * 0.9));
   for (const k of p.kids) k.age += 1;
 
@@ -503,15 +511,17 @@ export function ageUp(g0: Game): Game {
     p.prison -= 1;
     bump(p, "health", -3);
     bump(p, "happiness", -4);
-    lines.push(p.prison > 0 ? "Another year for Kuje prison." : "You was released from prison.");
+    lines.push(p.prison > 0 ? T("Another year in Kuje prison.", "Another year for Kuje prison.") : T("You are released from prison.", "Dem don release you from prison."));
     if (p.prison === 0) politicalRelease(p, pending);
+    runMonths(p, { lines, pending, yearPay: 0, rate });
+    settle(p);
   } else {
     let yearPay = 0;
     const j = jobDef(p);
     if (p.age >= 16 && p.job && j) {
       yearPay = annualPay(p);
       p.job.years += 1;
-      if (!j.selfEmployed && j.id !== "soldier" && !SOCIAL_JOBS.includes(j.id) && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
+      if (!j.selfEmployed && !SERVICE_JOBS.includes(j.id) && !SOCIAL_JOBS.includes(j.id) && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
         const base = j.group === "creative" ? 0.05 + (p.stats.looks + p.stats.smarts) / 1800 + fameBonus(p) : 0.07 + p.stats.connections / 500 + p.stats.smarts / 700;
         if (chance(base + p.stats.connections / 800 + luckBonus(p) / 3)) {
           p.job.rank += 1;
@@ -534,6 +544,7 @@ export function ageUp(g0: Game): Game {
   yearlyHealth(p, lines, pending);
   yearlyRelationships(p, lines, pending);
   yearlyCrime(p, lines, pending);
+  fugitiveYear(p, lines);
   yearlyGrowth(p);
   yearlySocial(p, lines, (id, data) => pending.push({ kind: "event", id, data: { month: randInt(1, 12), ...(data ?? {}) } }));
   p.bets.slotsLeft = 8;
@@ -629,13 +640,13 @@ export interface PendingView {
 }
 
 export function describePending(g: Game): PendingView | null {
-  setDeflator(g.p.index);
+  setDeflator(g.p.index); setLang(g.p.lang);
   const pe = g.queue[0];
   if (!pe || pe.kind !== "event") return null;
   const def = EVENT_DEFS[pe.id];
   if (!def) return null;
   return {
-    title: def.title,
+    title: tx(def.title),
     text: def.text(g.p, pe.data),
     choices: def.choices(g.p, pe.data).map((c) => ({ label: c.label, sub: c.sub, disabled: c.disabled ? c.disabled : undefined })),
   };
@@ -643,7 +654,7 @@ export function describePending(g: Game): PendingView | null {
 
 export function choose(g0: Game, idx: number): { g: Game; text: string } {
   const g = structuredClone(g0);
-  setDeflator(g.p.index);
+  setDeflator(g.p.index); setLang(g.p.lang);
   const pe = g.queue[0];
   if (!pe || pe.kind !== "event") return { g: g0, text: "" };
   const def = EVENT_DEFS[pe.id];
@@ -653,7 +664,7 @@ export function choose(g0: Game, idx: number): { g: Game; text: string } {
   g.p.month = Number(pe.data.month ?? 12) || 12;
   const snap = snapshot(g.p);
   const res = choice.run(g.p);
-  reconcile(g.p, snap, `${def.title}: ${choice.label}`, "event", pe.id);
+  reconcile(g.p, snap, `${tx(def.title)}: ${choice.label}`, "event", pe.id);
   g.p.month = 12;
   const text = typeof res === "string" ? res : res.text;
   if (typeof res !== "string" && res.spawn) g.queue.unshift(...res.spawn);
@@ -666,7 +677,7 @@ export function choose(g0: Game, idx: number): { g: Game; text: string } {
 
 export function kidnapAction(g0: Game, a: KidnapAction): Game {
   const g = structuredClone(g0);
-  setDeflator(g.p.index);
+  setDeflator(g.p.index); setLang(g.p.lang);
   const pe = g.queue[0];
   if (!pe || pe.kind !== "kidnap") return g0;
   const snap = snapshot(g.p);
@@ -730,7 +741,8 @@ export type Action =
   | { t: "learn"; id: string }
   | { t: "growth"; id: string }
   | { t: "gym" }
-  | { t: "enlist" }
+  | { t: "prison"; op: "work" | "study" | "appeal" | "escape" }
+  | { t: "enlist"; branch?: "army" | "navy" | "airforce" }
   | { t: "mortgage"; kind: HouseKind; years: number }
   | { t: "trade"; id: string }
   | { t: "buy"; item: "phone" | "smartphone" | "laptop" };
@@ -784,6 +796,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "expand": return { reason: "Business expansion", category: "business" };
     case "travel": return { reason: "Travel costs", category: "transport" };
     case "build": return { reason: "Property purchase", category: "asset" };
+    case "prison": return { reason: "Prison", category: "other" };
     case "mortgage": return { reason: "Mortgage", category: "asset" };
     case "trade": return { reason: "Vocational training", category: "education" };
     case "sell": return { reason: "Sold property", category: "asset" };
@@ -820,7 +833,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
 export function act(g0: Game, a: Action): { g: Game; msg: string } {
   const g = structuredClone(g0);
   const p = g.p;
-  setDeflator(p.index);
+  setDeflator(p.index); setLang(p.lang);
   const snap = snapshot(p);
   const out = (msg: string) => {
     const meta = actionMeta(a);
@@ -831,6 +844,8 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     return { g, msg };
   };
   if (!p.alive || g.queue.length > 0) return { g: g0, msg: "" };
+  const locked = prisonBlock(p, a);
+  if (locked) return { g: g0, msg: locked };
   const st = stateOf(p);
   switch (a.t) {
     case "apply": {
@@ -905,6 +920,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       bump(p, "happiness", 6);
       return out(`You built a ${HOUSE_KINDS[a.kind].label.toLowerCase()} in ${st.name} for ${naira(cost)}.`);
     }
+    case "prison": return out(prisonOp(p, a.op));
     case "mortgage": { if (p.prison > 0) return { g: g0, msg: "" }; const m = takeMortgage(p, a.kind, a.years); return out(m); }
     case "trade": return out(enrollTrade(p, a.id));
     case "sell": {
@@ -1141,7 +1157,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "learn": return out(learnSkill(p, a.id));
         case "growth": return out(doGrowth(p, a.id));
         case "gym": return out(toggleGym(p));
-        case "enlist": { const res = enlist(p); g.queue.unshift(...res.spawn); return out(res.text); }
+        case "enlist": { const res = enlist(p, a.branch); g.queue.unshift(...res.spawn); return out(res.text); }
     case "gov": {
       const def = GOV_ACTIONS.find((x) => x.id === a.id);
       const office = p.politics?.office ?? -1;

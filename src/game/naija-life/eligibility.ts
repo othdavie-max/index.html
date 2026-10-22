@@ -91,7 +91,11 @@ const has = (p: Player, n: Need): boolean => {
 };
 
 /** True when the event may be offered to this character right now. */
+/** While locked up, only events that can happen inside a prison fire. */
+const PRISON_EVENTS_OK = new Set(["jail_inside", "prison_bribe", "prison_visit", "medical_care", "emergency_response", "follow_up", "court_trial", "bail_decision", "loan_due", "funeral"]);
+
 export function eligible(p: Player, id: string): boolean {
+  if (p.prison > 0) return PRISON_EVENTS_OK.has(id);
   const gate = GATES[id] ?? { minAge: 18 };
   if (gate.minAge !== undefined && p.age < gate.minAge) return false;
   if (gate.maxAge !== undefined && p.age > gate.maxAge) return false;
