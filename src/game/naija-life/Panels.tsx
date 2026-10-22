@@ -599,12 +599,16 @@ export function GarageCard({ p, run }: { p: Player; run: Run }) {
   const openM = openVeh ? modelOf(openVeh.modelId) : undefined;
   const lic = licenseBlock(p);
   return (
-    <Card>
-      <H sub={T("Cars, boats and aircraft cost money to run every month. Rent them out to earn.", "Cars, boats and aircraft dey chop money every month. Rent them out make dem bring money.")}>{T("Garage and fleet", "Garage and fleet")}</H>
-      <div className="mb-3 flex items-center justify-between rounded-xl bg-slate-50 p-3">
-        <div className="text-[12px]"><div className="font-bold text-[#0b2a6b]">{T("Driver's licence", "Driver's licence")}</div><div className="text-slate-500">{p.possessions.license ? T("You can drive.", "You fit drive.") : T("Needed to buy and drive a car. Failing costs another fee.", "You need am to buy and drive car. If you fail, you go pay again.")}</div></div>
-        {p.possessions.license ? <Badge tone="green">{T("Licensed", "Licensed")}</Badge> : (
-          <div className="flex shrink-0 flex-col gap-1">
+    <>
+      <p className="mb-2 px-1 text-[12px] text-slate-500">{T("Cars, boats and aircraft cost money to run every month. Rent them out to earn.", "Cars, boats and aircraft dey chop money every month. Rent them out make dem bring money.")}</p>
+      <div className="mb-3 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+        <div className="flex items-center gap-3 px-3.5 py-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-[24px]">🪪</span>
+          <span className="min-w-0 flex-1"><span className="block text-[15px] font-extrabold leading-tight text-[#0b2a6b]">{T("Driver's licence", "Driver's licence")}</span><span className="block text-[12px] text-slate-500">{p.possessions.license ? T("You can drive.", "You fit drive.") : T("Needed to buy and drive a car.", "You need am to buy and drive car.")}</span></span>
+          {p.possessions.license && <Badge tone="green">{T("Licensed", "Licensed")}</Badge>}
+        </div>
+        {!p.possessions.license && (
+          <div className="flex gap-2 border-t border-slate-100 px-3.5 py-2.5">
             <Btn small tone="gold" disabled={Boolean(lic)} title={lic ?? ""} onClick={() => run({ t: "license" })}>{T("Take the test", "Do the test")} ({naira(licenseCost(p))})</Btn>
             <Btn small tone="ghost" disabled={Boolean(lic)} onClick={() => run({ t: "license", settle: true })}>{T("Settle the examiner", "Settle examiner")}</Btn>
           </div>
@@ -677,7 +681,7 @@ export function GarageCard({ p, run }: { p: Player; run: Run }) {
           </div>
         </Sheet>
       )}
-    </Card>
+    </>
   );
 }
 
@@ -1143,115 +1147,135 @@ const REGIONS: { id: string; label: () => string; match: (state: string) => bool
 const growthWord = (g: number) => (g >= 0.04 ? T("fast", "fast") : g >= 0.025 ? T("good", "good") : T("steady", "steady"));
 const riskWord = (r: number) => (r >= 0.06 ? T("high risk", "high risk") : r >= 0.03 ? T("some risk", "small risk") : T("low risk", "low risk"));
 
+const KIND_EMOJI: Record<string, string> = { land: "🌿", shack: "🛖", bungalow: "🏡", flats: "🏢", duplex: "🏠", apartment: "🏬", mansion: "🏰", plaza: "🏙️" };
+const rowCls = "flex w-full items-center gap-3 bg-white px-3.5 py-3 text-left transition active:bg-slate-50";
+
 export function PropertyMarketCard({ p, run }: { p: Player; run: Run }) {
   const [years, setYears] = useState(15);
   const [region, setRegion] = useState("all");
   const [sortBy, setSortBy] = useState<"price" | "yield">("price");
+  const [openId, setOpenId] = useState<string | null>(null);
   if (p.age < 18) return null;
   const f = REGIONS.find((r) => r.id === region) ?? REGIONS[0];
-  const list = (p.listings ?? []).filter((l) => f.match(l.stateId)).sort((a, b) => (sortBy === "price" ? a.price - b.price : (locationOf(b.loc)?.yield ?? 0) - (locationOf(a.loc)?.yield ?? 0)));
+  const all = p.listings ?? [];
+  const list = all.filter((l) => f.match(l.stateId)).sort((a, b) => (sortBy === "price" ? a.price - b.price : (locationOf(b.loc)?.yield ?? 0) - (locationOf(a.loc)?.yield ?? 0)));
+  const sel = all.find((l) => l.id === openId) ?? null;
   return (
-    <Card>
-      <H sub={T("Houses and plots for sale across Nigeria. Prices follow the neighbourhood: Banana Island costs billions, Maiduguri costs a few million but is riskier.", "Houses and plots wey dey for sale for Naija. Price dey follow area: Banana Island cost billions, Maiduguri cost small but e risky.")}>{T("Property market", "Property market")}</H>
-      <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1">
-        {REGIONS.map((r) => <button key={r.id} type="button" onClick={() => setRegion(r.id)} className={cx("shrink-0 rounded-full px-3 py-1 text-[11.5px] font-bold", region === r.id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600")}>{r.label()}</button>)}
+    <>
+      <p className="mb-2 px-1 text-[12px] text-slate-500">{T("Houses and plots for sale across Nigeria. Prices follow the neighbourhood: Banana Island costs billions, Maiduguri costs a few million but is riskier.", "Houses and plots dey for sale across Nigeria. Price dey follow area: Banana Island na billions, Maiduguri na few million but e risky pass.")}</p>
+      <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {REGIONS.map((r) => <button key={r.id} type="button" onClick={() => setRegion(r.id)} className={cx("shrink-0 rounded-full px-3 py-1 text-[11.5px] font-bold", region === r.id ? "bg-blue-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200")}>{r.label()}</button>)}
       </div>
-      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-[11.5px] text-slate-500">
+      <div className="mb-2 flex items-center gap-1.5 px-1 text-[11.5px] text-slate-500">
         {T("Sort", "Sort")}:
         <Btn small tone={sortBy === "price" ? "gold" : "ghost"} onClick={() => setSortBy("price")}>{T("Price", "Price")}</Btn>
         <Btn small tone={sortBy === "yield" ? "gold" : "ghost"} onClick={() => setSortBy("yield")}>{T("Rent yield", "Rent yield")}</Btn>
-        <span className="ml-1">{T("Mortgage", "Mortgage")}:</span>
-        {[10, 15, 20].map((y) => <Btn key={y} small tone={years === y ? "gold" : "ghost"} onClick={() => setYears(y)}>{y}y</Btn>)}
       </div>
-      <div className="space-y-2">
-        {list.length === 0 && <p className="text-sm text-slate-500">{T("Nothing listed in this area right now.", "Nothing dey for this area now.")}</p>}
+      <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+        {list.length === 0 && <p className="p-3 text-sm text-slate-500">{T("Nothing listed in this area right now.", "Nothing dey for this area now.")}</p>}
         {list.map((l) => {
           const loc = locationOf(l.loc);
-          const mort = l.kind === "land" ? null : mortgageQuote(p, l.kind, years, { price: l.price });
-          const cos = l.kind === "land" ? null : mortgageQuote(p, l.kind, years, { price: l.price, cosign: true });
-          const plan = planQuote(p, l);
           return (
-            <div key={l.id} className="rounded-xl bg-slate-50 p-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="text-[13.5px] font-extrabold text-[#0b2a6b]">{HOUSE_KINDS[l.kind].label}</div>
-                  <div className="text-[12px] font-semibold text-slate-600">{loc?.name ?? STATE_BY_ID[l.stateId].name}</div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <div className="text-[14px] font-extrabold text-blue-600">{naira(l.price)}</div>
-                  {loc && <div className="text-[10.5px] text-slate-500">{TIER_LABEL[loc.tier]()}</div>}
-                </div>
-              </div>
-              {loc && <p className="mt-1 text-[11.5px] leading-snug text-slate-500">{loc.blurb()}</p>}
-              <div className="mt-1.5 flex flex-wrap gap-1.5 text-[10.5px]">
-                <Badge tone={l.condition === "good" ? "green" : l.condition === "fair" ? "gray" : "red"}>{l.condition === "good" ? T("Good condition", "Good condition") : l.condition === "fair" ? T("Fair", "Fair") : T("Run-down", "Run-down")}</Badge>
-                {loc && l.kind !== "land" && <Badge tone="gold">{T("Rent", "Rent")} ~{naira(l.value * loc.yield)}/{T("yr", "yr")} ({(loc.yield * 100).toFixed(1)}%)</Badge>}
-                {loc && <Badge>{T("Growth", "Growth")}: {growthWord(loc.growth)}</Badge>}
-                {loc && <Badge tone={loc.risk >= 0.06 ? "red" : "gray"}>{riskWord(loc.risk)}</Badge>}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                <Btn small tone="gold" disabled={Boolean(listingBlock(p, l, "cash"))} onClick={() => run({ t: "property", id: l.id, mode: "cash" })}>{T("Pay cash", "Pay cash")}</Btn>
-                {mort && <Btn small tone="ghost" disabled={Boolean(mort.block)} title={mort.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "mortgage", years })}>{T("Mortgage", "Mortgage")} · {naira(mort.monthly)}/{T("mo", "mo")}</Btn>}
-                {cos && <Btn small tone="ghost" disabled={Boolean(cos.block)} title={cos.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "cosign", years })}>{T("Parent co-signs", "Parent co-sign")}</Btn>}
-                <Btn small tone="ghost" disabled={Boolean(plan.block)} title={plan.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "plan" })}>{T("Payment plan", "Payment plan")} · {naira(plan.monthly)}/{T("mo", "mo")}</Btn>
-              </div>
-              {(mort?.block || cos?.block) && <p className="mt-1 text-[10px] text-slate-400">{mort?.block}{mort?.block && cos?.block ? " · " : ""}{cos?.block}</p>}
-            </div>
+            <button key={l.id} type="button" onClick={() => setOpenId(l.id)} className={rowCls}>
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[24px]">{KIND_EMOJI[l.kind] ?? "🏠"}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14.5px] font-extrabold leading-tight text-[#0b2a6b]">{HOUSE_KINDS[l.kind].label} <span className="font-medium text-slate-500">({loc?.name ?? STATE_BY_ID[l.stateId].name})</span></span>
+                <span className="block text-[12px] font-semibold text-blue-700">{naira(l.price)}{loc && l.kind !== "land" ? <span className="font-normal text-slate-500"> · {T("rent", "rent")} {(loc.yield * 100).toFixed(1)}%</span> : null}</span>
+              </span>
+              <span className="shrink-0 px-1 text-xl font-black text-blue-700">⋯</span>
+            </button>
           );
         })}
       </div>
-    </Card>
+      {sel && (() => {
+        const l = sel;
+        const loc = locationOf(l.loc);
+        const mort = l.kind === "land" ? null : mortgageQuote(p, l.kind, years, { price: l.price });
+        const cos = l.kind === "land" ? null : mortgageQuote(p, l.kind, years, { price: l.price, cosign: true });
+        const plan = planQuote(p, l);
+        const close = () => setOpenId(null);
+        return (
+          <Sheet title={`${HOUSE_KINDS[l.kind].label} · ${loc?.name ?? STATE_BY_ID[l.stateId].name}`} onClose={close}>
+            <div className="text-center text-2xl font-extrabold text-blue-700">{naira(l.price)}</div>
+            {loc && <p className="mt-1 text-center text-xs text-slate-500">{TIER_LABEL[loc.tier]()} · {loc.blurb()}</p>}
+            <div className="mt-2 flex flex-wrap justify-center gap-1.5 text-[10.5px]">
+              <Badge tone={l.condition === "good" ? "green" : l.condition === "fair" ? "gray" : "red"}>{l.condition === "good" ? T("Good condition", "Good condition") : l.condition === "fair" ? T("Fair condition", "Fair condition") : T("Needs work", "Need work")}</Badge>
+              {loc && l.kind !== "land" && <Badge tone="gold">{T("Rent", "Rent")} ~{naira(l.value * loc.yield)}/{T("yr", "yr")} ({(loc.yield * 100).toFixed(1)}%)</Badge>}
+              {loc && <Badge>{T("Growth", "Growth")}: {growthWord(loc.growth)}</Badge>}
+              {loc && <Badge tone={loc.risk >= 0.06 ? "red" : "gray"}>{riskWord(loc.risk)}</Badge>}
+            </div>
+            {mort && <div className="mt-3 flex items-center gap-1.5 text-[11.5px] text-slate-500">{T("Mortgage term", "Mortgage term")}: {[10, 15, 20].map((y) => <Btn key={y} small tone={years === y ? "gold" : "ghost"} onClick={() => setYears(y)}>{y}y</Btn>)}</div>}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Btn tone="gold" disabled={Boolean(listingBlock(p, l, "cash"))} onClick={() => { run({ t: "property", id: l.id, mode: "cash" }); close(); }}>{T("Pay cash", "Pay cash")}</Btn>
+              {mort && <Btn tone="ghost" disabled={Boolean(mort.block)} onClick={() => { run({ t: "property", id: l.id, mode: "mortgage", years }); close(); }}>{T("Mortgage", "Mortgage")} · {naira(mort.monthly)}/{T("mo", "mo")}</Btn>}
+              {cos && <Btn tone="ghost" disabled={Boolean(cos.block)} onClick={() => { run({ t: "property", id: l.id, mode: "cosign", years }); close(); }}>{T("Parent co-signs", "Parent go co-sign")}</Btn>}
+              <Btn tone="ghost" disabled={Boolean(plan.block)} onClick={() => { run({ t: "property", id: l.id, mode: "plan" }); close(); }}>{T("Payment plan", "Payment plan")}</Btn>
+            </div>
+            {(mort?.block || cos?.block || plan.block) && <p className="mt-2 text-[11px] text-slate-500">{[mort?.block, cos?.block, plan.block].filter(Boolean).join(" · ")}</p>}
+          </Sheet>
+        );
+      })()}
+    </>
   );
 }
 
 /** Everything you own in property: where it is, what it earns, and what you can do with it. */
 export function PortfolioCard({ p, run }: { p: Player; run: Run }) {
-  if (p.houses.length === 0) return null;
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (p.houses.length === 0) return <p className="mb-3 rounded-2xl bg-white p-3 text-sm text-slate-500 ring-1 ring-slate-100">{T("You own no property yet. Browse the market below.", "You no get property yet. Check the market below.")}</p>;
   const total = p.houses.reduce((s, h) => s + h.value, 0);
   const rent = p.houses.filter((h) => h.use === "rent" && !h.project).reduce((s, h) => s + h.value * (locationOf(h.loc)?.yield ?? 0.05), 0);
+  const h = p.houses.find((x) => x.id === openId) ?? null;
+  const loc = h ? locationOf(h.loc) : undefined;
+  const opts = h ? developOptions(h) : [];
   return (
-    <Card>
-      <H sub={T(`Worth ${naira(total)} · rent about ${naira(rent)} a year`, `Worth ${naira(total)} · rent like ${naira(rent)} per year`)}>{T("Your properties", "Your properties")}</H>
-      <div className="space-y-2">
-        {p.houses.map((h) => {
-          const loc = locationOf(h.loc);
-          const opts = developOptions(h);
+    <section className="mb-4">
+      <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("My properties", "My properties")} · {naira(total)} · {T("rent", "rent")} ~{naira(rent)}/{T("yr", "yr")}</h2>
+      <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+        {p.houses.map((x) => {
+          const l = locationOf(x.loc);
           return (
-            <div key={h.id} className="rounded-xl bg-slate-50 p-3">
-              <div className="flex justify-between text-sm">
-                <span className="min-w-0 truncate font-bold text-[#0b2a6b]">{HOUSE_KINDS[h.kind].label} · {loc?.name ?? STATE_BY_ID[h.state].name}</span>
-                <span className="shrink-0 text-blue-600">{naira(h.value)}</span>
-              </div>
-              <div className="mt-0.5 text-[11px] text-slate-500">
-                {h.project ? T(`Being built: ${HOUSE_KINDS[h.project.kind].label.toLowerCase()}, ready at age ${h.project.readyAge}`, `Dem dey build ${HOUSE_KINDS[h.project.kind].label.toLowerCase()}, e go ready for age ${h.project.readyAge}`) : h.use === "owner" ? T("You live here", "You dey live here") : h.use === "family" ? T("Family lives here", "Family dey live here") : h.use === "rent" ? T("Rented out", "Dem rent am") : T("Empty", "Empty")}
-                {loc && !h.project && h.kind !== "land" ? ` · ${T("yield", "yield")} ${(loc.yield * 100).toFixed(1)}%` : ""}
-                {h.loanId ? ` · ${T("mortgaged", "mortgage dey")}` : ""}
-              </div>
-              {!h.project && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {h.kind !== "land" && (["owner", "family", "rent", "empty"] as const).map((u) => (
-                    <Btn key={u} small tone={h.use === u ? "gold" : "ghost"} onClick={() => run({ t: "use", id: h.id, use: u })}>{u === "owner" ? T("Live", "Live") : u === "family" ? T("Family", "Family") : u === "rent" ? T("Rent out", "Rent out") : T("Empty", "Empty")}</Btn>
-                  ))}
-                  <Btn small tone="red" onClick={() => run({ t: "sell", id: h.id })}>{T("Sell", "Sell")}</Btn>
-                </div>
-              )}
-              {opts.length > 0 && (
-                <div className="mt-2 border-t border-slate-200 pt-2">
-                  <div className="mb-1 text-[11px] font-semibold text-slate-500">{T("Develop this plot (build and profit)", "Develop this plot (build make profit)")}</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {opts.map((k) => {
-                      const c = developCost(p, h, k);
-                      const mid = loc ? marketMid(loc, k) : null;
-                      return <Btn key={k} small tone="ghost" disabled={Boolean(developBlock(p, h, k))} title={mid ? `${T("Worth about", "Worth like")} ${naira((mid ?? 0) * Math.pow(p.index, 0.95))}` : ""} onClick={() => run({ t: "develop", id: h.id, kind: k })}>{HOUSE_KINDS[k].label} · {naira(c)}</Btn>;
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+            <button key={x.id} type="button" onClick={() => setOpenId(x.id)} className={rowCls}>
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-[24px]">{KIND_EMOJI[x.kind] ?? "🏠"}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14.5px] font-extrabold leading-tight text-[#0b2a6b]">{HOUSE_KINDS[x.kind].label} <span className="font-medium text-slate-500">({l?.name ?? STATE_BY_ID[x.state].name})</span></span>
+                <span className="block text-[12px] text-slate-500"><span className="font-semibold text-blue-700">{naira(x.value)}</span> · {x.project ? T("being built", "dem dey build") : x.use}{x.loanId ? ` · ${T("mortgage", "mortgage")}` : ""}</span>
+              </span>
+              <span className="shrink-0 px-1 text-xl font-black text-blue-700">⋯</span>
+            </button>
           );
         })}
       </div>
-    </Card>
+      {h && (
+        <Sheet title={`${HOUSE_KINDS[h.kind].label} · ${loc?.name ?? STATE_BY_ID[h.state].name}`} onClose={() => setOpenId(null)}>
+          <div className="text-center text-2xl font-extrabold text-blue-700">{naira(h.value)}</div>
+          <p className="mt-1 text-center text-xs text-slate-500">
+            {h.project ? T(`Being built: ${HOUSE_KINDS[h.project.kind].label.toLowerCase()}, ready at age ${h.project.readyAge}`, `Dem dey build ${HOUSE_KINDS[h.project.kind].label.toLowerCase()}, e go ready for age ${h.project.readyAge}`) : T(`In use: ${h.use}`, `How you dey use am: ${h.use}`)}
+            {loc && !h.project && h.kind !== "land" ? ` · ${T("yield", "yield")} ${(loc.yield * 100).toFixed(1)}%` : ""}
+          </p>
+          {!h.project && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {h.kind !== "land" && (["owner", "family", "rent", "empty"] as const).map((u) => (
+                <Btn key={u} small tone={h.use === u ? "gold" : "ghost"} onClick={() => run({ t: "use", id: h.id, use: u })}>{u === "owner" ? T("Live", "Live") : u === "family" ? T("Family", "Family") : u === "rent" ? T("Rent out", "Rent out") : T("Empty", "Empty")}</Btn>
+              ))}
+              <Btn small tone="red" onClick={() => { run({ t: "sell", id: h.id }); setOpenId(null); }}>{T("Sell", "Sell")}</Btn>
+            </div>
+          )}
+          {opts.length > 0 && (
+            <div className="mt-3 border-t border-slate-100 pt-3">
+              <div className="mb-1 text-[11px] font-semibold text-slate-500">{T("Develop this plot (build and profit)", "Develop this plot (build make profit)")}</div>
+              <div className="flex flex-wrap gap-1.5">
+                {opts.map((k) => {
+                  const c = developCost(p, h, k);
+                  const mid = loc ? marketMid(loc, k) : null;
+                  return <Btn key={k} small tone="ghost" disabled={Boolean(developBlock(p, h, k))} title={mid ? `${T("Worth about", "Worth like")} ${naira((mid ?? 0) * Math.pow(p.index, 0.95))}` : ""} onClick={() => run({ t: "develop", id: h.id, kind: k })}>{HOUSE_KINDS[k].label} · {naira(c)}</Btn>;
+                })}
+              </div>
+            </div>
+          )}
+        </Sheet>
+      )}
+    </section>
   );
 }
 
