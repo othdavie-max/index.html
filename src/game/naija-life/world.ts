@@ -32,7 +32,7 @@ export function initWorld(p: Player, st: StateInfo, cfg: FamilyConfig = DEFAULT_
   p.rel = { profile: null, deck: [], partners: [], swipesLeft: 12, chatsLeft: 10 };
   p.social = null;
   p.businesses = [];
-  p.market = { ngx: 100, fund: 100, crypto: 100, tbill: 0.15, savings: 0.08 };
+  p.market = { ngx: 100, fund: 100, crypto: 100, penny: 100, cfund: 100, reit: 100, bond: 100, regime: "normal", regimeLeft: 12, feed: [], pending: [], tbill: 0.15, savings: 0.08 };
   p.bets = { staked: 0, won: 0, count: 0, slotsLeft: 8, compulsion: 0 };
   p.crime = { record: [], heat: 0, skill: 10, violence: 0, cases: [] };
   p.will = null;
@@ -60,7 +60,7 @@ export function migrateWorld(p: Player) {
   if (!p.rel) p.rel = { profile: null, deck: [], partners: [], swipesLeft: 12, chatsLeft: 10 };
   if (p.social === undefined) p.social = null;
   if (!p.businesses) p.businesses = [];
-  if (!p.market) p.market = { ngx: 100, fund: 100, crypto: 100, tbill: 0.15, savings: 0.08 };
+  if (!p.market) p.market = { ngx: 100, fund: 100, crypto: 100, penny: 100, cfund: 100, reit: 100, bond: 100, regime: "normal", regimeLeft: 12, feed: [], pending: [], tbill: 0.15, savings: 0.08 };
   if (!p.bets) p.bets = { staked: 0, won: 0, count: 0, slotsLeft: 8, compulsion: 0 };
   if (!p.crime) p.crime = { record: [], heat: 0, skill: 10, violence: 0, cases: [] };
   if (p.will === undefined) p.will = null;

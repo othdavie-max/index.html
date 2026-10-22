@@ -326,6 +326,8 @@ export const HOUSE_KINDS: Record<HouseKind, { label: string; build: number; rent
   bungalow: { get label() { return T("Bungalow", "Bungalow"); }, build: 10_000_000, rent: 1_100_000 },
   duplex: { get label() { return T("Duplex", "Duplex"); }, build: 35_000_000, rent: 3_500_000 },
   flats: { get label() { return T("Block of flats", "Block of flats"); }, build: 90_000_000, rent: 9_000_000 },
+  mansion: { get label() { return T("Mansion", "Mansion"); }, build: 250_000_000, rent: 18_000_000 },
+  plaza: { get label() { return T("Commercial plaza", "Commercial plaza"); }, build: 400_000_000, rent: 40_000_000 },
 };
 
 // ---------------------------------------------------------------------------
@@ -408,6 +410,10 @@ export const INVESTMENTS: InvestOption[] = [
   { kind: "school", get label() { return T("Private school chain", "Private school chain"); }, get desc() { return T("Steady fees. Parents always find a way.", "Steady school fees. Parents must find way."); }, min: 20_000_000 },
   { kind: "oil", get label() { return T("Marginal oil field stake", "Marginal oil field stake"); }, get desc() { return T("Huge returns, huge risk, huge politics.", "Big returns, big risk, big politics."); }, min: 300_000_000 },
   { kind: "bank", get label() { return T("Stake in a bank", "Stake for a bank"); }, get desc() { return T("Slow, very stable returns and plenty of prestige.", "Slow, very stable returns and plenty prestige."); }, min: 5_000_000_000 },
+  { kind: "bond", get label() { return T("FGN bonds", "FGN bonds"); }, get desc() { return T("Government bonds paying a coupon. Prices fall when interest rates rise and rise when they fall.", "Government bonds wey dey pay coupon. Price dey fall when interest rate rise and rise when rate fall."); }, min: 1_000_000 },
+  { kind: "reit", get label() { return T("Real estate fund (REIT)", "Real estate fund (REIT)"); }, get desc() { return T("Own a slice of property without buying a house. Pays steady rent income.", "Own small part of property without buying house. E dey pay steady rent money."); }, min: 500_000 },
+  { kind: "cryptofund", get label() { return T("Crypto fund", "Crypto fund"); }, get desc() { return T("A managed crypto basket. Calmer than coins, but still moves with the crypto market, and charges a fee.", "Crypto basket wey person dey manage. E calm pass coins, but e still dey follow crypto market and e get fee."); }, min: 200_000 },
+  { kind: "penny", get label() { return T("Penny stocks", "Penny stocks"); }, get desc() { return T("Tiny, wild stocks. A few go 10x, most fade, and some are pumped and dumped. Expect to lose.", "Small small wild stocks. Few go 10x, most go fade, and some dem go pump then dump. Expect to lose."); }, min: 50_000 },
 ];
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 "use client";
 
+import { ADVISOR_TIERS, advisorBlock, advisorFee } from "./markets";
 import { useState } from "react";
 import { Avatar } from "./Avatar";
 import type { Action } from "./engine";
@@ -15,7 +16,8 @@ import { activeOwed, activeOwedToMe, lenderOffers, loanBlock, previewLoan, recei
 import { summaries } from "./ledger";
 import { monthlySummary, upcomingPayments } from "./notices";
 import { POSTGRAD, postgradBlock } from "./education";
-import { listingBlock, planQuote } from "./property";
+import { developBlock, developCost, developOptions, listingBlock, planQuote } from "./property";
+import { TIER_LABEL, locationOf, marketMid } from "./locations";
 import { STAGE_LABEL, activePartners, adoptBlock, dateCost, datingAllowed, divorceBlock, fertilityBlock, intimacyBlock, relHint } from "./relationships";
 import { CONTENT, PLATFORMS, postBlock, socialBlock, totalFollowers } from "./social";
 import { VEHICLE_MODELS, licenseBlock, licenseCost, modelOf, needsLicense, priceOf, repairCost, isInsured } from "./vehicles";
@@ -969,31 +971,122 @@ export function PrisonCard({ p, run, full }: { p: Player; run: Run; full?: boole
 // ---------------------------------------------------------------------------
 // Property market, postgraduate study, headlines
 // ---------------------------------------------------------------------------
+const REGIONS: { id: string; label: () => string; match: (state: string) => boolean }[] = [
+  { id: "all", label: () => T("All", "All"), match: () => true },
+  { id: "abuja", label: () => "Abuja", match: (s) => s === "abuja" },
+  { id: "lagos", label: () => "Lagos", match: (s) => s === "lagos" },
+  { id: "rivers", label: () => "Port Harcourt", match: (s) => s === "rivers" },
+  { id: "north", label: () => T("North (cheap)", "North (cheap)"), match: (s) => ["borno", "niger", "kano", "kaduna", "plateau", "kwara"].includes(s) },
+  { id: "other", label: () => T("Other cities", "Other cities"), match: (s) => !["abuja", "lagos", "rivers", "borno", "niger", "kano", "kaduna", "plateau", "kwara"].includes(s) },
+];
+
+const growthWord = (g: number) => (g >= 0.04 ? T("fast", "fast") : g >= 0.025 ? T("good", "good") : T("steady", "steady"));
+const riskWord = (r: number) => (r >= 0.06 ? T("high risk", "high risk") : r >= 0.03 ? T("some risk", "small risk") : T("low risk", "low risk"));
+
 export function PropertyMarketCard({ p, run }: { p: Player; run: Run }) {
   const [years, setYears] = useState(15);
+  const [region, setRegion] = useState("all");
+  const [sortBy, setSortBy] = useState<"price" | "yield">("price");
   if (p.age < 18) return null;
-  const list = p.listings ?? [];
+  const f = REGIONS.find((r) => r.id === region) ?? REGIONS[0];
+  const list = (p.listings ?? []).filter((l) => f.match(l.stateId)).sort((a, b) => (sortBy === "price" ? a.price - b.price : (locationOf(b.loc)?.yield ?? 0) - (locationOf(a.loc)?.yield ?? 0)));
   return (
     <Card>
-      <H sub={T("Existing houses for sale this year. Prices change with condition. Banks need good credit; a parent can co-sign.", "Houses wey dey for sale this year. Price depend on condition. Bank need good credit; parent fit co-sign.")}>{T("Property market", "Property market")}</H>
-      <div className="mb-2 flex items-center gap-1.5 text-xs">{T("Mortgage term", "Mortgage term")}: {[10, 15, 20].map((y) => <Btn key={y} small tone={years === y ? "gold" : "ghost"} onClick={() => setYears(y)}>{y}</Btn>)}</div>
+      <H sub={T("Houses and plots for sale across Nigeria. Prices follow the neighbourhood: Banana Island costs billions, Maiduguri costs a few million but is riskier.", "Houses and plots wey dey for sale for Naija. Price dey follow area: Banana Island cost billions, Maiduguri cost small but e risky.")}>{T("Property market", "Property market")}</H>
+      <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1">
+        {REGIONS.map((r) => <button key={r.id} type="button" onClick={() => setRegion(r.id)} className={cx("shrink-0 rounded-full px-3 py-1 text-[11.5px] font-bold", region === r.id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600")}>{r.label()}</button>)}
+      </div>
+      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-[11.5px] text-slate-500">
+        {T("Sort", "Sort")}:
+        <Btn small tone={sortBy === "price" ? "gold" : "ghost"} onClick={() => setSortBy("price")}>{T("Price", "Price")}</Btn>
+        <Btn small tone={sortBy === "yield" ? "gold" : "ghost"} onClick={() => setSortBy("yield")}>{T("Rent yield", "Rent yield")}</Btn>
+        <span className="ml-1">{T("Mortgage", "Mortgage")}:</span>
+        {[10, 15, 20].map((y) => <Btn key={y} small tone={years === y ? "gold" : "ghost"} onClick={() => setYears(y)}>{y}y</Btn>)}
+      </div>
       <div className="space-y-2">
-        {list.length === 0 && <p className="text-sm text-slate-500">{T("No listings right now.", "No house dey for sale now.")}</p>}
+        {list.length === 0 && <p className="text-sm text-slate-500">{T("Nothing listed in this area right now.", "Nothing dey for this area now.")}</p>}
         {list.map((l) => {
+          const loc = locationOf(l.loc);
           const mort = l.kind === "land" ? null : mortgageQuote(p, l.kind, years, { price: l.price });
           const cos = l.kind === "land" ? null : mortgageQuote(p, l.kind, years, { price: l.price, cosign: true });
           const plan = planQuote(p, l);
           return (
             <div key={l.id} className="rounded-xl bg-slate-50 p-3">
-              <div className="flex justify-between text-sm"><span className="font-semibold">{HOUSE_KINDS[l.kind].label} · {STATE_BY_ID[l.stateId].name}</span><span className="text-blue-600">{naira(l.price)}</span></div>
-              <div className="text-[11px] text-slate-500">{l.condition === "good" ? T("Good condition", "Good condition") : l.condition === "fair" ? T("Fair, a little worn", "Fair, small wear") : T("Run-down, cheap but worth less", "Run-down, cheap but e worth less")} · {T("worth", "worth")} {naira(l.value)}</div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[13.5px] font-extrabold text-[#0b2a6b]">{HOUSE_KINDS[l.kind].label}</div>
+                  <div className="text-[12px] font-semibold text-slate-600">{loc?.name ?? STATE_BY_ID[l.stateId].name}</div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="text-[14px] font-extrabold text-blue-600">{naira(l.price)}</div>
+                  {loc && <div className="text-[10.5px] text-slate-500">{TIER_LABEL[loc.tier]()}</div>}
+                </div>
+              </div>
+              {loc && <p className="mt-1 text-[11.5px] leading-snug text-slate-500">{loc.blurb()}</p>}
+              <div className="mt-1.5 flex flex-wrap gap-1.5 text-[10.5px]">
+                <Badge tone={l.condition === "good" ? "green" : l.condition === "fair" ? "gray" : "red"}>{l.condition === "good" ? T("Good condition", "Good condition") : l.condition === "fair" ? T("Fair", "Fair") : T("Run-down", "Run-down")}</Badge>
+                {loc && l.kind !== "land" && <Badge tone="gold">{T("Rent", "Rent")} ~{naira(l.value * loc.yield)}/{T("yr", "yr")} ({(loc.yield * 100).toFixed(1)}%)</Badge>}
+                {loc && <Badge>{T("Growth", "Growth")}: {growthWord(loc.growth)}</Badge>}
+                {loc && <Badge tone={loc.risk >= 0.06 ? "red" : "gray"}>{riskWord(loc.risk)}</Badge>}
+              </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                <Btn small tone="ghost" disabled={Boolean(listingBlock(p, l, "cash"))} onClick={() => run({ t: "property", id: l.id, mode: "cash" })}>{T("Pay cash", "Pay cash")}</Btn>
+                <Btn small tone="gold" disabled={Boolean(listingBlock(p, l, "cash"))} onClick={() => run({ t: "property", id: l.id, mode: "cash" })}>{T("Pay cash", "Pay cash")}</Btn>
                 {mort && <Btn small tone="ghost" disabled={Boolean(mort.block)} title={mort.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "mortgage", years })}>{T("Mortgage", "Mortgage")} · {naira(mort.monthly)}/{T("mo", "mo")}</Btn>}
-                {cos && <Btn small tone="ghost" disabled={Boolean(cos.block)} title={cos.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "cosign", years })}>{T("Parent co-signs", "Parent co-sign")} · {naira(cos.monthly)}/{T("mo", "mo")}</Btn>}
-                <Btn small tone="ghost" disabled={Boolean(plan.block)} title={plan.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "plan" })}>{T("Rent-to-own plan", "Rent-to-own plan")} · {naira(plan.monthly)}/{T("mo", "mo")}</Btn>
+                {cos && <Btn small tone="ghost" disabled={Boolean(cos.block)} title={cos.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "cosign", years })}>{T("Parent co-signs", "Parent co-sign")}</Btn>}
+                <Btn small tone="ghost" disabled={Boolean(plan.block)} title={plan.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "plan" })}>{T("Payment plan", "Payment plan")} · {naira(plan.monthly)}/{T("mo", "mo")}</Btn>
               </div>
               {(mort?.block || cos?.block) && <p className="mt-1 text-[10px] text-slate-400">{mort?.block}{mort?.block && cos?.block ? " · " : ""}{cos?.block}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+/** Everything you own in property: where it is, what it earns, and what you can do with it. */
+export function PortfolioCard({ p, run }: { p: Player; run: Run }) {
+  if (p.houses.length === 0) return null;
+  const total = p.houses.reduce((s, h) => s + h.value, 0);
+  const rent = p.houses.filter((h) => h.use === "rent" && !h.project).reduce((s, h) => s + h.value * (locationOf(h.loc)?.yield ?? 0.05), 0);
+  return (
+    <Card>
+      <H sub={T(`Worth ${naira(total)} · rent about ${naira(rent)} a year`, `Worth ${naira(total)} · rent like ${naira(rent)} per year`)}>{T("Your properties", "Your properties")}</H>
+      <div className="space-y-2">
+        {p.houses.map((h) => {
+          const loc = locationOf(h.loc);
+          const opts = developOptions(h);
+          return (
+            <div key={h.id} className="rounded-xl bg-slate-50 p-3">
+              <div className="flex justify-between text-sm">
+                <span className="min-w-0 truncate font-bold text-[#0b2a6b]">{HOUSE_KINDS[h.kind].label} · {loc?.name ?? STATE_BY_ID[h.state].name}</span>
+                <span className="shrink-0 text-blue-600">{naira(h.value)}</span>
+              </div>
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                {h.project ? T(`Being built: ${HOUSE_KINDS[h.project.kind].label.toLowerCase()}, ready at age ${h.project.readyAge}`, `Dem dey build ${HOUSE_KINDS[h.project.kind].label.toLowerCase()}, e go ready for age ${h.project.readyAge}`) : h.use === "owner" ? T("You live here", "You dey live here") : h.use === "family" ? T("Family lives here", "Family dey live here") : h.use === "rent" ? T("Rented out", "Dem rent am") : T("Empty", "Empty")}
+                {loc && !h.project && h.kind !== "land" ? ` · ${T("yield", "yield")} ${(loc.yield * 100).toFixed(1)}%` : ""}
+                {h.loanId ? ` · ${T("mortgaged", "mortgage dey")}` : ""}
+              </div>
+              {!h.project && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {h.kind !== "land" && (["owner", "family", "rent", "empty"] as const).map((u) => (
+                    <Btn key={u} small tone={h.use === u ? "gold" : "ghost"} onClick={() => run({ t: "use", id: h.id, use: u })}>{u === "owner" ? T("Live", "Live") : u === "family" ? T("Family", "Family") : u === "rent" ? T("Rent out", "Rent out") : T("Empty", "Empty")}</Btn>
+                  ))}
+                  <Btn small tone="red" onClick={() => run({ t: "sell", id: h.id })}>{T("Sell", "Sell")}</Btn>
+                </div>
+              )}
+              {opts.length > 0 && (
+                <div className="mt-2 border-t border-slate-200 pt-2">
+                  <div className="mb-1 text-[11px] font-semibold text-slate-500">{T("Develop this plot (build and profit)", "Develop this plot (build make profit)")}</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {opts.map((k) => {
+                      const c = developCost(p, h, k);
+                      const mid = loc ? marketMid(loc, k) : null;
+                      return <Btn key={k} small tone="ghost" disabled={Boolean(developBlock(p, h, k))} title={mid ? `${T("Worth about", "Worth like")} ${naira((mid ?? 0) * Math.pow(p.index, 0.95))}` : ""} onClick={() => run({ t: "develop", id: h.id, kind: k })}>{HOUSE_KINDS[k].label} · {naira(c)}</Btn>;
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
@@ -1056,5 +1149,57 @@ export function TravelSheet({ p, to, run, onClose }: { p: Player; to: StateInfo;
         ))}
       </div>
     </Sheet>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Market news and the financial adviser
+// ---------------------------------------------------------------------------
+export function MarketNewsCard({ p, run }: { p: Player; run: Run }) {
+  if (p.age < 18) return null;
+  const m = p.market;
+  const feed = [...(m.feed ?? [])].reverse().slice(0, 6);
+  const reg = m.regime ?? "normal";
+  const idx: [string, number | undefined][] = [
+    [T("Stocks", "Stocks"), m.ngx], [T("Penny", "Penny"), m.penny], [T("Crypto", "Crypto"), m.crypto], [T("Bonds", "Bonds"), m.bond], [T("Property funds", "Property funds"), m.reit],
+  ];
+  return (
+    <Card>
+      <H sub={T("Read the news before you invest. A good adviser sees some of it coming.", "Read the news before you invest. Good adviser fit see some of am before e come.")}>{T("Market news", "Market news")}</H>
+      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+        <Badge tone={reg === "bull" ? "green" : reg === "bear" ? "red" : "gold"}>{reg === "bull" ? T("Bull market", "Bull market") : reg === "bear" ? T("Bear market", "Bear market") : T("Steady market", "Steady market")}</Badge>
+        {idx.map(([k, v]) => <span key={k} className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">{k} {Math.round(v ?? 100)}</span>)}
+      </div>
+      {feed.length === 0 ? <p className="text-xs text-slate-500">{T("Nothing in the headlines yet.", "Nothing for headlines yet.")}</p> : (
+        <ul className="space-y-1.5">
+          {feed.map((f, i) => (
+            <li key={i} className={`rounded-xl px-3 py-2 text-xs ${f.kind === "tip" ? "bg-blue-50 text-blue-900" : "bg-slate-50 text-slate-700"}`}>
+              <span className={f.tone === "up" ? "text-emerald-600" : f.tone === "down" ? "text-red-600" : "text-slate-500"}>{f.tone === "up" ? "▲ " : f.tone === "down" ? "▼ " : "• "}</span>{T(f.en, f.pcm)}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-3 border-t border-slate-100 pt-3">
+        <div className="text-sm font-semibold">{T("Financial adviser", "Financial adviser")}</div>
+        {p.advisor ? (
+          <div className="mt-1 flex items-center justify-between text-xs">
+            <span>{p.advisor.name} · {T(ADVISOR_TIERS[p.advisor.tier - 1].en, ADVISOR_TIERS[p.advisor.tier - 1].pcm)} · {naira(advisorFee(p, p.advisor.tier))}/{T("mo", "mo")}</span>
+            <Btn small tone="ghost" onClick={() => run({ t: "advisor", op: "fire" })}>{T("Let go", "Sack am")}</Btn>
+          </div>
+        ) : (
+          <div className="mt-1 space-y-1.5">
+            {ADVISOR_TIERS.map((t) => {
+              const b = advisorBlock(p, t.tier);
+              return (
+                <div key={t.tier} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs">
+                  <div><div className="font-semibold">{T(t.en, t.pcm)}</div><div className="text-slate-500">{naira(advisorFee(p, t.tier))}/{T("month", "month")}{b ? ` · ${b}` : ""}</div></div>
+                  <Btn small tone="gold" disabled={Boolean(b)} onClick={() => run({ t: "advisor", op: "hire", tier: t.tier })}>{T("Hire", "Hire")}</Btn>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }

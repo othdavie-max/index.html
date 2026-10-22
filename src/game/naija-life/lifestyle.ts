@@ -1,6 +1,7 @@
 import { INVESTMENTS, LUXURIES, STATE_BY_ID } from "./data";
 import { bump } from "./helpers";
 import { monthIndex, transact } from "./ledger";
+import { advisorMonth, marketDynamics } from "./markets";
 import { netWorth } from "./kidnap";
 import type { HoldingKind, Player } from "./types";
 import { T, chance, clamp, naira, rand, uid } from "./util";
@@ -36,8 +37,9 @@ export function buyLuxury(p: Player, id: string): string {
 // ---------------------------------------------------------------------------
 // Investments
 // ---------------------------------------------------------------------------
-export const MARKET_KINDS: HoldingKind[] = ["stocks", "crypto", "fund"];
-const priceOfKind = (p: Player, k: HoldingKind) => (k === "stocks" ? p.market.ngx : k === "crypto" ? p.market.crypto : p.market.fund);
+export const MARKET_KINDS: HoldingKind[] = ["stocks", "crypto", "fund", "penny", "cryptofund", "reit", "bond"];
+export const priceOfKind = (p: Player, k: HoldingKind) =>
+  k === "stocks" ? p.market.ngx : k === "crypto" ? p.market.crypto : k === "penny" ? p.market.penny ?? 100 : k === "cryptofund" ? p.market.cfund ?? 100 : k === "reit" ? p.market.reit ?? 100 : k === "bond" ? p.market.bond ?? 100 : p.market.fund;
 
 export function investBlock(p: Player, kind: HoldingKind, amount: number): string | null {
   const opt = INVESTMENTS.find((o) => o.kind === kind);
@@ -84,17 +86,14 @@ export function divest(p: Player, id: string): string {
 
 /** Market prices and interest accrue every month. */
 export function marketMonth(p: Player, lines: string[]) {
-  const m = p.market;
-  m.ngx = Math.max(5, m.ngx * (1 + rand(-0.075, 0.09) + 0.0025));
-  m.fund = Math.max(5, m.fund * (1 + rand(-0.025, 0.04) + 0.0025));
-  m.crypto = Math.max(2, m.crypto * (1 + rand(-0.2, 0.24)));
-  if (chance(0.012)) m.crypto *= 0.5;
-  else if (chance(0.012)) m.crypto *= 1.8;
+  marketDynamics(p);
+  advisorMonth(p, lines);
   for (const h of p.holdings) {
     if (MARKET_KINDS.includes(h.kind) && h.units !== undefined) h.value = Math.round(h.units * priceOfKind(p, h.kind));
-    else if (h.kind === "savings") h.value = Math.round(h.value * (1 + m.savings / 12));
-    else if (h.kind === "tbill") h.value = Math.round(h.value * (1 + m.tbill / 12));
+    else if (h.kind === "savings") h.value = Math.round(h.value * (1 + p.market.savings / 12));
+    else if (h.kind === "tbill") h.value = Math.round(h.value * (1 + p.market.tbill / 12));
     else if (h.kind === "crypto" && chance(0.004)) { h.value = 0; lines.push(T("Your crypto platform collapsed overnight. The money is gone.", "Your crypto platform crash overnight. Money don go.")); }
+    if (h.kind === "penny" && chance(0.007)) { h.value = 0; lines.push(T("One of your penny stocks was delisted. It is worth nothing.", "Dem delist one of your penny stocks. E no worth anything again.")); }
   }
   p.holdings = p.holdings.filter((h) => h.value > 0);
 }

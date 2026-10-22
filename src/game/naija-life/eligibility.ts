@@ -75,6 +75,7 @@ const GATES: Record<string, Gate> = {
   kid_trouble: { minAge: 18 },
   kid_talent: { minAge: 18 },
   kid_asks_money: { minAge: 30 },
+  ponzi_offer: { minAge: 20 },
   relative_wedding: { minAge: 18 },
   relative_medical: { minAge: 18 },
   relative_school_fees: { minAge: 20 },

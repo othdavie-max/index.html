@@ -12,6 +12,7 @@ import { marketMonth, yearlyUpkeep } from "./lifestyle";
 import { ownsPersonalCar, vehicleMonth } from "./vehicles";
 import type { Pending, Player } from "./types";
 import { costMultiplier, payMultiplier } from "./news";
+import { locationOf } from "./locations";
 import { degreeBonus } from "./education";
 import { T, chance, clamp, naira, rand } from "./util";
 
@@ -114,7 +115,7 @@ function payRent(p: Player, ctx: MonthCtx) {
 function prisonMonth(p: Player, ctx: MonthCtx) {
   for (const h of p.houses) {
     if (h.use === "rent" && chance(0.9)) {
-      const rent = (HOUSE_RENT[h.kind] * STATE_BY_ID[h.state].cost * Math.pow(p.index, 0.9)) / 12;
+      const rent = monthlyRent(p, h);
       transact(p, { amount: rent, reason: T(`Rent from your ${h.kind} in ${STATE_BY_ID[h.state].name}`, `Rent from your ${h.kind} for ${STATE_BY_ID[h.state].name}`), category: "business", recurring: h.id });
     }
   }
@@ -147,7 +148,7 @@ function monthTick(p: Player, ctx: MonthCtx) {
   }
   for (const h of p.houses) {
     if (h.use === "rent" && chance(0.9)) {
-      const rent = (HOUSE_RENT[h.kind] * STATE_BY_ID[h.state].cost * Math.pow(p.index, 0.9)) / 12;
+      const rent = monthlyRent(p, h);
       transact(p, { amount: rent, reason: T(`Rent from your ${h.kind} in ${STATE_BY_ID[h.state].name}`, `Rent from your ${h.kind} for ${STATE_BY_ID[h.state].name}`), category: "business", recurring: h.id });
       incomeThisMonth += rent;
     }
@@ -226,7 +227,15 @@ function monthTick(p: Player, ctx: MonthCtx) {
   }
 }
 
-const HOUSE_RENT: Record<string, number> = { bungalow: 1_100_000, duplex: 3_500_000, flats: 9_000_000, apartment: 2_200_000, land: 0 };
+const HOUSE_RENT: Record<string, number> = { bungalow: 1_100_000, duplex: 3_500_000, flats: 9_000_000, apartment: 2_200_000, mansion: 18_000_000, plaza: 40_000_000, land: 0 };
+
+/** Monthly rent a rented-out property earns. Located properties follow the neighbourhood. */
+export function monthlyRent(p: Player, h: import("./types").House): number {
+  if (h.project) return 0;
+  const loc = locationOf(h.loc);
+  if (loc) return (h.value * loc.yield * rand(0.82, 1.04)) / 12;
+  return (HOUSE_RENT[h.kind] * STATE_BY_ID[h.state].cost * Math.pow(p.index, 0.9)) / 12;
+}
 
 /** Runs all 12 months of the year. */
 export function runMonths(p: Player, ctx: MonthCtx) {

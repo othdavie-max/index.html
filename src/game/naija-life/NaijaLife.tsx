@@ -16,7 +16,7 @@ import { KidnapModal } from "./KidnapModal";
 import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
-import { TravelSheet, RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
+import { PortfolioCard, TravelSheet, RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, MarketNewsCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { meritOf } from "./military";
 import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
@@ -633,30 +633,9 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       <MortgageCard p={p} run={run} />
       <PropertyMarketCard p={p} run={run} />
 
-      {p.houses.length > 0 && (
-        <Card>
-          <H>{T("Your houses", "Your houses")}</H>
-          <div className="space-y-2">
-            {p.houses.map((h) => (
-              <div key={h.id} className="rounded-xl bg-slate-50 p-3">
-                <div className="flex justify-between text-sm">
-                  <span className="font-semibold">{HOUSE_KINDS[h.kind].label} · {STATE_BY_ID[h.state].name}</span>
-                  <span className="text-blue-600">{naira(h.value)}</span>
-                </div>
-                <div className="mt-1 text-[11px] text-slate-500">{T("Status", "Status")}: {h.use === "owner" ? T("You live here", "You dey live here") : h.use === "family" ? T("Family lives here", "Family dey live here") : h.use === "rent" ? T("Rented out", "Dem rent am out") : T("Empty", "Empty")}</div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {(["owner", "family", "rent", "empty"] as const).map((u) => (
-                    <Btn key={u} small tone={h.use === u ? "gold" : "ghost"} onClick={() => run({ t: "use", id: h.id, use: u })}>
-                      {u === "owner" ? T("Live", "Live") : u === "family" ? T("Family", "Family") : u === "rent" ? T("Rent out", "Rent out") : T("Empty", "Empty")}
-                    </Btn>
-                  ))}
-                  <Btn small tone="red" onClick={() => run({ t: "sell", id: h.id })}>{T("Sell", "Sell")}</Btn>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      <PortfolioCard p={p} run={run} />
+
+      <MarketNewsCard p={p} run={run} />
 
       <Card>
         <H sub={T("Returns are not guaranteed.", "Profit no certain.")}>{T("Invest", "Invest")}</H>

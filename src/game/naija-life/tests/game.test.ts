@@ -957,3 +957,25 @@ test("dead relatives never ask for money", () => {
   const r = act({ ...base, p } as Game, { t: "ask", npc: dead.id, kind: "pocket", amount: 1000 });
   assert.equal(r.g.p.money, p.money);
 });
+
+test("new asset classes and the financial adviser", () => {
+  const g = aliveAt(35);
+  const p = g.p;
+  p.money = 2_000_000_000;
+  p.prison = 0;
+  p.houses = [];
+  for (const kind of ["bond", "penny", "cryptofund", "reit"] as const) {
+    const before = p.money;
+    invest(p, kind, 20_000_000);
+    assert.equal(p.money, before - 20_000_000);
+    assert.ok(p.holdings.find((h) => h.kind === kind)?.units, `${kind} has units`);
+  }
+  const r = act(g, { t: "advisor", op: "hire", tier: 1 });
+  assert.ok(r.g.p.advisor, "adviser hired");
+  const q = r.g.p;
+  for (let i = 0; i < 36; i++) marketMonth(q, []);
+  assert.ok((q.market.feed ?? []).length > 0, "news feed fills");
+  assert.ok((q.market.feed ?? []).length <= 16);
+  assert.ok(q.holdings.every((h) => Number.isFinite(h.value)));
+  assert.equal(act(r.g, { t: "advisor", op: "fire" }).g.p.advisor, undefined);
+});

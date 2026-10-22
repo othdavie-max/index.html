@@ -31,7 +31,7 @@ export interface Stats {
   fitness: number;
 }
 
-export type HouseKind = "land" | "apartment" | "bungalow" | "duplex" | "flats";
+export type HouseKind = "land" | "apartment" | "bungalow" | "duplex" | "flats" | "mansion" | "plaza";
 export type HouseUse = "owner" | "family" | "rent" | "empty";
 export interface House {
   id: string;
@@ -41,9 +41,13 @@ export interface House {
   use: HouseUse;
   /** Mortgage loan secured on this house. */
   loanId?: string;
+  /** Where it is, so price, rent and risk follow the neighbourhood. */
+  loc?: string;
+  /** A building project on this plot. */
+  project?: { kind: HouseKind; readyAge: number; cost: number };
 }
 
-export type HoldingKind = "usd" | "stocks" | "crypto" | "oil" | "school" | "farm" | "bank" | "fund" | "savings" | "tbill";
+export type HoldingKind = "usd" | "stocks" | "crypto" | "oil" | "school" | "farm" | "bank" | "fund" | "savings" | "tbill" | "bond" | "penny" | "cryptofund" | "reit";
 export interface Holding {
   id: string;
   kind: HoldingKind;
@@ -96,6 +100,8 @@ export interface Politics {
 
 export interface Listing {
   id: string;
+  /** Neighbourhood id (see locations.ts). */
+  loc?: string;
   stateId: string;
   kind: HouseKind;
   condition: "good" | "fair" | "rundown";
@@ -158,6 +164,8 @@ export interface Player {
   luck: number;
   world?: WorldState;
   listings?: Listing[];
+  /** A paid financial adviser. */
+  advisor?: { tier: 1 | 2 | 3; name: string; since: number; missed: number };
   /** Language the game is told in. */
   lang: "en" | "pcm";
   /** Month within the current age year, 1-12. */
@@ -504,10 +512,30 @@ export interface Business {
   lossStreak: number;
 }
 
+export interface FeedItem {
+  age: number;
+  month: number;
+  en: string;
+  pcm: string;
+  /** What kind of message: a headline, a tip from your adviser, or a warning. */
+  kind: "news" | "tip" | "warning";
+  tone: "up" | "down" | "flat";
+}
+
 export interface Market {
   ngx: number;
   fund: number;
   crypto: number;
+  /** Prices of the newer instruments, all starting at 100. */
+  penny?: number;
+  cfund?: number;
+  reit?: number;
+  bond?: number;
+  regime?: "bull" | "normal" | "bear";
+  regimeLeft?: number;
+  feed?: FeedItem[];
+  /** News that has been decided but has not happened yet. */
+  pending?: { inMonths: number; id: string }[];
   /** Annual rates, updated yearly. */
   tbill: number;
   savings: number;

@@ -8,8 +8,10 @@ import { EVENTS4 } from "./events4";
 import { EVENTS5, graduationData } from "./events5";
 import { EVENTS6 } from "./events6";
 import { KID_EVENTS } from "./kids";
+import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
 import { transportOptions, type TransportMode } from "./travel";
-import { buyListing, refreshListings, type PurchaseMode } from "./property";
+import { buyListing, completeProjects, developLand, houseYear, refreshListings, type PurchaseMode } from "./property";
+import { defaultLocationFor, locationOf } from "./locations";
 import { EDU_EVENTS, enrollPostgrad, finishPostgrad } from "./education";
 import { yearlyNews } from "./news";
 import { SUPPORT_EVENTS, yearlyPromises } from "./support";
@@ -49,7 +51,7 @@ import { kidLook, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -499,7 +501,7 @@ export function ageUp(g0: Game): Game {
   }
   p.index *= 1 + rate;
   setDeflator(p.index); setLang(p.lang);
-  for (const h of p.houses) h.value = Math.round(h.value * (1 + rate * 0.9));
+  for (const h of p.houses) houseYear(p, h, rate, lines);
   for (const k of p.kids) k.age += 1;
 
   schoolTick(p, lines, pending);
@@ -539,6 +541,7 @@ export function ageUp(g0: Game): Game {
   }
   yearlyWorld(p, lines, pending);
   yearlyPromises(p, lines);
+  completeProjects(p, lines);
   yearlyNews(p, lines);
   refreshListings(p);
   yearlyHealth(p, lines, pending);
@@ -747,6 +750,8 @@ export type Action =
   | { t: "trade"; id: string }
   | { t: "postgrad"; id: string }
   | { t: "adopt" }
+  | { t: "advisor"; op: "hire" | "fire"; tier?: 1 | 2 | 3 }
+  | { t: "develop"; id: string; kind: HouseKind }
   | { t: "surrender" }
   | { t: "license"; settle?: boolean }
   | { t: "fertility" }
@@ -807,6 +812,8 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "trade": return { reason: T("Vocational training", "Vocational training"), category: "education" };
     case "postgrad": return { reason: T("Postgraduate study", "Postgraduate study"), category: "education" };
     case "adopt": return { reason: T("Adoption", "Adoption"), category: "family" };
+    case "advisor": return { reason: T("Financial adviser", "Financial adviser"), category: "investment" };
+    case "develop": return { reason: T("Property development", "Property development"), category: "asset" };
     case "license": return { reason: T("Driving test", "Driving test"), category: "personal" };
     case "surrender": return { reason: T("Surrendered to life", "Surrender for life"), category: "other" };
     case "fertility": return { reason: T("Fertility treatment", "Fertility treatment"), category: "health" };
@@ -933,7 +940,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       if (p.money < cost) return { g: g0, msg: T(`Need ${naira(cost)}.`, `You need ${naira(cost)}.`) };
       p.money -= cost;
       const hasOwner = p.houses.some((h) => h.state === p.state && h.use === "owner");
-      const h: House = { id: uid(), state: p.state, kind: a.kind, value: Math.round(cost * 1.1), use: hasOwner ? "empty" : "owner" };
+      const h: House = { id: uid(), state: p.state, kind: a.kind, value: Math.round(cost * 1.1), use: hasOwner ? "empty" : "owner", loc: defaultLocationFor(p.state)?.id };
       p.houses.push(h);
       p.prestige += a.kind === "flats" ? 2 : 1;
       bump(p, "happiness", 6);
@@ -944,6 +951,8 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "trade": return out(enrollTrade(p, a.id));
     case "postgrad": return out(enrollPostgrad(p, a.id));
     case "adopt": return out(adoptChild(p));
+    case "advisor": return out(a.op === "hire" ? hireAdvisor(p, a.tier ?? 1) : fireAdvisor(p));
+    case "develop": return out(developLand(p, a.id, a.kind));
     case "license": return out(takeDrivingTest(p, Boolean(a.settle)));
     case "surrender": {
       p.alive = false;
@@ -956,9 +965,11 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       const i = p.houses.findIndex((h) => h.id === a.id);
       if (i < 0) return { g: g0, msg: "" };
       const h = p.houses[i];
-      const note = settleHouseLoan(p, h, h.value);
+      if (h.project) return { g: g0, msg: T("You cannot sell while it is under construction.", "You no fit sell am while dem still dey build.") };
+      const fees = h.loc && h.value > 50_000_000 * p.index ? 0.94 : 1; // agent and legal fees on big sales
+      const note = settleHouseLoan(p, h, Math.round(h.value * fees));
       p.houses.splice(i, 1);
-      return out(T(`You sold your ${HOUSE_KINDS[h.kind].label.toLowerCase()} in ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.${note}`, `You sell your ${HOUSE_KINDS[h.kind].label.toLowerCase()} for ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.${note}`));
+      return out(T(`You sold your ${HOUSE_KINDS[h.kind].label.toLowerCase()} in ${locationOf(h.loc)?.name ?? STATE_BY_ID[h.state].name} for ${naira(h.value * fees)}.${note}`, `You sell your ${HOUSE_KINDS[h.kind].label.toLowerCase()} for ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.${note}`));
     }
     case "use": {
       const h = p.houses.find((x) => x.id === a.id);
