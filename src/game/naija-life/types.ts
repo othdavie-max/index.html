@@ -512,6 +512,45 @@ export interface Business {
   status: "open" | "closed";
   debt: number;
   lossStreak: number;
+  /** The people who work for you. */
+  crew?: Worker[];
+  /** 0 cheap, 1 fair, 2 premium. */
+  price?: 0 | 1 | 2;
+  /** Advertising spend, 0 to 3. */
+  ads?: 0 | 1 | 2 | 3;
+  /** 0 cheap stock, 1 standard, 2 premium. */
+  stock?: 0 | 1 | 2;
+  /** How well known the business is, 0-100. */
+  fame?: number;
+  /** Job candidates waiting to be interviewed. */
+  cands?: Worker[];
+  report?: BizReport;
+  /** Year totals so far and recent years. */
+  yr?: { rev: number; net: number };
+  hist?: { age: number; rev: number; net: number }[];
+}
+
+export interface Worker {
+  id: string;
+  name: string;
+  /** 1-100 */
+  skill: number;
+  /** 0-100. Unhappy staff quit or steal. */
+  loyalty: number;
+  /** Pay multiplier against the going rate. */
+  wage: number;
+  since: number;
+}
+
+export interface BizReport {
+  rev: number;
+  stock: number;
+  wages: number;
+  ads: number;
+  other: number;
+  net: number;
+  notes: { en: string; pcm: string }[];
+  tip: { en: string; pcm: string } | null;
 }
 
 export interface FeedItem {

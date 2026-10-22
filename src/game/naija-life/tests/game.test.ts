@@ -1026,3 +1026,35 @@ test("universities: catalogue, affordability by family wealth, campus life and g
   assert.ok(ledgerBalances(g.p));
   assert.ok(cutoffFor(unilag, law) > cutoffFor(unilag, MAJOR_BY_ID.edu));
 });
+
+test("business mini-game: small kinds, policies, hiring and firing real people", () => {
+  const g = aliveAt(25);
+  g.p.prison = 0; g.p.money = 50_000_000; g.p.job = null;
+  let r = act(g, { t: "biz", op: "start", id: "akara", name: "Mama Tunde Akara" });
+  const b0 = r.g.p.businesses.find((x) => x.kind === "akara")!;
+  assert.ok(b0, r.msg);
+  assert.equal(b0.crew?.length, 0, "an akara stand starts with just you");
+  r = act(r.g, { t: "biz", op: "recruit", id: b0.id });
+  const b1 = r.g.p.businesses.find((x) => x.id === b0.id)!;
+  assert.equal(b1.cands?.length, 3);
+  r = act(r.g, { t: "biz", op: "pick", id: b0.id, idx: 1 });
+  let bz = r.g.p.businesses.find((x) => x.id === b0.id)!;
+  assert.equal(bz.crew?.length, 1);
+  const wid = bz.crew![0].id;
+  const loyal = bz.crew![0].loyalty;
+  r = act(r.g, { t: "biz", op: "raise", id: b0.id, worker: wid });
+  assert.ok(r.g.p.businesses[0].crew![0].loyalty > loyal);
+  r = act(r.g, { t: "biz", op: "train", id: b0.id, worker: wid });
+  r = act(r.g, { t: "biz", op: "price", id: b0.id, v: 2 });
+  r = act(r.g, { t: "biz", op: "ads", id: b0.id, v: 2 });
+  r = act(r.g, { t: "biz", op: "stock", id: b0.id, v: 0 });
+  bz = r.g.p.businesses[0];
+  assert.deepEqual([bz.price, bz.ads, bz.stock], [2, 2, 0]);
+  let gg = r.g;
+  for (let i = 0; i < 3 && gg.p.alive; i++) { gg.p.prison = 0; gg = resolveAll(ageUp(gg)); }
+  const after = gg.p.businesses.find((x) => x.id === b0.id);
+  if (after) { assert.ok(after.report && Number.isFinite(after.report.net)); assert.ok((after.hist?.length ?? 0) >= 1, "yearly history is kept"); }
+  assert.ok(noNaN(gg.p) && ledgerBalances(gg.p));
+  // firing removes the person
+  if (after?.crew?.length) { const d = act(gg, { t: "biz", op: "dismiss", id: b0.id, worker: after.crew[0].id }); assert.equal(d.g.p.businesses.find((x) => x.id === b0.id)!.crew!.length, after.crew.length - 1); }
+});

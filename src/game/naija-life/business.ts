@@ -1,9 +1,10 @@
-import { STATE_BY_ID } from "./data";
+import { JOB_BY_ID, STATE_BY_ID } from "./data";
 import { monthIndex, transact } from "./ledger";
 import { businessMultiplier } from "./news";
-import type { Business, EventDef, Player } from "./types";
+import type { Business, EventDef, Player, Worker, BizReport } from "./types";
 import { T, chance, clamp, dual, naira, rand, uid } from "./util";
-import { I, bump, stateOf } from "./helpers";
+import { I, bump, randomName, stateOf } from "./helpers";
+import { pick } from "./util";
 
 export interface BizKind {
   id: string;
@@ -19,6 +20,14 @@ export interface BizKind {
 }
 
 export const BIZ_KINDS: BizKind[] = [
+  { id: "akara", get label() { return T("Akara and pap stand", "Akara and pap stand"); }, get blurb() { return T("Fry in the morning, sell by 10. Start with a pot and a pan.", "Fry for morning, sell finish by 10. Start with pot and frying pan."); }, startCost: 80_000, baseRevenue: 200_000, stockPct: 0.55, rent: 12_000, wage: 25_000, minOpp: 1 },
+  { id: "pos", get label() { return T("POS agent kiosk", "POS agent kiosk"); }, get blurb() { return T("Cash-out and transfers. Thin margins, steady crowds.", "Cash-out and transfer. Profit small, but people plenty."); }, startCost: 250_000, baseRevenue: 500_000, stockPct: 0.6, rent: 40_000, wage: 30_000, minOpp: 1 },
+  { id: "carwash", get label() { return T("Car wash", "Car wash"); }, get blurb() { return T("Water, soap and patience.", "Water, soap and patience."); }, startCost: 600_000, baseRevenue: 700_000, stockPct: 0.2, rent: 80_000, wage: 35_000, minOpp: 1 },
+  { id: "barbing", get label() { return T("Barbing salon", "Barbing salon"); }, get blurb() { return T("Clippers, a generator and loyal regulars.", "Clippers, generator and regular customers."); }, startCost: 400_000, baseRevenue: 330_000, stockPct: 0.2, rent: 90_000, wage: 40_000, minOpp: 1 },
+  { id: "bukka", get label() { return T("Bukka (mama put)", "Bukka (mama put)"); }, get blurb() { return T("Rice, stew and a queue at lunch.", "Rice, stew and queue for lunch."); }, startCost: 700_000, baseRevenue: 600_000, stockPct: 0.5, rent: 140_000, wage: 40_000, minOpp: 1 },
+  { id: "phoneshop", get label() { return T("Phone and gadget shop", "Phone and gadget shop"); }, get blurb() { return T("Accessories, repairs and the odd fake charger.", "Accessories, repair and one or two fake charger."); }, startCost: 1_000_000, baseRevenue: 1_100_000, stockPct: 0.7, rent: 180_000, wage: 45_000, minOpp: 2 },
+  { id: "water", get label() { return T("Pure water factory", "Pure water factory"); }, get blurb() { return T("Sachet water for the whole street.", "Sachet water for the whole street."); }, startCost: 1_500_000, baseRevenue: 1_600_000, stockPct: 0.4, rent: 100_000, wage: 45_000, minOpp: 1 },
+  { id: "bakery", get label() { return T("Bakery", "Bakery"); }, get blurb() { return T("Bread, chin chin and early mornings.", "Bread, chin chin and early morning."); }, startCost: 2_000_000, baseRevenue: 1_900_000, stockPct: 0.5, rent: 250_000, wage: 50_000, minOpp: 2 },
   { id: "provisions", get label() { return T("Provision store", "Provision store"); }, get blurb() { return T("Daily necessities. Steady and modest.", "Daily daily things wey people need. E steady but e no big."); }, startCost: 1_200_000, baseRevenue: 480_000, stockPct: 0.62, rent: 240_000, wage: 55_000, minOpp: 1 },
   { id: "salon", get label() { return T("Hair & beauty salon", "Hair & beauty salon"); }, get blurb() { return T("Weekend rush, loyal customers.", "Weekend dey full, and customers dey stick to you."); }, startCost: 1_800_000, baseRevenue: 620_000, stockPct: 0.26, rent: 420_000, wage: 60_000, minOpp: 2 },
   { id: "fashion", get label() { return T("Fashion label", "Fashion label"); }, get blurb() { return T("Aso-ebi season can make or break you.", "Aso-ebi season fit make you or finish you."); }, startCost: 2_500_000, baseRevenue: 800_000, stockPct: 0.4, rent: 360_000, wage: 65_000, minOpp: 3 },
@@ -27,7 +36,7 @@ export const BIZ_KINDS: BizKind[] = [
   { id: "farm", get label() { return T("Commercial farm", "Commercial farm"); }, get blurb() { return T("Big harvest months, thin months in between.", "Harvest months dey sweet, but other months dey dry."); }, startCost: 6_000_000, baseRevenue: 1_700_000, stockPct: 0.32, rent: 200_000, wage: 50_000, minOpp: 2, seasonal: true },
   { id: "logistics", get label() { return T("Logistics & delivery company", "Logistics & delivery company"); }, get blurb() { return T("Bikes, vans and angry customers.", "Bikes, vans and customers wey dey vex."); }, startCost: 9_000_000, baseRevenue: 2_600_000, stockPct: 0.36, rent: 700_000, wage: 80_000, minOpp: 5 },
   { id: "pharmacy", get label() { return T("Pharmacy", "Pharmacy"); }, get blurb() { return T("Always needed. Watch the fakes.", "People always need am. Just watch out for fake drugs."); }, startCost: 12_000_000, baseRevenue: 4_000_000, stockPct: 0.72, rent: 1_200_000, wage: 90_000, minOpp: 4 },
-  { id: "supermarket", get label() { return T("Supermarket", "Supermarket"); }, get blurb() { return T("Big volumes, tiny margins.", "Plenty goods dey move, but profit small."); }, startCost: 14_000_000, baseRevenue: 6_000_000, stockPct: 0.8, rent: 4_000_000, wage: 70_000, minOpp: 5 },
+  { id: "supermarket", get label() { return T("Supermarket", "Supermarket"); }, get blurb() { return T("Big volumes, tiny margins.", "Plenty goods dey move, but profit small."); }, startCost: 14_000_000, baseRevenue: 9_000_000, stockPct: 0.8, rent: 4_000_000, wage: 70_000, minOpp: 5 },
   { id: "hotel", get label() { return T("Hotel", "Hotel"); }, get blurb() { return T("Weddings, travellers and constant maintenance.", "Wedding, travellers, and repair no dey end."); }, startCost: 40_000_000, baseRevenue: 14_000_000, stockPct: 0.34, rent: 6_000_000, wage: 75_000, minOpp: 5 },
 ];
 export const BIZ_BY_ID = Object.fromEntries(BIZ_KINDS.map((b) => [b.id, b])) as Record<string, BizKind>;
@@ -57,9 +66,10 @@ export function startBusiness(p: Player, kindId: string, name: string): string {
   const cost = startCostFor(p, k);
   transact(p, { amount: -cost, reason: T(`Started ${k.label.toLowerCase()}: ${name || k.label}`, `Start ${k.label.toLowerCase()}: ${name || k.label}`), category: "business" });
   const b: Business = {
-    id: uid(), kind: k.id, name: name.trim() || `${p.surname} ${k.label}`, stateId: p.state, level: 1, quality: 55, staff: k.id === "techstart" ? 2 : 1,
-    invested: cost, manager: false, startedAt: monthIndex(p), profit: 0, lastMonthProfit: 0, status: "open", debt: 0, lossStreak: 0,
+    id: uid(), kind: k.id, name: name.trim() || `${p.surname} ${k.label}`, stateId: p.state, level: 1, quality: 55, staff: k.id === "techstart" ? 2 : k.startCost < 1_500_000 ? 0 : 1,
+    invested: cost, manager: false, startedAt: monthIndex(p), profit: 0, lastMonthProfit: 0, status: "open", debt: 0, lossStreak: 0, price: 1, ads: 0, stock: 1, fame: 20, hist: [],
   };
+  b.crew = Array.from({ length: b.staff }, () => newWorker(p, 45));
   p.businesses.push(b);
   return T(`${b.name} is open for business in ${STATE_BY_ID[b.stateId].name}.`, `${b.name} don open for ${STATE_BY_ID[b.stateId].name}. Business don start.`);
 }
@@ -80,25 +90,110 @@ export function upgradeBusiness(p: Player, id: string): string {
   return T(`${b.name} grows to level ${b.level}.`, `${b.name} don grow reach level ${b.level}.`);
 }
 
-export function hireStaff(p: Player, id: string): string {
-  const b = p.businesses.find((x) => x.id === id && x.status === "open");
-  if (!b) return "";
-  if (b.staff >= b.level * 4 + 2) return T("You need to expand first to hold more staff.", "You must expand first before you fit carry more staff.");
-  const c = hireCost(p, b);
-  if (p.money < c) return T(`Needs ${naira(c)} for recruitment and training.`, `E need ${naira(c)} for recruitment and training.`);
-  transact(p, { amount: -c, reason: T(`Hired new staff for ${b.name}`, `Hire new staff for ${b.name}`), category: "business" });
-  b.staff += 1;
-  return T(`A new staff member joins ${b.name}.`, `New staff don join ${b.name}.`);
+const PRICE_MULT = [0.8, 1, 1.25] as const;
+const STOCK_COST = [0.78, 1, 1.3] as const;
+export const PRICE_LABEL = [() => T("Cheap", "Cheap"), () => T("Fair", "Fair"), () => T("Premium", "Premium")];
+export const STOCK_LABEL = [() => T("Cheap stock", "Cheap stock"), () => T("Standard stock", "Standard stock"), () => T("Premium stock", "Premium stock")];
+
+function newWorker(p: Player, skillBase: number): Worker {
+  const male = chance(0.5);
+  const skill = Math.round(clamp(skillBase + rand(-22, 28), 10, 95));
+  return { id: uid(), name: randomName(p.tribe, male ? "male" : "female"), skill, loyalty: Math.round(rand(55, 80)), wage: Math.round((0.7 + skill / 100 * 0.8 + rand(-0.1, 0.15)) * 100) / 100, since: monthIndex(p) };
 }
 
-export function fireStaff(p: Player, id: string): string {
-  const b = p.businesses.find((x) => x.id === id && x.status === "open");
-  if (!b || b.staff <= 0) return "";
-  const sev = Math.round(sc(p, BIZ_BY_ID[b.kind].wage));
-  if (p.money >= sev) transact(p, { amount: -sev, reason: T(`Severance for staff at ${b.name}`, `Severance for staff for ${b.name}`), category: "business" });
-  b.staff -= 1;
+/** Old saves only knew a head-count. Give them real people. */
+export function ensureCrew(p: Player, b: Business) {
+  if (!b.crew) b.crew = Array.from({ length: b.staff }, () => newWorker(p, 45));
+  b.price ??= 1; b.ads ??= 0; b.stock ??= 1; b.fame ??= 30; b.hist ??= [];
+}
+const find = (p: Player, id: string) => p.businesses.find((x) => x.id === id && x.status === "open");
+export const workerPay = (p: Player, b: Business, w: Worker) => Math.round(sc(p, BIZ_BY_ID[b.kind].wage) * w.wage);
+
+export function recruit(p: Player, id: string): string {
+  const b = find(p, id);
+  if (!b) return "";
+  ensureCrew(p, b);
+  if (b.crew!.length >= b.level * 4 + 2) return T("You need to expand first to hold more staff.", "You must expand first before you fit carry more staff.");
+  const c = Math.round(hireCost(p, b) * 0.4);
+  if (p.money < c) return T(`Needs ${naira(c)} to advertise the job and interview.`, `E need ${naira(c)} to advertise the job and interview.`);
+  transact(p, { amount: -c, reason: T(`Recruitment for ${b.name}`, `Recruitment for ${b.name}`), category: "business" });
+  b.cands = [newWorker(p, 40 + b.level * 6), newWorker(p, 40 + b.level * 6), newWorker(p, 40 + b.level * 6)];
+  return T("Three people turn up for the interview. Pick one.", "Three people show for interview. Pick one.");
+}
+
+export function hirePick(p: Player, id: string, idx: number): string {
+  const b = find(p, id);
+  if (!b?.cands?.[idx]) return "";
+  ensureCrew(p, b);
+  if (b.crew!.length >= b.level * 4 + 2) return T("You need to expand first to hold more staff.", "You must expand first before you fit carry more staff.");
+  const w = b.cands[idx];
+  b.crew!.push({ ...w, since: monthIndex(p) });
+  b.cands = undefined;
+  b.staff = b.crew!.length;
+  return T(`${w.name} joins ${b.name}. Pay ${naira(workerPay(p, b, w))} a month.`, `${w.name} don join ${b.name}. Salary na ${naira(workerPay(p, b, w))} every month.`);
+}
+
+export function hireStaff(p: Player, id: string): string {
+  const b = find(p, id);
+  if (!b) return "";
+  const r = recruit(p, id);
+  if (!b.cands) return r;
+  const best = b.cands.reduce((bi, w, i) => (w.skill > b.cands![bi].skill ? i : bi), 0);
+  return hirePick(p, id, best);
+}
+
+export function dismiss(p: Player, id: string, workerId?: string): string {
+  const b = find(p, id);
+  if (!b) return "";
+  ensureCrew(p, b);
+  if (!b.crew!.length) return "";
+  const i = workerId ? b.crew!.findIndex((w) => w.id === workerId) : b.crew!.reduce((bi, w, j, a) => (w.skill < a[bi].skill ? j : bi), 0);
+  if (i < 0) return "";
+  const w = b.crew![i];
+  const tenure = Math.max(0, monthIndex(p) - w.since);
+  const sev = Math.round(workerPay(p, b, w) * Math.min(2, tenure / 12));
+  if (sev > 0 && p.money >= sev) transact(p, { amount: -sev, reason: T(`Severance for ${w.name} at ${b.name}`, `Severance for ${w.name} for ${b.name}`), category: "business" });
+  b.crew!.splice(i, 1);
+  b.staff = b.crew!.length;
+  for (const o of b.crew!) o.loyalty = clamp(o.loyalty - (w.skill > 65 ? 5 : 2));
   b.quality = clamp(b.quality - 3);
-  return T(`You let one person go from ${b.name}.`, `You don let one person go from ${b.name}.`);
+  return T(`You let ${w.name} go from ${b.name}.`, `You don let ${w.name} go from ${b.name}.`);
+}
+export const fireStaff = (p: Player, id: string): string => dismiss(p, id);
+
+export function raisePay(p: Player, id: string, workerId: string): string {
+  const b = find(p, id);
+  const w = b?.crew?.find((x) => x.id === workerId);
+  if (!b || !w) return "";
+  if (w.wage >= 2) return T("They are already very well paid.", "Dem don pay am well well.");
+  w.wage = Math.round((w.wage + 0.15) * 100) / 100;
+  w.loyalty = clamp(w.loyalty + 12);
+  return T(`${w.name} gets a raise and works with a smile.`, `${w.name} collect raise and dey work with joy.`);
+}
+
+export function trainWorker(p: Player, id: string, workerId: string): string {
+  const b = find(p, id);
+  const w = b?.crew?.find((x) => x.id === workerId);
+  if (!b || !w) return "";
+  if (w.skill >= 92) return T("Nothing more to teach.", "Nothing remain to teach am.");
+  const c = Math.round(sc(p, BIZ_BY_ID[b.kind].wage) * 2);
+  if (p.money < c) return T(`Training costs ${naira(c)}.`, `Training cost ${naira(c)}.`);
+  transact(p, { amount: -c, reason: T(`Training for ${w.name}`, `Training for ${w.name}`), category: "business" });
+  w.skill = Math.min(95, w.skill + 8);
+  w.loyalty = clamp(w.loyalty + 4);
+  return T(`${w.name} comes back from training sharper.`, `${w.name} come back from training sharp pass before.`);
+}
+
+export function setPolicy(p: Player, id: string, key: "price" | "ads" | "stock", v: number): string {
+  const b = find(p, id);
+  if (!b) return "";
+  ensureCrew(p, b);
+  if (key === "price") b.price = v as 0 | 1 | 2;
+  if (key === "ads") b.ads = v as 0 | 1 | 2 | 3;
+  if (key === "stock") b.stock = v as 0 | 1 | 2;
+  return key === "price" ? T(`${b.name} now charges ${PRICE_LABEL[b.price!]().toLowerCase()} prices.`, `${b.name} now dey charge ${PRICE_LABEL[b.price!]().toLowerCase()} price.`)
+    : key === "ads" ? T(`${b.name} advertising level set to ${b.ads}.`, `${b.name} advert level na ${b.ads} now.`)
+    : T(`${b.name} now buys ${STOCK_LABEL[b.stock!]().toLowerCase()}.`, `${b.name} now dey buy ${STOCK_LABEL[b.stock!]().toLowerCase()}.`);
 }
 
 export function toggleManager(p: Player, id: string): string {
@@ -134,29 +229,81 @@ export function closeBusiness(p: Player, id: string): string {
   return T(`${b.name} is closed.`, `${b.name} don close.`);
 }
 
+const NEED_TIPS: { en: string; pcm: string }[] = [
+  { en: "Quality is slipping. Buy better stock or expand.", pcm: "Quality dey fall. Buy better stock or expand." },
+  { en: "Customers queue and walk away. Hire another worker.", pcm: "Customers dey queue and dey waka go. Hire another worker." },
+  { en: "Few people know your business. Try advertising.", pcm: "Small people know your business. Try advert." },
+  { en: "Staff are unhappy and may quit or steal. Raise their pay.", pcm: "Staff no happy and fit quit or thief. Raise their pay." },
+  { en: "Losing money for months. Fix pricing and cut costs before it closes.", pcm: "You dey lose money for months. Fix price and cut cost before e close." },
+  { en: "Premium prices need premium quality. Improve stock or lower prices.", pcm: "Premium price need premium quality. Improve stock or reduce price." },
+];
+
 /** Monthly revenue, costs and owner draw for every business. */
 export function businessMonth(p: Player, lines: string[]) {
   for (const b of p.businesses) {
     if (b.status !== "open") continue;
+    ensureCrew(p, b);
     const k = BIZ_BY_ID[b.kind];
     const st = STATE_BY_ID[b.stateId];
+    const crew = b.crew!;
+    const notes: BizReport["notes"] = [];
     const season = k.seasonal ? ([6, 7, 8, 9, 10].includes(p.month) ? 1.9 : 0.45) : p.month === 12 ? 1.25 : p.month === 1 ? 0.85 : 1;
     const demand = 0.55 + st.opp / 9;
-    const mgmt = businessMultiplier(p) * (b.manager ? 0.88 : 1) * (p.prison > 0 && !b.manager ? 0.3 : 1); // unattended while you are locked up
-    const staffLift = 1 + 0.11 * Math.min(b.staff, b.level * 4);
-    const rev = sc(p, k.baseRevenue) * Math.pow(b.level, 1.12) * demand * (b.quality / 60) * staffLift * season * rand(0.62, 1.38) * mgmt * 0.42;
-    const stock = rev * k.stockPct;
-    const wages = b.staff * sc(p, k.wage);
+    const away = !b.manager && p.job && !jobIsSelf(p) ? 0.88 : 1; // a full-time job elsewhere leaves less time for the shop
+    const mgmt = businessMultiplier(p) * (b.manager ? 0.88 : 1) * away * (p.prison > 0 && !b.manager ? 0.3 : 1);
+    const lift = 1 + 0.1 * crew.slice(0, b.level * 4).reduce((s, w) => s + 0.5 + w.skill / 100, 0);
+    const pm = PRICE_MULT[b.price ?? 1];
+    const volume = Math.pow(pm, -1.3);
+    const ads = b.ads ?? 0;
+    const fameF = 0.7 + (b.fame ?? 20) / 160;
+    let rev = sc(p, k.baseRevenue) * Math.pow(b.level, 1.12) * demand * (b.quality / 60) * lift * season * rand(0.62, 1.38) * mgmt * 0.42 * volume * pm * (1 + 0.1 * ads) * fameF;
+    let stockMult = STOCK_COST[b.stock ?? 1];
+    let extra = 0;
+    // Something happens most months.
+    const r = rand(0, 1);
+    if (r < 0.06) { rev *= 1.3; notes.push({ en: "A rush of customers: a good month.", pcm: "Customers plenty: good month." }); b.fame = clamp((b.fame ?? 20) + 2); }
+    else if (r < 0.1) { extra += rev * 0.05; notes.push({ en: "Power cuts: diesel ate into the takings.", pcm: "Light go: diesel chop your money." }); }
+    else if (r < 0.14) { stockMult *= 1.18; notes.push({ en: "Suppliers raised prices.", pcm: "Suppliers raise price." }); }
+    else if (r < 0.17) { b.fame = clamp((b.fame ?? 20) - 5); notes.push({ en: "A rival opened nearby and took some customers.", pcm: "Rival open near you and carry some customers." }); }
+    else if (r < 0.2 && ads > 0) { b.fame = clamp((b.fame ?? 20) + 9); rev *= 1.15; notes.push({ en: "A post about you went viral.", pcm: "Post about you blow for social media." }); }
+    else if (r < 0.225 && !b.manager) { extra += rev * 0.18; notes.push({ en: "Thieves broke in at night.", pcm: "Thieves enter at night." }); }
+    const stock = (rev / pm) * k.stockPct * stockMult;
+    const wages = crew.reduce((s, w) => s + workerPay(p, b, w), 0);
+    const adSpend = ads * rev * 0.035;
     const overheads = rev * 0.12;
     const tax = rev * 0.01;
-    let net = rev - stock - wages - overheads - tax;
+    let net = rev - stock - wages - overheads - tax - extra - adSpend;
     if (p.month === 1) net -= (sc(p, k.rent) * st.cost) * Math.max(1, b.level * 0.8);
     if (b.manager) net -= Math.max(0, net) * 0.15;
+    // People problems
+    for (const w of crew) {
+      w.loyalty = clamp(w.loyalty + (w.wage - 1) * 3 - 0.45 + (net < 0 ? -0.6 : 0.1));
+    }
+    const quitter = crew.find((w) => w.loyalty < 22 && chance(0.18));
+    if (quitter) { crew.splice(crew.indexOf(quitter), 1); b.staff = crew.length; b.quality = clamp(b.quality - 4); notes.push({ en: `${quitter.name} quit.`, pcm: `${quitter.name} don quit.` }); }
+    const thief = crew.find((w) => w.loyalty < 38 && chance(0.1));
+    if (thief && !b.manager) { const lost = rev * 0.07; net -= lost; thief.loyalty = clamp(thief.loyalty - 5); notes.push({ en: `Stock is missing. ${thief.name} may be the cause.`, pcm: `Stock don miss. ${thief.name} fit be the cause.` }); }
     transact(p, { amount: net, reason: T(`${b.name}: ${net >= 0 ? "profit" : "loss"} for the month`, `${b.name}: ${net >= 0 ? "profit" : "loss"} for the month`), category: "business", recurring: b.id });
     b.profit += net;
     b.lastMonthProfit = net;
     b.lossStreak = net < 0 ? b.lossStreak + 1 : 0;
-    b.quality = clamp(b.quality + (b.manager ? -0.4 : -0.1) + (net > 0 ? 0.15 : -0.2));
+    const drift = [-0.35, 0, 0.35][b.stock ?? 1];
+    b.quality = clamp(b.quality + (b.manager ? -0.4 : -0.1) + (net > 0 ? 0.15 : -0.2) + drift);
+    // Fame grows with quality and advertising, and fades.
+    let fame = (b.fame ?? 20) + (b.quality - 50) / 40 + ads * 0.6 - 0.35 + (b.price === 0 ? 0.5 : 0);
+    if (b.price === 2 && b.quality < 62) fame -= 1.2;
+    b.fame = clamp(fame);
+    // Report and a hint for next time
+    let tip: BizReport["tip"] = null;
+    if (b.quality < 48) tip = NEED_TIPS[0];
+    else if (b.price === 2 && b.quality < 62) tip = NEED_TIPS[5];
+    else if (b.lossStreak >= 3) tip = NEED_TIPS[4];
+    else if (crew.some((w) => w.loyalty < 35)) tip = NEED_TIPS[3];
+    else if ((b.fame ?? 0) > 55 && crew.length < b.level * 2) tip = NEED_TIPS[1];
+    else if (ads === 0 && (b.fame ?? 0) < 30) tip = NEED_TIPS[2];
+    b.report = { rev: Math.round(rev), stock: Math.round(stock), wages: Math.round(wages), ads: Math.round(adSpend), other: Math.round(overheads + tax + extra), net: Math.round(net), notes, tip };
+    b.yr = { rev: (b.yr?.rev ?? 0) + rev, net: (b.yr?.net ?? 0) + net };
+    if (p.month === 12) { (b.hist ??= []).push({ age: p.age, rev: Math.round(b.yr.rev), net: Math.round(b.yr.net) }); if (b.hist.length > 8) b.hist.shift(); b.yr = { rev: 0, net: 0 }; }
     if (b.lossStreak >= 9) {
       b.status = "closed";
       lines.push(T(`${b.name} shut down after months of losses.`, `${b.name} don shut after months of loss.`));
@@ -166,6 +313,8 @@ export function businessMonth(p: Player, lines: string[]) {
   }
   p.businesses = p.businesses.filter((b) => b.status === "open");
 }
+
+const jobIsSelf = (p: Player) => Boolean(p.job && JOB_BY_ID[p.job.id]?.selfEmployed);
 
 export const bizValue = (p: Player) => p.businesses.reduce((s, b) => s + valuation(p, b), 0);
 

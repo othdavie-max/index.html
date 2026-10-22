@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Avatar } from "./Avatar";
 import type { Action } from "./engine";
 import { BET_KINDS, betBlock, betProfit } from "./betting";
-import { BIZ_KINDS, BIZ_BY_ID, hireCost, startBlock, startCostFor, upgradeCost, valuation } from "./business";
+import { BIZ_KINDS, BIZ_BY_ID, PRICE_LABEL, STOCK_LABEL, hireCost, startBlock, startCostFor, upgradeCost, valuation, workerPay } from "./business";
 import { CRIMES, crimeBlock } from "./crime";
 import { HOME_TIERS, HOUSE_KINDS, STATE_BY_ID } from "./data";
 import { mortgageBalance, mortgageQuote } from "./mortgage";
@@ -23,7 +23,7 @@ import { CONTENT, PLATFORMS, postBlock, socialBlock, totalFollowers } from "./so
 import { VEHICLE_MODELS, licenseBlock, licenseCost, modelOf, needsLicense, priceOf, repairCost, isInsured } from "./vehicles";
 import { VehicleArt } from "./VehicleArt";
 import { beneficiaries, currentShares, totalPct } from "./will";
-import type { Candidate, Npc, PartnerRel, Platform, Player, StateInfo } from "./types";
+import type { Business, Candidate, Npc, PartnerRel, Platform, Player, StateInfo } from "./types";
 import { Badge, Bar, Btn, Card, H, Sheet, cx } from "./ui";
 import { riskLabel, transportOptions } from "./travel";
 import { PRISON_OPS, appealCost, prisonBlockOp } from "./prison";
@@ -791,40 +791,119 @@ export function SkillsCard({ p, run }: { p: Player; run: Run }) {
 export function BusinessCard({ p, run }: { p: Player; run: Run }) {
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
   if (p.age < 18) return null;
+  const open = p.businesses.filter((b) => b.status === "open");
+  const cur = open.find((b) => b.id === openId) ?? null;
+  const kindsSorted = [...BIZ_KINDS].sort((x, y) => x.startCost - y.startCost);
   return (
     <Card>
-      <H sub={T("Run it well and it grows. Run it badly and it eats your savings.", "Run am well and e go grow. Run am bad and e go chop your savings.")}>{T("Businesses", "Businesses")}</H>
-      {p.businesses.filter((b) => b.status === "open").map((b) => (
-        <div key={b.id} className="mb-2 rounded-xl bg-slate-50 p-3">
+      <H sub={T("Set prices, advertising and stock, hire and fire real people, and watch the monthly report. Run it well and it grows. Run it badly and it collapses.", "Set price, advert and stock, hire and fire real people, and watch the monthly report. Run am well, e go grow. Run am bad, e go collapse.")}>{T("Businesses", "Businesses")}</H>
+      {open.map((b) => (
+        <button key={b.id} type="button" onClick={() => setOpenId(b.id)} className="mb-2 w-full rounded-xl bg-slate-50 p-3 text-left">
           <div className="flex justify-between text-sm"><span className="font-semibold">{b.name}</span><span className="text-blue-600">{naira(valuation(p, b))}</span></div>
-          <div className="text-[11px] text-slate-500">{BIZ_BY_ID[b.kind]?.label} · {T("level", "level")} {b.level} · {b.staff} {T("staff", "staff")} · {STATE_BY_ID[b.stateId]?.name} · {T("last month", "last month")} <span className={b.lastMonthProfit >= 0 ? "text-emerald-600" : "text-red-600"}>{naira(b.lastMonthProfit)}</span></div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "upgrade", id: b.id })}>{T("Upgrade", "Upgrade")} ({naira(upgradeCost(p, b))})</Btn>
-            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "hire", id: b.id })}>{T("Hire", "Hire")} ({naira(hireCost(p, b))}/{T("mo", "mo")})</Btn>
-            <Btn small tone="ghost" disabled={b.staff <= 0} onClick={() => run({ t: "biz", op: "fire", id: b.id })}>{T("Lay off", "Lay off")}</Btn>
-            <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "manager", id: b.id })}>{b.manager ? T("Fire manager", "Sack manager") : T("Hire manager", "Hire manager")}</Btn>
-            <Btn small tone="gold" onClick={() => run({ t: "biz", op: "sell", id: b.id })}>{T("Sell", "Sell")}</Btn>
-            <Btn small tone="red" onClick={() => run({ t: "biz", op: "close", id: b.id })}>{T("Close", "Close")}</Btn>
-          </div>
-        </div>
+          <div className="text-[11px] text-slate-500">{BIZ_BY_ID[b.kind]?.label} · {T("level", "level")} {b.level} · {(b.crew?.length ?? b.staff)} {T("staff", "staff")} · {STATE_BY_ID[b.stateId]?.name}</div>
+          <div className="mt-1 flex items-center justify-between text-[11px]"><span>{T("last month", "last month")} <span className={b.lastMonthProfit >= 0 ? "text-emerald-600" : "text-red-600"}>{naira(b.lastMonthProfit)}</span></span><span className="text-slate-500">{T("fame", "fame")} {Math.round(b.fame ?? 0)} · {T("quality", "quality")} {Math.round(b.quality)}</span></div>
+          {b.lossStreak >= 3 && <div className="mt-1 text-[11px] font-semibold text-red-600">{T(`Losing money ${b.lossStreak} months in a row`, `E don dey lose money ${b.lossStreak} months now`)}</div>}
+        </button>
       ))}
       <Btn small tone="ghost" onClick={() => setShow(!show)}>{show ? T("Hide", "Hide") : T("Start a business", "Start business")}</Btn>
       {show && (
         <div className="mt-2 space-y-1.5">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={T("Business name (optional)", "Business name (optional)")} maxLength={30} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" />
-          {BIZ_KINDS.map((k) => {
-            const b = startBlock(p, k.id);
+          {kindsSorted.map((k) => {
+            const bl = startBlock(p, k.id);
             return (
-              <div key={k.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                <div className="text-sm"><div className="font-semibold">{k.label}</div><div className="text-[11px] text-slate-500">{k.blurb}</div></div>
-                <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "biz", op: "start", id: k.id, name })}>{b ?? naira(startCostFor(p, k))}</Btn>
+              <div key={k.id} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2">
+                <div className="min-w-0 text-sm"><div className="font-semibold">{k.label}</div><div className="text-[11px] text-slate-500">{k.blurb}</div></div>
+                <Btn small tone="ghost" disabled={Boolean(bl)} onClick={() => run({ t: "biz", op: "start", id: k.id, name })}>{bl ?? naira(startCostFor(p, k))}</Btn>
               </div>
             );
           })}
         </div>
       )}
+      {cur && <BusinessSheet p={p} b={cur} run={run} onClose={() => setOpenId(null)} />}
     </Card>
+  );
+}
+
+function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Run; onClose: () => void }) {
+  const k = BIZ_BY_ID[b.kind];
+  const crew = b.crew ?? [];
+  const r = b.report;
+  const pick = (op: "price" | "ads" | "stock", v: number) => run({ t: "biz", op, id: b.id, v });
+  const Seg = ({ label, value, opts, op }: { label: string; value: number; opts: string[]; op: "price" | "ads" | "stock" }) => (
+    <div className="mb-2">
+      <div className="mb-1 text-xs text-slate-600">{label}</div>
+      <div className="grid grid-cols-4 gap-1">{opts.map((o, i) => <button key={o} type="button" onClick={() => pick(op, i)} className={cx("rounded-lg border px-1 py-1.5 text-[11px] font-semibold", value === i ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")} style={{ gridColumn: opts.length === 3 ? "span 1" : undefined }}>{o}</button>)}</div>
+    </div>
+  );
+  const maxRev = Math.max(1, ...(b.hist ?? []).map((h) => Math.abs(h.net)));
+  return (
+    <Sheet title={b.name} onClose={onClose}>
+      <p className="mb-2 text-xs text-slate-500">{k?.label} · {STATE_BY_ID[b.stateId]?.name} · {T("level", "level")} {b.level}/5 · {T("worth", "worth")} {naira(valuation(p, b))}</p>
+      <div className="mb-3 grid grid-cols-2 gap-2"><Bar label={T("Quality", "Quality")} value={b.quality} tone="blue" /><Bar label={T("Fame", "Fame")} value={b.fame ?? 0} tone="blue" /></div>
+      {r ? (
+        <div className="mb-3 rounded-xl bg-slate-50 p-3 text-xs">
+          <div className="mb-1 font-semibold text-slate-700">{T("Last month", "Last month")}</div>
+          <dl className="space-y-0.5">
+            <Row k={T("Sales", "Sales")} v={naira(r.rev)} />
+            <Row k={T("Stock", "Stock")} v={naira(-r.stock)} />
+            <Row k={T("Wages", "Wages")} v={naira(-r.wages)} />
+            <Row k={T("Advertising", "Advertising")} v={naira(-r.ads)} />
+            <Row k={T("Other costs", "Other costs")} v={naira(-r.other)} />
+            <Row k={T("Profit", "Profit")} v={naira(r.net)} bad={r.net < 0} />
+          </dl>
+          {r.notes.map((n, i) => <p key={i} className="mt-1 text-slate-600">• {T(n.en, n.pcm)}</p>)}
+          {r.tip && <p className="mt-2 rounded-lg bg-blue-50 px-2 py-1.5 font-semibold text-blue-700">{T(r.tip.en, r.tip.pcm)}</p>}
+        </div>
+      ) : <p className="mb-3 text-xs text-slate-500">{T("The first report arrives at the end of the month.", "First report go land when month end.")}</p>}
+      {(b.hist?.length ?? 0) > 0 && (
+        <div className="mb-3">
+          <div className="mb-1 text-xs text-slate-600">{T("Profit by year", "Profit by year")}</div>
+          <div className="flex h-12 items-end gap-1">{b.hist!.map((h, i) => <div key={i} title={naira(h.net)} className={cx("flex-1 rounded-t", h.net >= 0 ? "bg-emerald-400" : "bg-red-400")} style={{ height: `${Math.max(6, (Math.abs(h.net) / maxRev) * 100)}%` }} />)}</div>
+        </div>
+      )}
+      <Seg label={T("Prices", "Prices")} value={b.price ?? 1} opts={PRICE_LABEL.map((f) => f())} op="price" />
+      <Seg label={T("Advertising", "Advertising")} value={b.ads ?? 0} opts={[T("None", "None"), T("Small", "Small"), T("Medium", "Medium"), T("Heavy", "Heavy")]} op="ads" />
+      <Seg label={T("Stock quality", "Stock quality")} value={b.stock ?? 1} opts={STOCK_LABEL.map((f) => f())} op="stock" />
+      <div className="mb-1 mt-3 flex items-center justify-between">
+        <div className="text-sm font-semibold">{T("Your team", "Your team")} ({crew.length}/{b.level * 4 + 2})</div>
+        <Btn small tone="gold" onClick={() => run({ t: "biz", op: "recruit", id: b.id })}>{T("Recruit", "Recruit")} · {naira(hireCost(p, b) * 0.4)}</Btn>
+      </div>
+      {b.cands && (
+        <div className="mb-2 space-y-1.5 rounded-xl border border-blue-100 bg-blue-50/50 p-2">
+          <div className="text-[11px] font-semibold text-blue-700">{T("Interview: pick one", "Interview: pick one")}</div>
+          {b.cands.map((w, i) => (
+            <div key={w.id} className="flex items-center justify-between rounded-lg bg-white px-2.5 py-1.5 text-xs">
+              <div><div className="font-semibold">{w.name}</div><div className="text-slate-500">{T("skill", "skill")} {w.skill} · {naira(Math.round(workerPay(p, b, w)))}/{T("mo", "mo")}</div></div>
+              <Btn small tone="gold" onClick={() => run({ t: "biz", op: "pick", id: b.id, idx: i })}>{T("Hire", "Hire")}</Btn>
+            </div>
+          ))}
+        </div>
+      )}
+      {crew.length === 0 && <p className="mb-2 text-xs text-slate-500">{T("You run it alone. Staff lift sales but cost wages.", "You dey run am alone. Staff dey lift sales but dem dey cost salary.")}</p>}
+      <div className="space-y-1.5">
+        {crew.map((w) => (
+          <div key={w.id} className="rounded-xl bg-slate-50 px-3 py-2 text-xs">
+            <div className="flex items-center justify-between"><span className="font-semibold">{w.name}</span><span className="text-slate-500">{naira(workerPay(p, b, w))}/{T("mo", "mo")}</span></div>
+            <div className="mt-1 grid grid-cols-2 gap-2"><Bar label={T("Skill", "Skill")} value={w.skill} tone="blue" /><Bar label={T("Loyalty", "Loyalty")} value={w.loyalty} tone={w.loyalty < 35 ? "red" : "blue"} /></div>
+            <div className="mt-1.5 flex gap-1.5">
+              <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "raise", id: b.id, worker: w.id })}>{T("Raise pay", "Raise pay")}</Btn>
+              <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "train", id: b.id, worker: w.id })}>{T("Train", "Train")}</Btn>
+              <Btn small tone="red" onClick={() => run({ t: "biz", op: "dismiss", id: b.id, worker: w.id })}>{T("Fire", "Fire")}</Btn>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <Btn small tone="ghost" disabled={b.level >= 5} onClick={() => run({ t: "biz", op: "upgrade", id: b.id })}>{T("Expand", "Expand")} ({naira(upgradeCost(p, b))})</Btn>
+        <Btn small tone="ghost" onClick={() => run({ t: "biz", op: "manager", id: b.id })}>{b.manager ? T("Sack manager", "Sack manager") : T("Hire a manager", "Hire manager")}</Btn>
+        <Btn small tone="gold" onClick={() => { run({ t: "biz", op: "sell", id: b.id }); onClose(); }}>{T("Sell", "Sell")}</Btn>
+        <Btn small tone="red" onClick={() => { run({ t: "biz", op: "close", id: b.id }); onClose(); }}>{T("Close down", "Close down")}</Btn>
+      </div>
+      <p className="mt-2 text-[11px] text-slate-500">{b.manager ? T("A manager runs it for you, for a 15% cut. You can own it without working in it.", "Manager dey run am for you, 15% share. You fit own am without working inside.") : T("You run it yourself. A full-time job elsewhere takes your attention off the business.", "You dey run am yourself. Full-time job for another place go reduce your attention.")}</p>
+    </Sheet>
   );
 }
 

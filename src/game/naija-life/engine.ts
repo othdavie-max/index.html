@@ -35,7 +35,7 @@ import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFam
 import { buyVehicle, takeDrivingTest, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
 import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
-import { closeBusiness, fireStaff, hireStaff, sellBusiness, startBusiness, toggleManager, upgradeBusiness } from "./business";
+import { closeBusiness, dismiss, ensureCrew, fireStaff, hirePick, hireStaff, raisePay, recruit, sellBusiness, setPolicy, startBusiness, toggleManager, trainWorker, upgradeBusiness } from "./business";
 import { placeBet, type BetKind } from "./betting";
 import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
 import { setShare } from "./will";
@@ -96,6 +96,7 @@ export function migrate(g: Game): Game {
   if (p.spouse && !p.spouse.look) p.spouse.look = randomLook(p.gender === "male" ? "female" : "male", { region });
   for (const k of p.kids) if (!k.look) k.look = kidLook(p.gender === "male" ? p.look : p.spouse?.look, p.gender === "female" ? p.look : p.spouse?.look, k.gender);
   migrateWorld(p);
+  for (const b of p.businesses) ensureCrew(p, b);
   if (!p.listings) refreshListings(p);
   syncLegacyFamily(p);
   return g;
@@ -744,7 +745,7 @@ export type Action =
   | { t: "checkup" }
   | { t: "treat"; cond: string; facility: string }
   | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
-  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close"; id: string; name?: string }
+  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock"; id: string; name?: string; worker?: string; idx?: number; v?: number }
   | { t: "bet"; kind: BetKind; stake: number }
   | { t: "social"; op: "account" | "post" | "collab" | "gear"; platform?: Platform; content?: ContentKind }
   | { t: "crime"; id: string }
@@ -1184,6 +1185,12 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "upgrade": return out(upgradeBusiness(p, a.id));
             case "hire": return out(hireStaff(p, a.id));
             case "fire": return out(fireStaff(p, a.id));
+            case "recruit": return out(recruit(p, a.id));
+            case "pick": return out(hirePick(p, a.id, a.idx ?? 0));
+            case "dismiss": return out(dismiss(p, a.id, a.worker));
+            case "raise": return out(raisePay(p, a.id, a.worker ?? ""));
+            case "train": return out(trainWorker(p, a.id, a.worker ?? ""));
+            case "price": case "ads": case "stock": return out(setPolicy(p, a.id, a.op, a.v ?? 1));
             case "manager": return out(toggleManager(p, a.id));
             case "sell": return out(sellBusiness(p, a.id));
             case "close": return out(closeBusiness(p, a.id));
