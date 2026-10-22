@@ -58,6 +58,7 @@ export function createProfile(p: Player, bio: string, interests: string[], looki
   const quality = clamp(35 + (p.stats.looks - 50) * 0.25 + interests.length * 4 + bioBonus + p.stats.smarts / 12 + randInt(-4, 4), 10, 95);
   p.rel.profile = { bio, interests, quality, looking };
   p.rel.deck = [];
+  refreshDeck(p);
   return "Your Spark profile is live. Let's see who is out there.";
 }
 
@@ -74,9 +75,9 @@ export function refreshDeck(p: Player) {
 export function swipe(p: Player, candId: string, like: boolean): string {
   const i = p.rel.deck.findIndex((c) => c.id === candId);
   if (i < 0) return "";
+  if (p.rel.swipesLeft <= 0) return "You are out of swipes for the year. Try again after your birthday.";
   const c = p.rel.deck[i];
   p.rel.deck.splice(i, 1);
-  if (p.rel.swipesLeft <= 0) return "You are out of swipes for the year. Try again after your birthday.";
   p.rel.swipesLeft -= 1;
   refreshDeck(p);
   if (!like) return `You passed on ${first(c)}.`;

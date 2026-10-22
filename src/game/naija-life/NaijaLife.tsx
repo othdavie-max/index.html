@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Briefcase, Crown, Hourglass, Map as MapIcon, Share2, Trophy, Users, Wallet,
+  Briefcase, Crown, Gavel, HeartPulse, Hourglass, Map as MapIcon, Share2, Smartphone, Trophy, Users, Wallet,
 } from "lucide-react";
 import {
   ALL_TRIBES, HOUSE_KINDS, INVESTMENTS, JOBS, LUXURIES, OFFICES, RELIGIONS, STATES, STATE_BY_ID, TRAVEL_STATES, payMult, travelCost,
@@ -18,19 +18,23 @@ import { KidnapModal } from "./KidnapModal";
 import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, displayLook, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
+import { BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { chance, naira, setDeflator } from "./util";
 
 const SAVE_KEY = "naija-life-save-v1";
-type Tab = "life" | "work" | "money" | "family" | "map" | "power" | "legacy";
+type Tab = "life" | "phone" | "work" | "money" | "family" | "health" | "law" | "map" | "power" | "legacy";
 
 const TABS: { id: Tab; label: string; icon: typeof Hourglass }[] = [
   { id: "life", label: "Life", icon: Hourglass },
+  { id: "phone", label: "Phone", icon: Smartphone },
   { id: "work", label: "Work", icon: Briefcase },
   { id: "money", label: "Money", icon: Wallet },
   { id: "family", label: "Family", icon: Users },
+  { id: "health", label: "Health", icon: HeartPulse },
+  { id: "law", label: "Law", icon: Gavel },
   { id: "map", label: "Map", icon: MapIcon },
   { id: "power", label: "Power", icon: Crown },
   { id: "legacy", label: "Legacy", icon: Trophy },
@@ -125,6 +129,9 @@ export default function NaijaLife() {
       <Header p={p} onMenu={() => setMenu(true)} />
       <main className="flex-1 space-y-3 px-4 pb-44 pt-3">
         {tab === "life" && <LifeTab g={game} run={run} />}
+        {tab === "phone" && <PhoneTab p={p} run={run} />}
+        {tab === "health" && <HealthTab p={p} run={run} />}
+        {tab === "law" && <LawTab p={p} run={run} />}
         {tab === "work" && <WorkTab p={p} run={run} />}
         {tab === "money" && <MoneyTab p={p} run={run} />}
         {tab === "family" && <FamilyTab p={p} run={run} />}
@@ -549,6 +556,8 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {group("Jobs", eligible.filter((j) => !j.selfEmployed && (j.group === "petty" || j.group === "formal")), "Salaried work. Promotions come with time and connections.")}
           {group("Creative careers", eligible.filter((j) => j.group === "creative"), "Slow start, huge upside.")}
           {group("Risky paths", eligible.filter((j) => j.group === "crime"), "Fast money. Heavy consequences.")}
+          <BusinessCard p={p} run={run} />
+          <SkillsCard p={p} run={run} />
           {locked.length > 0 && (
             <details className="rounded-2xl border border-white/10 bg-[#0e2218] p-4">
               <summary className="cursor-pointer text-sm font-semibold text-white/70">Locked careers ({locked.length})</summary>
@@ -579,6 +588,12 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         </div>
         <p className="mt-2 text-center text-[11px] text-white/45">Prices rise every year. Cash loses value. Houses and dollars hold up better.</p>
       </Card>
+
+      <NetWorthCard p={p} />
+      <HousingCard p={p} run={run} />
+      <GarageCard p={p} run={run} />
+      <SubsCard p={p} />
+      <LedgerCard p={p} />
 
       <Card>
         <H sub={`Build in ${st.name}. Land is ${st.cost >= 1.4 ? "very expensive" : st.cost >= 0.9 ? "pricey" : "cheap"} here. Travel to build elsewhere.`}>Build a house</H>
@@ -725,6 +740,8 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           ))}
         </div>
       </Card>
+      <PeopleCard p={p} run={run} />
+      {p.age >= 18 && <WillCard p={p} run={run} />}
       {!p.spouse && p.flags.dating && <Card><H>Dating</H><p className="text-sm">Dating {String(p.flags.dating)}. A proposal may be coming.</p></Card>}
       {!p.spouse && !p.flags.dating && <Card><H>Spouse</H><p className="text-sm text-white/60">Single. Use &quot;Look for love&quot; in the Life tab.</p></Card>}
       <Card>
