@@ -1,25 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import {
-  Briefcase, Crown, Gavel, HeartPulse, Hourglass, Map as MapIcon, Share2, Smartphone, Trophy, Users, Wallet,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Share2 } from "lucide-react";
 import {
   ALL_TRIBES, HOUSE_KINDS, INVESTMENTS, JOBS, LUXURIES, OFFICES, RELIGIONS, STATES, STATE_BY_ID, TRAVEL_STATES, payMult, travelCost,
   type JobDef,
 } from "./data";
 import {
-  ACTIVITIES, act, activityBlock, ageUp, ackKidnap, applyBlock, buildCost, choose, describePending, expandCost, kidnapAction, migrate, newGame, startHeir, startNewFamily,
+  act, ageUp, ackKidnap, applyBlock, buildCost, choose, describePending, expandCost, kidnapAction, migrate, newGame, startHeir, startNewFamily,
   type Action, type NewLifeOptions, worth,
 } from "./engine";
-import { eduAtLeast, eligibleJobs, jobDef, jobTitle } from "./helpers";
+import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
 import { Avatar } from "./Avatar";
 import { KidnapModal } from "./KidnapModal";
-import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, displayLook, randomLook, strToLook, type Look } from "./look";
+import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
 import { RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { meritOf } from "./military";
+import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
@@ -32,21 +31,6 @@ const SAVE_KEY = "naija-life-save-v1";
 const SLOTS_KEY = "naija-life-slots-v1";
 const LANG_KEY = "naija-life-lang";
 const SLOT_COUNT = 3;
-type Tab = "life" | "phone" | "work" | "money" | "family" | "health" | "law" | "map" | "power" | "legacy";
-
-const TABS: { id: Tab; label: string; icon: typeof Hourglass }[] = [
-  { id: "life", get label() { return T("Life", "Life"); }, icon: Hourglass },
-  { id: "phone", get label() { return T("Phone", "Phone"); }, icon: Smartphone },
-  { id: "work", get label() { return T("Work", "Work"); }, icon: Briefcase },
-  { id: "money", get label() { return T("Money", "Money"); }, icon: Wallet },
-  { id: "family", get label() { return T("Family", "Family"); }, icon: Users },
-  { id: "health", get label() { return T("Health", "Health"); }, icon: HeartPulse },
-  { id: "law", get label() { return T("Law", "Law"); }, icon: Gavel },
-  { id: "map", get label() { return T("Map", "Map"); }, icon: MapIcon },
-  { id: "power", get label() { return T("Power", "Power"); }, icon: Crown },
-  { id: "legacy", get label() { return T("Legacy", "Legacy"); }, icon: Trophy },
-];
-
 function parseGame(raw: unknown): Game | null {
   try {
     const g = raw as Game;
@@ -149,7 +133,7 @@ export default function NaijaLife() {
     if (r.msg) setToast(r.msg);
   };
 
-  if (!ready) return <div className="min-h-screen bg-[#07130e]" />;
+  if (!ready) return <div className="min-h-screen bg-[#f3f8ff]" />;
 
   if (!game) {
     setLang(lang);
@@ -182,10 +166,13 @@ export default function NaijaLife() {
 
   return (
     <Shell>
-      <Header p={p} onMenu={() => setMenu(true)} onBell={() => setBell(true)} count={notificationsFor(p).filter((n) => n.level !== "green").length} />
-      <main className="flex-1 space-y-3 px-4 pb-44 pt-3">
+      <GameHeader p={p} onMenu={() => setMenu(true)} onWallet={() => setTab("money")} alerts={notificationsFor(p).filter((n) => n.level !== "green").length} />
+      <StatsCard p={p} />
+      <main className="flex-1 space-y-3 px-4 pb-64 pt-3">
+        {EXPLORE_TABS.includes(tab) && <ExploreChips tab={tab} setTab={setTab} />}
+        {tab === "explore" && <ExploreHub setTab={setTab} />}
         {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}
-        {tab === "life" && <><PrisonCard p={p} run={run} /><LifeTab g={game} run={run} /></>}
+        {tab === "life" && <><PrisonCard p={p} run={run} /><HeadlinesCard p={p} /><LifeFeed g={game} run={run} /></>}
         {tab === "phone" && p.prison <= 0 && <PhoneTab p={p} run={run} />}
         {tab === "health" && <HealthTab p={p} run={run} />}
         {tab === "law" && <LawTab p={p} run={run} />}
@@ -199,38 +186,16 @@ export default function NaijaLife() {
       </main>
 
       {toast && (
-        <div className="fixed inset-x-0 bottom-36 z-40 mx-auto w-[92%] max-w-md rounded-xl border border-[#f5b82e]/40 bg-[#1c2a10] px-4 py-2.5 text-center text-sm text-white shadow-xl">
+        <div className="fixed inset-x-0 bottom-44 z-40 mx-auto w-[92%] max-w-md rounded-2xl bg-slate-800 px-4 py-2.5 text-center text-sm font-medium text-white shadow-xl">
           {toast}
         </div>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-white/10 bg-[#07130e]/95 backdrop-blur">
-        <div className="px-4 pt-3">
-          <Btn tone="gold" className="w-full py-3 text-base" disabled={busy || !p.alive} onClick={() => { setGame(ageUp(game)); setTab("life"); }}>
-            {T(`Age up → ${p.age + 1}`, `Grow up → ${p.age + 1}`)}
-          </Btn>
-        </div>
-        <nav className="mt-2 flex overflow-x-auto px-1 pb-2" aria-label="Game sections">
-          {TABS.map((t) => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTab(t.id)}
-                className={cx("flex min-w-[56px] flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 text-[10px] font-semibold", tab === t.id ? "text-[#f5b82e]" : "text-white/50")}
-              >
-                <Icon size={18} />
-                {t.label}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { setGame(ageUp(game)); setTab("life"); }} />
 
       {result !== null && (
         <Sheet>
-          <p className="text-base leading-relaxed text-white">{result}</p>
+          <p className="text-base leading-relaxed text-slate-900">{result}</p>
           <Btn className="mt-4 w-full" onClick={() => setResult(null)}>{T("Continue", "Continue")}</Btn>
         </Sheet>
       )}
@@ -242,7 +207,7 @@ export default function NaijaLife() {
               <Avatar look={evLook} gender={p.gender === "male" ? "female" : "male"} age={26} mood={75} size={110} />
             </div>
           )}
-          <p className="text-[15px] leading-relaxed text-white/90">{view.text}</p>
+          <p className="text-[15px] leading-relaxed text-slate-800">{view.text}</p>
           <div className="mt-4 space-y-2">
             {view.choices.map((c, i) => (
               <button
@@ -254,10 +219,10 @@ export default function NaijaLife() {
                   setGame(r.g);
                   setResult(r.text);
                 }}
-                className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <span className="block text-sm font-semibold text-white">{c.label}</span>
-                {(c.sub || c.disabled) && <span className={cx("block text-xs", c.disabled ? "text-red-300" : "text-[#f5b82e]")}>{c.disabled || c.sub}</span>}
+                <span className="block text-sm font-semibold text-slate-900">{c.label}</span>
+                {(c.sub || c.disabled) && <span className={cx("block text-xs", c.disabled ? "text-red-600" : "text-blue-600")}>{c.disabled || c.sub}</span>}
               </button>
             ))}
           </div>
@@ -288,7 +253,7 @@ export default function NaijaLife() {
         <Sheet title={T("Your card", "Your card")} onClose={() => setCardImg(null)}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={cardImg.url} alt={T("Share card", "Share card")} className="w-full rounded-xl" />
-          <p className="mt-3 text-xs text-white/60">{T("Press and hold the image to save it, or take a screenshot, then post it.", "Press and hold the image to save am, or take screenshot, then post am.")}</p>
+          <p className="mt-3 text-xs text-slate-500">{T("Press and hold the image to save it, or take a screenshot, then post it.", "Press and hold the image to save am, or take screenshot, then post am.")}</p>
           <Btn tone="ghost" className="mt-3 w-full" onClick={() => { try { void navigator.clipboard.writeText(cardImg.text); } catch { /* clipboard blocked */ } }}>{T("Copy caption", "Copy caption")}</Btn>
         </Sheet>
       )}
@@ -296,16 +261,16 @@ export default function NaijaLife() {
       {bell && (
         <Sheet title={T("Alerts and history", "Alerts and history")} onClose={() => setBell(false)}>
           <H>{T("Needs your attention", "Wetin need your attention")}</H>
-          {notificationsFor(p).length === 0 && <p className="text-sm text-white/60">{T("Nothing urgent.", "Nothing serious.")}</p>}
+          {notificationsFor(p).length === 0 && <p className="text-sm text-slate-500">{T("Nothing urgent.", "Nothing serious.")}</p>}
           <ul className="space-y-1.5">
-            {notificationsFor(p).map((n, i) => <li key={i} className={cx("rounded-xl px-3 py-2 text-sm", n.level === "red" ? "bg-red-500/15 text-red-200" : "bg-[#f5b82e]/10 text-[#f5b82e]")}>{n.text}</li>)}
+            {notificationsFor(p).map((n, i) => <li key={i} className={cx("rounded-xl px-3 py-2 text-sm", n.level === "red" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-600")}>{n.text}</li>)}
           </ul>
           <H>{T("Recent years", "Wetin don happen")}</H>
           <div className="max-h-64 space-y-2 overflow-y-auto">
             {[...p.log].reverse().slice(0, 12).map((e, i) => (
-              <div key={i} className="rounded-xl bg-white/5 p-2.5">
-                <div className="text-[11px] font-semibold text-[#f5b82e]">{T("Age", "Age")} {e.age}</div>
-                {e.lines.slice(0, 4).map((l, j) => <p key={j} className="text-xs text-white/75">{l}</p>)}
+              <div key={i} className="rounded-xl bg-slate-50 p-2.5">
+                <div className="text-[11px] font-semibold text-blue-600">{T("Age", "Age")} {e.age}</div>
+                {e.lines.slice(0, 4).map((l, j) => <p key={j} className="text-xs text-slate-700">{l}</p>)}
               </div>
             ))}
           </div>
@@ -314,11 +279,12 @@ export default function NaijaLife() {
 
       {menu && (
         <Sheet title={T("Menu", "Menu")} onClose={() => setMenu(false)}>
-          <p className="text-sm text-white/70">{T(`Saved automatically in slot ${slot + 1} on this device.`, `Game dey save by itself for slot ${slot + 1} for this device.`)}</p>
+          <p className="text-sm text-slate-600">{T(`Saved automatically in slot ${slot + 1} on this device.`, `Game dey save by itself for slot ${slot + 1} for this device.`)}</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             {(["en", "pcm"] as Lang[]).map((l) => <Btn key={l} tone={p.lang === l ? "gold" : "ghost"} onClick={() => chooseLang(l)}>{l === "en" ? "English" : "Pidgin"}</Btn>)}
           </div>
           <div className="mt-4 space-y-2">
+            <Btn tone="ghost" className="w-full" onClick={() => { setMenu(false); setBell(true); }}>{T("Alerts and history", "Alerts and history")}</Btn>
             <Btn tone="ghost" className="w-full" onClick={() => setMenu(false)}>{T("Back to the game", "Go back to game")}</Btn>
             <Btn tone="ghost" className="w-full" onClick={() => { setGame(null); setMenu(false); }}>{T("Switch life (save slots)", "Change life (save slots)")}</Btn>
             <Btn tone="red" className="w-full" onClick={() => { setSlots((s) => { const next = [...s]; next[slot] = null; writeSlots(next); return next; }); setGame(null); setMenu(false); }}>{T("Abandon this life and start over", "Abandon this life make we start again")}</Btn>
@@ -331,8 +297,8 @@ export default function NaijaLife() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#050e09] font-sans text-white" style={{ fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif" }}>
-      <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-[#07130e] shadow-2xl shadow-black">{children}</div>
+    <div className="min-h-screen bg-[#e9f0fb] text-slate-800" style={{ fontFamily: "'Plus Jakarta Sans', 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" }}>
+      <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-gradient-to-b from-[#f3f8ff] via-white to-[#f7faff] shadow-2xl shadow-blue-900/10">{children}</div>
     </div>
   );
 }
@@ -342,7 +308,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 // ---------------------------------------------------------------------------
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className={cx("rounded-full border px-3 py-1.5 text-xs font-semibold transition", active ? "border-[#f5b82e] bg-[#f5b82e]/15 text-[#f5b82e]" : "border-white/15 bg-white/5 text-white/70 hover:bg-white/10")}>
+    <button type="button" onClick={onClick} className={cx("rounded-full border px-3 py-1.5 text-xs font-semibold transition", active ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100")}>
       {children}
     </button>
   );
@@ -350,7 +316,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 function Swatch({ color, active, onClick, label }: { color: string; active: boolean; onClick: () => void; label: string }) {
   return (
-    <button type="button" aria-label={label} onClick={onClick} className={cx("h-8 w-8 rounded-full border-2 transition", active ? "border-[#f5b82e] scale-110" : "border-white/20")} style={{ background: color }} />
+    <button type="button" aria-label={label} onClick={onClick} className={cx("h-8 w-8 rounded-full border-2 transition", active ? "border-blue-500 scale-110" : "border-slate-200")} style={{ background: color }} />
   );
 }
 
@@ -366,7 +332,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
   const [tribe, setTribe] = useState("");
   const [religion, setReligion] = useState("");
   const [look, setLook] = useState<Look>(() => randomLook("male", { region: "South West" }));
-  const field = "mt-1 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-[#f5b82e]";
+  const field = "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500";
   const set = (patch: Partial<Look>) => setLook((l) => ({ ...l, ...patch }));
   const regionNow = () => (stateId ? STATE_BY_ID[stateId]?.region : undefined);
   const reroll = (g: Gender = gender) => setLook(randomLook(g, { region: regionNow(), religion: religion || undefined }));
@@ -375,12 +341,12 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
       <div className="h-1.5 w-full overflow-hidden rounded-full">
         <div className="flex h-full"><div className="flex-1 bg-[#1f9d55]" /><div className="flex-1 bg-white" /><div className="flex-1 bg-[#1f9d55]" /></div>
       </div>
-      <h1 className="mt-6 font-serif text-5xl font-black leading-[1.05] text-white">Naija<br /><span className="text-[#f5b82e]">Life</span></h1>
-      <p className="mt-3 text-sm leading-relaxed text-white/70">{T("Live a whole Nigerian life: from akara by the roadside to Aso Rock. Hustle, travel between states, build houses, survive NEPA, dodge kidnappers, and leave a legacy your children inherit.", "Live full Naija life: from akara for roadside reach Aso Rock. Hustle, travel between states, build house, survive NEPA, run from kidnappers, and leave legacy wey your pikin go inherit.")}</p>
+      <h1 className="mt-6 font-serif text-5xl font-black leading-[1.05] text-slate-900">Naija<br /><span className="text-blue-600">Life</span></h1>
+      <p className="mt-3 text-sm leading-relaxed text-slate-600">{T("Live a whole Nigerian life: from akara by the roadside to Aso Rock. Hustle, travel between states, build houses, survive NEPA, dodge kidnappers, and leave a legacy your children inherit.", "Live full Naija life: from akara for roadside reach Aso Rock. Hustle, travel between states, build house, survive NEPA, run from kidnappers, and leave legacy wey your pikin go inherit.")}</p>
 
       <div className="mt-5 grid grid-cols-2 gap-2" role="group" aria-label={T("Language", "Language")}>
         {(["en", "pcm"] as Lang[]).map((l) => (
-          <button key={l} type="button" onClick={() => onLang(l)} className={cx("rounded-xl border px-3 py-2.5 text-sm font-semibold", lang === l ? "border-[#f5b82e] bg-[#f5b82e]/15 text-[#f5b82e]" : "border-white/15 bg-white/5 text-white/70")}>{l === "en" ? "English" : "Pidgin"}</button>
+          <button key={l} type="button" onClick={() => onLang(l)} className={cx("rounded-xl border px-3 py-2.5 text-sm font-semibold", lang === l ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")}>{l === "en" ? "English" : "Pidgin"}</button>
         ))}
       </div>
 
@@ -388,8 +354,8 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
         <Card className="mt-6 space-y-2">
           <H>{T("Your lives", "Your lives")}</H>
           {slots.map((s, i) => s && (
-            <div key={i} className="flex items-center justify-between gap-2 rounded-xl bg-white/5 p-3">
-              <div className="min-w-0 text-sm"><div className="truncate font-semibold">{s.p.name} {s.p.surname}</div><div className="text-[11px] text-white/50">{T("Slot", "Slot")} {i + 1} · {T("Age", "Age")} {s.p.age} · {s.p.alive ? naira(worth(s.p)) : T("Died", "Don die")}</div></div>
+            <div key={i} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 p-3">
+              <div className="min-w-0 text-sm"><div className="truncate font-semibold">{s.p.name} {s.p.surname}</div><div className="text-[11px] text-slate-500">{T("Slot", "Slot")} {i + 1} · {T("Age", "Age")} {s.p.age} · {s.p.alive ? naira(worth(s.p)) : T("Died", "Don die")}</div></div>
               <div className="flex shrink-0 gap-1.5"><Btn small tone="gold" onClick={() => onContinue(i)}>{T("Continue", "Continue")}</Btn><Btn small tone="ghost" onClick={() => onDelete(i)}>✕</Btn></div>
             </div>
           ))}
@@ -398,37 +364,37 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 
       <Card className="mt-6 space-y-4">
         <H>{T("Your look", "Your look")}</H>
-        <div className="sticky top-0 z-10 -mx-4 flex items-center gap-4 border-b border-white/10 bg-[#0e2218] px-4 py-3">
+        <div className="sticky top-0 z-10 -mx-4 flex items-center gap-4 border-b border-slate-200 bg-white px-4 py-3">
           <Avatar look={look} gender={gender} age={22} mood={72} size={112} />
           <div className="space-y-2">
-            <p className="text-xs text-white/60">{T("Your parents, partner and children will look like family.", "Your parents, partner and pikin go resemble you.")}</p>
+            <p className="text-xs text-slate-500">{T("Your parents, partner and children will look like family.", "Your parents, partner and pikin go resemble you.")}</p>
             <Btn small tone="ghost" onClick={() => reroll()}>{T("Randomise look", "Random look")}</Btn>
           </div>
         </div>
         <div>
-          <span className="text-xs text-white/70">{T("Skin tone", "Skin colour")}</span>
+          <span className="text-xs text-slate-600">{T("Skin tone", "Skin colour")}</span>
           <div className="mt-1.5 flex flex-wrap gap-2">{SKINS.map((c, i) => <Swatch key={c} color={c} label={T(`Skin tone ${i + 1}`, `Skin colour ${i + 1}`)} active={look.skin === i} onClick={() => set({ skin: i })} />)}</div>
         </div>
         <div>
-          <span className="text-xs text-white/70">{T("Hairstyle", "Hairstyle")}</span>
+          <span className="text-xs text-slate-600">{T("Hairstyle", "Hairstyle")}</span>
           <div className="mt-1.5 flex flex-wrap gap-1.5">{HAIRS.map((h) => <Chip key={h.id} active={look.hair === h.id} onClick={() => set({ hair: h.id })}>{h.label}</Chip>)}</div>
         </div>
         <div>
-          <span className="text-xs text-white/70">{T("Hair colour", "Hair colour")}</span>
+          <span className="text-xs text-slate-600">{T("Hair colour", "Hair colour")}</span>
           <div className="mt-1.5 flex flex-wrap gap-2">{HAIR_COLORS.map((c, i) => <Swatch key={c} color={c} label={T(`Hair colour ${i + 1}`, `Hair colour ${i + 1}`)} active={look.hairColor === i} onClick={() => set({ hairColor: i })} />)}</div>
         </div>
         {gender === "male" && (
           <div>
-            <span className="text-xs text-white/70">{T("Beard", "Beard")}</span>
+            <span className="text-xs text-slate-600">{T("Beard", "Beard")}</span>
             <div className="mt-1.5 flex flex-wrap gap-1.5">{BEARDS.map((b) => <Chip key={b.id} active={look.beard === b.id} onClick={() => set({ beard: b.id })}>{b.label}</Chip>)}</div>
           </div>
         )}
         <div>
-          <span className="text-xs text-white/70">{T("Cap or headwear", "Cap or head wear")}</span>
+          <span className="text-xs text-slate-600">{T("Cap or headwear", "Cap or head wear")}</span>
           <div className="mt-1.5 flex flex-wrap gap-1.5">{WEARS.map((w) => <Chip key={w.id} active={look.wear === w.id} onClick={() => set({ wear: w.id })}>{w.label}</Chip>)}</div>
         </div>
         <div>
-          <span className="text-xs text-white/70">{T("Outfit", "Outfit")}</span>
+          <span className="text-xs text-slate-600">{T("Outfit", "Outfit")}</span>
           <div className="mt-1.5 flex flex-wrap gap-1.5">{OUTFITS.map((o) => <Chip key={o.id} active={look.outfit === o.id} onClick={() => set({ outfit: o.id })}>{o.label}</Chip>)}</div>
           <div className="mt-2 flex flex-wrap gap-2">{OUTFIT_COLORS.map((c, i) => <Swatch key={c} color={c} label={T(`Outfit colour ${i + 1}`, `Outfit colour ${i + 1}`)} active={look.outfitColor === i} onClick={() => set({ outfitColor: i })} />)}</div>
         </div>
@@ -436,47 +402,47 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 
       <Card className="mt-4 space-y-4">
         <H>{T("New life", "New life")}</H>
-        <label className="block text-xs text-white/70">{T("Name (optional)", "Name (optional)")}
+        <label className="block text-xs text-slate-600">{T("Name (optional)", "Name (optional)")}
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={T("e.g. Amina Bello", "e.g. Amina Bello")} className={field} maxLength={32} />
         </label>
         <div>
-          <span className="text-xs text-white/70">{T("Gender", "Gender")}</span>
+          <span className="text-xs text-slate-600">{T("Gender", "Gender")}</span>
           <div className="mt-1 grid grid-cols-2 gap-2">
             {(["male", "female"] as Gender[]).map((g) => (
-              <button key={g} type="button" onClick={() => { setGender(g); reroll(g); }} className={cx("rounded-xl border px-3 py-2.5 text-sm font-semibold capitalize", gender === g ? "border-[#f5b82e] bg-[#f5b82e]/15 text-[#f5b82e]" : "border-white/15 bg-white/5 text-white/70")}>{g === "male" ? T("male", "male") : T("female", "female")}</button>
+              <button key={g} type="button" onClick={() => { setGender(g); reroll(g); }} className={cx("rounded-xl border px-3 py-2.5 text-sm font-semibold capitalize", gender === g ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")}>{g === "male" ? T("male", "male") : T("female", "female")}</button>
             ))}
           </div>
         </div>
-        <label className="block text-xs text-white/70">{T("Born in", "Where you born")}
+        <label className="block text-xs text-slate-600">{T("Born in", "Where you born")}
           <select value={stateId} onChange={(e) => setStateId(e.target.value)} className={field}>
             <option value="">{T("Random (like real life)", "Random (as e be for real life)")}</option>
             {TRAVEL_STATES.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </label>
-        <label className="block text-xs text-white/70">{T("Tribe", "Tribe")}
+        <label className="block text-xs text-slate-600">{T("Tribe", "Tribe")}
           <select value={tribe} onChange={(e) => setTribe(e.target.value)} className={field}>
             <option value="">{T("Based on state", "Based on state")}</option>
             {ALL_TRIBES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </label>
-        <label className="block text-xs text-white/70">{T("Religion", "Religion")}
+        <label className="block text-xs text-slate-600">{T("Religion", "Religion")}
           <select value={religion} onChange={(e) => setReligion(e.target.value)} className={field}>
             <option value="">{T("Random", "Random")}</option>
             {RELIGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
         </label>
-        <details className="rounded-xl border border-white/10 bg-white/5 p-3">
-          <summary className="cursor-pointer text-xs font-semibold text-white/70">{T("Advanced: family background and seed", "Advanced: family background and seed")}</summary>
-          <label className="mt-3 block text-xs text-white/70">{T("Family background", "Family background")}
+        <details className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <summary className="cursor-pointer text-xs font-semibold text-slate-600">{T("Advanced: family background and seed", "Advanced: family background and seed")}</summary>
+          <label className="mt-3 block text-xs text-slate-600">{T("Family background", "Family background")}
             <select value={preset} onChange={(e) => setPreset(e.target.value)} className={field}>
               {FAMILY_PRESETS.map((x) => <option key={x.id} value={x.id}>{T(x.en, x.pcm)}</option>)}
             </select>
           </label>
-          <label className="mt-3 block text-xs text-white/70">{T("Seed (same seed, same life, as long as you make the same choices)", "Seed (same seed go give you same life if you do same choices)")}
+          <label className="mt-3 block text-xs text-slate-600">{T("Seed (same seed, same life, as long as you make the same choices)", "Seed (same seed go give you same life if you do same choices)")}
             <input value={seedText} onChange={(e) => setSeedText(e.target.value)} placeholder={T("optional", "optional")} className={field} maxLength={24} />
           </label>
         </details>
-        <label className="block text-xs text-white/70">{T("Save in", "Save for")}
+        <label className="block text-xs text-slate-600">{T("Save in", "Save for")}
           <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className={field}>
             {slots.map((s, i) => <option key={i} value={i}>{T("Slot", "Slot")} {i + 1}{s ? ` · ${s.p.name} (${T("will be replaced", "go replace am")})` : ` · ${T("empty", "empty")}`}</option>)}
           </select>
@@ -486,106 +452,8 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
           onStart({ name, gender, stateId: stateId || null, tribe: tribe || null, religion: religion || null, look, lang, seed: seedText.trim() ? hashSeed(seedText) : null, familyConfig: pr?.cfg, forceArchetype: pr?.force }, target);
         }}>{T("Be born", "Born me")} 🇳🇬</Btn>
       </Card>
-      <p className="mt-6 text-center text-[11px] text-white/40">{T("A fictional game. All people, events and results are made up for fun.", "Na story game. All the people, events and results na just for fun.")}</p>
+      <p className="mt-6 text-center text-[11px] text-slate-400">{T("A fictional game. All people, events and results are made up for fun.", "Na story game. All the people, events and results na just for fun.")}</p>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Header
-// ---------------------------------------------------------------------------
-function shownLook(p: Player): Look {
-  return displayLook(p.look, {
-    age: p.age,
-    student: Boolean(p.school) && p.school?.stage !== "tertiary",
-    soldier: p.job?.id === "soldier",
-    office: p.politics?.office,
-    military: p.politics?.militaryRuler,
-  });
-}
-
-function Header({ p, onMenu, onBell, count }: { p: Player; onMenu: () => void; onBell: () => void; count: number }) {
-  const st = STATE_BY_ID[p.state];
-  const title = officeTitle(p) ?? jobTitle(p);
-  return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-[#07130e]/95 px-4 pb-3 pt-3 backdrop-blur">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <Avatar look={shownLook(p)} gender={p.gender} age={p.age} mood={p.stats.happiness} size={56} dim={!p.alive} />
-          <div className="min-w-0">
-            <div className="truncate font-serif text-lg font-bold leading-tight">{p.name} {p.surname}</div>
-            <div className="text-xs text-white/60">{T("Age", "Age")} {p.age} · {title}</div>
-            <div className="mt-0.5 text-xs text-emerald-200/70">📍 {st.name}{p.prison > 0 ? T(" · in Kuje prison", " · for Kuje prison") : ""}</div>
-          </div>
-        </div>
-        <div className="shrink-0 text-right">
-          <div className="text-lg font-extrabold text-[#f5b82e]">{naira(p.money)}</div>
-          <div className="text-[11px] text-white/50">{T("Worth", "Worth")} {naira(worth(p))}{p.debt > 0 ? ` · ${T("Debt", "Debt")} ${naira(p.debt)}` : ""}</div>
-          <div className="mt-1 flex justify-end gap-3 text-[11px] text-white/50">
-            <button type="button" onClick={onBell} className="underline" aria-label={T("Notifications", "Notifications")}>{T("Alerts", "Alerts")}{count > 0 ? ` (${count})` : ""}</button>
-            <button type="button" onClick={onMenu} className="underline">{T("Menu", "Menu")}</button>
-          </div>
-        </div>
-      </div>
-      <div className="mt-2.5 grid grid-cols-4 gap-x-3 gap-y-1.5">
-        <Bar label={T("Health", "Health")} value={p.stats.health} />
-        <Bar label={T("Happy", "Happy")} value={p.stats.happiness} />
-        <Bar label={T("Smarts", "Sense")} value={p.stats.smarts} tone="blue" />
-        <Bar label={T("Looks", "Looks")} value={p.stats.looks} tone="blue" />
-        <Bar label={T("Stress", "Stress")} value={p.stats.stress} invert />
-        <Bar label={T("Connects", "Connect")} value={p.stats.connections} tone="gold" />
-        <Bar label={T("Rep", "Rep")} value={p.stats.reputation} tone="gold" />
-        <Bar label={T("Family", "Family")} value={p.family.happy} />
-      </div>
-    </header>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Life tab
-// ---------------------------------------------------------------------------
-function LifeTab({ g, run }: { g: Game; run: (a: Action) => void }) {
-  const p = g.p;
-  const logs = useMemo(() => [...p.log].reverse(), [p.log]);
-  return (
-    <>
-      <HeadlinesCard p={p} />
-      <Card>
-        <H sub={T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action remain this year`)}>{T("Activities", "Activities")}</H>
-        <div className="grid grid-cols-2 gap-2">
-          {ACTIVITIES.filter((a) => p.age >= a.minAge - 2).map((a) => {
-            const block = activityBlock(p, a);
-            return (
-              <button
-                key={a.id}
-                type="button"
-                disabled={Boolean(block)}
-                onClick={() => run({ t: "activity", id: a.id })}
-                className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-left text-xs transition hover:bg-white/10 disabled:opacity-40"
-              >
-                <span className="block font-semibold text-white">{a.label}</span>
-                <span className="block text-[11px] text-white/50">{block ?? (a.cost ? `${naira(a.cost * p.index)} · ${a.desc}` : a.desc)}</span>
-              </button>
-            );
-          })}
-        </div>
-      </Card>
-
-      <div className="space-y-3">
-        {logs.map((e, idx) => (
-          <Card key={`${e.age}-${idx}`} className={idx === 0 ? "border-[#f5b82e]/40" : ""}>
-            <div className="mb-1 flex items-baseline justify-between">
-              <span className="text-sm font-bold text-[#f5b82e]">{T("Age", "Age")} {e.age}</span>
-            </div>
-            <ul className="space-y-1.5">
-              {e.lines.map((l, i) => (
-                <li key={i} className="text-[14px] leading-snug text-white/90">{l}</li>
-              ))}
-            </ul>
-          </Card>
-        ))}
-      </div>
-    </>
   );
 }
 
@@ -614,11 +482,11 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {jobs.map((j) => {
             const block = applyBlock(p, j.id);
             return (
-              <div key={j.id} className="rounded-xl bg-white/5 p-3">
+              <div key={j.id} className="rounded-xl bg-slate-50 p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="text-sm font-semibold">{j.title}</div>
-                    <div className="text-[11px] text-white/50">{j.blurb}</div>
+                    <div className="text-[11px] text-slate-500">{j.blurb}</div>
                   </div>
                   <Badge tone={j.group === "crime" ? "red" : "green"}>~{estPay(j)}{T("/yr", "/yr")}</Badge>
                 </div>
@@ -631,7 +499,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
                       {T(`Apply + 'settle' (${naira(300_000 * p.index)})`, `Apply + 'settle' (${naira(300_000 * p.index)})`)}
                     </Btn>
                   )}
-                  {block && <span className="text-[11px] text-red-300">{block}</span>}
+                  {block && <span className="text-[11px] text-red-600">{block}</span>}
                 </div>
               </div>
             );
@@ -645,7 +513,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     <>
       <Card>
         <H>{T("Education", "Education")}</H>
-        <p className="text-sm text-white/85">
+        <p className="text-sm text-slate-800">
           {p.school
             ? T(`Currently in ${p.school.stage === "tertiary" ? "tertiary school" : `${p.school.stage} school`} (${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} left).`, `You dey ${p.school.stage === "tertiary" ? "tertiary school" : `${p.school.stage} school` } now (${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} remain).`)
             : p.edu === "none" ? T("No schooling yet.", "You never go school yet.") : T(`Highest level: ${p.edu}${p.course ? ` (${p.course})` : ""}.`, `Highest level: ${p.edu}${p.course ? ` (${p.course})` : ""}.`)}
@@ -657,7 +525,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         {p.job && cur ? (
           <div>
             <div className="text-lg font-bold">{cur.ladder[Math.min(p.job.rank, cur.ladder.length - 1)].title}</div>
-            <div className="text-xs text-white/60">{["soldier", "navy", "airforce", "police"].includes(cur.id) ? T(`Service record ${meritOf(p)}/100 · the promotion board decides your next rank. `, `Service record ${meritOf(p)}/100 · promotion board go decide your next rank. `) : ""}{cur.title} · {T(`${p.job.years} yr in this role · Rank ${p.job.rank + 1}/${cur.ladder.length}`, `${p.job.years} yr for this role · Rank ${p.job.rank + 1}/${cur.ladder.length}`)}</div>
+            <div className="text-xs text-slate-500">{["soldier", "navy", "airforce", "police"].includes(cur.id) ? T(`Service record ${meritOf(p)}/100 · the promotion board decides your next rank. `, `Service record ${meritOf(p)}/100 · promotion board go decide your next rank. `) : ""}{cur.title} · {T(`${p.job.years} yr in this role · Rank ${p.job.rank + 1}/${cur.ladder.length}`, `${p.job.years} yr for this role · Rank ${p.job.rank + 1}/${cur.ladder.length}`)}</div>
             <div className="mt-3 flex flex-wrap gap-2">
               {cost !== null && (
                 <Btn small tone="gold" disabled={p.money < cost} onClick={() => run({ t: "expand" })}>
@@ -666,10 +534,10 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
               )}
               <Btn small tone="ghost" onClick={() => run({ t: "quit" })}>{T("Quit", "Quit")}</Btn>
             </div>
-            {cur.selfEmployed && cost !== null && <p className="mt-2 text-[11px] text-white/50">{T(`Next: ${cur.ladder[p.job.rank + 1].title}. Invest in your business to grow it. Moving to another state leaves it behind.`, `Next: ${cur.ladder[p.job.rank + 1].title}. Put money inside your business make am grow. If you move go another state, you go leave am.`)}</p>}
+            {cur.selfEmployed && cost !== null && <p className="mt-2 text-[11px] text-slate-500">{T(`Next: ${cur.ladder[p.job.rank + 1].title}. Invest in your business to grow it. Moving to another state leaves it behind.`, `Next: ${cur.ladder[p.job.rank + 1].title}. Put money inside your business make am grow. If you move go another state, you go leave am.`)}</p>}
           </div>
         ) : (
-          <p className="text-sm text-white/70">{p.politics && p.politics.office >= 0 ? T(`You hold office as ${officeTitle(p)}.`, `You dey hold office as ${officeTitle(p)}.`) : T("You are not working. Pick something below or hustle.", "You no dey work. Pick one thing below or go hustle.")}</p>
+          <p className="text-sm text-slate-600">{p.politics && p.politics.office >= 0 ? T(`You hold office as ${officeTitle(p)}.`, `You dey hold office as ${officeTitle(p)}.`) : T("You are not working. Pick something below or hustle.", "You no dey work. Pick one thing below or go hustle.")}</p>
         )}
       </Card>
 
@@ -684,9 +552,9 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           <BusinessCard p={p} run={run} />
           <SkillsCard p={p} run={run} />
           {locked.length > 0 && (
-            <details className="rounded-2xl border border-white/10 bg-[#0e2218] p-4">
-              <summary className="cursor-pointer text-sm font-semibold text-white/70">{T(`Locked careers (${locked.length})`, `Locked work (${locked.length})`)}</summary>
-              <ul className="mt-2 space-y-1 text-xs text-white/60">
+            <details className="rounded-2xl border border-slate-200 bg-white p-4">
+              <summary className="cursor-pointer text-sm font-semibold text-slate-600">{T(`Locked careers (${locked.length})`, `Locked work (${locked.length})`)}</summary>
+              <ul className="mt-2 space-y-1 text-xs text-slate-500">
                 {locked.map((j) => <li key={j.id}>{j.title}: {lockReason(p, j)}</li>)}
               </ul>
             </details>
@@ -707,11 +575,11 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     <>
       <Card>
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div><div className="text-[11px] text-white/50">{T("Cash", "Cash")}</div><div className="text-base font-bold text-[#f5b82e]">{naira(p.money)}</div></div>
-          <div><div className="text-[11px] text-white/50">{T("Net worth", "Net worth")}</div><div className="text-base font-bold">{naira(net)}</div></div>
-          <div><div className="text-[11px] text-white/50">{T("Debt", "Debt")}</div><div className={cx("text-base font-bold", p.debt > 0 && "text-red-300")}>{naira(p.debt)}</div></div>
+          <div><div className="text-[11px] text-slate-500">{T("Cash", "Cash")}</div><div className="text-base font-bold text-blue-600">{naira(p.money)}</div></div>
+          <div><div className="text-[11px] text-slate-500">{T("Net worth", "Net worth")}</div><div className="text-base font-bold">{naira(net)}</div></div>
+          <div><div className="text-[11px] text-slate-500">{T("Debt", "Debt")}</div><div className={cx("text-base font-bold", p.debt > 0 && "text-red-600")}>{naira(p.debt)}</div></div>
         </div>
-        <p className="mt-2 text-center text-[11px] text-white/45">{T("Prices rise every year. Cash loses value. Houses and dollars hold up better.", "Prices dey rise every year. Cash dey lose value. House and dollar dey hold better.")}</p>
+        <p className="mt-2 text-center text-[11px] text-slate-400">{T("Prices rise every year. Cash loses value. Houses and dollars hold up better.", "Prices dey rise every year. Cash dey lose value. House and dollar dey hold better.")}</p>
       </Card>
 
       <NetWorthCard p={p} />
@@ -726,9 +594,9 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {(Object.keys(HOUSE_KINDS) as (keyof typeof HOUSE_KINDS)[]).map((k) => {
             const c = buildCost(p, k);
             return (
-              <button key={k} type="button" disabled={p.money < c || st.abroad} onClick={() => run({ t: "build", kind: k })} className="rounded-xl border border-white/10 bg-white/5 p-2 text-center text-xs disabled:opacity-40">
+              <button key={k} type="button" disabled={p.money < c || st.abroad} onClick={() => run({ t: "build", kind: k })} className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-center text-xs disabled:opacity-40">
                 <span className="block font-semibold">{HOUSE_KINDS[k].label}</span>
-                <span className="block text-[#f5b82e]">{naira(c)}</span>
+                <span className="block text-blue-600">{naira(c)}</span>
               </button>
             );
           })}
@@ -743,12 +611,12 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           <H>{T("Your houses", "Your houses")}</H>
           <div className="space-y-2">
             {p.houses.map((h) => (
-              <div key={h.id} className="rounded-xl bg-white/5 p-3">
+              <div key={h.id} className="rounded-xl bg-slate-50 p-3">
                 <div className="flex justify-between text-sm">
                   <span className="font-semibold">{HOUSE_KINDS[h.kind].label} · {STATE_BY_ID[h.state].name}</span>
-                  <span className="text-[#f5b82e]">{naira(h.value)}</span>
+                  <span className="text-blue-600">{naira(h.value)}</span>
                 </div>
-                <div className="mt-1 text-[11px] text-white/50">{T("Status", "Status")}: {h.use === "owner" ? T("You live here", "You dey live here") : h.use === "family" ? T("Family lives here", "Family dey live here") : h.use === "rent" ? T("Rented out", "Dem rent am out") : T("Empty", "Empty")}</div>
+                <div className="mt-1 text-[11px] text-slate-500">{T("Status", "Status")}: {h.use === "owner" ? T("You live here", "You dey live here") : h.use === "family" ? T("Family lives here", "Family dey live here") : h.use === "rent" ? T("Rented out", "Dem rent am out") : T("Empty", "Empty")}</div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {(["owner", "family", "rent", "empty"] as const).map((u) => (
                     <Btn key={u} small tone={h.use === u ? "gold" : "ghost"} onClick={() => run({ t: "use", id: h.id, use: u })}>
@@ -770,9 +638,9 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
             const min = o.min * p.index;
             const amt = (frac: number) => Math.max(Math.round(p.money * frac), 0);
             return (
-              <div key={o.kind} className="rounded-xl bg-white/5 p-3">
-                <div className="flex justify-between text-sm"><span className="font-semibold">{o.label}</span><span className="text-[11px] text-white/50">{T("min", "min")} {naira(min)}</span></div>
-                <p className="text-[11px] text-white/50">{o.desc}</p>
+              <div key={o.kind} className="rounded-xl bg-slate-50 p-3">
+                <div className="flex justify-between text-sm"><span className="font-semibold">{o.label}</span><span className="text-[11px] text-slate-500">{T("min", "min")} {naira(min)}</span></div>
+                <p className="text-[11px] text-slate-500">{o.desc}</p>
                 <div className="mt-2 flex gap-1.5">
                   {[0.1, 0.5, 1].map((f) => (
                     <Btn key={f} small tone="ghost" disabled={amt(f) < min} onClick={() => run({ t: "invest", kind: o.kind, amount: amt(f) })}>
@@ -788,9 +656,9 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           <div className="mt-3 space-y-1.5">
             <H>{T("Your portfolio", "Your investments")}</H>
             {p.holdings.map((h) => (
-              <div key={h.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-sm">
-                <div><div className="font-semibold">{h.label}</div><div className="text-[11px] text-white/50">{T("Put in", "Wetin you put")} {naira(h.invested)}</div></div>
-                <div className="text-right"><div className={h.value >= h.invested ? "text-emerald-300" : "text-red-300"}>{naira(h.value)}</div><button type="button" className="text-[11px] underline text-white/60" onClick={() => run({ t: "divest", id: h.id })}>{T("Cash out", "Cash out")}</button></div>
+              <div key={h.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                <div><div className="font-semibold">{h.label}</div><div className="text-[11px] text-slate-500">{T("Put in", "Wetin you put")} {naira(h.invested)}</div></div>
+                <div className="text-right"><div className={h.value >= h.invested ? "text-emerald-600" : "text-red-600"}>{naira(h.value)}</div><button type="button" className="text-[11px] underline text-slate-500" onClick={() => run({ t: "divest", id: h.id })}>{T("Cash out", "Cash out")}</button></div>
               </div>
             ))}
           </div>
@@ -804,11 +672,11 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
             const block = luxuryBlock(p, l.id);
             const owned = l.once && p.flags[`own_${l.id}`];
             return (
-              <div key={l.id} className="rounded-xl bg-white/5 p-3">
+              <div key={l.id} className="rounded-xl bg-slate-50 p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="text-sm font-semibold">{l.label} {l.good && <Badge tone="green">{T("good deed", "good deed")}</Badge>}</div>
-                    <div className="text-[11px] text-white/50">{l.desc}</div>
+                    <div className="text-[11px] text-slate-500">{l.desc}</div>
                   </div>
                   <Badge tone="gold">+{l.prestige} {T("prestige", "prestige")}</Badge>
                 </div>
@@ -816,8 +684,8 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
                   <Btn small tone={owned ? "ghost" : "gold"} disabled={Boolean(block)} onClick={() => run({ t: "luxury", id: l.id })}>
                     {owned ? T("Owned", "You get am") : T(`Buy (${naira(luxuryCost(p, l.cost))})`, `Buy (${naira(luxuryCost(p, l.cost))})`)}
                   </Btn>
-                  {block && !owned && <span className="text-[11px] text-red-300">{block}</span>}
-                  {l.upkeep && <span className="text-[11px] text-white/40">{T("upkeep", "upkeep")} {naira(luxuryCost(p, l.upkeep))}{T("/yr", "/yr")}</span>}
+                  {block && !owned && <span className="text-[11px] text-red-600">{block}</span>}
+                  {l.upkeep && <span className="text-[11px] text-slate-400">{T("upkeep", "upkeep")} {naira(luxuryCost(p, l.upkeep))}{T("/yr", "/yr")}</span>}
                 </div>
               </div>
             );
@@ -836,7 +704,7 @@ function Person({ look, gender, age, label, sub, dim }: { look: Look; gender: Ge
     <div className="flex w-[84px] flex-col items-center text-center">
       <Avatar look={look} gender={gender} age={age} size={72} dim={dim} />
       <div className="mt-1 w-full truncate text-xs font-semibold">{label}</div>
-      {sub && <div className="text-[10px] text-white/50">{sub}</div>}
+      {sub && <div className="text-[10px] text-slate-500">{sub}</div>}
     </div>
   );
 }
@@ -855,11 +723,11 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {p.spouse?.look && <Person look={p.spouse.look} gender={p.gender === "male" ? "female" : "male"} age={p.age} label={p.spouse.name} sub={T(`spouse · ${Math.round(p.spouse.happy)}% happy`, `spouse · ${Math.round(p.spouse.happy)}% happy`)} />}
           {p.kids.map((k, i) => k.look && <Person key={i} look={k.look} gender={k.gender} age={k.age} label={k.name} sub={T(`age ${k.age}`, `age ${k.age}`)} />)}
         </div>
-        <p className="mt-3 text-sm text-white/85">
+        <p className="mt-3 text-sm text-slate-800">
           {T("Family lives in", "Your family dey live for")} <b>{fam.name}</b>. {fam.opp <= 3 ? T("Opportunities there are limited. They would love to move somewhere better.", "Opportunity there small. Dem go like move go better place.") : fam.opp >= 7 ? T("They are in a strong market.", "Dem dey strong market.") : T("Life there is steady.", "Life there dey okay.")}
         </p>
-        <p className="mt-1 text-sm text-white/70">{T("Family happiness", "Family happiness")} {Math.round(p.family.happy)}% · {luckWord}</p>
-        {p.houses.length > 0 && <p className="mt-2 text-xs text-[#f5b82e]">{T("Tip: Use a house as \"Family\" in the Money tab to bring them to your state.", "Tip: Set one house as \"Family\" for Money tab to bring dem come your state.")}</p>}
+        <p className="mt-1 text-sm text-slate-600">{T("Family happiness", "Family happiness")} {Math.round(p.family.happy)}% · {luckWord}</p>
+        {p.houses.length > 0 && <p className="mt-2 text-xs text-blue-600">{T("Tip: Use a house as \"Family\" in the Money tab to bring them to your state.", "Tip: Set one house as \"Family\" for Money tab to bring dem come your state.")}</p>}
         <div className="mt-3 flex flex-wrap gap-2">
           {gifts.map((a) => (
             <Btn key={a} small tone="ghost" disabled={p.money < a * p.index} onClick={() => run({ t: "send", amount: a * p.index })}>
@@ -872,10 +740,10 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       <PeopleCard p={p} run={run} />
       {p.age >= 18 && <WillCard p={p} run={run} />}
       {!p.spouse && p.flags.dating && <Card><H>{T("Dating", "Dating")}</H><p className="text-sm">{T(`Dating ${String(p.flags.dating)}. A proposal may be coming.`, `You dey date ${String(p.flags.dating)}. Proposal fit dey come.`)}</p></Card>}
-      {!p.spouse && !p.flags.dating && <Card><H>{T("Spouse", "Spouse")}</H><p className="text-sm text-white/60">{T("Single. Use \"Look for love\" in the Life tab.", "You single. Use \"Look for love\" for Life tab.")}</p></Card>}
+      {!p.spouse && !p.flags.dating && <Card><H>{T("Spouse", "Spouse")}</H><p className="text-sm text-slate-500">{T("Single. Use \"Look for love\" in the Life tab.", "You single. Use \"Look for love\" for Life tab.")}</p></Card>}
       <Card>
         <H>{T("Achievements", "Achievements")}</H>
-        {p.achievements.length === 0 ? <p className="text-sm text-white/60">{T("None yet.", "Nothing yet.")}</p> : <div className="flex flex-wrap gap-1.5">{p.achievements.map((a) => <Badge key={a} tone="gold">🏆 {a}</Badge>)}</div>}
+        {p.achievements.length === 0 ? <p className="text-sm text-slate-500">{T("None yet.", "Nothing yet.")}</p> : <div className="flex flex-wrap gap-1.5">{p.achievements.map((a) => <Badge key={a} tone="gold">🏆 {a}</Badge>)}</div>}
       </Card>
     </>
   );
@@ -891,13 +759,13 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     <>
       <Card>
         <H>{T("You are in", "Where you dey")}</H>
-        <div className="text-lg font-bold">{st.name} <span className="text-sm font-normal text-white/50">· {st.capital}</span></div>
+        <div className="text-lg font-bold">{st.name} <span className="text-sm font-normal text-slate-500">· {st.capital}</span></div>
         <div className="mt-2 space-y-1.5">
           <Meter label={T("Jobs", "Jobs")} value={st.opp} />
           <Meter label={T("Cost", "Cost")} value={st.cost * 5} max={10} invert />
           <Meter label={T("Insecurity", "Insecurity")} value={st.risk} invert />
         </div>
-        <p className="mt-2 text-[11px] text-white/50">{T("Opportunity affects pay and what jobs exist. Insecurity raises kidnap and robbery risk, especially when you travel.", "Opportunity dey affect pay and which jobs dey. Insecurity dey increase kidnap and robbery risk, especially when you dey travel.")}</p>
+        <p className="mt-2 text-[11px] text-slate-500">{T("Opportunity affects pay and what jobs exist. Insecurity raises kidnap and robbery risk, especially when you travel.", "Opportunity dey affect pay and which jobs dey. Insecurity dey increase kidnap and robbery risk, especially when you dey travel.")}</p>
       </Card>
 
       <Card>
@@ -916,7 +784,7 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
               const here = s.id === p.state;
               const mine = p.houses.some((h) => h.state === s.id);
               return (
-                <div key={s.id} className={cx("rounded-xl p-3", here ? "bg-[#f5b82e]/10" : "bg-white/5")}>
+                <div key={s.id} className={cx("rounded-xl p-3", here ? "bg-blue-50" : "bg-slate-50")}>
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-semibold">
                       {s.name} {s.id === p.family.state && <Badge>{T("family", "family")}</Badge>} {mine && <Badge tone="gold">{T("your house", "your house")}</Badge>} {s.id === p.birthState && <Badge tone="green">{T("home", "home")}</Badge>}
@@ -936,7 +804,7 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           </div>
         </Card>
       ))}
-      {STATES.find((s) => s.abroad) && p.state === "abroad" && <p className="text-center text-xs text-white/50">{T("You are abroad. Travel back to any Nigerian state from the lists above.", "You dey abroad. You fit travel back go any Naija state from the lists above.")}</p>}
+      {STATES.find((s) => s.abroad) && p.state === "abroad" && <p className="text-center text-xs text-slate-500">{T("You are abroad. Travel back to any Nigerian state from the lists above.", "You dey abroad. You fit travel back go any Naija state from the lists above.")}</p>}
     </>
   );
 }
@@ -957,9 +825,9 @@ function RoutesCard() {
       <H sub={T("Different people got to the top different ways.", "Different people reach the top by different ways.")}>{T("Roads to the Villa", "Roads to the Villa")}</H>
       <div className="space-y-2">
         {routes.map(([t, d]) => (
-          <div key={t} className="rounded-xl bg-white/5 p-3">
-            <div className="text-sm font-semibold text-[#f5b82e]">{t}</div>
-            <div className="text-[11px] leading-snug text-white/60">{d}</div>
+          <div key={t} className="rounded-xl bg-slate-50 p-3">
+            <div className="text-sm font-semibold text-blue-600">{t}</div>
+            <div className="text-[11px] leading-snug text-slate-500">{d}</div>
           </div>
         ))}
       </div>
@@ -975,7 +843,7 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     <Card>
       <H sub={T("High risk. Success makes you head of state. Failure means prison, or worse.", "Risk plenty. If you win, you be head of state. If you fail, na prison, or worse.")}>{T("Plot a coup", "Plot coup")}</H>
       <Btn tone="red" disabled={Boolean(coupBlock)} onClick={() => run({ t: "coup" })}>{T("Seize power", "Take power")}</Btn>
-      {coupBlock && <p className="mt-1 text-xs text-white/50">{coupBlock}</p>}
+      {coupBlock && <p className="mt-1 text-xs text-slate-500">{coupBlock}</p>}
     </Card>
   );
   if (!pol) {
@@ -984,9 +852,9 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       <>
         <Card>
           <H>{T("Politics", "Politics")}</H>
-          <p className="text-sm text-white/80">{T("From councillor to President. It costs money, connections and (sometimes) your conscience. Once you hold power you can build the country, or loot it.", "From councillor reach President. E need money, connections and (sometimes) your conscience. Once you get power, you fit build the country, or loot am.")}</p>
+          <p className="text-sm text-slate-700">{T("From councillor to President. It costs money, connections and (sometimes) your conscience. Once you hold power you can build the country, or loot it.", "From councillor reach President. E need money, connections and (sometimes) your conscience. Once you get power, you fit build the country, or loot am.")}</p>
           <Btn className="mt-3" tone="gold" disabled={Boolean(block)} onClick={() => run({ t: "joinPolitics" })}>{T(`Join a political party (${naira(2_000_000 * p.index)})`, `Join political party (${naira(2_000_000 * p.index)})`)}</Btn>
-          {block && <p className="mt-2 text-xs text-red-300">{block}</p>}
+          {block && <p className="mt-2 text-xs text-red-600">{block}</p>}
         </Card>
         {coupCard}
         <RoutesCard />
@@ -1004,8 +872,8 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     <>
       <Card>
         <H>{officeTitle(p) ?? T("Out of office", "No dey office")}</H>
-        {holding && !pol.militaryRuler && <p className="text-sm text-white/80">{T(`Term ${pol.terms}, ${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} left · ${naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay`, `Term ${pol.terms}, ${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} remain · ${naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay`)}</p>}
-        {pol.militaryRuler && <p className="text-sm text-white/80">{T("You rule by decree. Watch out for counter-coups.", "You dey rule by decree. Watch out for counter-coup.")}</p>}
+        {holding && !pol.militaryRuler && <p className="text-sm text-slate-700">{T(`Term ${pol.terms}, ${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} left · ${naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay`, `Term ${pol.terms}, ${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} remain · ${naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay`)}</p>}
+        {pol.militaryRuler && <p className="text-sm text-slate-700">{T("You rule by decree. Watch out for counter-coups.", "You dey rule by decree. Watch out for counter-coup.")}</p>}
         <div className="mt-2 flex flex-wrap gap-1.5">
           {pol.anointed && <Badge tone="gold">{T("Anointed", "Anointed")}</Badge>}
           {pol.hero && <Badge tone="green">{T("People's hero", "People hero")}</Badge>}
@@ -1014,14 +882,14 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {pol.defected && <Badge>{T("Defected", "Defected")}</Badge>}
           {pol.kingmaker > 0 && <Badge tone="gold">{T("Kingmaker", "Kingmaker")} ×{pol.kingmaker}</Badge>}
         </div>
-        <p className="mt-2 text-xs text-white/60">{T("Zoning: this cycle the presidency is zoned to the", "Zoning: this time presidency dey zone to")} <b className="text-white/90">{zone}</b>. {T(`You are from the ${mine}`, `You come from ${mine}`)}{zone === mine ? T(". Advantage!", ". Na advantage!") : T(". Disadvantage.", ". Na disadvantage.")}</p>
+        <p className="mt-2 text-xs text-slate-500">{T("Zoning: this cycle the presidency is zoned to the", "Zoning: this time presidency dey zone to")} <b className="text-slate-800">{zone}</b>. {T(`You are from the ${mine}`, `You come from ${mine}`)}{zone === mine ? T(". Advantage!", ". Na advantage!") : T(". Disadvantage.", ". Na disadvantage.")}</p>
         {next && !pol.militaryRuler && (
           <div className="mt-3">
             <Btn tone="gold" disabled={Boolean(block)} onClick={() => run({ t: "contest" })}>{T(`Run for ${next.title}`, `Contest for ${next.title}`)}</Btn>
-            {block && <p className="mt-1 text-xs text-white/50">{block}</p>}
+            {block && <p className="mt-1 text-xs text-slate-500">{block}</p>}
           </div>
         )}
-        <p className="mt-3 text-xs text-white/50">{T("Reputation as a ruler", "Your name as ruler")}: <b className="text-white/80">{ruler}</b> · {T("Stolen", "Stolen")}: {naira(p.loot)} · {T("Good deeds", "Good deeds")}: {p.goodDeeds}</p>
+        <p className="mt-3 text-xs text-slate-500">{T("Reputation as a ruler", "Your name as ruler")}: <b className="text-slate-700">{ruler}</b> · {T("Stolen", "Stolen")}: {naira(p.loot)} · {T("Good deeds", "Good deeds")}: {p.goodDeeds}</p>
       </Card>
 
       <Card>
@@ -1036,9 +904,9 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {POWER_MOVES.map((m) => {
             const b = powerMoveBlock(p, m.id);
             return (
-              <button key={m.id} type="button" disabled={Boolean(b)} onClick={() => run({ t: "power", id: m.id })} className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-left disabled:opacity-40">
-                <span className="flex justify-between text-sm font-semibold"><span>{m.label}</span><span className="text-[#f5b82e]">{naira(powerMoveCost(p, m.id))}</span></span>
-                <span className="block text-[11px] text-white/50">{b ?? m.desc}</span>
+              <button key={m.id} type="button" disabled={Boolean(b)} onClick={() => run({ t: "power", id: m.id })} className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-left disabled:opacity-40">
+                <span className="flex justify-between text-sm font-semibold"><span>{m.label}</span><span className="text-blue-600">{naira(powerMoveCost(p, m.id))}</span></span>
+                <span className="block text-[11px] text-slate-500">{b ?? m.desc}</span>
               </button>
             );
           })}
@@ -1068,9 +936,9 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
                 {GOV_ACTIONS.filter((a) => a.side === side && pol.office >= a.minOffice).map((a) => {
                   const dis = a.disabled?.(p) || (p.actionsLeft <= 0 ? T("No actions left", "No action remain") : false);
                   return (
-                    <button key={a.id} type="button" disabled={Boolean(dis)} onClick={() => run({ t: "gov", id: a.id })} className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-left disabled:opacity-40">
+                    <button key={a.id} type="button" disabled={Boolean(dis)} onClick={() => run({ t: "gov", id: a.id })} className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-left disabled:opacity-40">
                       <span className="block text-sm font-semibold">{a.label}</span>
-                      <span className="block text-[11px] text-white/50">{dis || a.desc}</span>
+                      <span className="block text-[11px] text-slate-500">{dis || a.desc}</span>
                     </button>
                   );
                 })}
@@ -1116,24 +984,24 @@ function LegacyTab({ g }: { g: Game }) {
     <>
       <Card>
         <H>{T(`The ${g.dynasty.surname} dynasty`, `The ${g.dynasty.surname} dynasty`)}</H>
-        <p className="text-sm text-white/80">{T(`Generation ${p.generation}. When you die you continue as one of your children, with 70% of everything you built. The family name keeps growing.`, `Generation ${p.generation}. When you die, you go continue as one of your pikin, with 70% of everything you build. The family name go keep growing.`)}</p>
+        <p className="text-sm text-slate-700">{T(`Generation ${p.generation}. When you die you continue as one of your children, with 70% of everything you built. The family name keeps growing.`, `Generation ${p.generation}. When you die, you go continue as one of your pikin, with 70% of everything you build. The family name go keep growing.`)}</p>
         <Btn tone="gold" small className="mt-3" onClick={share}><Share2 size={14} className="mr-1 inline" /> {T("Share legacy card", "Share legacy card")}</Btn>
-        {msg && <p className="mt-2 text-xs text-emerald-300">{msg}</p>}
+        {msg && <p className="mt-2 text-xs text-emerald-600">{msg}</p>}
       </Card>
       <Card>
         <H>{T("Current life", "Current life")}</H>
         <p className="text-sm">{p.name} {p.surname} · {T("Prestige", "Prestige")} {p.prestige} · {T("Peak worth", "Highest worth")} {naira(p.peakWorth)}</p>
-        <p className="mt-1 text-xs text-white/50">{T("Good deeds", "Good deeds")} {p.goodDeeds} · {T("Stolen", "Stolen")} {naira(p.loot)} · {T("Kidnapped", "Dem kidnap you")} {p.kidnaps}×</p>
+        <p className="mt-1 text-xs text-slate-500">{T("Good deeds", "Good deeds")} {p.goodDeeds} · {T("Stolen", "Stolen")} {naira(p.loot)} · {T("Kidnapped", "Dem kidnap you")} {p.kidnaps}×</p>
       </Card>
       {g.dynasty.lineage.length > 0 && (
         <Card>
           <H>{T("Ancestors", "Ancestors")}</H>
           <div className="space-y-2">
             {[...g.dynasty.lineage].reverse().map((l, i) => (
-              <div key={i} className="rounded-xl bg-white/5 p-3">
+              <div key={i} className="rounded-xl bg-slate-50 p-3">
                 <div className="flex justify-between"><span className="font-semibold">{l.name}</span><Badge tone="gold">{T("Gen", "Gen")} {l.generation}</Badge></div>
-                <div className="text-xs text-[#f5b82e]">{l.epitaph}</div>
-                <div className="text-[11px] text-white/50">{T(`Lived ${l.ageAtDeath} yrs`, `Live ${l.ageAtDeath} yrs`)} · {l.highestOffice} · {T("peak", "peak")} {naira(l.peakWorth)} · {l.cause}</div>
+                <div className="text-xs text-blue-600">{l.epitaph}</div>
+                <div className="text-[11px] text-slate-500">{T(`Lived ${l.ageAtDeath} yrs`, `Live ${l.ageAtDeath} yrs`)} · {l.highestOffice} · {T("peak", "peak")} {naira(l.peakWorth)} · {l.cause}</div>
               </div>
             ))}
           </div>
@@ -1170,27 +1038,27 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
     <Sheet title={T("Your life has ended", "Your life don end")}>
       <div className="mb-2 flex justify-center"><Avatar look={p.look} gender={p.gender} age={p.age} size={96} dim /></div>
       <p className="font-serif text-2xl font-bold">{p.name} {p.surname}</p>
-      <p className="text-sm text-white/70">{T(`Died at ${p.age}`, `E die at ${p.age}`)} · {p.cause}</p>
+      <p className="text-sm text-slate-600">{T(`Died at ${p.age}`, `E die at ${p.age}`)} · {p.cause}</p>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-        <Card className="p-3"><div className="text-[11px] text-white/50">{T("Net worth at death", "Worth wen e die")}</div><div className="font-bold text-[#f5b82e]">{naira(entry?.worth ?? 0)}</div></Card>
-        <Card className="p-3"><div className="text-[11px] text-white/50">{T("Remembered as", "Dem go remember am as")}</div><div className="font-bold">{entry?.epitaph}</div></Card>
+        <Card className="p-3"><div className="text-[11px] text-slate-500">{T("Net worth at death", "Worth wen e die")}</div><div className="font-bold text-blue-600">{naira(entry?.worth ?? 0)}</div></Card>
+        <Card className="p-3"><div className="text-[11px] text-slate-500">{T("Remembered as", "Dem go remember am as")}</div><div className="font-bold">{entry?.epitaph}</div></Card>
       </div>
       <div className="mt-4 space-y-2">
         {p.kids.length > 0 ? (
           <>
-            <p className="text-sm text-white/80">{T("Who carries the family name?", "Who go carry the family name?")}</p>
+            <p className="text-sm text-slate-700">{T("Who carries the family name?", "Who go carry the family name?")}</p>
             {p.kids.map((k, i) => (
               <Btn key={i} className="w-full" onClick={() => onHeir(i)}>{T(`Continue as ${k.name} ${p.surname} (age ${k.age})`, `Continue as ${k.name} ${p.surname} (age ${k.age})`)}</Btn>
             ))}
           </>
         ) : (
           <>
-            <p className="text-sm text-white/80">{T("You had no children. The bloodline ends here.", "You no get pikin. The family line end here.")}</p>
+            <p className="text-sm text-slate-700">{T("You had no children. The bloodline ends here.", "You no get pikin. The family line end here.")}</p>
             <Btn className="w-full" onClick={() => onNew({ name: "", gender: chance(0.5) ? "male" : "female", stateId: null, tribe: null, religion: null })}>{T("Start a brand-new family", "Start new family")}</Btn>
           </>
         )}
         <Btn tone="gold" className="w-full" onClick={share}>{T("Share this life", "Share this life")}</Btn>
-        {msg && <p className="text-center text-xs text-emerald-300">{msg}</p>}
+        {msg && <p className="text-center text-xs text-emerald-600">{msg}</p>}
       </div>
     </Sheet>
   );

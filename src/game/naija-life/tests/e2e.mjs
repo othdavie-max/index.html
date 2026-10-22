@@ -37,8 +37,8 @@ async function play(browser, lang) {
   await page.reload();
   await page.getByRole("button", { name: lang === "en" ? "English" : "Pidgin", exact: true }).click();
   await page.getByRole("button", { name: /Be born|Born me/ }).click();
-  await page.getByRole("button", { name: /^(Age up|Grow up)/ }).first().waitFor({ timeout: 60000 });
-  const tabs = ["Life", "Phone", "Work", "Money", "Family", "Health", "Law", "Map", "Power", "Legacy"];
+  await page.getByRole("button", { name: /^Grow Up/ }).first().waitFor({ timeout: 60000 });
+  const tabs = ["Life", "Money", "Family", "Explore", "Phone", "Work", "Health", "Law", "Map", "Power", "Legacy"];
   for (let year = 0; year < 30; year++) {
     // answer any event or sheet that is open
     for (let k = 0; k < 8; k++) {
@@ -51,12 +51,12 @@ async function play(browser, lang) {
     }
     if (year % 3 === 0) {
       for (const t of tabs) {
-        const btn = page.locator("nav button", { hasText: new RegExp(`^${t}$`) });
+        const btn = page.locator("nav button, [role=tablist] button", { hasText: new RegExp(`^${t}$`) });
         if (await btn.count()) { await btn.first().click({ timeout: 2000 }).catch(() => {}); await page.waitForTimeout(40); steps++; }
       }
       await clickIf(page, page.locator("nav button", { hasText: /^Life$/ }));
     }
-    const up = page.getByRole("button", { name: /^(Age up|Grow up)/ });
+    const up = page.getByRole("button", { name: /^Grow Up/ });
     if (!(await up.count()) || (await up.first().isDisabled())) continue;
     await up.first().click({ timeout: 2000 }).catch(() => {});
     steps++;

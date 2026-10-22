@@ -26,9 +26,9 @@ function hairTone(idx: number, age: number): string {
 const CAP = "M34 48 C30 18 90 18 86 48 C82 38 72 34 60 34 C48 34 38 38 34 48 Z";
 
 export function Avatar({
-  look, gender, age, mood = 60, size = 64, dim, className,
+  look, gender, age, mood = 60, size = 64, dim, className, round,
 }: {
-  look: Look; gender: Gender; age: number; mood?: number; size?: number; dim?: boolean; className?: string;
+  look: Look; gender: Gender; age: number; mood?: number; size?: number; dim?: boolean; className?: string; round?: boolean;
 }) {
   const uid = useId().replace(/:/g, "");
   const skin = SKINS[look.skin] ?? SKINS[3];
@@ -115,8 +115,8 @@ export function Avatar({
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" className={className} role="img" aria-label="Character portrait" style={dim ? { filter: "grayscale(1)", opacity: 0.55 } : undefined}>
       <defs>
-        <linearGradient id={`bg${uid}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#1c5a39" /><stop offset="1" stopColor="#0a1c13" /></linearGradient>
-        <clipPath id={`c${uid}`}><rect width="120" height="120" rx="22" /></clipPath>
+        <linearGradient id={`bg${uid}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#dbeafe" /><stop offset="1" stopColor="#bfdbfe" /></linearGradient>
+        <clipPath id={`c${uid}`}><rect width="120" height="120" rx={round ? 60 : 22} /></clipPath>
       </defs>
       <g clipPath={`url(#c${uid})`}>
         <rect width="120" height="120" fill={`url(#bg${uid})`} />
