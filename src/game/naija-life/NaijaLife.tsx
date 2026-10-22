@@ -18,7 +18,7 @@ import { KidnapModal } from "./KidnapModal";
 import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, displayLook, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
-import { HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
+import { RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { meritOf } from "./military";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
@@ -867,6 +867,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           ))}
         </div>
       </Card>
+      <RelationshipsCard p={p} run={run} />
       <PeopleCard p={p} run={run} />
       {p.age >= 18 && <WillCard p={p} run={run} />}
       {!p.spouse && p.flags.dating && <Card><H>{T("Dating", "Dating")}</H><p className="text-sm">{T(`Dating ${String(p.flags.dating)}. A proposal may be coming.`, `You dey date ${String(p.flags.dating)}. Proposal fit dey come.`)}</p></Card>}

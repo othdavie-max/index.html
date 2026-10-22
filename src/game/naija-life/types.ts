@@ -419,6 +419,8 @@ export interface PartnerRel {
   exitReason?: string;
   /** Conversation and key moments with this person, newest last. */
   messages?: ChatMsg[];
+  /** You share a home and household costs. */
+  livingTogether?: boolean;
 }
 
 export interface ChatMsg {
@@ -441,6 +443,8 @@ export interface DatingState {
   deck: Candidate[];
   partners: PartnerRel[];
   swipesLeft: number;
+  /** Evenings out to meet people without the app. */
+  outingsLeft?: number;
   chatsLeft: number;
 }
 

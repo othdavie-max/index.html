@@ -72,6 +72,34 @@ export function refreshDeck(p: Player) {
   while (p.rel.deck.length < 8) p.rel.deck.push(makeCandidate(p, pick(genders)));
 }
 
+function matchWith(p: Player, c: Candidate): Npc {
+  const { attractiveness, interests, kindness, ambition, jealousy, ...rest } = c;
+  const npc: Npc = { ...rest, traits: [`kind ${kindness}`, `ambition ${ambition}`, `jealous ${jealousy}`, ...interests] };
+  p.npcs[npc.id] = npc;
+  void attractiveness;
+  p.rel.partners.push({ npcId: npc.id, stage: "chatting", affection: 30, trust: 50, satisfaction: 50, since: idxNow(p), lastInteract: idxNow(p), moneyRequests: 0, cheated: false, messages: [] });
+  return npc;
+}
+
+/** Meeting someone in person, no phone needed: church, a party, the market, work. */
+export function meetSomeone(p: Player): string {
+  if (p.age < 18) return T("Adults only", "Na only adult");
+  if (p.prison > 0) return T("Not from prison", "No fit from prison");
+  const left = p.rel.outingsLeft ?? 4;
+  if (left <= 0) return T("You have been out enough this year.", "You don go out enough this year.");
+  const cost = Math.round(15_000 * Math.pow(p.index, 0.92));
+  if (p.money < cost) return T(`You need ${naira(cost)} for an evening out.`, `You need ${naira(cost)} for outing.`);
+  p.rel.outingsLeft = left - 1;
+  transact(p, { amount: -cost, reason: T("An evening out to meet people", "Outing to meet people"), category: "dating" });
+  const genders = lookingGenders(p);
+  const c = makeCandidate(p, pick(genders));
+  const pr = clamp(0.4 + (p.stats.looks - 50) / 300 + (p.stats.connections / 400) + luckBonus(p) - (c.attractiveness - 60) / 400, 0.12, 0.8);
+  if (!chance(pr)) return T("You meet a few people, but nothing sparks.", "You meet some people, but nothing sweet.");
+  const npc = matchWith(p, c);
+  logMsg(p, npc.id, "note", T("You met in person.", "You meet for person."));
+  return T(`You meet ${first(npc)}, ${npc.occupation.toLowerCase()}. You swap numbers.`, `You meet ${first(npc)}, ${npc.occupation.toLowerCase()}. You swap number.`);
+}
+
 export function swipe(p: Player, candId: string, like: boolean): string {
   const i = p.rel.deck.findIndex((c) => c.id === candId);
   if (i < 0) return "";
@@ -84,11 +112,7 @@ export function swipe(p: Player, candId: string, like: boolean): string {
   const status = clamp(Math.log10(Math.max(netWorthReal(p), 1e5) / 1e5) / 4, 0, 0.25);
   const pr = clamp(0.2 + (p.stats.looks - 50) / 250 + (p.rel.profile?.quality ?? 40) / 400 + status + luckBonus(p) - (c.attractiveness - 60) / 300, 0.05, 0.85);
   if (!chance(pr)) return T(`You liked ${first(c)}, but nothing came of it.`, `You like ${first(c)}, but nothing come out of am.`);
-  const { attractiveness, interests, kindness, ambition, jealousy, ...rest } = c;
-  const npc: Npc = { ...rest, traits: [`kind ${kindness}`, `ambition ${ambition}`, `jealous ${jealousy}`, ...interests] };
-  p.npcs[npc.id] = npc;
-  void attractiveness;
-  p.rel.partners.push({ npcId: npc.id, stage: "chatting", affection: 30, trust: 50, satisfaction: 50, since: idxNow(p), lastInteract: idxNow(p), moneyRequests: 0, cheated: false, messages: [] });
+  const npc = matchWith(p, c);
   logMsg(p, npc.id, "note", T("You matched on Spark.", "You and am match for Spark."));
   logMsg(p, npc.id, "them", T(`Hey ${p.name}! Saw that we matched. ${interestsOf(npc)[0] ? `I am into ${interestsOf(npc)[0]}.` : "How are you?"}`, `Hey ${p.name}! I see say we match. ${interestsOf(npc)[0] ? `I dey like ${interestsOf(npc)[0]}.` : "How you dey?"}`));
   return T(`It's a match! You and ${first(c)} can start chatting.`, `E be match! You and ${first(c)} fit start to yarn.`);
@@ -220,6 +244,7 @@ export function breakUp(p: Player, npcId: string, reason = T("you ended it", "yo
   if (!r || !n) return "";
   r.stage = "ex";
   r.exitReason = reason;
+  r.livingTogether = false;
   n.role = "ex";
   if (p.flags.datingNpc === npcId) { delete p.flags.dating; delete p.flags.datingLook; delete p.flags.datingNpc; }
   bump(p, "happiness", -8);
@@ -251,7 +276,7 @@ export function marry(p: Player, npcId: string): void {
 // ---------------------------------------------------------------------------
 // Intimacy, protection, pregnancy (adults only, kept non-explicit)
 // ---------------------------------------------------------------------------
-export type Protection = "condom" | "pill" | "none";
+export type Protection = "condom" | "pill" | "none" | "try";
 
 export function intimacyBlock(p: Player, npcId: string): string | null {
   const r = partnerOf(p, npcId);
@@ -275,7 +300,7 @@ export function spendTheNight(p: Player, npcId: string, protection: Protection):
   r.lastInteract = idxNow(p);
   const lines = [T(`You spend the night with ${first(n)}. The rest stays between the two of you.`, `You spend the night with ${first(n)}. The rest na between una two.`)];
   // Sexual health risk: casual and unprotected is risky.
-  const stiRisk = protection === "condom" ? 0.015 : protection === "pill" ? 0.08 : 0.12;
+  const stiRisk = protection === "condom" ? 0.015 : protection === "pill" ? 0.08 : protection === "try" ? 0.04 : 0.12;
   if (chance(committed ? stiRisk * 0.3 : stiRisk)) {
     const r2 = developCondition(p, "sti");
     lines.push(T("A few weeks later you notice something is wrong. You will need to see a doctor.", "After some weeks, you notice say something no dey right. You go need see doctor."));
@@ -283,7 +308,8 @@ export function spendTheNight(p: Player, npcId: string, protection: Protection):
     if (r2.pending.length) p.flags.queuedHealth = JSON.stringify(r2.pending);
   }
   const canConceive = p.gender !== n.gender;
-  const pregRisk = protection === "condom" ? 0.025 : protection === "pill" ? 0.01 : 0.14;
+  const pregRisk = (protection === "condom" ? 0.02 : protection === "pill" ? 0.008 : protection === "try" ? 0.2 : 0.12) * conceptionFactor(p, n);
+  p.flags.lastNightAge = p.age;
   if (canConceive && !p.flags.pregnantBy && chance(pregRisk)) {
     p.flags.pregnantBy = n.id;
     p.flags.pregnancyDue = p.age + 1;
@@ -291,6 +317,108 @@ export function spendTheNight(p: Player, npcId: string, protection: Protection):
     p.flags.pregnancyNews = 1;
   }
   return lines.join(" ");
+}
+
+/** Fertility falls with the woman's age; treatment helps for a few years. */
+export function conceptionFactor(p: Player, n: Npc): number {
+  const womanAge = p.gender === "female" ? p.age : Math.max(0, p.age + n.ageDelta);
+  const base = womanAge <= 30 ? 1 : womanAge <= 35 ? 0.8 : womanAge <= 40 ? 0.45 : womanAge <= 45 ? 0.15 : 0.03;
+  return base * (Number(p.flags.fertilityUntil) >= p.age ? 2 : 1);
+}
+
+/** An emergency pill after an unprotected night. It works most of the time, and only right away. */
+export function emergencyPill(p: Player): string {
+  if (p.age < 18) return T("Adults only", "Na only adult");
+  const cost = Math.round(12_000 * Math.pow(p.index, 0.92));
+  if (p.flags.lastNightAge !== p.age) return T("You have no reason to take it right now.", "You no get reason to take am now.");
+  if (p.money < cost) return T(`It costs ${naira(cost)}.`, `E go cost ${naira(cost)}.`);
+  transact(p, { amount: -cost, reason: T("Emergency contraceptive pill", "Emergency pill"), category: "health" });
+  delete p.flags.lastNightAge;
+  if (p.flags.pregnantBy && p.flags.pregnancyNews && chance(0.8)) {
+    delete p.flags.pregnantBy; delete p.flags.pregnancyDue; delete p.flags.pregnancyNews;
+    return T("You take the pill without delay. It works.", "You take the pill sharp sharp. E work.");
+  }
+  return T("You take the pill and hope for the best.", "You take the pill and dey hope for the best.");
+}
+
+export function fertilityBlock(p: Player): string | null {
+  if (p.age < 25) return T("Doctors will not start treatment this young", "Doctor no go start treatment for this age");
+  if (Number(p.flags.fertilityUntil) >= p.age) return T("Treatment is already under way", "Treatment dey go on");
+  const cost = Math.round(2_500_000 * Math.pow(p.index, 0.92));
+  if (p.money < cost) return T(`Treatment costs ${naira(cost)}`, `Treatment go cost ${naira(cost)}`);
+  return null;
+}
+export function fertilityTreatment(p: Player): string {
+  const b = fertilityBlock(p);
+  if (b) return b;
+  const cost = Math.round(2_500_000 * Math.pow(p.index, 0.92));
+  transact(p, { amount: -cost, reason: T("Fertility treatment", "Fertility treatment"), category: "health" });
+  p.flags.fertilityUntil = p.age + 3;
+  return T("A fertility clinic starts you on a three-year programme. It doubles your chances.", "Fertility clinic start three-year programme for you. E double your chance.");
+}
+
+/** Moving in together: you share a home and the costs. */
+export function moveIn(p: Player, npcId: string): string {
+  const r = partnerOf(p, npcId);
+  const n = p.npcs[npcId];
+  if (!r || !n) return "";
+  if (!["exclusive", "engaged"].includes(r.stage)) return T("You need to be exclusive first.", "You must be exclusive first.");
+  if (r.livingTogether) return T("You already live together.", "You don dey live together.");
+  if (r.affection < 55) return T("Build more love before moving in.", "Build love more before una live together.");
+  r.livingTogether = true;
+  r.satisfaction = clamp(r.satisfaction + 4);
+  logMsg(p, npcId, "note", T("You moved in together.", "You begin live together."));
+  return T(`${first(n)} moves in. Bills are shared, and so are the chores.`, `${first(n)} move in. Una dey share bills and housework.`);
+}
+
+export function divorceBlock(p: Player): string | null {
+  if (!p.spouse) return T("You are not married.", "You no marry.");
+  const cost = Math.round(500_000 * Math.pow(p.index, 0.92));
+  if (p.money < cost) return T(`A divorce lawyer costs ${naira(cost)}.`, `Divorce lawyer go cost ${naira(cost)}.`);
+  return null;
+}
+export function divorce(p: Player): string {
+  const b = divorceBlock(p);
+  if (b) return b;
+  const sp = p.spouse!;
+  const n = sp.npcId ? p.npcs[sp.npcId] : undefined;
+  const cost = Math.round(500_000 * Math.pow(p.index, 0.92));
+  transact(p, { amount: -cost, reason: T("Divorce lawyer", "Divorce lawyer"), category: "legal" });
+  const split = Math.max(0, p.money) * 0.25;
+  if (split > 0) transact(p, { amount: -split, reason: T("Divorce settlement to your ex-spouse", "Divorce settlement for your ex"), category: "legal" });
+  p.spouse = null;
+  if (n) {
+    n.role = "ex";
+    const r = partnerOf(p, n.id);
+    if (r) { r.stage = "ex"; r.exitReason = T("divorced", "divorce"); r.livingTogether = false; }
+    if (p.kids.length && !p.subs.some((x) => x.id === `cs-${n.id}`)) p.subs.push({ id: `cs-${n.id}`, label: T("Child support", "Child support"), monthly: 35_000, category: "family", since: idxNow(p) });
+  }
+  bump(p, "happiness", -10);
+  p.family.happy = clamp(p.family.happy - 8);
+  bump(p, "reputation", -2);
+  return T("The divorce is final. It is a hard season, and you keep the children.", "Divorce don finish. E hard well well, and you keep the pikin dem.");
+}
+
+export function adoptBlock(p: Player): string | null {
+  if (p.age < 25) return T("Adoption agencies want applicants of 25 or more", "Adoption people want age 25 and above");
+  if (p.kids.length >= 6) return T("Your household is full", "Your house don full");
+  const cost = Math.round(1_800_000 * Math.pow(p.index, 0.92));
+  if (p.money < cost) return T(`Adoption costs ${naira(cost)}`, `Adoption go cost ${naira(cost)}`);
+  if (p.prison > 0) return T("Not from prison", "No fit from prison");
+  return null;
+}
+export function adoptChild(p: Player): string {
+  const b = adoptBlock(p);
+  if (b) return b;
+  const cost = Math.round(1_800_000 * Math.pow(p.index, 0.92));
+  transact(p, { amount: -cost, reason: T("Adoption fees and legal costs", "Adoption fees and legal cost"), category: "family" });
+  const gender: Gender = chance(0.5) ? "male" : "female";
+  const age = randInt(0, 5);
+  const { name, look } = makeKid(p, undefined, gender);
+  p.kids.push({ name, age, gender, look: randomLook(gender, {}) });
+  void look;
+  bump(p, "happiness", 14);
+  return T(`${name}, age ${age}, joins your family. The adoption is final.`, `${name}, age ${age}, join your family. Adoption don complete.`);
 }
 
 function makeKid(p: Player, n: Npc | undefined, gender: Gender): { name: string; look: Look } {
@@ -303,8 +431,9 @@ function makeKid(p: Player, n: Npc | undefined, gender: Gender): { name: string;
 // Yearly and monthly hooks
 // ---------------------------------------------------------------------------
 export function yearlyRelationships(p: Player, lines: string[], pending: Pending[]) {
-  p.rel.swipesLeft = 12;
-  p.rel.chatsLeft = 10;
+  p.rel.swipesLeft = 20;
+  p.rel.chatsLeft = 15;
+  p.rel.outingsLeft = 4;
   const now = idxNow(p);
   const cheating = isCheating(p);
   for (const r of p.rel.partners) {
@@ -347,18 +476,43 @@ export function yearlyRelationships(p: Player, lines: string[], pending: Pending
   if (p.flags.pregnancyNews) {
     delete p.flags.pregnancyNews;
     pending.push({ kind: "event", id: "pregnancy_news", data: { npcId: String(p.flags.pregnantBy), month: randInt(1, 12) } });
+    pending.push({ kind: "event", id: "antenatal_care", data: { month: randInt(1, 12) } });
   }
   if (p.flags.pregnantBy && Number(p.flags.pregnancyDue) <= p.age && p.flags.keepPregnancy) {
     const n = p.npcs[String(p.flags.pregnantBy)];
-    const gender: Gender = chance(0.5) ? "male" : "female";
-    const { name, look } = makeKid(p, n, gender);
-    p.kids.push({ name, age: 0, gender, look, otherParentId: n?.id });
-    lines.push(T(`${name} was born! ${n ? `With ${first(n)} as the other parent.` : ""}`, `${name} don born! ${n ? `${first(n)} na the other parent.` : ""}`));
-    p.stats.happiness = clamp(p.stats.happiness + 12);
-    delete p.flags.pregnantBy; delete p.flags.pregnancyDue; delete p.flags.keepPregnancy;
-    if (n && p.spouse?.npcId !== n.id) {
-      if (!p.subs.some((s) => s.id === `cs-${n.id}`)) p.subs.push({ id: `cs-${n.id}`, label: T(`Child support for ${name}`, `Child support for ${name}`), monthly: 35_000, category: "family", since: idxNow(p) });
+    const care = Number(p.flags.careLevel ?? 0);
+    const loss = chance([0.035, 0.012, 0.08][care] ?? 0.035);
+    const complication = chance([0.05, 0.02, 0.1][care] ?? 0.05);
+    const mother = p.gender === "female";
+    if (loss) {
+      lines.push(T("The pregnancy ends in heartbreak. It is a heavy loss for the whole family.", "The pregnancy end for sorrow. E be heavy loss for the whole family."));
+      p.stats.happiness = clamp(p.stats.happiness - 18);
+      p.stats.stress = clamp(p.stats.stress + 12);
+      if (mother) p.stats.health = clamp(p.stats.health - 8);
+    } else {
+      const twins = chance(0.03);
+      const count = twins ? 2 : 1;
+      const names: string[] = [];
+      for (let k = 0; k < count; k++) {
+        const gender: Gender = chance(0.5) ? "male" : "female";
+        const { name, look } = makeKid(p, n, gender);
+        names.push(name);
+        p.kids.push({ name, age: 0, gender, look, otherParentId: n?.id, closeness: 85 });
+      }
+      lines.push(T(`${names.join(" and ")} ${twins ? "were" : "was"} born! ${n ? `With ${first(n)} as the other parent.` : ""}`, `${names.join(" and ")} don born! ${n ? `${first(n)} na the other parent.` : ""}`));
+      if (complication) {
+        lines.push(T("There were complications during delivery, and recovery takes a while.", "Complication show during delivery, and recovery go take time."));
+        if (mother) p.stats.health = clamp(p.stats.health - 14);
+        p.stats.stress = clamp(p.stats.stress + 8);
+      }
+      const nameCost = Math.round(150_000 * Math.pow(p.index, 0.92)) * count;
+      transact(p, { amount: -Math.min(Math.max(0, p.money), nameCost), reason: T("Naming ceremony", "Naming ceremony"), category: "family" });
+      p.stats.happiness = clamp(p.stats.happiness + 12 * count);
+      if (n && p.spouse?.npcId !== n.id) {
+        if (!p.subs.some((s) => s.id === `cs-${n.id}`)) p.subs.push({ id: `cs-${n.id}`, label: T("Child support", "Child support"), monthly: 35_000, category: "family", since: idxNow(p) });
+      }
     }
+    delete p.flags.pregnantBy; delete p.flags.pregnancyDue; delete p.flags.keepPregnancy; delete p.flags.careLevel;
   }
   if (p.flags.queuedHealth) {
     try { pending.push(...(JSON.parse(String(p.flags.queuedHealth)) as Pending[])); } catch { /* ignore bad data */ }
@@ -368,11 +522,15 @@ export function yearlyRelationships(p: Player, lines: string[], pending: Pending
 
 /** Spouses share household costs. */
 export function spouseMonth(p: Player, living: number) {
-  if (!p.spouse?.npcId) return;
-  const n = p.npcs[p.spouse.npcId];
-  if (!n || !n.alive || n.income <= 0) return;
-  const share = Math.min(living * 0.4, (n.income * Math.pow(p.index, 0.9)) / 12 * 0.35);
-  if (share > 0) transact(p, { amount: share, reason: T(`${first(n)} contributed to household expenses`, `${first(n)} contribute for house expenses`), category: "family", recurring: "spouse" });
+  const ids = new Set<string>();
+  if (p.spouse?.npcId) ids.add(p.spouse.npcId);
+  for (const r of p.rel.partners) if (r.livingTogether && ["exclusive", "engaged", "married"].includes(r.stage)) ids.add(r.npcId);
+  for (const id of ids) {
+    const n = p.npcs[id];
+    if (!n || !n.alive || n.income <= 0) continue;
+    const share = Math.min(living * 0.4, (n.income * Math.pow(p.index, 0.9)) / 12 * 0.35);
+    if (share > 0) transact(p, { amount: share, reason: T(`${first(n)} contributed to household expenses`, `${first(n)} contribute for house expenses`), category: "family", recurring: "spouse" });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -382,6 +540,22 @@ const rel = (p: Player, id: unknown) => partnerOf(p, String(id));
 const npc = (p: Player, id: unknown) => p.npcs[String(id)];
 
 export const REL_EVENTS: EventDef[] = [
+  {
+    id: "antenatal_care",
+    title: dual("Care for the pregnancy", "Care for the pregnancy"),
+    weight: () => 0,
+    valid: (p) => Boolean(p.flags.pregnantBy),
+    text: () => T("Where will the pregnancy be looked after, and where will the baby be delivered?", "Where una go take care of the pregnancy, and where baby go deliver?"),
+    choices: (p) => {
+      const c = (n: number) => Math.round(I(p, n));
+      const mk = (label: string, cost: number, level: number, msg: string): Choice => ({ label, sub: naira(cost), disabled: p.money < cost ? T("Not enough cash", "Cash no reach") : false, run: (q) => { transact(q, { amount: -cost, reason: T("Antenatal care and delivery", "Antenatal care and delivery"), category: "health" }); q.flags.careLevel = level; return msg; } });
+      return [
+        mk(T("Government hospital", "Government hospital"), c(60_000), 0, T("Regular check-ups, long queues, and a booked delivery bed.", "Regular check-up, long queue, and delivery bed don book.")),
+        mk(T("Private hospital", "Private hospital"), c(550_000), 1, T("The best care money can buy, with a private room.", "Best care wey money fit buy, with private room.")),
+        mk(T("Local birth attendant", "Local birth attendant"), c(20_000), 2, T("Cheap and familiar, but risky if something goes wrong.", "E cheap and familiar, but e dey risky if wahala show.")),
+      ];
+    },
+  },
   {
     id: "partner_request",
     title: dual("Partner needs money", "Your partner need money"),
@@ -492,3 +666,15 @@ export const STAGE_LABEL: Record<RelStage, string> = {
   get married() { return T("Married", "Married"); },
   get ex() { return T("Ex", "Ex"); },
 };
+
+/** What to do next to move this relationship forward. */
+export function relHint(p: Player, r: PartnerRel): string {
+  switch (r.stage) {
+    case "chatting": return r.affection < 45 ? T(`Chat more to build love (${Math.round(r.affection)}/45), then ask for a date.`, `Chat more to build love (${Math.round(r.affection)}/45), then ask am for date.`) : T("Ask for a date.", "Ask am for date.");
+    case "dating": return r.affection < 60 ? T(`Spend time together (love ${Math.round(r.affection)}/60) to make it official.`, `Spend time together (love ${Math.round(r.affection)}/60) before una go official.`) : T("You can make it official now.", "You fit make am official now.");
+    case "exclusive": return p.age < 20 ? T("You need to be 20 to marry.", "You must reach 20 to marry.") : r.affection < 70 ? T(`Build love to 70 (now ${Math.round(r.affection)}) to propose. You can move in together first.`, `Build love reach 70 (now ${Math.round(r.affection)}) before you propose. You fit move in first.`) : T("You can propose now.", "You fit propose now.");
+    case "engaged": return T("Plan the wedding: press Marry.", "Plan the wedding: press Marry.");
+    case "married": return T("You are married. Try for a baby, or enjoy life together.", "You don marry. Try for baby, or enjoy life together.");
+    default: return "";
+  }
+}

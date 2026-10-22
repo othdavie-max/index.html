@@ -30,7 +30,7 @@ import { planEstate } from "./will";
 import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
 import { VEHICLE_MODELS, buyVehicle, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
-import { askOnDate, breakUp, chat, logMsg, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
+import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
 import { closeBusiness, fireStaff, hireStaff, sellBusiness, startBusiness, toggleManager, upgradeBusiness } from "./business";
 import { placeBet, type BetKind } from "./betting";
 import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
@@ -747,7 +747,7 @@ export type Action =
   | { t: "insure"; plan: "none" | "basic" | "premium" }
   | { t: "checkup" }
   | { t: "treat"; cond: string; facility: string }
-  | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
+  | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
   | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close"; id: string; name?: string }
   | { t: "bet"; kind: BetKind; stake: number }
   | { t: "social"; op: "account" | "post" | "collab" | "gear"; platform?: Platform; content?: ContentKind }
@@ -761,6 +761,8 @@ export type Action =
   | { t: "mortgage"; kind: HouseKind; years: number }
   | { t: "trade"; id: string }
   | { t: "postgrad"; id: string }
+  | { t: "adopt" }
+  | { t: "fertility" }
   | { t: "property"; id: string; mode: PurchaseMode; years?: number }
   | { t: "buy"; item: "phone" | "smartphone" | "laptop" };
 
@@ -817,6 +819,8 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "mortgage": return { reason: T("Mortgage", "Mortgage"), category: "asset" };
     case "trade": return { reason: T("Vocational training", "Vocational training"), category: "education" };
     case "postgrad": return { reason: T("Postgraduate study", "Postgraduate study"), category: "education" };
+    case "adopt": return { reason: T("Adoption", "Adoption"), category: "family" };
+    case "fertility": return { reason: T("Fertility treatment", "Fertility treatment"), category: "health" };
     case "property": return { reason: T("Property purchase", "Property purchase"), category: "asset" };
     case "sell": return { reason: T("Sold property", "Sell property"), category: "asset" };
     case "use": return { reason: T("Property change", "Property change"), category: "asset" };
@@ -943,6 +947,8 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "mortgage": { if (p.prison > 0) return { g: g0, msg: "" }; const m = takeMortgage(p, a.kind, a.years); return out(m); }
     case "trade": return out(enrollTrade(p, a.id));
     case "postgrad": return out(enrollPostgrad(p, a.id));
+    case "adopt": return out(adoptChild(p));
+    case "fertility": return out(fertilityTreatment(p));
     case "property": { const m = buyListing(p, a.id, a.mode, a.years ?? 15); return out(m); }
     case "sell": {
       const i = p.houses.findIndex((h) => h.id === a.id);
@@ -1118,6 +1124,10 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "date": return dm(askOnDate(p, a.npc ?? "", a.plan ?? "cheap"));
             case "spend": return dm(spendTime(p, a.npc ?? ""));
             case "official": return dm(makeOfficial(p, a.npc ?? ""));
+            case "meet": return out(meetSomeone(p));
+            case "movein": return dm(moveIn(p, a.npc ?? ""));
+            case "planb": return out(emergencyPill(p));
+            case "divorce": return out(divorce(p));
             case "breakup": return dm(breakUp(p, a.npc ?? ""));
             case "night": return dm(spendTheNight(p, a.npc ?? "", a.prot ?? "condom"));
             case "propose": {

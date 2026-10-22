@@ -16,7 +16,7 @@ import { summaries } from "./ledger";
 import { monthlySummary, upcomingPayments } from "./notices";
 import { POSTGRAD, postgradBlock } from "./education";
 import { listingBlock, planQuote } from "./property";
-import { STAGE_LABEL, activePartners, dateCost, datingAllowed, intimacyBlock } from "./relationships";
+import { STAGE_LABEL, activePartners, adoptBlock, dateCost, datingAllowed, divorceBlock, fertilityBlock, intimacyBlock, relHint } from "./relationships";
 import { CONTENT, PLATFORMS, postBlock, socialBlock, totalFollowers } from "./social";
 import { VEHICLE_MODELS, priceOf, repairCost, isInsured } from "./vehicles";
 import { beneficiaries, currentShares, totalPct } from "./will";
@@ -209,50 +209,7 @@ function Spark({ p, run }: { p: Player; run: Run }) {
       {partners.length > 0 && (
         <Card>
           <H>{T("Matches and partners", "Matches and partners")}</H>
-          <div className="space-y-2">
-            {partners.map(({ rel, npc }) => (
-              <div key={npc.id} className="rounded-xl bg-white/5 p-3">
-                <div className="flex items-center gap-3">
-                  <Face n={npc} p={p} />
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold">{npc.name}</div>
-                    <div className="text-[11px] text-white/50">{STAGE_LABEL[rel.stage]} · {npc.occupation}</div>
-                    <div className="mt-1 grid grid-cols-3 gap-1.5"><Bar label={T("Love", "Love")} value={rel.affection} tone="gold" /><Bar label={T("Trust", "Trust")} value={rel.trust} tone="blue" /><Bar label={T("Satisf.", "Satisf.")} value={rel.satisfaction} /></div>
-                  </div>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <Btn small tone="ghost" onClick={() => setOpen(open === npc.id ? null : npc.id)}>{open === npc.id ? T("Close", "Close") : T("Actions", "Actions")}</Btn>
-                  <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "spend", npc: npc.id })}>{T("Spend time", "Spend time")}</Btn>
-                </div>
-                {open === npc.id && (
-                  <div className="mt-2 space-y-2 border-t border-white/10 pt-2">
-                    <Thread rel={rel} />
-                    <div className="flex flex-wrap gap-1.5 text-xs">
-                      <span className="w-full text-white/50">{T("Chat", "Chat")}</span>
-                      {(["flirty", "funny", "genuine", "boring"] as const).map((tn) => <Btn key={tn} small tone="ghost" onClick={() => run({ t: "dating", op: "chat", npc: npc.id, tone: tn })}>{tn === "flirty" ? T("flirty", "flirty") : tn === "funny" ? T("funny", "funny") : tn === "genuine" ? T("genuine", "sincere") : T("boring", "boring")}</Btn>)}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 text-xs">
-                      <span className="w-full text-white/50">{T("Date", "Date")}</span>
-                      {(["cheap", "nice", "luxury"] as const).map((pl) => <Btn key={pl} small tone="ghost" disabled={p.money < dateCost(p, pl)} onClick={() => choosePlan(npc.id, pl)}>{pl === "cheap" ? T("cheap", "cheap") : pl === "nice" ? T("nice", "nice") : T("luxury", "luxury")} ({naira(dateCost(p, pl))})</Btn>)}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {rel.stage === "dating" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "official", npc: npc.id })}>{T("Make it official", "Make am official")}</Btn>}
-                      {rel.stage === "exclusive" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "propose", npc: npc.id })}>{T("Propose", "Propose")}</Btn>}
-                      {rel.stage === "engaged" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "marry", npc: npc.id })}>{T("Marry", "Marry")}</Btn>}
-                      {p.age >= 18 && (() => { const b = intimacyBlock(p, npc.id); return (
-                        <>
-                          <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "condom" })}>{T("Spend the night (protected)", "Sleep over (protected)")}</Btn>
-                          <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "none" })}>{T("(unprotected)", "(no protection)")}</Btn>
-                          {b && <span className="w-full text-[11px] text-white/40">{b}</span>}
-                        </>
-                      ); })()}
-                      <Btn small tone="red" onClick={() => run({ t: "dating", op: "breakup", npc: npc.id })}>{T("Break up", "Break up")}</Btn>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <div className="space-y-2">{partners.map(({ rel, npc }) => <PartnerRow key={npc.id} p={p} rel={rel} npc={npc} run={run} />)}</div>
         </Card>
       )}
     </>
@@ -274,6 +231,85 @@ function Thread({ rel }: { rel: PartnerRel }) {
         ),
       )}
     </div>
+  );
+}
+
+function PartnerRow({ p, rel, npc, run }: { p: Player; rel: PartnerRel; npc: Npc; run: Run }) {
+  const [open, setOpen] = useState(false);
+  const b = intimacyBlock(p, npc.id);
+  const committed = ["exclusive", "engaged", "married"].includes(rel.stage);
+  const canKids = p.gender !== npc.gender;
+  return (
+    <div className="rounded-xl bg-white/5 p-3">
+      <div className="flex items-center gap-3">
+        <Face n={npc} p={p} />
+        <div className="flex-1">
+          <div className="text-sm font-semibold">{npc.name}</div>
+          <div className="text-[11px] text-white/50">{STAGE_LABEL[rel.stage]}{rel.livingTogether ? T(" · living together", " · una dey live together") : ""} · {npc.occupation}</div>
+          <div className="mt-1 grid grid-cols-3 gap-1.5"><Bar label={T("Love", "Love")} value={rel.affection} tone="gold" /><Bar label={T("Trust", "Trust")} value={rel.trust} tone="blue" /><Bar label={T("Satisf.", "Satisf.")} value={rel.satisfaction} /></div>
+        </div>
+      </div>
+      <p className="mt-2 text-[11px] text-[#f5b82e]/90">{relHint(p, rel)}</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <Btn small tone="ghost" onClick={() => setOpen(!open)}>{open ? T("Close", "Close") : T("Actions", "Actions")}</Btn>
+        {rel.stage !== "chatting" && <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "spend", npc: npc.id })}>{T("Spend time", "Spend time")}</Btn>}
+      </div>
+      {open && (
+        <div className="mt-2 space-y-2 border-t border-white/10 pt-2">
+          <Thread rel={rel} />
+          <div className="flex flex-wrap gap-1.5 text-xs">
+            <span className="w-full text-white/50">{T("Chat", "Chat")}</span>
+            {(["flirty", "funny", "genuine", "boring"] as const).map((tn) => <Btn key={tn} small tone="ghost" onClick={() => run({ t: "dating", op: "chat", npc: npc.id, tone: tn })}>{tn === "flirty" ? T("flirty", "flirty") : tn === "funny" ? T("funny", "funny") : tn === "genuine" ? T("genuine", "genuine") : T("boring", "boring")}</Btn>)}
+          </div>
+          <div className="flex flex-wrap gap-1.5 text-xs">
+            <span className="w-full text-white/50">{T("Date", "Date")}</span>
+            {(["cheap", "nice", "luxury"] as const).map((pl) => <Btn key={pl} small tone="ghost" disabled={p.money < dateCost(p, pl)} onClick={() => run({ t: "dating", op: "date", npc: npc.id, plan: pl })}>{pl === "cheap" ? T("cheap", "cheap") : pl === "nice" ? T("nice", "nice") : T("luxury", "luxury")} ({naira(dateCost(p, pl))})</Btn>)}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="w-full text-xs text-white/50">{T("Relationship", "Relationship")}</span>
+            {rel.stage === "dating" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "official", npc: npc.id })}>{T("Make it official", "Make am official")}</Btn>}
+            {(rel.stage === "exclusive" || rel.stage === "engaged") && !rel.livingTogether && <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "movein", npc: npc.id })}>{T("Move in together", "Move in together")}</Btn>}
+            {rel.stage === "exclusive" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "propose", npc: npc.id })}>{T("Propose", "Propose")}</Btn>}
+            {rel.stage === "engaged" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "marry", npc: npc.id })}>{T("Marry", "Marry")}</Btn>}
+            <Btn small tone="red" onClick={() => run({ t: "dating", op: "breakup", npc: npc.id })}>{T("Break up", "Break up")}</Btn>
+          </div>
+          {p.age >= 18 && (
+            <div className="flex flex-wrap gap-1.5">
+              <span className="w-full text-xs text-white/50">{T("Intimacy (kept private, with the consequences shown)", "Intimacy (private matter, but consequences dey show)")}</span>
+              <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "condom" })}>{T("With a condom", "With condom")}</Btn>
+              <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "pill" })}>{T("On the pill", "On the pill")}</Btn>
+              <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "none" })}>{T("No protection", "No protection")}</Btn>
+              {canKids && <Btn small tone="gold" disabled={Boolean(b) || !committed} title={!committed ? T("Needs a committed relationship", "Need serious relationship") : ""} onClick={() => run({ t: "dating", op: "night", npc: npc.id, prot: "try" })}>{T("Try for a baby", "Try for baby")}</Btn>}
+              {b && <span className="w-full text-[11px] text-white/40">{b}</span>}
+              {p.flags.lastNightAge === p.age && <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "planb" })}>{T("Emergency pill", "Emergency pill")}</Btn>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Relationships and family planning, available without a phone. */
+export function RelationshipsCard({ p, run }: { p: Player; run: Run }) {
+  if (p.age < 18) return null;
+  const partners = activePartners(p);
+  const fertile = fertilityBlock(p);
+  const adopt = adoptBlock(p);
+  return (
+    <Card>
+      <H sub={T("Meet people, date, marry and start a family. No phone needed.", "Meet people, date, marry and start family. You no need phone.")}>{T("Love and family life", "Love and family life")}</H>
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        <Btn small tone="gold" disabled={p.prison > 0} onClick={() => run({ t: "dating", op: "meet" })}>{T("Go out and meet someone", "Go out meet person")} ({p.rel.outingsLeft ?? 4})</Btn>
+        <Btn small tone="ghost" disabled={Boolean(adopt)} title={adopt ?? ""} onClick={() => run({ t: "adopt" })}>{T("Adopt a child", "Adopt pikin")}</Btn>
+        <Btn small tone="ghost" disabled={Boolean(fertile)} title={fertile ?? ""} onClick={() => run({ t: "fertility" })}>{T("Fertility treatment", "Fertility treatment")}</Btn>
+        {p.spouse && <Btn small tone="red" disabled={Boolean(divorceBlock(p))} onClick={() => run({ t: "dating", op: "divorce" })}>{T("Divorce", "Divorce")}</Btn>}
+      </div>
+      {p.flags.pregnantBy && p.flags.keepPregnancy ? <p className="mb-2 text-xs text-[#f5b82e]">{T("A baby is on the way.", "Baby dey come.")}</p> : null}
+      {partners.length === 0 ? <p className="text-sm text-white/60">{T("You are single. Go out, or use the Spark app on your phone.", "You dey single. Go out, or use Spark for your phone.")}</p> : (
+        <div className="space-y-2">{partners.map(({ rel, npc }) => <PartnerRow key={npc.id} p={p} rel={rel} npc={npc} run={run} />)}</div>
+      )}
+    </Card>
   );
 }
 

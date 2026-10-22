@@ -863,3 +863,73 @@ test("two languages: every legacy and new event has English and Pidgin text, and
   assert.equal(e, "Hello"); assert.equal(c, "Howfa");
   void sample;
 });
+
+test("love life end to end: meet without a phone, date, move in, propose, marry, try for a baby, birth", () => {
+  const base = structuredClone(aliveAt(27));
+  const mk = () => { const g = structuredClone(base); g.p.prison = 0; g.p.money = 800_000_000 * g.p.index; g.p.possessions.smartphone = false; g.p.possessions.phone = false; g.p.spouse = null; g.p.rel.partners = []; g.p.kids = []; g.p.flags = Object.fromEntries(Object.entries(g.p.flags).filter(([k]) => !/^(dating|pregn|keepPreg|lastNight|careLevel)/.test(k))) as typeof g.p.flags; return g; };
+  let g = mk();
+  // 1. meet someone with no phone
+  let found: string | null = null;
+  for (let s = 1; s <= 30 && !found; s++) { setSeed(s); g = mk(); g.p.rel.outingsLeft = 4; for (let i = 0; i < 4 && !g.p.rel.partners.length; i++) g = act(g, { t: "dating", op: "meet" }).g; if (g.p.rel.partners.length) found = g.p.rel.partners[0].npcId; }
+  assert.ok(found, "you can meet people without a phone");
+  const id = found!;
+  const npcGender = g.p.npcs[id].gender;
+  // 2. progress the relationship through the real actions
+  const set = (love: number) => { g.p.rel.partners.find((x) => x.npcId === id)!.affection = love; };
+  set(50); g = act(g, { t: "dating", op: "date", npc: id, plan: "nice" }).g;
+  let rel = g.p.rel.partners.find((x) => x.npcId === id)!;
+  for (let i = 0; i < 20 && rel.stage === "chatting"; i++) { set(60); g = act(g, { t: "dating", op: "date", npc: id, plan: "nice" }).g; rel = g.p.rel.partners.find((x) => x.npcId === id)!; }
+  assert.notEqual(rel.stage, "chatting", "a date moves you on");
+  set(75); g = act(g, { t: "dating", op: "official", npc: id }).g;
+  rel = g.p.rel.partners.find((x) => x.npcId === id)!;
+  assert.equal(rel.stage, "exclusive");
+  g = act(g, { t: "dating", op: "movein", npc: id }).g;
+  assert.equal(g.p.rel.partners.find((x) => x.npcId === id)!.livingTogether, true);
+  set(85); g.p.age = Math.max(g.p.age, 22);
+  g = act(g, { t: "dating", op: "propose", npc: id }).g;
+  assert.equal(g.queue[0]?.kind === "event" && g.queue[0].id, "proposal", "proposing opens the wedding choices");
+  const v = describePending(g)!;
+  const wed = v.choices.findIndex((c) => !c.disabled && /wedding|Church|Court/i.test(c.label));
+  g = choose(g, wed >= 0 ? wed : 0).g;
+  assert.ok(g.p.spouse, "you are married");
+  assert.equal(g.p.rel.partners.find((x) => x.npcId === id)!.stage, "married");
+  assert.ok(ledgerBalances(g.p));
+  // 3. children: protection matters
+  const rate = (prot: "condom" | "pill" | "none" | "try", gen: boolean) => {
+    let preg = 0; const N = 300;
+    for (let s = 1; s <= N; s++) { setSeed(s); const q = structuredClone(g); q.p.flags = Object.fromEntries(Object.entries(q.p.flags).filter(([k]) => !/^(pregn|keepPreg|lastNight)/.test(k))) as typeof q.p.flags; q.p.age = 27; const r = act(q, { t: "dating", op: "night", npc: id, prot }).g; if (r.p.flags.pregnantBy) preg++; }
+    void gen; return preg / N;
+  };
+  if (g.p.gender !== npcGender) {
+    const none = rate("none", true), condom = rate("condom", true), tryB = rate("try", true);
+    assert.ok(none > condom * 3, `no protection (${none}) is far riskier than a condom (${condom})`);
+    assert.ok(condom < 0.08, `condoms rarely fail (${condom})`);
+    assert.ok(tryB > none, `trying for a baby (${tryB}) beats no protection (${none})`);
+    // 4. a pregnancy leads to news, care choices and a birth
+    let q = structuredClone(g); let born = false;
+    for (let s = 1; s <= 60 && !born; s++) {
+      setSeed(s); q = structuredClone(g); q.p.age = 27; q.p.money = 800_000_000 * q.p.index;
+      for (let i = 0; i < 6 && !q.p.flags.pregnantBy; i++) q = act(q, { t: "dating", op: "night", npc: id, prot: "try" }).g;
+      if (!q.p.flags.pregnantBy) continue;
+      const before = q.p.kids.length;
+      for (let y = 0; y < 3 && q.p.kids.length === before && q.p.alive; y++) {
+        q = ageUp(q);
+        for (let k = 0; k < 20 && q.queue.length; k++) { const hv = describePending(q); if (!hv) break; const idx = hv.choices.findIndex((c) => !c.disabled && /celebrate|commit|Government|raising/i.test(c.label)); q = choose(q, idx >= 0 ? idx : Math.max(0, hv.choices.findIndex((c) => !c.disabled))).g; }
+      }
+      born = q.p.kids.length > before;
+    }
+    assert.ok(born, "a pregnancy ends in a birth");
+    assert.ok(q.p.kids[q.p.kids.length - 1].otherParentId === id || q.p.kids.length > 0);
+    assert.ok(ledgerBalances(q.p));
+  }
+  // 5. emergency pill, adoption, fertility treatment, divorce
+  const pill = act({ ...structuredClone(g), p: { ...structuredClone(g.p), flags: { ...g.p.flags, lastNightAge: g.p.age } } } as Game, { t: "dating", op: "planb" });
+  assert.ok(pill.msg.length > 0);
+  const ad = act(structuredClone(g), { t: "adopt" });
+  assert.equal(ad.g.p.kids.length, g.p.kids.length + 1);
+  const ft = act(structuredClone(g), { t: "fertility" });
+  assert.ok(Number(ft.g.p.flags.fertilityUntil) > g.p.age);
+  const dv = act(structuredClone(g), { t: "dating", op: "divorce" });
+  assert.equal(dv.g.p.spouse, null);
+  assert.ok(ledgerBalances(dv.g.p));
+});

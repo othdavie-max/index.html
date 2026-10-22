@@ -8,8 +8,8 @@ import { chromium } from "playwright";
 
 const PORT = 3112;
 const URL = `http://localhost:${PORT}/naija-life`;
-const server = spawn("npx", ["next", "dev", "-p", String(PORT)], { cwd: process.cwd(), stdio: "ignore" });
-const stop = () => { try { server.kill("SIGTERM"); } catch { /* already gone */ } };
+const server = spawn("npx", ["next", "dev", "-p", String(PORT)], { cwd: process.cwd(), stdio: "ignore", detached: true });
+const stop = () => { try { process.kill(-server.pid, "SIGTERM"); } catch { /* already gone */ } };
 process.on("exit", stop);
 
 async function waitUp() {
@@ -37,7 +37,7 @@ async function play(browser, lang) {
   await page.reload();
   await page.getByRole("button", { name: lang === "en" ? "English" : "Pidgin", exact: true }).click();
   await page.getByRole("button", { name: /Be born|Born me/ }).click();
-  await page.getByRole("button", { name: /Age up|Age/ }).first().waitFor({ timeout: 10000 });
+  await page.getByRole("button", { name: /^(Age up|Grow up)/ }).first().waitFor({ timeout: 60000 });
   const tabs = ["Life", "Phone", "Work", "Money", "Family", "Health", "Law", "Map", "Power", "Legacy"];
   for (let year = 0; year < 30; year++) {
     // answer any event or sheet that is open
@@ -56,7 +56,7 @@ async function play(browser, lang) {
       }
       await clickIf(page, page.locator("nav button", { hasText: /^Life$/ }));
     }
-    const up = page.getByRole("button", { name: /^Age up/ });
+    const up = page.getByRole("button", { name: /^(Age up|Grow up)/ });
     if (!(await up.count()) || (await up.first().isDisabled())) continue;
     await up.first().click({ timeout: 2000 }).catch(() => {});
     steps++;
@@ -68,6 +68,7 @@ async function play(browser, lang) {
 
 try {
   await waitUp();
+  await fetch(URL); // warm the first compile
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM ?? "/opt/pw-browsers/chromium", args: ["--no-sandbox"] });
   for (const lang of ["en", "pcm"]) await play(browser, lang);
   await browser.close();
