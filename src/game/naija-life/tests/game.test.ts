@@ -26,6 +26,7 @@ import { yearlyNews, modActive } from "../news";
 import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
+import { ENGAGE_EVENTS, GOAL_DEFS, MOMENT_DEFS, challengeFor, dailyFor, dailyBlock, engageYear, gistFor, weekId, DAILY } from "../engage";
 import { VEHICLE_MODELS, modelOf, needsLicense, priceOf, takeDrivingTest, licenseBlock } from "../vehicles";
 import { transportOptions, tripRisk } from "../travel";
 import { makeKidnap } from "../kidnap";
@@ -714,6 +715,7 @@ test("prison closes outside actions, freezes nothing financial, and offers priso
 
 test("parent replies need an answer: loans, conditions, questions and chores", () => {
   const base = structuredClone(aliveAt(21, "upperMiddle"));
+  for (const n of Object.values(base.p.npcs)) if (n.role === "dad" || n.role === "mom") { n.alive = true; n.income = Math.max(n.income, 40_000_000); n.closeness = 80; if (!base.p.fam.providers.includes(n.id)) base.p.fam.providers.push(n.id); }
   const ev = SUPPORT_EVENTS[0];
   const mk = (type: string) => {
     const p = structuredClone(base.p);
@@ -992,6 +994,7 @@ test("universities: catalogue, affordability by family wealth, campus life and g
   // a poor family can afford a federal school but not a top private one; a rich family can afford both
   const poor = aliveAt(17, "lapo");
   const rich = aliveAt(17, "nepo");
+  for (const n of Object.values(rich.p.npcs)) if (n.role === "dad" || n.role === "mom") { n.alive = true; n.income = 900_000_000; n.savings = 900_000_000; n.gaveThisYear = 0; if (!rich.p.fam.providers.includes(n.id)) rich.p.fam.providers.push(n.id); }
   for (const g of [poor, rich]) { g.p.edu = "secondary"; g.p.school = null; g.p.prison = 0; openAdmission(g.p, 330); g.p.money = 0; }
   const law = MAJOR_BY_ID.law;
   const unilag = UNI_BY_ID.unilag, cov = UNI_BY_ID.covenant;
@@ -1211,4 +1214,73 @@ test("kidnap escape mini-game: planning raises the odds, running ends it", () =>
     }
   }
   assert.ok((outcomes.escaped ?? 0) > 0, `some escapes succeed: ${JSON.stringify(outcomes)}`);
+});
+
+test("engagement: moments, bucket list, daily gist, weekly challenge and chain events", () => {
+  // every life starts with three distinct goals, at least one with a cosmetic prize
+  const g = aliveAt(30);
+  assert.equal(g.p.goals?.length, 3);
+  assert.equal(new Set(g.p.goals!.map((x) => x.id)).size, 3);
+  assert.ok(g.p.goals!.some((x) => GOAL_DEFS.find((d) => d.id === x.id)?.unlock));
+  // finishing a goal unlocks its cosmetic and logs it
+  const p = structuredClone(g.p);
+  p.goals = [{ id: "marry", done: false }, { id: "degree", done: false }, { id: "sixty", done: false }];
+  p.spouse = { name: "Test Spouse", happy: 70 };
+  const lines: string[] = [];
+  engageYear(p, lines);
+  assert.ok(p.goals[0].done && lines.some((l) => l.includes("Goal complete")));
+  const prize = structuredClone(g.p);
+  prize.goals = [{ id: "sug", done: false }, { id: "jet", done: false }, { id: "degree", done: false }];
+  prize.campus = { uni: "unilag", major: "law", year: 4, payer: "self", aid: 0, effort: 0, used: [], gpas: [3], cgpa: 3, network: 10, lead: 10, clubs: [], sug: "won", siwes: false, offer: false, project: false, trouble: 0, strikes: 0 };
+  engageYear(prize, []);
+  assert.equal(prize.flags["unlock:wear:redcap"], 1);
+  // moments are funny, bilingual, unique and carry the age
+  for (const d of MOMENT_DEFS) assert.ok(d.en(g.p).length > 20 && d.pcm(g.p).length > 20, d.id);
+  const m = structuredClone(g.p); m.achievements.push("Became President"); m.flags.kidEscaped = 31; m.kidnaps = 1;
+  engageYear(m, []); engageYear(m, []);
+  assert.equal(new Set(m.moments!.map((x) => x.id)).size, m.moments!.length, "no duplicate moments");
+  assert.ok(m.moments!.some((x) => x.id === "president") && m.moments!.some((x) => x.id === "kid_escaped" && x.en.includes("31")));
+  // daily gist: same for everyone on a day, one claim per day, rewards by streak
+  assert.equal(dailyFor("2026-10-22").id, dailyFor("2026-10-22").id);
+  assert.ok(new Set(["2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26"].map((d) => dailyFor(d).id)).size > 1);
+  assert.ok(DAILY.every((d) => d.choices.length >= 2));
+  const day = "2026-10-22";
+  const a = act(structuredClone(g), { t: "daily", day, choice: 0, streak: 1 });
+  assert.equal(a.g.p.flags.dailyDay, day);
+  assert.ok(dailyBlock(a.g.p, day));
+  const again = act(a.g, { t: "daily", day, choice: 0, streak: 2 });
+  assert.equal(again.g.p.money, a.g.p.money, "claiming twice does nothing");
+  const week = act(structuredClone(g), { t: "daily", day: "2026-10-23", choice: 0, streak: 7 });
+  assert.ok(week.g.p.luck >= g.p.luck);
+  assert.ok(ledgerBalances(a.g.p) && ledgerBalances(week.g.p));
+  // weekly challenge: stable per week, different across weeks, and sets the start
+  assert.equal(weekId(new Date(2026, 9, 22)), weekId(new Date(2026, 9, 20)));
+  assert.notEqual(weekId(new Date(2026, 9, 22)), weekId(new Date(2026, 9, 29)));
+  const c = challengeFor("2026-W43");
+  assert.deepEqual(challengeFor("2026-W43"), c);
+  const cg = newGame({ ...OPTS, stateId: c.stateId, forceArchetype: c.force, seed: c.seed, challenge: c.id });
+  const cg2 = newGame({ ...OPTS, stateId: c.stateId, forceArchetype: c.force, seed: c.seed, challenge: c.id });
+  assert.equal(cg.p.challenge?.id, "2026-W43");
+  assert.equal(cg.p.fam.archetype, cg2.p.fam.archetype, "same seed, same family");
+  assert.equal(cg.p.state, c.stateId);
+  // the score locks in at 40
+  const old = structuredClone(g.p); old.age = 40; old.challenge = { id: "2026-W43" };
+  engageYear(old, []);
+  assert.ok(typeof old.challenge.score === "number");
+  // gist always has lines and shows your own moments first
+  assert.ok(gistFor("2026-10-22", m).length >= 8 && gistFor("2026-10-22", m)[0].you);
+  // chain events exist and gate properly
+  const ids = ENGAGE_EVENTS.map((e) => e.id);
+  assert.ok(["stranger_help", "stranger_returns", "detty_december", "ramadan_sallah", "aso_ebi_levy", "nysc_story", "abroad_first_winter"].every((i) => ids.includes(i)));
+  const sh = ENGAGE_EVENTS.find((e) => e.id === "stranger_help")!, sr = ENGAGE_EVENTS.find((e) => e.id === "stranger_returns")!;
+  const q = structuredClone(g.p); q.age = 25; q.money = 1_000_000_000;
+  assert.equal(sr.weight(q), 0, "he cannot return before he arrives");
+  sh.choices(q, {})[0].run(q);
+  assert.equal(sr.weight(q), 0, "he returns only years later");
+  q.age = 34;
+  assert.ok(sr.weight(q) > 0);
+  const before = q.money;
+  sr.choices(q, {})[0].run(q);
+  assert.ok(q.money > before, "kindness pays back");
+  assert.equal(sr.weight(q), 0, "only once");
 });

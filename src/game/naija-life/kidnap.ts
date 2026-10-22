@@ -101,6 +101,8 @@ function endVictim(p: Player, k: KidnapState, outcome: NonNullable<KidnapState["
   k.stage = "over";
   k.outcome = outcome;
   p.kidnaps += 1;
+  p.flags.kidAge = p.age;
+  if (outcome === "escaped") p.flags.kidEscaped = p.age;
   const weeks = randInt(1, 14);
   if (outcome === "dead") {
     p.alive = false;

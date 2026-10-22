@@ -157,6 +157,12 @@ export interface Player {
   course: string | null;
   /** University life: set when you enrol, kept after you graduate. */
   campus?: Campus;
+  /** Funny, shareable highlights of this life. */
+  moments?: Moment[];
+  /** Three optional goals; finishing one unlocks a cosmetic. */
+  goals?: Goal[];
+  /** The weekly challenge this life was started for. */
+  challenge?: { id: string; score?: number };
   school: { stage: "primary" | "secondary" | "tertiary"; yearsLeft: number; type: string } | null;
   job: JobState | null;
   houses: House[];
@@ -750,3 +756,6 @@ export interface Campus {
   cls?: string;
   gradAge?: number;
 }
+
+export interface Moment { id: string; age: number; emoji: string; title: string; en: string; pcm: string }
+export interface Goal { id: string; done: boolean; doneAge?: number }

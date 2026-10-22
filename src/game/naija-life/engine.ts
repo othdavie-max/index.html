@@ -9,6 +9,7 @@ import { EVENTS5, graduationData } from "./events5";
 import { EVENTS6 } from "./events6";
 import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
+import { ENGAGE_EVENTS, assignGoals, dailyDo, engageYear } from "./engage";
 import { campusDo, campusHire, campusYearEnd, enrol, graduateCampus, writeJamb } from "./campus";
 import { transportOptions, type TransportMode } from "./travel";
 import { buyListing, completeProjects, developLand, houseYear, refreshListings, type PurchaseMode } from "./property";
@@ -52,7 +53,7 @@ import { kidLook, lookToStr, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -119,6 +120,8 @@ export interface NewLifeOptions {
   /** Optional overrides for testing or custom games. */
   familyConfig?: FamilyConfig;
   forceArchetype?: FamilyArchetype;
+  /** Weekly challenge id this life is played for. */
+  challenge?: string;
   lang?: "en" | "pcm";
   /** Makes the whole life reproducible for this session. */
   seed?: number | null;
@@ -213,6 +216,8 @@ export function newGame(opts: NewLifeOptions): Game {
     log: [],
   } as unknown as Player;
   initWorld(p, st, opts.familyConfig, opts.forceArchetype);
+  assignGoals(p);
+  if (opts.challenge) p.challenge = { id: opts.challenge };
   setDeflator(1);
   addLog(p, T(`You were born in ${st.capital}, ${st.name} State. You are ${tribe}, ${religion}.`, `Dem born you for ${st.capital}, ${st.name} State. You be ${tribe}, ${religion}.`));
   addLog(p, describeFamily(p));
@@ -241,6 +246,7 @@ function ensureRecorded(g: Game) {
   const p = g.p;
   if (p.alive || p.flags.recorded) return;
   p.flags.recorded = true;
+  if (p.challenge && p.challenge.score === undefined) p.challenge.score = Math.round(netWorth(p) / p.index);
   g.queue = [];
   const high = p.politics?.highest ?? -1;
   const entry: LineageEntry = {
@@ -401,6 +407,7 @@ export function startHeir(g0: Game, kidIndex: number): Game {
   setDeflator(p.index); setLang(p.lang);
   old.vehicles = cars.slice(0, nCars);
   buildHeirWorld(old, kid, p, estateReal);
+  assignGoals(p);
   enrollByAge(p);
   assignSchoolType(p);
   if (p.age >= 18 && estateReal > 30e6 && chance(0.6)) {
@@ -623,6 +630,7 @@ export function ageUp(g0: Game): Game {
     p.cause = p.age >= 66 ? T("Old age", "Old age") : pick(causes());
   }
 
+  engageYear(p, lines);
   p.traveled = false;
   p.month = 12;
   for (const l of lines) addLog(p, l);
@@ -759,6 +767,7 @@ export type Action =
   | { t: "trade"; id: string }
   | { t: "postgrad"; id: string }
   | { t: "adopt" }
+  | { t: "daily"; day: string; choice: number; streak: number }
   | { t: "jamb"; cheat?: boolean }
   | { t: "enrol"; uni: string; major: string; pay: "family" | "self" | "aid" }
   | { t: "campus"; op: string; arg?: string }
@@ -825,6 +834,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "postgrad": return { reason: T("Postgraduate study", "Postgraduate study"), category: "education" };
     case "adopt": return { reason: T("Adoption", "Adoption"), category: "family" };
     case "advisor": return { reason: T("Financial adviser", "Financial adviser"), category: "investment" };
+    case "daily": return { reason: T("Daily gist", "Daily gist"), category: "event" };
     case "jamb": return { reason: T("JAMB registration", "JAMB registration"), category: "education" };
     case "enrol": return { reason: T("University admission", "University admission"), category: "education" };
     case "campus": return { reason: T("Campus life", "Campus life"), category: "education" };
@@ -966,6 +976,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "trade": return out(enrollTrade(p, a.id));
     case "postgrad": return out(enrollPostgrad(p, a.id));
     case "adopt": return out(adoptChild(p));
+    case "daily": return out(dailyDo(p, a.day, a.choice, a.streak));
     case "jamb": return out(writeJamb(p, Boolean(a.cheat)));
     case "enrol": return out(enrol(p, a.uni, a.major, a.pay));
     case "campus": return out(campusDo(p, a.op, a.arg));

@@ -13,6 +13,7 @@ import {
 import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
 import { Avatar } from "./Avatar";
 import { AdmissionCard, CampusCard, DegreeCard } from "./CampusUI";
+import { ChallengeBanner, ChallengePanel, DailyBanner, GistPanel, GoalsPanel, MomentsPanel, isLocked, lockHint, sanitizeLook, saveChallengeScore, saveUnlocksFrom, useUnlocks } from "./EngageUI";
 import { KidnapModal } from "./KidnapModal";
 import { BEARDS, GLASSES, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
@@ -117,6 +118,14 @@ export default function NaijaLife() {
   }, []);
 
   useEffect(() => {
+    if (!game) return;
+    const fresh = saveUnlocksFrom(game.p);
+    saveChallengeScore(game.p);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (fresh.length) setToast(T(`🎁 New cosmetic unlocked! Check the look picker when you start a new life.`, `🎁 New cosmetic don unlock! Check the look picker when you start new life.`));
+  }, [game]);
+
+  useEffect(() => {
     if (!ready || !game) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSlots((s) => {
@@ -185,7 +194,7 @@ export default function NaijaLife() {
         {EXPLORE_TABS.includes(tab) && <ExploreChips tab={tab} setTab={setTab} />}
         {tab === "explore" && <ExploreHub setTab={setTab} />}
         {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}
-        {tab === "life" && <><PrisonCard p={p} run={run} /><AdmissionCard p={p} run={run} /><CampusCard p={p} run={run} /><HeadlinesCard p={p} /><LifeFeed g={game} run={run} /></>}
+        {tab === "life" && <><PrisonCard p={p} run={run} /><AdmissionCard p={p} run={run} /><CampusCard p={p} run={run} /><HeadlinesCard p={p} /><DailyBanner p={p} run={run} /><LifeFeed g={game} run={run} /></>}
         {tab === "phone" && p.prison <= 0 && <PhoneTab p={p} run={run} />}
         {tab === "health" && <HealthTab p={p} run={run} />}
         {tab === "law" && <LawTab p={p} run={run} />}
@@ -334,9 +343,9 @@ function Shell({ children }: { children: React.ReactNode }) {
 // ---------------------------------------------------------------------------
 // Start screen
 // ---------------------------------------------------------------------------
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ active, onClick, children, locked, hint }: { active: boolean; onClick: () => void; children: React.ReactNode; locked?: boolean; hint?: string }) {
   return (
-    <button type="button" onClick={onClick} className={cx("rounded-full border px-3 py-1.5 text-xs font-semibold transition", active ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100")}>
+    <button type="button" onClick={onClick} disabled={locked} title={hint} className={cx("rounded-full border px-3 py-1.5 text-xs font-semibold transition", locked && "opacity-50", active ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100")}>
       {children}
     </button>
   );
@@ -348,7 +357,7 @@ function Swatch({ color, active, onClick, label }: { color: string; active: bool
   );
 }
 
-type NewOpts = { name: string; gender: Gender; stateId: string | null; tribe: string | null; religion: string | null; look: Look; lang: Lang; seed?: number | null; familyConfig?: NewLifeOptions["familyConfig"]; forceArchetype?: NewLifeOptions["forceArchetype"] };
+type NewOpts = { name: string; gender: Gender; stateId: string | null; tribe: string | null; religion: string | null; look: Look; lang: Lang; seed?: number | null; familyConfig?: NewLifeOptions["familyConfig"]; forceArchetype?: NewLifeOptions["forceArchetype"]; challenge?: string };
 
 function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { onStart: (o: NewOpts, slot: number) => void; slots: (Game | null)[]; onContinue: (i: number) => void; onDelete: (i: number) => void; lang: Lang; onLang: (l: Lang) => void }) {
   const [seedText, setSeedText] = useState("");
@@ -363,7 +372,8 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
   const field = "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500";
   const set = (patch: Partial<Look>) => setLook((l) => ({ ...l, ...patch }));
   const regionNow = () => (stateId ? STATE_BY_ID[stateId]?.region : undefined);
-  const reroll = (g: Gender = gender) => setLook(randomLook(g, { region: regionNow(), religion: religion || undefined }));
+  const unlocked = useUnlocks();
+  const reroll = (g: Gender = gender) => setLook(sanitizeLook(randomLook(g, { region: regionNow(), religion: religion || undefined }), unlocked));
   return (
     <div className="flex-1 px-5 pb-10 pt-10">
       <div className="h-1.5 w-full overflow-hidden rounded-full">
@@ -371,6 +381,8 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
       </div>
       <h1 className="mt-5 font-serif text-4xl font-black leading-[1.05] text-slate-900">Naija<br /><span className="text-blue-600">Life</span></h1>
       <p className="mt-3 text-sm leading-relaxed text-slate-600">{T("Live a whole Nigerian life: from akara by the roadside to Aso Rock. Hustle, travel between states, build houses, survive NEPA, dodge kidnappers, and leave a legacy your children inherit.", "Live full Naija life: from akara for roadside reach Aso Rock. Hustle, travel between states, build house, survive NEPA, run from kidnappers, and leave legacy wey your pikin go inherit.")}</p>
+
+      <ChallengeBanner onPlay={(c) => onStart({ name, gender, stateId: c.stateId, tribe: null, religion: null, look: sanitizeLook(look, unlocked), lang, seed: c.seed, forceArchetype: c.force, challenge: c.id }, target)} />
 
       <div className="mt-5 grid grid-cols-2 gap-2" role="group" aria-label={T("Language", "Language")}>
         {(["en", "pcm"] as Lang[]).map((l) => (
@@ -405,7 +417,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
         </div>
         <div>
           <span className="text-xs text-slate-600">{T("Hairstyle", "Hairstyle")}</span>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">{HAIRS.map((h) => <Chip key={h.id} active={look.hair === h.id} onClick={() => set({ hair: h.id })}>{h.label}</Chip>)}</div>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">{HAIRS.map((h) => { const lk = isLocked("hair", h.id, unlocked); return <Chip key={h.id} active={look.hair === h.id} locked={lk} hint={lockHint("hair", h.id)} onClick={() => set({ hair: h.id })}>{lk ? "🔒 " : ""}{h.label}</Chip>; })}</div>
         </div>
         <div>
           <span className="text-xs text-slate-600">{T("Hair colour", "Hair colour")}</span>
@@ -419,7 +431,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
         )}
         <div>
           <span className="text-xs text-slate-600">{T("Cap or headwear", "Cap or head wear")}</span>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">{WEARS.map((w) => <Chip key={w.id} active={look.wear === w.id} onClick={() => set({ wear: w.id })}>{w.label}</Chip>)}</div>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">{WEARS.map((w) => { const lk = isLocked("wear", w.id, unlocked); return <Chip key={w.id} active={look.wear === w.id} locked={lk} hint={lockHint("wear", w.id)} onClick={() => set({ wear: w.id })}>{lk ? "🔒 " : ""}{w.label}</Chip>; })}</div>
         </div>
         <div>
           <span className="text-xs text-slate-600">{T("Glasses and earrings", "Glasses and earrings")}</span>
@@ -430,7 +442,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
         </div>
         <div>
           <span className="text-xs text-slate-600">{T("Outfit", "Outfit")}</span>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">{OUTFITS.map((o) => <Chip key={o.id} active={look.outfit === o.id} onClick={() => set({ outfit: o.id })}>{o.label}</Chip>)}</div>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">{OUTFITS.map((o) => { const lk = isLocked("outfit", o.id, unlocked); return <Chip key={o.id} active={look.outfit === o.id} locked={lk} hint={lockHint("outfit", o.id)} onClick={() => set({ outfit: o.id })}>{lk ? "🔒 " : ""}{o.label}</Chip>; })}</div>
           <div className="mt-2 flex flex-wrap gap-2">{OUTFIT_COLORS.map((c, i) => <Swatch key={c} color={c} label={T(`Outfit colour ${i + 1}`, `Outfit colour ${i + 1}`)} active={look.outfitColor === i} onClick={() => set({ outfitColor: i })} />)}</div>
         </div>
       </Card>
@@ -1075,6 +1087,10 @@ function LegacyTab({ g }: { g: Game }) {
         <Btn tone="gold" small className="mt-3" onClick={share}><Share2 size={14} className="mr-1 inline" /> {T("Share legacy card", "Share legacy card")}</Btn>
         {msg && <p className="mt-2 text-xs text-emerald-600">{msg}</p>}
       </Card></>) },
+      { id: "moments", emoji: "📸", tile: "bg-pink-100", name: T("Moments", "Moments"), desc: T(`${p.moments?.length ?? 0} shareable`, `${p.moments?.length ?? 0} to share`), node: <MomentsPanel p={p} /> },
+      { id: "goals", emoji: "🎯", tile: "bg-emerald-100", name: T("Bucket list", "Bucket list"), desc: T(`${(p.goals ?? []).filter((x) => x.done).length}/${(p.goals ?? []).length} goals done`, `${(p.goals ?? []).filter((x) => x.done).length}/${(p.goals ?? []).length} goals done`), node: <GoalsPanel p={p} /> },
+      { id: "gist", emoji: "🗞️", tile: "bg-sky-100", name: T("Naija Gist", "Naija Gist"), desc: T("What people are saying today", "Wetin people dey talk today"), node: <GistPanel p={p} /> },
+      { id: "chal", emoji: "🏆", tile: "bg-amber-100", name: T("Weekly challenge", "Weekly challenge"), desc: T("Same start for everyone this week", "Same start for everybody this week"), node: <ChallengePanel p={p} /> },
       { id: "cur", emoji: "🧬", tile: "bg-sky-100", name: T("Current life", "Current life"), desc: `${p.name} ${p.surname} · ${T("Prestige", "Prestige")} ${p.prestige}`, node: (<>
       <Card>
         <H>{T("Current life", "Current life")}</H>
