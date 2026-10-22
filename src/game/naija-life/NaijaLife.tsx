@@ -608,7 +608,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
 // ---------------------------------------------------------------------------
 type MoneySub = "wallet" | "home" | "property" | "garage" | "invest" | "spend";
 function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [sub, setSub] = useState<MoneySub>("wallet");
+  const [sub, setSub] = useState<MoneySub | null>(null);
   const st = STATE_BY_ID[p.state];
   const net = worth(p);
   return (
@@ -622,10 +622,36 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         <p className="mt-2 text-center text-[11px] text-slate-400">{T("Prices rise every year. Cash loses value. Houses and dollars hold up better.", "Prices dey rise every year. Cash dey lose value. House and dollar dey hold better.")}</p>
       </Card>
 
-      <SubTabs value={sub} onChange={setSub} tabs={[
-        { id: "wallet", label: T("Wallet", "Wallet") }, { id: "home", label: T("Where I live", "Where I dey") }, { id: "property", label: T("Property", "Property") },
-        { id: "garage", label: T("Garage and fleet", "Garage and fleet") }, { id: "invest", label: T("Invest", "Invest") }, { id: "spend", label: T("Spend", "Spend") },
-      ]} />
+      {sub === null && (
+        <div className="space-y-4">
+          {([
+            { title: T("Money", "Money"), rows: [
+              { id: "wallet" as const, emoji: "👛", tile: "bg-sky-100", name: T("Wallet", "Wallet"), desc: T(`Net worth ${naira(net)} · ledger, bills`, `Net worth ${naira(net)} · ledger, bills`) },
+              { id: "invest" as const, emoji: "📈", tile: "bg-emerald-100", name: T("Invest", "Invest"), desc: T(`${p.holdings.length} holding${p.holdings.length === 1 ? "" : "s"} · stocks, bonds, crypto, adviser`, `${p.holdings.length} holding${p.holdings.length === 1 ? "" : "s"} · stocks, bonds, crypto, adviser`) },
+              { id: "spend" as const, emoji: "💎", tile: "bg-violet-100", name: T("Spend", "Spend"), desc: T("Owambe, titles, security, foundations", "Owambe, titles, security, foundations") },
+            ] },
+            { title: T("Things you own", "Things you own"), rows: [
+              { id: "home" as const, emoji: "🏠", tile: "bg-amber-100", name: T("Where I live", "Where I dey"), desc: T("Rent, build a house, mortgage", "Rent, build house, mortgage") },
+              { id: "property" as const, emoji: "🏢", tile: "bg-orange-100", name: T("Property", "Property"), desc: T(`${p.houses.length} owned · buy across Nigeria`, `${p.houses.length} owned · buy across Nigeria`) },
+              { id: "garage" as const, emoji: "🚗", tile: "bg-rose-100", name: T("Garage and fleet", "Garage and fleet"), desc: T(`${p.vehicles.length} vehicle${p.vehicles.length === 1 ? "" : "s"} · cars, jets, boats`, `${p.vehicles.length} vehicle${p.vehicles.length === 1 ? "" : "s"} · cars, jets, boats`) },
+            ] },
+          ]).map((g) => (
+            <section key={g.title}>
+              <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{g.title}</h2>
+              <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+                {g.rows.map((r) => (
+                  <button key={r.id} type="button" onClick={() => setSub(r.id)} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition active:bg-slate-50">
+                    <span className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[24px]", r.tile)}>{r.emoji}</span>
+                    <span className="min-w-0 flex-1"><span className="block text-[15px] font-extrabold leading-tight text-[#0b2a6b]">{r.name}</span><span className="block truncate text-[12px] leading-snug text-slate-500">{r.desc}</span></span>
+                    <span className="shrink-0 text-xl font-black text-blue-500">›</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+      {sub !== null && <button type="button" onClick={() => setSub(null)} className="mb-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm ring-1 ring-slate-200">‹ {T("Money", "Money")}</button>}
 
       {sub === "wallet" && (<><NetWorthCard p={p} /><SubsCard p={p} /><LedgerCard p={p} /></>)}
       {sub === "garage" && <GarageCard p={p} run={run} />}
