@@ -132,32 +132,34 @@ export function StatsCard({ p }: { p: Player }) {
 
 /** The sections that are not on the bottom bar. */
 const EXPLORE_EMOJI: Partial<Record<Tab, string>> = { phone: "📱", work: "💼", health: "🏥", law: "⚖️", map: "🗺️", power: "🏛️", legacy: "🕯️" };
-const EXPLORE_GROUPS: { title: () => string; ids: Tab[]; style?: Partial<Record<Tab, string>> }[] = [
+const EXPLORE_GROUPS: { title: () => string; ids: Tab[] }[] = [
   { title: () => T("Everyday", "Everyday"), ids: ["phone", "work", "health"] },
-  { title: () => T("Big moves", "Big moves"), ids: ["law", "map", "power", "legacy"], style: { power: "bg-yellow-300 text-[#0b2a6b]", legacy: "bg-[#3b2a5e] text-white" } },
+  { title: () => T("Big moves", "Big moves"), ids: ["law", "map", "power", "legacy"] },
 ];
+const EXPLORE_TILE: Partial<Record<Tab, string>> = { phone: "bg-sky-100", work: "bg-amber-100", health: "bg-rose-100", law: "bg-indigo-100", map: "bg-emerald-100", power: "bg-yellow-100", legacy: "bg-violet-100" };
 
 export function ExploreHub({ setTab }: { setTab: (t: Tab) => void }) {
   return (
-    <div className="-mx-4 overflow-hidden border-y border-slate-200 bg-white">
+    <div className="space-y-4">
       {EXPLORE_GROUPS.map((g) => (
-        <div key={g.title()}>
-          <div className="bg-slate-500 py-1 text-center text-[13px] font-bold text-white">{g.title()}</div>
-          {g.ids.map((id) => {
-            const s = SECTION[id];
-            const tone = g.style?.[id];
-            return (
-              <button key={id} type="button" onClick={() => setTab(id)} className={cx("flex w-full items-center gap-4 border-b border-slate-200 px-4 py-3.5 text-left active:opacity-80", tone ?? "bg-white")}>
-                <span className="w-10 shrink-0 text-center text-[32px] leading-none">{EXPLORE_EMOJI[id]}</span>
-                <span className="min-w-0 flex-1">
-                  <span className={cx("block text-[19px] font-extrabold leading-tight", tone?.includes("text-white") ? "text-white" : "text-[#0b4a8f]")}>{s.label()}</span>
-                  <span className={cx("block text-[14px]", tone?.includes("text-white") ? "text-white/80" : "text-[#2a6aa8]")}>{s.blurb()}</span>
-                </span>
-                <span className={cx("shrink-0 text-2xl font-black", tone?.includes("text-white") ? "text-white" : "text-[#3a5f86]")}>›</span>
-              </button>
-            );
-          })}
-        </div>
+        <section key={g.title()}>
+          <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{g.title()}</h2>
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+            {g.ids.map((id) => {
+              const s = SECTION[id];
+              return (
+                <button key={id} type="button" onClick={() => setTab(id)} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition active:bg-slate-50">
+                  <span className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[24px]", EXPLORE_TILE[id])}>{EXPLORE_EMOJI[id]}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-extrabold leading-tight text-[#0b2a6b]">{s.label()}</span>
+                    <span className="block text-[12px] leading-snug text-slate-500">{s.blurb()}</span>
+                  </span>
+                  <span className="shrink-0 text-xl font-black text-blue-500">›</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
       ))}
     </div>
   );
