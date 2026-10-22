@@ -39,6 +39,8 @@ export interface House {
   kind: HouseKind;
   value: number;
   use: HouseUse;
+  /** Mortgage loan secured on this house. */
+  loanId?: string;
 }
 
 export type HoldingKind = "usd" | "stocks" | "crypto" | "oil" | "school" | "farm" | "bank" | "fund" | "savings" | "tbill";
@@ -303,6 +305,8 @@ export interface Loan {
   status: "active" | "paid" | "defaulted";
   /** Prevents charging the same month twice. */
   lastCharged: number;
+  /** House that secures this loan (mortgage). */
+  houseId?: string;
   note?: string;
 }
 

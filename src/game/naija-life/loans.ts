@@ -179,6 +179,10 @@ export function processLoansMonth(p: Player, lines: string[], pending: Pending[]
           p.debt += loan.balance;
           lines.push(`${loan.lenderName} marked you as a defaulter. ${naira(loan.balance)} moved to your overdue debts.`);
           loan.balance = 0;
+          if (loan.houseId) {
+            const hi = p.houses.findIndex((h) => h.id === loan.houseId);
+            if (hi >= 0) { p.houses.splice(hi, 1); lines.push("The bank repossessed your house."); p.stats.happiness = clamp(p.stats.happiness - 15); }
+          }
           for (const n of Object.values(p.npcs)) if (n.role === "friend" && chance(0.25)) { n.trust = clamp(n.trust - 4); }
         }
       }

@@ -118,6 +118,7 @@ export const EVENTS: EventDef[] = [
     choices: (p, d) => [
       { label: "University", sub: "4 years", disabled: Number(d.score) < 200 ? "Score too low" : false, run: (q) => { startTertiary(q, "university"); q.edu = "secondary"; return { text: "You enter university! Welcome to campus life.", spawn: [evt("course")] }; } },
       { label: "Polytechnic", sub: "3 years", disabled: Number(d.score) < 150 ? "Score too low" : false, run: (q) => { startTertiary(q, "polytechnic"); q.course = "Engineering"; return "You enrolled at a polytechnic. Practical skills, real work."; } },
+      { label: "Vocational training", sub: "1-2 years, learn a trade", run: (q) => { q.edu = "secondary"; return { text: "You choose to learn a trade instead of a degree.", spawn: [evt("trade_choice")] }; } },
       { label: "Retake JAMB next year", run: (q) => { bump(q, "stress", 6); q.edu = "secondary"; return "You will try again."; } },
       { label: "Skip school and hustle", run: (q) => { q.edu = "secondary"; return "School is not for everyone."; } },
     ],
@@ -163,7 +164,7 @@ export const EVENTS: EventDef[] = [
   {
     id: "cult",
     title: "Campus brotherhood",
-    weight: (p) => (p.school?.stage === "tertiary" ? 2 : 0),
+    weight: (p) => (p.school?.stage === "tertiary" && p.school.type !== "vocational" ? 2 : 0),
     text: () => "One senior brother pull you aside near hostel. \"You sharp. Join us. We dey protect our own.\"",
     choices: () => [
       { label: "Join the brotherhood", run: (q) => { bump(q, "connections", 12); if (chance(0.35)) { q.flags.cult = true; bump(q, "reputation", -10); bump(q, "health", -15); return "Rival clash leave you injured, but you don connect for life."; } return "You are in. The connections are real."; } },
@@ -348,7 +349,7 @@ export const AUTOS: AutoDef[] = [
   { id: "subsidy", weight: (p) => (p.age >= 10 ? 1.5 : 0), run: (p) => { p.index *= 1.12; bump(p, "stress", 4); return "Government announce fuel subsidy removal. Transport fare double overnight."; } },
   { id: "naira", weight: (p) => (p.age >= 10 ? 1.5 : 0), run: (p) => { p.index *= 1.1; return "Naira crash against dollar. Market price jump again."; } },
   { id: "harmattan", weight: () => 3, run: (p) => { bump(p, "health", -4); return "Harmattan season: dry throat, cracked lips, dust for everywhere."; } },
-  { id: "asuu", weight: (p) => (p.school?.stage === "tertiary" ? 5 : 0), run: (p) => { if (p.school && chance(0.4)) { p.school.yearsLeft += 1; return "ASUU declare strike. School shut for months; your graduation delay by one year."; } bump(p, "stress", 4); return "ASUU threaten strike but dem call am off after emergency talks."; } },
+  { id: "asuu", weight: (p) => (p.school?.stage === "tertiary" && p.school.type === "university" ? 5 : 0), run: (p) => { if (p.school && chance(0.4)) { p.school.yearsLeft += 1; return "ASUU declare strike. School shut for months; your graduation delay by one year."; } bump(p, "stress", 4); return "ASUU threaten strike but dem call am off after emergency talks."; } },
   { id: "traffic", weight: (p) => (p.age >= 18 && stateOf(p).opp >= 8 ? 3 : 0), run: (p) => { bump(p, "stress", 5); return "You spend 4 hours for Lagos/Abuja go-slow. Traffic na lifestyle."; } },
   { id: "kindness", weight: () => 2, run: (p) => { bump(p, "happiness", 6); bump(p, "reputation", 1); return "One stranger return your lost phone. Hope still dey this country."; } },
   { id: "baby", weight: (p) => (p.spouse && p.age >= 21 && p.age <= 44 && p.kids.length < 5 ? 6 : 0), run: (p) => {

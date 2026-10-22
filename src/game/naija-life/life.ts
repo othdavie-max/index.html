@@ -2,7 +2,7 @@ import { I, bump, enterPrison, luckBonus } from "./helpers";
 import { monthIndex, transact } from "./ledger";
 import { remember } from "./family";
 import { primaryProvider } from "./family";
-import type { EventDef, Pending, Player } from "./types";
+import type { Choice, EventDef, Pending, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt } from "./util";
 
 // ---------------------------------------------------------------------------
@@ -23,6 +23,47 @@ export const SKILLS: SkillDef[] = [
   { id: "music", label: "Music and performance", cost: 70_000, blurb: "Instruments, vocals and stagecraft." },
   { id: "welding", label: "Welding and fabrication", cost: 150_000, blurb: "A solid trade that pays well in building and repairs." },
 ];
+export interface TradeDef { id: string; label: string; skill: string; years: number; blurb: string }
+export const TRADES: TradeDef[] = [
+  { id: "tailoring", label: "Fashion and tailoring", skill: "tailoring", years: 2, blurb: "Apprentice under a master tailor and learn pattern making." },
+  { id: "welding", label: "Welding and auto mechanics", skill: "welding", years: 2, blurb: "A solid trade that never runs out of customers." },
+  { id: "catering", label: "Catering and hospitality", skill: "cooking", years: 1, blurb: "Cook, cost a menu and run an event kitchen." },
+  { id: "coding", label: "Coding bootcamp", skill: "coding", years: 1, blurb: "A year of intensive software training." },
+  { id: "sales", label: "Business and sales", skill: "sales", years: 1, blurb: "Bookkeeping, marketing and selling." },
+];
+
+export function tradeBlock(p: Player): string | null {
+  if (p.school) return "You are already in school";
+  if (p.age < 15) return "From age 15";
+  if (p.age > 45) return "Too late for a training programme";
+  if (p.edu === "none" || p.edu === "primary") return "Finish secondary school first";
+  if (p.prison > 0) return "Not from prison";
+  if (p.flags.trade) return "You already hold a trade certificate";
+  return null;
+}
+
+export function enrollTrade(p: Player, id: string): string {
+  const t = TRADES.find((x) => x.id === id);
+  const b = tradeBlock(p);
+  if (!t) return "";
+  if (b) return b;
+  p.school = { stage: "tertiary", yearsLeft: t.years, type: "vocational" };
+  p.flags.schoolType = "public";
+  p.flags.tradeId = t.id;
+  p.job = null;
+  return `You enrol for ${t.label.toLowerCase()} (${t.years} year${t.years > 1 ? "s" : ""}). Fees apply each term unless your family covers them.`;
+}
+
+/** Called when a vocational programme ends. */
+export function finishTrade(p: Player): string {
+  const t = TRADES.find((x) => x.id === p.flags.tradeId);
+  if (!t) return "You complete your training.";
+  p.skills[t.skill] = clamp(Math.max(p.skills[t.skill] ?? 0, 55) + randInt(0, 10), 0, 100);
+  p.flags.trade = t.label;
+  bump(p, "smarts", 1);
+  return `You complete ${t.label.toLowerCase()} and receive your certificate. Skill level ${Math.round(p.skills[t.skill])}: employers and customers pay more for it.`;
+}
+
 export const skillLevel = (p: Player, id: string) => p.skills[id] ?? 0;
 
 export function learnBlock(p: Player, s: SkillDef): string | null {
@@ -193,6 +234,16 @@ export const LIFE_EVENTS: EventDef[] = [
     choices: () => [
       { label: "Take it", run: (q) => { q.flags.weekendJob = true; bump(q, "stress", 2); bump(q, "connections", 1); return "You start on Saturdays. The money is small, but it is yours."; } },
       { label: "Focus on school", run: (q) => { bump(q, "smarts", 1); return "Studying comes first for now."; } },
+    ],
+  },
+  {
+    id: "trade_choice",
+    title: "Choose a trade",
+    weight: () => 0,
+    text: () => "Not everyone needs a degree. A good trade pays the bills, and a certificate opens doors.",
+    choices: () => [
+      ...TRADES.map<Choice>((t) => ({ label: t.label, sub: `${t.years} year${t.years > 1 ? "s" : ""}`, run: (q) => enrollTrade(q, t.id) })),
+      { label: "Not now", run: () => "You decide to think about it." },
     ],
   },
   {

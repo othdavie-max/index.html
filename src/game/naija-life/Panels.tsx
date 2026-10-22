@@ -6,10 +6,11 @@ import type { Action } from "./engine";
 import { BET_KINDS, betBlock, betProfit } from "./betting";
 import { BIZ_KINDS, BIZ_BY_ID, hireCost, startBlock, startCostFor, upgradeCost, valuation } from "./business";
 import { CRIMES, crimeBlock } from "./crime";
-import { HOME_TIERS, STATE_BY_ID } from "./data";
+import { HOME_TIERS, HOUSE_KINDS, STATE_BY_ID } from "./data";
+import { mortgageBalance, mortgageQuote } from "./mortgage";
 import { SUPPORT_KINDS, defaultAmount, supportKindsFor, capacityOf, type SupportKind } from "./family";
 import { FACILITIES, TEMPLATES, facilitiesFor, treatmentCost } from "./health";
-import { GROWTH_ACTIVITIES, SKILLS, enlistBlock, gymBlock, growthBlock, learnBlock, skillLevel } from "./life";
+import { GROWTH_ACTIVITIES, SKILLS, TRADES, tradeBlock, enlistBlock, gymBlock, growthBlock, learnBlock, skillLevel } from "./life";
 import { activeOwed, activeOwedToMe, lenderOffers, loanBlock, previewLoan, receivables, totalDebt } from "./loans";
 import { summaries } from "./ledger";
 import { STAGE_LABEL, activePartners, dateCost, datingAllowed, intimacyBlock } from "./relationships";
@@ -754,6 +755,57 @@ export function WillCard({ p, run }: { p: Player; run: Run }) {
           </div>
         ))}
       </div>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Vocational training and mortgages
+// ---------------------------------------------------------------------------
+export function TradeCard({ p, run }: { p: Player; run: Run }) {
+  const b = tradeBlock(p);
+  if (p.age < 15) return null;
+  if (p.flags.trade) return <Card><H>Vocational training</H><p className="text-sm text-white/70">Certified in {String(p.flags.trade)}.</p></Card>;
+  if (p.school?.type === "vocational") return <Card><H>Vocational training</H><p className="text-sm text-white/70">In training: {p.school.yearsLeft} year{p.school.yearsLeft === 1 ? "" : "s"} left.</p></Card>;
+  return (
+    <Card>
+      <H sub="A trade certificate lifts your pay in related work, without a degree.">Vocational training</H>
+      {b && <p className="mb-2 text-xs text-white/50">{b}</p>}
+      <div className="space-y-2">
+        {TRADES.map((t) => (
+          <div key={t.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
+            <div><div className="text-sm font-semibold">{t.label}</div><div className="text-[11px] text-white/50">{t.years} yr · {t.blurb}</div></div>
+            <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "trade", id: t.id })}>Enrol</Btn>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+export function MortgageCard({ p, run }: { p: Player; run: Run }) {
+  const [kind, setKind] = useState<keyof typeof HOUSE_KINDS>("bungalow");
+  const [years, setYears] = useState(15);
+  if (p.age < 18) return null;
+  const q = mortgageQuote(p, kind, years);
+  const owned = p.houses.filter((h) => h.loanId && mortgageBalance(p, h) > 0);
+  return (
+    <Card>
+      <H sub="Buy now, repay monthly. Miss payments and the bank takes the house.">Mortgage</H>
+      <div className="flex flex-wrap gap-1.5">
+        {(Object.keys(HOUSE_KINDS) as (keyof typeof HOUSE_KINDS)[]).filter((k) => k !== "land").map((k) => <Btn key={k} small tone={kind === k ? "gold" : "ghost"} onClick={() => setKind(k)}>{HOUSE_KINDS[k].label}</Btn>)}
+      </div>
+      <div className="mt-2 flex items-center gap-1.5 text-xs">Term: {[10, 15, 20].map((y) => <Btn key={y} small tone={years === y ? "gold" : "ghost"} onClick={() => setYears(y)}>{y} yrs</Btn>)}</div>
+      <dl className="mt-3 space-y-1 text-sm">
+        <Row k="Price" v={naira(q.price)} />
+        <Row k="Deposit now" v={naira(q.down)} />
+        <Row k="Bank fee" v={naira(q.fee)} />
+        <Row k="Monthly repayment" v={naira(q.monthly)} />
+        <Row k="Interest rate" v={`${(q.apr * 100).toFixed(0)}% a year`} />
+        <Row k="Total interest" v={naira(q.interest)} bad />
+      </dl>
+      <Btn className="mt-3 w-full" tone="gold" disabled={Boolean(q.block)} onClick={() => run({ t: "mortgage", kind, years })}>{q.block ?? "Accept the mortgage"}</Btn>
+      {owned.map((h) => <p key={h.id} className="mt-2 text-xs text-white/60">{HOUSE_KINDS[h.kind].label} in {STATE_BY_ID[h.state].name}: {naira(mortgageBalance(p, h))} still owed</p>)}
     </Card>
   );
 }

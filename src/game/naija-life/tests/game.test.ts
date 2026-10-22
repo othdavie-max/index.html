@@ -15,6 +15,7 @@ import { createAccount, post, totalFollowers } from "../social";
 import { invest, divest, marketMonth } from "../lifestyle";
 import { buyVehicle, sellVehicle } from "../vehicles";
 import { CRIME_BY_ID, crimeBlock } from "../crime";
+import { mortgageQuote } from "../mortgage";
 import { beneficiaries, setShare, planEstate } from "../will";
 import { randomLook } from "../look";
 import { STATE_BY_ID } from "../data";
@@ -454,4 +455,73 @@ test("cross-system chaos: random actions never break money integrity", () => {
     }
     assert.deepEqual(crashes, [], `seed ${seed} crashed`);
   }
+});
+
+test("vocational training: enrol, pay or be supported, certificate raises skill, no degree", () => {
+  const g = structuredClone(aliveAt(17));
+  const p = g.p;
+  p.school = null;
+  p.edu = "secondary";
+  p.flags.trade = undefined as never;
+  const msg = act(g, { t: "trade", id: "welding" });
+  assert.equal(msg.g.p.school?.type, "vocational");
+  let q = msg.g;
+  q.p.money = 50_000_000;
+  const before = q.p.skills.welding ?? 0;
+  for (let i = 0; i < 3 && q.p.alive && q.p.school; i++) q = resolveAll(ageUp(q));
+  assert.equal(q.p.school, null, "programme ends after its length");
+  assert.notEqual(q.p.edu, "tertiary", "a trade is not a degree");
+  assert.ok((q.p.skills.welding ?? 0) >= Math.max(55, before), "certificate gives skill");
+  assert.ok(q.p.flags.trade);
+  assert.ok(ledgerBalances(q.p));
+  // too young or already certified
+  const young = structuredClone(aliveAt(12));
+  young.p.school = null;
+  young.p.edu = "secondary";
+  assert.equal(act(young, { t: "trade", id: "welding" }).g.p.school, null);
+});
+
+test("mortgages: terms, deposit only, monthly repayments, foreclosure and sale payoff", () => {
+  const g = structuredClone(aliveAt(32));
+  let q = g;
+  q.p.money = 400_000_000 * q.p.index;
+  q.p.credit = 80;
+  q.p.prison = 0;
+  q.p.loans = [];
+  q.p.debt = 0;
+  q.p.fin.push({ age: q.p.age - 1, income: 80_000_000 * q.p.index, expense: 1, borrowed: 0, cats: {} });
+  const quote = mortgageQuote(q.p, "bungalow", 15);
+  assert.equal(quote.block, null, quote.block ?? "");
+  assert.ok(quote.interest > 0 && quote.monthly > 0);
+  const cash0 = q.p.money;
+  q = act(q, { t: "mortgage", kind: "bungalow", years: 15 }).g;
+  const house = q.p.houses[q.p.houses.length - 1];
+  const loan = q.p.loans.find((l) => l.houseId === house.id)!;
+  assert.ok(loan && house.loanId === loan.id);
+  assert.ok(cash0 - q.p.money < quote.price, "only deposit and fee leave your cash, not the full price");
+  assert.ok(Math.abs(cash0 - q.p.money - (quote.down + quote.fee)) < 2);
+  assert.ok(ledgerBalances(q.p));
+  assert.ok(mortgageQuote(q.p, "duplex", 15).block, "second mortgage is refused");
+  const bal0 = loan.balance;
+  q.p.money = 400_000_000 * q.p.index;
+  for (let i = 0; i < 2 && q.p.alive; i++) q = resolveAll(ageUp(q));
+  const l2 = q.p.loans.find((l) => l.id === loan.id)!;
+  assert.ok(l2.balance < bal0 * 1.05 && l2.status === "active", "instalments are charged monthly");
+  const months = q.p.ledger.filter((t) => t.recurring === loan.id).length;
+  assert.ok(months >= 12 && months <= 26, `about one instalment per month, saw ${months}`);
+  // selling pays the bank first
+  const sold = act(q, { t: "sell", id: house.id }).g;
+  assert.equal(sold.p.loans.find((l) => l.id === loan.id)!.status, "paid");
+  assert.ok(ledgerBalances(sold.p));
+  // defaulting loses the house
+  const broke = structuredClone(q);
+  broke.p.money = 0;
+  broke.p.loans.find((l) => l.id === loan.id)!.missed = 3;
+  let b = broke;
+  for (let i = 0; i < 2 && b.p.alive; i++) { b.p.money = 0; b = resolveAll(ageUp(b)); }
+  assert.equal(b.p.loans.find((l) => l.id === loan.id)!.status, "defaulted");
+  assert.ok(b.p.houses.every((h) => h.id !== house.id), "a defaulted mortgage repossesses the house");
+  // minors and poor credit blocked
+  const kid = structuredClone(aliveAt(16)).p;
+  assert.ok(mortgageQuote(kid, "bungalow", 15).block);
 });

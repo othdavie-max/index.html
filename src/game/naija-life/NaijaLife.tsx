@@ -18,7 +18,7 @@ import { KidnapModal } from "./KidnapModal";
 import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, displayLook, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
-import { BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
+import { MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
@@ -556,6 +556,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {group("Jobs", eligible.filter((j) => !j.selfEmployed && (j.group === "petty" || j.group === "formal")), "Salaried work. Promotions come with time and connections.")}
           {group("Creative careers", eligible.filter((j) => j.group === "creative"), "Slow start, huge upside.")}
           {group("Risky paths", eligible.filter((j) => j.group === "crime"), "Fast money. Heavy consequences.")}
+          <TradeCard p={p} run={run} />
           <BusinessCard p={p} run={run} />
           <SkillsCard p={p} run={run} />
           {locked.length > 0 && (
@@ -609,6 +610,8 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           })}
         </div>
       </Card>
+
+      <MortgageCard p={p} run={run} />
 
       {p.houses.length > 0 && (
         <Card>

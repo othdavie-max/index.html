@@ -27,7 +27,8 @@ import { closeBusiness, fireStaff, hireStaff, sellBusiness, startBusiness, toggl
 import { placeBet, type BetKind } from "./betting";
 import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
 import { setShare } from "./will";
-import { doGrowth, enlist, learnSkill, toggleGym } from "./life";
+import { settleHouseLoan, takeMortgage } from "./mortgage";
+import { doGrowth, enlist, enrollTrade, finishTrade, learnSkill, toggleGym } from "./life";
 import type { Platform } from "./types";
 import { I, bump, expandCostFor, jobDef, jobTitle, luckBonus, moveTo, randomName, stateOf } from "./helpers";
 import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from "./kidnap";
@@ -448,6 +449,7 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
   p.school.yearsLeft -= 1;
   if (p.school.yearsLeft > 0) return;
   const stage = p.school.stage;
+  const prevType = p.school.type;
   p.school = null;
   if (stage === "primary") {
     p.edu = "primary";
@@ -458,6 +460,8 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
     p.edu = "secondary";
     lines.push("You finish secondary school. WAEC result don come out.");
     pending.push({ kind: "event", id: "jamb", data: {} });
+  } else if (stage === "tertiary" && prevType === "vocational") {
+    lines.push(finishTrade(p));
   } else {
     p.edu = "tertiary";
     lines.push(`You graduate${p.course ? ` with degree in ${p.course}` : ""}. Your family throw small party.`);
@@ -724,6 +728,8 @@ export type Action =
   | { t: "growth"; id: string }
   | { t: "gym" }
   | { t: "enlist" }
+  | { t: "mortgage"; kind: HouseKind; years: number }
+  | { t: "trade"; id: string }
   | { t: "buy"; item: "phone" | "smartphone" | "laptop" };
 
 export interface ActivityDef {
@@ -775,6 +781,8 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "expand": return { reason: "Business expansion", category: "business" };
     case "travel": return { reason: "Travel costs", category: "transport" };
     case "build": return { reason: "Property purchase", category: "asset" };
+    case "mortgage": return { reason: "Mortgage", category: "asset" };
+    case "trade": return { reason: "Vocational training", category: "education" };
     case "sell": return { reason: "Sold property", category: "asset" };
     case "use": return { reason: "Property change", category: "asset" };
     case "send": return { reason: "Money sent home", category: "family" };
@@ -894,13 +902,15 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       bump(p, "happiness", 6);
       return out(`You built a ${HOUSE_KINDS[a.kind].label.toLowerCase()} in ${st.name} for ${naira(cost)}.`);
     }
+    case "mortgage": { if (p.prison > 0) return { g: g0, msg: "" }; const m = takeMortgage(p, a.kind, a.years); return out(m); }
+    case "trade": return out(enrollTrade(p, a.id));
     case "sell": {
       const i = p.houses.findIndex((h) => h.id === a.id);
       if (i < 0) return { g: g0, msg: "" };
       const h = p.houses[i];
-      p.money += h.value;
+      const note = settleHouseLoan(p, h, h.value);
       p.houses.splice(i, 1);
-      return out(`You sold your ${HOUSE_KINDS[h.kind].label.toLowerCase()} in ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.`);
+      return out(`You sold your ${HOUSE_KINDS[h.kind].label.toLowerCase()} in ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.${note}`);
     }
     case "use": {
       const h = p.houses.find((x) => x.id === a.id);
