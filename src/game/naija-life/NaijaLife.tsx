@@ -23,7 +23,7 @@ import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
-import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
+import { SubTabs, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
 import { notificationsFor } from "./notices";
 import { T, chance, naira, setDeflator, setLang } from "./util";
@@ -505,6 +505,7 @@ function lockReason(p: Player, j: JobDef): string | null {
 }
 
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
+  const [sub, setSub] = useState<"jobs" | "biz" | "learn">("jobs");
   const st = STATE_BY_ID[p.state];
   const cur = jobDef(p);
   const eligible = eligibleJobs(p);
@@ -546,6 +547,10 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const cost = expandCost(p);
   return (
     <>
+      <SubTabs value={sub} onChange={setSub} tabs={[{ id: "jobs", label: T("Jobs", "Jobs") }, { id: "biz", label: T("My businesses", "My businesses"), badge: p.businesses.length || undefined }, { id: "learn", label: T("Learn", "Learn") }]} />
+      {sub === "biz" && (p.age >= 14 ? <BusinessCard p={p} run={run} /> : <Card><p className="text-sm text-slate-500">{T("Businesses start at 18.", "Business start for 18.")}</p></Card>)}
+      {sub === "learn" && (<><Card><H>{T("Education", "Education")}</H><p className="text-sm text-slate-800">{p.school ? T(`Currently in school (${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} left).`, `You dey school now (${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} remain).`) : p.edu === "none" ? T("No schooling yet.", "You never go school yet.") : T(`Highest level: ${p.edu}${p.course ? ` (${p.course})` : ""}.`, `Highest level: ${p.edu}${p.course ? ` (${p.course})` : ""}.`)}</p><DegreeCard p={p} run={run} /></Card>{p.age >= 14 && (<><TradeCard p={p} run={run} /><PostgradCard p={p} run={run} /><SkillsCard p={p} run={run} /></>)}</>)}
+      {sub === "jobs" && (<>
       <Card>
         <H>{T("Education", "Education")}</H>
         <p className="text-sm text-slate-800">
@@ -583,10 +588,6 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {group(T("Jobs", "Jobs"), eligible.filter((j) => !j.selfEmployed && (j.group === "petty" || j.group === "formal")), T("Salaried work. Promotions come with time and connections.", "Salary work. Promotion dey come with time and connections."))}
           {group(T("Creative careers", "Creative work"), eligible.filter((j) => j.group === "creative"), T("Slow start, huge upside.", "Start slow, but the gain big."))}
           {group(T("Risky paths", "Risky road"), eligible.filter((j) => j.group === "crime"), T("Fast money. Heavy consequences.", "Fast money. Heavy wahala."))}
-          <TradeCard p={p} run={run} />
-          <PostgradCard p={p} run={run} />
-          <BusinessCard p={p} run={run} />
-          <SkillsCard p={p} run={run} />
           {locked.length > 0 && (
             <details className="rounded-2xl border border-slate-200 bg-white p-4">
               <summary className="cursor-pointer text-sm font-semibold text-slate-600">{T(`Locked careers (${locked.length})`, `Locked work (${locked.length})`)}</summary>
@@ -597,6 +598,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           )}
         </>
       )}
+      </>)}
     </>
   );
 }
@@ -604,7 +606,9 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
 // ---------------------------------------------------------------------------
 // Money tab
 // ---------------------------------------------------------------------------
+type MoneySub = "wallet" | "home" | "property" | "garage" | "invest" | "spend";
 function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
+  const [sub, setSub] = useState<MoneySub>("wallet");
   const st = STATE_BY_ID[p.state];
   const net = worth(p);
   return (
@@ -618,11 +622,15 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         <p className="mt-2 text-center text-[11px] text-slate-400">{T("Prices rise every year. Cash loses value. Houses and dollars hold up better.", "Prices dey rise every year. Cash dey lose value. House and dollar dey hold better.")}</p>
       </Card>
 
-      <NetWorthCard p={p} />
+      <SubTabs value={sub} onChange={setSub} tabs={[
+        { id: "wallet", label: T("Wallet", "Wallet") }, { id: "home", label: T("Where I live", "Where I dey") }, { id: "property", label: T("Property", "Property") },
+        { id: "garage", label: T("Garage and fleet", "Garage and fleet") }, { id: "invest", label: T("Invest", "Invest") }, { id: "spend", label: T("Spend", "Spend") },
+      ]} />
+
+      {sub === "wallet" && (<><NetWorthCard p={p} /><SubsCard p={p} /><LedgerCard p={p} /></>)}
+      {sub === "garage" && <GarageCard p={p} run={run} />}
+      {sub === "home" && (<>
       <HousingCard p={p} run={run} />
-      <GarageCard p={p} run={run} />
-      <SubsCard p={p} />
-      <LedgerCard p={p} />
 
       <Card>
         <H sub={T(`Build in ${st.name}. Land is ${st.cost >= 1.4 ? "very expensive" : st.cost >= 0.9 ? "pricey" : "cheap"} here. Travel to build elsewhere.`, `Build for ${st.name}. Land ${st.cost >= 1.4 ? "cost too much" : st.cost >= 0.9 ? "cost small" : "cheap"} here. Travel go build for another place.`)}>{T("Build a house", "Build house")}</H>
@@ -640,10 +648,9 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       </Card>
 
       <MortgageCard p={p} run={run} />
-      <PropertyMarketCard p={p} run={run} />
-
-      <PortfolioCard p={p} run={run} />
-
+      </>)}
+      {sub === "property" && (<><PortfolioCard p={p} run={run} /><PropertyMarketCard p={p} run={run} /></>)}
+      {sub === "invest" && (<>
       <MarketNewsCard p={p} run={run} />
 
       <Card>
@@ -679,7 +686,9 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           </div>
         )}
       </Card>
+      </>)}
 
+      {sub === "spend" && (
       <Card>
         <H sub={T("What big people spend on. Prestige counts toward your legacy.", "Wetin big people dey spend money on. Prestige dey add to your legacy.")}>{T("Spend your money", "Spend your money")}</H>
         <div className="space-y-2">
@@ -707,6 +716,7 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           })}
         </div>
       </Card>
+      )}
     </>
   );
 }
@@ -725,11 +735,14 @@ function Person({ look, gender, age, label, sub, dim }: { look: Look; gender: Ge
 }
 
 function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
+  const [sub, setSub] = useState<"people" | "love" | "will">("people");
   const fam = STATE_BY_ID[p.family.state];
   const gifts = [100_000, 500_000, 2_000_000, 10_000_000];
   const luckWord = p.luck >= 65 ? T("Born under a lucky star", "Luck dey your side") : p.luck <= 35 ? T("Life no easy for you", "Life no easy for you") : T("Fortune is neutral", "Luck dey middle");
   return (
     <>
+      <SubTabs value={sub} onChange={setSub} tabs={[{ id: "people", label: T("My people", "My people") }, { id: "love", label: T("Love life", "Love life") }, ...(p.age >= 18 ? [{ id: "will" as const, label: T("Will", "Will") }] : [])]} />
+      {sub === "people" && (<>
       <Card>
         <H>{T("Your people", "Your people")}</H>
         <div className="flex flex-wrap gap-3">
@@ -751,15 +764,18 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           ))}
         </div>
       </Card>
-      <RelationshipsCard p={p} run={run} />
       <PeopleCard p={p} run={run} />
-      {p.age >= 18 && <WillCard p={p} run={run} />}
-      {!p.spouse && p.flags.dating && <Card><H>{T("Dating", "Dating")}</H><p className="text-sm">{T(`Dating ${String(p.flags.dating)}. A proposal may be coming.`, `You dey date ${String(p.flags.dating)}. Proposal fit dey come.`)}</p></Card>}
-      {!p.spouse && !p.flags.dating && <Card><H>{T("Spouse", "Spouse")}</H><p className="text-sm text-slate-500">{T("Single. Use \"Look for love\" in the Life tab.", "You single. Use \"Look for love\" for Life tab.")}</p></Card>}
       <Card>
         <H>{T("Achievements", "Achievements")}</H>
-        {p.achievements.length === 0 ? <p className="text-sm text-slate-500">{T("None yet.", "Nothing yet.")}</p> : <div className="flex flex-wrap gap-1.5">{p.achievements.map((a) => <Badge key={a} tone="gold">🏆 {a}</Badge>)}</div>}
+        {p.achievements.length === 0 ? <p className="text-sm text-slate-500">{T("None yet.", "Nothing yet.")}</p> : <div className="flex flex-wrap gap-1.5">{p.achievements.map((a) => <Badge key={a} tone="gold">{a}</Badge>)}</div>}
       </Card>
+      </>)}
+      {sub === "will" && p.age >= 18 && <WillCard p={p} run={run} />}
+      {sub === "love" && (<>
+      <RelationshipsCard p={p} run={run} />
+      {!p.spouse && p.flags.dating && <Card><H>{T("Dating", "Dating")}</H><p className="text-sm">{T(`Dating ${String(p.flags.dating)}. A proposal may be coming.`, `You dey date ${String(p.flags.dating)}. Proposal fit dey come.`)}</p></Card>}
+      {!p.spouse && !p.flags.dating && <Card><H>{T("Spouse", "Spouse")}</H><p className="text-sm text-slate-500">{T("Single. Use \"Look for love\" in the Life tab.", "You single. Use \"Look for love\" for Life tab.")}</p></Card>}
+      </>)}
     </>
   );
 }

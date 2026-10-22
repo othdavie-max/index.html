@@ -120,3 +120,16 @@ export function Meter({ label, value, max = 10, invert, compact }: { label: stri
     </div>
   );
 }
+
+/** A compact row of section tabs that keeps long screens short. */
+export function SubTabs<K extends string>({ tabs, value, onChange }: { tabs: { id: K; label: ReactNode; badge?: number }[]; value: K; onChange: (k: K) => void }) {
+  return (
+    <div className="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-1 mb-2 flex gap-1.5 overflow-x-auto px-1 py-0.5" role="tablist">
+      {tabs.map((t) => (
+        <button key={t.id} type="button" role="tab" aria-selected={value === t.id} onClick={() => onChange(t.id)} className={cx("shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold", value === t.id ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600")}>
+          {t.label}{t.badge ? <span className="ml-1 rounded-full bg-white/25 px-1.5 text-[10px]">{t.badge}</span> : null}
+        </button>
+      ))}
+    </div>
+  );
+}

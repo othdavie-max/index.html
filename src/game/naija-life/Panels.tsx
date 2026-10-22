@@ -478,8 +478,18 @@ export function LedgerCard({ p }: { p: Player }) {
   );
 }
 
+type WealthTab = "over" | "assets" | "debts" | "stuff";
+function WTab({ id, tab, setTab, children }: { id: WealthTab; tab: WealthTab; setTab: (t: WealthTab) => void; children: React.ReactNode }) {
+  return <button type="button" onClick={() => setTab(id)} className={cx("flex-1 rounded-lg px-1 py-1.5 text-[11px] font-semibold", tab === id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600")}>{children}</button>;
+}
+function Line({ k, sub, v, bad }: { k: string; sub?: string; v: string; bad?: boolean }) {
+  return (
+    <div className="flex items-start justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm"><div className="min-w-0"><div className="truncate font-semibold">{k}</div>{sub && <div className="text-[11px] text-slate-500">{sub}</div>}</div><div className={cx("shrink-0 text-right font-semibold", bad ? "text-red-600" : "text-slate-800")}>{v}</div></div>
+  );
+}
+
 export function NetWorthCard({ p }: { p: Player }) {
-  const [tab, setTab] = useState<"over" | "assets" | "debts" | "stuff">("over");
+  const [tab, setTab] = useState<WealthTab>("over");
   const holdings = p.holdings.reduce((s, h) => s + h.value, 0);
   const houses = p.houses.reduce((s, h) => s + h.value, 0);
   const cars = p.vehicles.reduce((s, v) => s + v.value, 0);
@@ -496,14 +506,10 @@ export function NetWorthCard({ p }: { p: Player }) {
   const loans = p.loans.filter((l) => l.direction === "owed" && l.status === "active");
   const pl = (h: { invested: number; value: number }) => (h.invested > 0 ? ((h.value - h.invested) / h.invested) * 100 : 0);
   const luxOwned = LUXURIES.filter((l) => l.once && p.flags[`own_${l.id}`]);
-  const Tab = ({ id, children }: { id: typeof tab; children: React.ReactNode }) => <button type="button" onClick={() => setTab(id)} className={cx("flex-1 rounded-lg px-1 py-1.5 text-[11px] font-semibold", tab === id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600")}>{children}</button>;
-  const Line = ({ k, sub, v, bad }: { k: string; sub?: string; v: string; bad?: boolean }) => (
-    <div className="flex items-start justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm"><div className="min-w-0"><div className="truncate font-semibold">{k}</div>{sub && <div className="text-[11px] text-slate-500">{sub}</div>}</div><div className={cx("shrink-0 text-right font-semibold", bad ? "text-red-600" : "text-slate-800")}>{v}</div></div>
-  );
   return (
     <Card>
       <H sub={T("Cash is not the same as wealth.", "Cash no be the same as wealth.")}>{T("Your wealth", "Your wealth")}</H>
-      <div className="mb-2 flex gap-1"><Tab id="over">{T("Overview", "Overview")}</Tab><Tab id="assets">{T("Assets", "Assets")}</Tab><Tab id="debts">{T("Liabilities", "Debts")}</Tab><Tab id="stuff">{T("Belongings", "Belongings")}</Tab></div>
+      <div className="mb-2 flex gap-1"><WTab id="over" tab={tab} setTab={setTab}>{T("Overview", "Overview")}</WTab><WTab id="assets" tab={tab} setTab={setTab}>{T("Assets", "Assets")}</WTab><WTab id="debts" tab={tab} setTab={setTab}>{T("Liabilities", "Debts")}</WTab><WTab id="stuff" tab={tab} setTab={setTab}>{T("Belongings", "Belongings")}</WTab></div>
       {tab === "over" && (
         <>
           <div className="text-2xl font-extrabold text-[#0b2a6b]">{naira(net)}</div>
@@ -878,17 +884,20 @@ export function BusinessCard({ p, run }: { p: Player; run: Run }) {
   );
 }
 
+function Seg({ label, value, opts, onPick }: { label: string; value: number; opts: string[]; onPick: (i: number) => void }) {
+  return (
+    <div className="mb-2">
+      <div className="mb-1 text-xs text-slate-600">{label}</div>
+      <div className="grid grid-cols-4 gap-1">{opts.map((o, i) => <button key={o} type="button" onClick={() => onPick(i)} className={cx("rounded-lg border px-1 py-1.5 text-[11px] font-semibold", value === i ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")}>{o}</button>)}</div>
+    </div>
+  );
+}
+
 function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Run; onClose: () => void }) {
   const k = BIZ_BY_ID[b.kind];
   const crew = b.crew ?? [];
   const r = b.report;
   const pick = (op: "price" | "ads" | "stock", v: number) => run({ t: "biz", op, id: b.id, v });
-  const Seg = ({ label, value, opts, op }: { label: string; value: number; opts: string[]; op: "price" | "ads" | "stock" }) => (
-    <div className="mb-2">
-      <div className="mb-1 text-xs text-slate-600">{label}</div>
-      <div className="grid grid-cols-4 gap-1">{opts.map((o, i) => <button key={o} type="button" onClick={() => pick(op, i)} className={cx("rounded-lg border px-1 py-1.5 text-[11px] font-semibold", value === i ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")} style={{ gridColumn: opts.length === 3 ? "span 1" : undefined }}>{o}</button>)}</div>
-    </div>
-  );
   const maxRev = Math.max(1, ...(b.hist ?? []).map((h) => Math.abs(h.net)));
   return (
     <Sheet title={b.name} onClose={onClose}>
@@ -915,9 +924,9 @@ function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Ru
           <div className="flex h-12 items-end gap-1">{b.hist!.map((h, i) => <div key={i} title={naira(h.net)} className={cx("flex-1 rounded-t", h.net >= 0 ? "bg-emerald-400" : "bg-red-400")} style={{ height: `${Math.max(6, (Math.abs(h.net) / maxRev) * 100)}%` }} />)}</div>
         </div>
       )}
-      <Seg label={T("Prices", "Prices")} value={b.price ?? 1} opts={PRICE_LABEL.map((f) => f())} op="price" />
-      <Seg label={T("Advertising", "Advertising")} value={b.ads ?? 0} opts={[T("None", "None"), T("Small", "Small"), T("Medium", "Medium"), T("Heavy", "Heavy")]} op="ads" />
-      <Seg label={T("Stock quality", "Stock quality")} value={b.stock ?? 1} opts={STOCK_LABEL.map((f) => f())} op="stock" />
+      <Seg label={T("Prices", "Prices")} value={b.price ?? 1} opts={PRICE_LABEL.map((f) => f())} onPick={(i) => pick("price", i)} />
+      <Seg label={T("Advertising", "Advertising")} value={b.ads ?? 0} opts={[T("None", "None"), T("Small", "Small"), T("Medium", "Medium"), T("Heavy", "Heavy")]} onPick={(i) => pick("ads", i)} />
+      <Seg label={T("Stock quality", "Stock quality")} value={b.stock ?? 1} opts={STOCK_LABEL.map((f) => f())} onPick={(i) => pick("stock", i)} />
       <div className="mb-1 mt-3 flex items-center justify-between">
         <div className="text-sm font-semibold">{T("Your team", "Your team")} ({crew.length}/{b.level * 4 + 2})</div>
         <Btn small tone="gold" onClick={() => run({ t: "biz", op: "recruit", id: b.id })}>{T("Recruit", "Recruit")} · {naira(hireCost(p, b) * 0.4)}</Btn>
