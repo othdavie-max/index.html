@@ -1308,13 +1308,20 @@ export function PostgradCard({ p, run }: { p: Player; run: Run }) {
 }
 
 export function HeadlinesCard({ p }: { p: Player }) {
+  const [open, setOpen] = useState(false);
   const news = (p.world?.news ?? []).slice(-3).reverse();
   if (news.length === 0) return null;
+  const line = (n: (typeof news)[number]) => (p.lang === "en" ? n.en : n.pcm);
   return (
-    <Card>
-      <H>{T("In the news", "Gist for ground")}</H>
-      <ul className="space-y-1.5">{news.map((n, i) => <li key={i} className="text-xs text-slate-700"><span className="text-blue-600">{T("Age", "Age")} {n.age}:</span> {p.lang === "en" ? n.en : n.pcm}</li>)}</ul>
-    </Card>
+    <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-start gap-2 rounded-xl bg-white px-3 py-2 text-left shadow-sm ring-1 ring-slate-100" aria-expanded={open}>
+      <span className="shrink-0 text-[11px] font-extrabold uppercase text-blue-600">{T("News", "Gist")}</span>
+      {open ? (
+        <ul className="min-w-0 flex-1 space-y-1">{news.map((n, i) => <li key={i} className="text-[11.5px] leading-snug text-slate-700">{line(n)}</li>)}</ul>
+      ) : (
+        <span className="min-w-0 flex-1 truncate text-[11.5px] text-slate-700">{line(news[0])}</span>
+      )}
+      <span className="shrink-0 text-xs text-slate-400">{open ? "▴" : "▾"}</span>
+    </button>
   );
 }
 

@@ -181,7 +181,7 @@ export default function NaijaLife() {
     <Shell>
       <GameHeader p={p} onMenu={() => setMenu(true)} onWallet={() => setTab("money")} alerts={notificationsFor(p).filter((n) => n.level !== "green").length} />
       <StatsCard p={p} />
-      <main className="flex-1 space-y-3 px-4 pb-64 pt-3">
+      <main className="flex-1 space-y-3 px-4 pb-64 pt-2">
         {EXPLORE_TABS.includes(tab) && <ExploreChips tab={tab} setTab={setTab} />}
         {tab === "explore" && <ExploreHub setTab={setTab} />}
         {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}

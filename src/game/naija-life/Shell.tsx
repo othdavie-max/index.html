@@ -60,10 +60,10 @@ export function GameHeader({ p, onMenu, onWallet, alerts }: { p: Player; onMenu:
   const st = STATE_BY_ID[p.state];
   const title = officeTitle(p) ?? jobTitle(p);
   return (
-    <header className="px-4 pb-2.5 pt-3.5">
-      <div className="flex items-center gap-2.5">
-        <div data-tour="avatar" className="shrink-0 rounded-full bg-sky-100 p-0.5 shadow-[0_4px_12px_-4px_rgba(37,99,235,0.45)]">
-          <Avatar look={shownLook(p)} gender={p.gender} age={p.age} mood={p.stats.happiness} size={50} dim={!p.alive} round />
+    <header className="px-4 pb-1.5 pt-1.5">
+      <div className="flex items-center gap-2">
+        <div data-tour="avatar" className="shrink-0 rounded-full bg-sky-100 p-px">
+          <Avatar look={shownLook(p)} gender={p.gender} age={p.age} mood={p.stats.happiness} size={28} dim={!p.alive} round />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
@@ -88,7 +88,7 @@ export function GameHeader({ p, onMenu, onWallet, alerts }: { p: Player; onMenu:
           {alerts > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{alerts}</span>}
         </button>
       </div>
-      <div className="mt-1.5 flex items-center gap-1 text-[11.5px] text-slate-500">
+      <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
         <MapPin size={12} className="shrink-0 text-red-500" fill="currentColor" />
         <span className="truncate">{st.name}, {T("Nigeria", "Naija")} · {title} · {T("Age", "Age")} {p.age}</span>
       </div>
@@ -247,21 +247,21 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
   const [open, setOpen] = useState(true);
   const logs = useMemo(() => [...p.log].reverse(), [p.log]);
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <section>
         <button type="button" onClick={() => setOpen(!open)} data-tour="activities" className="mb-1.5 flex w-full items-center justify-between px-1" aria-expanded={open}>
           <span className="text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Activities", "Activities")}</span>
           <span className="flex items-center gap-1 text-[11.5px] font-semibold text-slate-500">{T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`)}<ChevronRight size={15} className={cx("transition-transform", open && "rotate-90")} /></span>
         </button>
         {open && (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-8 gap-1">
             {ACTIVITIES.filter((a) => p.age >= a.minAge - 2).map((a) => {
               const block = activityBlock(p, a);
               return (
-                <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => run({ t: "activity", id: a.id })} className="flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border border-slate-100 bg-white p-1 text-center shadow-[0_6px_16px_-12px_rgba(30,64,175,0.4)] transition active:scale-95 disabled:opacity-40">
-                  <span className={cx("flex h-9 w-9 items-center justify-center rounded-xl text-[20px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
-                  <span className="line-clamp-2 text-[10.5px] font-bold leading-tight text-[#0b2a6b]">{ACT_SHORT[a.id]?.() ?? a.label}</span>
-                  {a.cost ? <span className="-mt-0.5 text-[9px] font-semibold text-slate-500">{naira(a.cost * p.index)}</span> : null}
+                <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => run({ t: "activity", id: a.id })} className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl border border-slate-100 bg-white p-0.5 text-center shadow-[0_4px_12px_-10px_rgba(30,64,175,0.4)] transition active:scale-95 disabled:opacity-40">
+                  <span className={cx("flex h-6 w-6 items-center justify-center rounded-lg text-[14px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
+                  <span className="w-full truncate text-[8.5px] font-bold leading-none text-[#0b2a6b]">{ACT_SHORT[a.id]?.() ?? a.label}</span>
+                  {a.cost ? <span className="w-full truncate text-[7.5px] font-semibold leading-none text-slate-500">{naira(a.cost * p.index)}</span> : null}
                 </button>
               );
             })}
@@ -280,13 +280,13 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
                     {idx < logs.length - 1 && <span className="absolute top-5 -bottom-3 w-px bg-slate-200" />}
                     <span className="relative z-10 mt-3.5 h-3 w-3 rounded-full ring-4 ring-white" style={{ background: c.dot }} />
                   </div>
-                  <div className={cx("flex-1 rounded-xl bg-slate-50/90 px-3 py-2.5", idx === 0 && "ring-1 ring-blue-200")}>
+                  <div className={cx("flex-1 rounded-xl bg-slate-50/90 px-2.5 py-2", idx === 0 && "ring-1 ring-blue-200")}>
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-[14.5px] font-extrabold leading-tight text-[#0b2a6b]">{T("Age", "Age")} {e.age}</span>
                       <span className={cx("shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold", c.chip)}>{stageOf(e.age)}</span>
                     </div>
                     <ul className="mt-1 space-y-1">
-                      {e.lines.map((l, i) => <li key={i} className="text-[12.5px] leading-snug text-slate-600">{l}</li>)}
+                      {e.lines.map((l, i) => <li key={i} className="text-[12px] leading-snug text-slate-600">{l}</li>)}
                     </ul>
                   </div>
                 </li>
