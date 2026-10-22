@@ -25,7 +25,7 @@ import { VehicleArt } from "./VehicleArt";
 import { UNI_BY_ID } from "./universities";
 import { beneficiaries, currentShares, totalPct } from "./will";
 import type { Business, Candidate, Npc, PartnerRel, Platform, Player, StateInfo } from "./types";
-import { Badge, Bar, Btn, Card, H, Sheet, SubTabs, cx } from "./ui";
+import { BackPill, Badge, Bar, Btn, Card, H, Hub, HubList, Sheet, SubTabs, cx } from "./ui";
 import { riskLabel, transportOptions } from "./travel";
 import { PRISON_OPS, appealCost, prisonBlockOp } from "./prison";
 import { T, naira } from "./util";
@@ -68,25 +68,18 @@ export function PhoneTab({ p, run }: { p: Player; run: Run }) {
     { id: "social", label: "Facebook, Instagram, TikTok...", sub: T("Social media", "Social media") },
     { id: "bet", label: "Naija9ja Bet", sub: T("Sports betting", "Sports betting") },
   ];
+  const appUi: Record<string, [string, string]> = { wallet: ["👛", "bg-sky-100"], spark: ["💘", "bg-rose-100"], social: ["📸", "bg-pink-100"], bet: ["⚽", "bg-emerald-100"] };
   if (app === "home") {
     return (
-      <Card>
-        <H sub={p.possessions.smartphone ? T("Smartphone", "Smartphone") : T("Basic phone: upgrade for social apps", "Basic phone: upgrade for social apps")}>{T("Your phone", "Your phone")}</H>
-        <div className="grid grid-cols-2 gap-2">
-          {apps.map((a) => (
-            <button key={a.id} type="button" onClick={() => setApp(a.id)} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left hover:bg-slate-100">
-              <span className="block text-sm font-semibold">{a.label}</span>
-              <span className="block text-[11px] text-slate-500">{a.sub}</span>
-            </button>
-          ))}
-        </div>
-        {!p.possessions.smartphone && <Btn small tone="gold" className="mt-3" disabled={p.money < I(p, 180_000)} onClick={() => run({ t: "buy", item: "smartphone" })}>{T("Upgrade to smartphone", "Upgrade to smartphone")} ({naira(I(p, 180_000))})</Btn>}
-      </Card>
+      <>
+        <HubList onPick={(r) => setApp(r.id as PhoneApp)} groups={[{ title: p.possessions.smartphone ? T("Smartphone", "Smartphone") : T("Basic phone: upgrade for social apps", "Basic phone: upgrade for social apps"), rows: apps.map((a) => ({ id: a.id, emoji: appUi[a.id][0], tile: appUi[a.id][1], name: a.label, desc: a.sub })) }]} />
+        {!p.possessions.smartphone && <Btn small tone="gold" className="mt-3" disabled={p.money < I(p, 180_000)} onClick={() => run({ t: "buy", item: "smartphone" })}>{T("Upgrade to a smartphone", "Upgrade to smartphone")} ({naira(I(p, 180_000))})</Btn>}
+      </>
     );
   }
   return (
     <>
-      <button type="button" className="text-xs text-blue-600" onClick={() => setApp("home")}>{T("← Back to phone", "← Go back to phone")}</button>
+      <BackPill label={T("Phone", "Phone")} onClick={() => setApp("home")} />
       {app === "wallet" && <Wallet p={p} run={run} />}
       {app === "spark" && <Spark p={p} run={run} />}
       {app === "social" && <Social p={p} run={run} />}
@@ -774,7 +767,8 @@ export function HealthTab({ p, run }: { p: Player; run: Run }) {
     { id: "premium" as const, label: T("Premium HMO", "Premium HMO"), cost: naira(I(p, 400_000)) + T("/yr", "/yr") },
   ];
   return (
-    <>
+    <Hub back={T("Health", "Health")} groups={[{ rows: [
+      { id: "cond", emoji: "🩺", tile: "bg-rose-100", name: T("My health", "My health"), desc: T(`Health ${Math.round(p.stats.health)}% · check-ups and gym`, `Health ${Math.round(p.stats.health)}% · check-up and gym`), node: (<>
       <Card>
         <H>{T("Condition", "Condition")}</H>
         <div className="space-y-2"><Bar label={T("Health", "Health")} value={p.stats.health} /><Bar label={T("Fitness", "Fitness")} value={p.stats.fitness} tone="blue" /><Bar label={T("Stress", "Stress")} value={p.stats.stress} invert /></div>
@@ -782,13 +776,15 @@ export function HealthTab({ p, run }: { p: Player; run: Run }) {
           <Btn small tone="ghost" onClick={() => run({ t: "checkup" })}>{T("Check-up", "Check-up")} ({naira(I(p, 35_000))})</Btn>
           <Btn small tone="ghost" disabled={Boolean(gymBlock(p)) && !p.subs.some((s) => s.id === "gym")} onClick={() => run({ t: "gym" })}>{p.subs.some((s) => s.id === "gym") ? T("Cancel gym membership", "Cancel gym") : T("Join gym", "Join gym")}</Btn>
         </div>
-      </Card>
+      </Card></>) },
+      { id: "ins", emoji: "🛡️", tile: "bg-sky-100", name: T("Insurance", "Insurance"), desc: p.insurance.plan === "none" ? T("No cover", "No cover") : p.insurance.plan === "basic" ? T("Basic HMO", "Basic HMO") : T("Premium HMO", "Premium HMO"), node: (<>
       <Card>
         <H sub={T("Cover reduces your share at private hospitals and clinics.", "Cover dey reduce wetin you go pay for private hospital and clinic.")}>{T("Insurance", "Insurance")}</H>
         <div className="flex flex-wrap gap-1.5">
           {plans.map((pl) => <Btn key={pl.id} small tone={p.insurance.plan === pl.id ? "gold" : "ghost"} onClick={() => run({ t: "insure", plan: pl.id })}>{pl.label} · {pl.cost}</Btn>)}
         </div>
-      </Card>
+      </Card></>) },
+      { id: "sick", emoji: "🤒", tile: "bg-amber-100", name: T("Treatment", "Treatment"), desc: p.conditions.length ? T(`${p.conditions.length} condition${p.conditions.length === 1 ? "" : "s"} to treat`, `${p.conditions.length} condition to treat`) : T("You are not sick", "You no dey sick"), node: (<>
       <Card>
         <H>{T("Current conditions", "Current conditions")}</H>
         {p.conditions.length === 0 && <p className="text-sm text-slate-500">{T("You are not sick.", "You no dey sick.")}</p>}
@@ -818,7 +814,8 @@ export function HealthTab({ p, run }: { p: Player; run: Run }) {
         <summary className="cursor-pointer text-sm font-semibold text-slate-600">{T("Where you can get care", "Where you fit get treatment")}</summary>
         <ul className="mt-2 space-y-1">{FACILITIES.map((f) => <li key={f.id}>{f.label}: {T("quality", "quality")} {f.quality}</li>)}</ul>
       </details>
-    </>
+      </>) },
+    ] }]} />
   );
 }
 
@@ -994,13 +991,15 @@ function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Ru
 export function LawTab({ p, run }: { p: Player; run: Run }) {
   const open = p.crime.cases.filter((c) => c.stage !== "closed");
   return (
-    <>
+    <Hub back={T("Law", "Law")} groups={[{ rows: [
+      { id: "status", emoji: "⚖️", tile: "bg-indigo-100", name: T("Legal status", "Legal status"), desc: open.length ? T(`${open.length} open case${open.length === 1 ? "" : "s"}`, `${open.length} open case`) : T(`Police heat ${Math.round(p.crime.heat)}%`, `Police heat ${Math.round(p.crime.heat)}%`), node: (<>
       <Card>
         <H sub={T("Crime pays quickly and costs heavily. Cases are decided in court, not by luck alone.", "Crime dey pay fast but e dey cost well. Court dey decide cases, no be luck alone.")}>{T("Legal status", "Legal status")}</H>
         {p.prison > 0 && <Badge tone="red">{T(`In prison · ${p.prison} yr left`, `You dey prison · ${p.prison} yr remain`)}</Badge>}
         <div className="mt-2 grid grid-cols-2 gap-2"><Bar label={T("Police heat", "Police heat")} value={p.crime.heat} invert /><Bar label={T("Criminal skill", "Criminal skill")} value={p.crime.skill} tone="blue" /></div>
         {open.map((c) => <p key={c.id} className="mt-2 text-sm text-red-600">{T("Open case", "Open case")}: {c.charge} ({c.stage})</p>)}
-      </Card>
+      </Card></>) },
+      { id: "risky", emoji: "🕶️", tile: "bg-slate-200", name: T("Risky choices", "Risky choices"), desc: T("Crime pays fast and costs heavily", "Crime dey pay fast but e cost well"), hidden: p.age < 14, node: (<>
       {p.age >= 14 && (
         <Card>
           <H sub={T("You may be caught. Consequences include arrest, a record, fines, prison and revenge.", "Dem fit catch you. E fit bring arrest, record, fine, prison and revenge.")}>{T("Risky choices", "Risky choices")}</H>
@@ -1016,14 +1015,15 @@ export function LawTab({ p, run }: { p: Player; run: Run }) {
             })}
           </div>
         </Card>
-      )}
+      )}</>) },
+      { id: "record", emoji: "📁", tile: "bg-amber-100", name: T("Criminal record", "Criminal record"), desc: p.crime.record.length ? T(`${p.crime.record.length} entr${p.crime.record.length === 1 ? "y" : "ies"}`, `${p.crime.record.length} entry`) : T("Clean record", "Clean record"), node: (<>
       <Card>
         <H>{T("Criminal record", "Criminal record")}</H>
         {p.crime.record.length === 0 ? <p className="text-sm text-slate-500">{T("Clean record.", "Your record clean.")}</p> : (
           <ul className="space-y-1 text-sm">{p.crime.record.map((r, i) => <li key={i}>{T("Age", "Age")} {r.age}: {r.charge} — {r.outcome}</li>)}</ul>
         )}
-      </Card>
-    </>
+      </Card></>) },
+    ] }]} />
   );
 }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Share2 } from "lucide-react";
 import {
-  ALL_TRIBES, HOUSE_KINDS, INVESTMENTS, JOBS, LUXURIES, OFFICES, RELIGIONS, STATES, STATE_BY_ID, TRAVEL_STATES, payMult,
+  ALL_TRIBES, HOUSE_KINDS, INVESTMENTS, JOBS, LUXURIES, OFFICES, RELIGIONS, STATE_BY_ID, TRAVEL_STATES, payMult,
   type JobDef,
 } from "./data";
 import {
@@ -23,7 +23,7 @@ import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
-import { SubTabs, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
+import { BackPill, Hub, HubList, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
 import { notificationsFor } from "./notices";
 import { T, chance, naira, setDeflator, setLang } from "./util";
@@ -505,7 +505,7 @@ function lockReason(p: Player, j: JobDef): string | null {
 }
 
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [sub, setSub] = useState<"jobs" | "biz" | "learn">("jobs");
+  const [sub, setSub] = useState<"jobs" | "biz" | "learn" | null>(null);
   const st = STATE_BY_ID[p.state];
   const cur = jobDef(p);
   const eligible = eligibleJobs(p);
@@ -547,7 +547,13 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const cost = expandCost(p);
   return (
     <>
-      <SubTabs value={sub} onChange={setSub} tabs={[{ id: "jobs", label: T("Jobs", "Jobs") }, { id: "biz", label: T("My businesses", "My businesses"), badge: p.businesses.length || undefined }, { id: "learn", label: T("Learn", "Learn") }]} />
+      {sub === null ? (
+        <HubList onPick={(r) => setSub(r.id as "jobs" | "biz" | "learn")} groups={[{ rows: [
+          { id: "jobs", emoji: "💼", tile: "bg-amber-100", name: T("Jobs and hustles", "Jobs and hustles"), desc: cur ? cur.ladder[Math.min(p.job?.rank ?? 0, cur.ladder.length - 1)].title : T("Find work or start a hustle", "Find work or start hustle") },
+          { id: "biz", emoji: "🏪", tile: "bg-emerald-100", name: T("My businesses", "My businesses"), desc: p.businesses.length ? T(`${p.businesses.length} running`, `${p.businesses.length} dey run`) : T("Akara stand to hotel", "Akara stand to hotel") },
+          { id: "learn", emoji: "🎓", tile: "bg-violet-100", name: T("Learn", "Learn"), desc: p.school ? T("In school now", "You dey school now") : T("School, trades, skills", "School, trade, skills") },
+        ] }]} />
+      ) : <BackPill label={T("Work", "Work")} onClick={() => setSub(null)} />}
       {sub === "biz" && (p.age >= 14 ? <BusinessCard p={p} run={run} /> : <Card><p className="text-sm text-slate-500">{T("Businesses start at 18.", "Business start for 18.")}</p></Card>)}
       {sub === "learn" && (<><Card><H>{T("Education", "Education")}</H><p className="text-sm text-slate-800">{p.school ? T(`Currently in school (${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} left).`, `You dey school now (${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} remain).`) : p.edu === "none" ? T("No schooling yet.", "You never go school yet.") : T(`Highest level: ${p.edu}${p.course ? ` (${p.course})` : ""}.`, `Highest level: ${p.edu}${p.course ? ` (${p.course})` : ""}.`)}</p><DegreeCard p={p} run={run} /></Card>{p.age >= 14 && (<><TradeCard p={p} run={run} /><PostgradCard p={p} run={run} /><SkillsCard p={p} run={run} /></>)}</>)}
       {sub === "jobs" && (<>
@@ -836,56 +842,56 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const [dest, setDest] = useState<string | null>(null);
   const st = STATE_BY_ID[p.state];
   const regions = Array.from(new Set(TRAVEL_STATES.map((s) => s.region)));
+  const REG_EMOJI: Record<string, [string, string]> = { "North Central": ["🌾", "bg-amber-100"], "North East": ["🏜️", "bg-orange-100"], "North West": ["🕌", "bg-yellow-100"], "South East": ["⛪", "bg-emerald-100"], "South South": ["🛢️", "bg-sky-100"], "South West": ["🌆", "bg-indigo-100"] };
+  const top = (
+    <Card>
+      <H>{T("You are in", "Where you dey")}</H>
+      <div className="text-lg font-bold">{st.name} <span className="text-sm font-normal text-slate-500">· {st.capital}</span></div>
+      <div className="mt-2 space-y-1.5">
+        <Meter label={T("Jobs", "Jobs")} value={st.opp} />
+        <Meter label={T("Cost", "Cost")} value={st.cost * 5} max={10} invert />
+        <Meter label={T("Insecurity", "Insecurity")} value={st.risk} invert />
+      </div>
+      <p className="mt-2 text-[11px] text-slate-500">{T("Opportunity affects pay and what jobs exist. Insecurity raises kidnap and robbery risk, especially when you travel.", "Opportunity dey affect pay and wetin job dey. Insecurity dey raise kidnap and robbery risk, especially when you dey travel.")}</p>
+    </Card>
+  );
   return (
     <>
-      <Card>
-        <H>{T("You are in", "Where you dey")}</H>
-        <div className="text-lg font-bold">{st.name} <span className="text-sm font-normal text-slate-500">· {st.capital}</span></div>
-        <div className="mt-2 space-y-1.5">
-          <Meter label={T("Jobs", "Jobs")} value={st.opp} />
-          <Meter label={T("Cost", "Cost")} value={st.cost * 5} max={10} invert />
-          <Meter label={T("Insecurity", "Insecurity")} value={st.risk} invert />
-        </div>
-        <p className="mt-2 text-[11px] text-slate-500">{T("Opportunity affects pay and what jobs exist. Insecurity raises kidnap and robbery risk, especially when you travel.", "Opportunity dey affect pay and which jobs dey. Insecurity dey increase kidnap and robbery risk, especially when you dey travel.")}</p>
-      </Card>
-
-      <Card>
-        <H sub={T("Flights, IELTS and visa fees add up, and visas can be refused. A degree improves your odds.", "Flight, IELTS and visa fees dey add up, and dem fit refuse visa. Degree dey help your chance.")}>Japa 🛫</H>
-        <Btn tone="gold" disabled={p.age < 18 || p.money < 8_000_000 * p.index || Boolean(st.abroad) || p.prison > 0} onClick={() => run({ t: "japa" })}>
-          {T(`Start Japa process (${naira(8_000_000 * p.index)})`, `Start Japa process (${naira(8_000_000 * p.index)})`)}
-        </Btn>
-      </Card>
-
-      {regions.map((r) => (
-        <Card key={r}>
-          <H>{r}</H>
-          <div className="space-y-2">
-            {TRAVEL_STATES.filter((s) => s.region === r).map((s) => {
-              const here = s.id === p.state;
-              const mine = p.houses.some((h) => h.state === s.id);
-              return (
-                <div key={s.id} className={cx("rounded-xl p-3", here ? "bg-blue-50" : "bg-slate-50")}>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-semibold">
-                      {s.name} {s.id === p.family.state && <Badge>{T("family", "family")}</Badge>} {mine && <Badge tone="gold">{T("your house", "your house")}</Badge>} {s.id === p.birthState && <Badge tone="green">{T("home", "home")}</Badge>}
-                    </div>
-                    <Btn small tone={here ? "ghost" : "green"} disabled={here || p.age < 16 || p.prison > 0} onClick={() => setDest(s.id)}>
-                      {here ? T("Here", "Here") : T("Go", "Go")}
-                    </Btn>
-                  </div>
-                  <div className="mt-1.5 grid grid-cols-3 gap-2">
-                    <Meter compact label={T("Jobs", "Jobs")} value={s.opp} />
-                    <Meter compact label={T("Cost of living", "Cost of living")} value={s.cost * 5} max={10} invert />
-                    <Meter compact label={T("Insecurity", "Insecurity")} value={s.risk} invert />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      ))}
+      <Hub back={T("Map", "Map")} top={top} groups={[
+        { title: T("Abroad", "Abroad"), rows: [{ id: "japa", emoji: "✈️", tile: "bg-sky-100", name: T("Japa", "Japa"), desc: T("Visa, IELTS and a new life abroad", "Visa, IELTS and new life abroad"), node: (
+          <Card>
+            <H sub={T("Flights, IELTS and visa fees add up, and visas can be refused. A degree improves your odds.", "Flight, IELTS and visa fees dey add up, and dem fit refuse visa. Degree dey help your chance.")}>{T("Japa", "Japa")}</H>
+            <Btn tone="gold" disabled={p.age < 18 || p.money < 8_000_000 * p.index || Boolean(st.abroad) || p.prison > 0} onClick={() => run({ t: "japa" })}>
+              {T(`Start Japa process (${naira(8_000_000 * p.index)})`, `Start Japa process (${naira(8_000_000 * p.index)})`)}
+            </Btn>
+            {p.state === "abroad" && <p className="mt-2 text-xs text-slate-500">{T("You are abroad. Travel back to any Nigerian state from the regions list.", "You dey abroad. Travel go any Nigerian state from the regions list.")}</p>}
+          </Card>
+        ) }] },
+        { title: T("Travel in Nigeria", "Travel for Nigeria"), rows: regions.map((r) => ({
+          id: r, emoji: REG_EMOJI[r]?.[0] ?? "📍", tile: REG_EMOJI[r]?.[1] ?? "bg-slate-100", name: r, desc: T(`${TRAVEL_STATES.filter((x) => x.region === r).length} states`, `${TRAVEL_STATES.filter((x) => x.region === r).length} states`),
+          node: (
+            <div className="space-y-2">
+              <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+                {TRAVEL_STATES.filter((s) => s.region === r).map((s) => {
+                  const here = s.id === p.state;
+                  const mine = p.houses.some((h) => h.state === s.id);
+                  return (
+                    <button key={s.id} type="button" disabled={here || p.age < 16 || p.prison > 0} onClick={() => setDest(s.id)} className={cx("flex w-full items-center gap-3 px-3.5 py-3 text-left disabled:opacity-100", here ? "bg-blue-50" : "bg-white active:bg-slate-50")}>
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[22px]">{here ? "📍" : "🗺️"}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[15px] font-extrabold leading-tight text-[#0b2a6b]">{s.name} {s.id === p.family.state && <Badge>{T("family", "family")}</Badge>} {mine && <Badge tone="gold">{T("your house", "your house")}</Badge>}</span>
+                        <span className="block text-[12px] text-slate-500">{T("Jobs", "Jobs")} {s.opp}/10 · {T("Cost", "Cost")} {Math.round(s.cost * 5)}/10 · {T("Risk", "Risk")} {s.risk}/10</span>
+                      </span>
+                      <span className="shrink-0 text-sm font-bold text-blue-600">{here ? T("Here", "Here") : T("Go ›", "Go ›")}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ),
+        })) },
+      ]} />
       {dest && STATE_BY_ID[dest] && <TravelSheet p={p} to={STATE_BY_ID[dest]} run={run} onClose={() => setDest(null)} />}
-      {STATES.find((s) => s.abroad) && p.state === "abroad" && <p className="text-center text-xs text-slate-500">{T("You are abroad. Travel back to any Nigerian state from the lists above.", "You dey abroad. You fit travel back go any Naija state from the lists above.")}</p>}
     </>
   );
 }
@@ -930,16 +936,17 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   if (!pol) {
     const block = canJoinPolitics(p);
     return (
-      <>
+      <Hub back={T("Power", "Power")} groups={[{ rows: [
+        { id: "join", emoji: "🗳️", tile: "bg-yellow-100", name: T("Join politics", "Join politics"), desc: T("From councillor to President", "From councillor to President"), node: (<>
         <Card>
           <H>{T("Politics", "Politics")}</H>
           <p className="text-sm text-slate-700">{T("From councillor to President. It costs money, connections and (sometimes) your conscience. Once you hold power you can build the country, or loot it.", "From councillor reach President. E need money, connections and (sometimes) your conscience. Once you get power, you fit build the country, or loot am.")}</p>
           <Btn className="mt-3" tone="gold" disabled={Boolean(block)} onClick={() => run({ t: "joinPolitics" })}>{T(`Join a political party (${naira(2_000_000 * p.index)})`, `Join political party (${naira(2_000_000 * p.index)})`)}</Btn>
           {block && <p className="mt-2 text-xs text-red-600">{block}</p>}
-        </Card>
-        {coupCard}
-        <RoutesCard />
-      </>
+        </Card></> ) },
+        { id: "coup", emoji: "🪖", tile: "bg-red-100", name: T("Seize power", "Seize power"), desc: T("High risk coup", "Coup, risk plenty"), hidden: !showCoup, node: coupCard },
+        { id: "routes", emoji: "🛣️", tile: "bg-sky-100", name: T("Roads to the Villa", "Roads to the Villa"), desc: T("Five ways to the top", "Five ways reach the top"), node: <RoutesCard /> },
+      ] }]} />
     );
   }
   const holding = pol.office >= 0 ? OFFICES[pol.office] : null;
@@ -950,7 +957,9 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const zone = currentZone(p);
   const mine = playerZone(p);
   return (
-    <>
+    <Hub back={T("Power", "Power")} groups={[
+      { rows: [
+      { id: "office", emoji: "🏛️", tile: "bg-yellow-100", name: officeTitle(p) ?? T("Out of office", "No dey office"), desc: next && !pol.militaryRuler ? T(`Next: ${next.title}`, `Next: ${next.title}`) : T("Your political career", "Your political career"), node: (<>
       <Card>
         <H>{officeTitle(p) ?? T("Out of office", "No dey office")}</H>
         {holding && !pol.militaryRuler && <p className="text-sm text-slate-700">{T(`Term ${pol.terms}, ${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} left · ${naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay`, `Term ${pol.terms}, ${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} remain · ${naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay`)}</p>}
@@ -971,8 +980,8 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           </div>
         )}
         <p className="mt-3 text-xs text-slate-500">{T("Reputation as a ruler", "Your name as ruler")}: <b className="text-slate-700">{ruler}</b> · {T("Stolen", "Stolen")}: {naira(p.loot)} · {T("Good deeds", "Good deeds")}: {p.goodDeeds}</p>
-      </Card>
-
+      </Card></>) },
+      { id: "base", emoji: "🧱", tile: "bg-amber-100", name: T("Power base", "Power base"), desc: T("Party, umpire, courts, security", "Party, umpire, courts, security"), node: (<>
       <Card>
         <H sub={T("These decide who wins the ticket, the vote and the court case.", "These ones dey decide who go win ticket, vote and court case.")}>{T("Power bases", "Power bases")}</H>
         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -992,12 +1001,9 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
             );
           })}
         </div>
-      </Card>
-
-      {coupCard}
-
-      {holding && (
-        <>
+      </Card></>) },
+      { id: "coup", emoji: "🪖", tile: "bg-red-100", name: T("Seize power", "Seize power"), desc: T("High risk coup", "Coup, risk plenty"), hidden: !showCoup, node: coupCard },
+      { id: "nation", emoji: "🇳🇬", tile: "bg-emerald-100", name: T("State of the nation", "How the country be"), desc: T(`Economy ${Math.round(n.economy)} · approval ${Math.round(n.approval)}`, `Economy ${Math.round(n.economy)} · approval ${Math.round(n.approval)}`), hidden: !holding, node: (<>
           <Card>
             <H>{T("The state of the nation", "How the country be")}</H>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -1007,7 +1013,8 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
               <Bar label={T("Approval", "Approval")} value={n.approval} tone="gold" />
               <Bar label={T("EFCC / coup heat", "EFCC / coup heat")} value={n.heat} invert />
             </div>
-          </Card>
+          </Card></>) },
+      { id: "gov", emoji: "📋", tile: "bg-sky-100", name: T("Run the country", "Run the country"), desc: T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`), hidden: !holding, node: (<>
           {(["good", "corrupt", "neutral"] as const).map((side) => (
             <Card key={side}>
               <H sub={T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action remain this year`)}>
@@ -1025,11 +1032,9 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
                 })}
               </div>
             </Card>
-          ))}
-        </>
-      )}
-      <RoutesCard />
-    </>
+          ))}</>) },
+      { id: "routes", emoji: "🛣️", tile: "bg-violet-100", name: T("Roads to the Villa", "Roads to the Villa"), desc: T("Five ways to the top", "Five ways reach the top"), node: <RoutesCard /> },
+      ] }]} />
   );
 }
 
@@ -1062,18 +1067,22 @@ function LegacyTab({ g }: { g: Game }) {
   };
   const p = g.p;
   return (
-    <>
+    <Hub back={T("Legacy", "Legacy")} groups={[{ rows: [
+      { id: "dyn", emoji: "👑", tile: "bg-amber-100", name: T(`The ${g.dynasty.surname} dynasty`, `The ${g.dynasty.surname} dynasty`), desc: T(`Generation ${p.generation} · share your legacy`, `Generation ${p.generation} · share your legacy`), node: (<>
       <Card>
         <H>{T(`The ${g.dynasty.surname} dynasty`, `The ${g.dynasty.surname} dynasty`)}</H>
         <p className="text-sm text-slate-700">{T(`Generation ${p.generation}. When you die you continue as one of your children, with 70% of everything you built. The family name keeps growing.`, `Generation ${p.generation}. When you die, you go continue as one of your pikin, with 70% of everything you build. The family name go keep growing.`)}</p>
         <Btn tone="gold" small className="mt-3" onClick={share}><Share2 size={14} className="mr-1 inline" /> {T("Share legacy card", "Share legacy card")}</Btn>
         {msg && <p className="mt-2 text-xs text-emerald-600">{msg}</p>}
-      </Card>
+      </Card></>) },
+      { id: "cur", emoji: "🧬", tile: "bg-sky-100", name: T("Current life", "Current life"), desc: `${p.name} ${p.surname} · ${T("Prestige", "Prestige")} ${p.prestige}`, node: (<>
       <Card>
         <H>{T("Current life", "Current life")}</H>
         <p className="text-sm">{p.name} {p.surname} · {T("Prestige", "Prestige")} {p.prestige} · {T("Peak worth", "Highest worth")} {naira(p.peakWorth)}</p>
         <p className="mt-1 text-xs text-slate-500">{T("Good deeds", "Good deeds")} {p.goodDeeds} · {T("Stolen", "Stolen")} {naira(p.loot)} · {T("Kidnapped", "Dem kidnap you")} {p.kidnaps}×</p>
       </Card>
+      </>) },
+      { id: "anc", emoji: "🕯️", tile: "bg-violet-100", name: T("Ancestors", "Ancestors"), desc: T(`${g.dynasty.lineage.length} before you`, `${g.dynasty.lineage.length} before you`), hidden: g.dynasty.lineage.length === 0, node: (<>
       {g.dynasty.lineage.length > 0 && (
         <Card>
           <H>{T("Ancestors", "Ancestors")}</H>
@@ -1087,8 +1096,8 @@ function LegacyTab({ g }: { g: Game }) {
             ))}
           </div>
         </Card>
-      )}
-    </>
+      )}</>) },
+    ] }]} />
   );
 }
 

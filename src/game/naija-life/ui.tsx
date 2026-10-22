@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { T } from "./util";
 
@@ -132,4 +133,45 @@ export function SubTabs<K extends string>({ tabs, value, onChange }: { tabs: { i
       ))}
     </div>
   );
+}
+
+export interface HubRow { id: string; emoji: string; tile: string; name: string; desc?: string; node?: ReactNode; onClick?: () => void; hidden?: boolean }
+export interface HubGroup { title?: string; rows: HubRow[] }
+
+/** A grouped list of tappable rows: emoji tile, title, one-line description, chevron. */
+export function HubList({ groups, onPick }: { groups: HubGroup[]; onPick: (r: HubRow) => void }) {
+  return (
+    <div className="space-y-4">
+      {groups.map((g, gi) => {
+        const rows = g.rows.filter((r) => !r.hidden);
+        if (rows.length === 0) return null;
+        return (
+          <section key={gi}>
+            {g.title && <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{g.title}</h2>}
+            <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+              {rows.map((r) => (
+                <button key={r.id} type="button" onClick={() => onPick(r)} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition active:bg-slate-50">
+                  <span className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[24px]", r.tile)}>{r.emoji}</span>
+                  <span className="min-w-0 flex-1"><span className="block text-[15px] font-extrabold leading-tight text-[#0b2a6b]">{r.name}</span>{r.desc && <span className="block truncate text-[12px] leading-snug text-slate-500">{r.desc}</span>}</span>
+                  <span className="shrink-0 text-xl font-black text-blue-500">›</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+export function BackPill({ label, onClick }: { label: string; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="mb-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm ring-1 ring-slate-200">‹ {label}</button>;
+}
+
+/** A list of sections; tapping one opens its content with a back button. */
+export function Hub({ groups, top, back }: { groups: HubGroup[]; top?: ReactNode; back: string }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const row = groups.flatMap((g) => g.rows).find((r) => r.id === open && !r.hidden);
+  if (row) return (<><BackPill label={back} onClick={() => setOpen(null)} />{row.node}</>);
+  return (<>{top}<HubList groups={groups} onPick={(r) => (r.onClick ? r.onClick() : setOpen(r.id))} /></>);
 }
