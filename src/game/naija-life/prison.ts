@@ -5,7 +5,7 @@ import type { EventDef, Player } from "./types";
 import { T, chance, clamp, naira, randInt } from "./util";
 
 /** Actions that still make sense from inside a prison cell. */
-const ALLOWED: Action["t"][] = ["prison", "will", "ask", "treat", "checkup", "loanRepay", "learn", "growth", "activity", "quit", "borrow"];
+const ALLOWED: Action["t"][] = ["prison", "will", "ask", "treat", "checkup", "loanRepay", "surrender", "learn", "growth", "activity", "quit", "borrow"];
 const ACTIVITIES_OK = ["study", "worship", "gym"];
 const GROWTH_OK = ["read", "run", "rest", "hobby"];
 

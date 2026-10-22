@@ -361,7 +361,7 @@ export interface Vehicle {
   kind: "used" | "new";
   value: number;
   condition: number;
-  role: "personal" | "taxi" | "ridehail";
+  role: "personal" | "taxi" | "ridehail" | "rental";
   insuredUntil: number;
   bought: number;
   luxury: boolean;
@@ -372,6 +372,8 @@ export interface Possessions {
   phone: boolean;
   smartphone: boolean;
   laptop: boolean;
+  /** Driver's licence. Needed to buy and drive a car. */
+  license?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -602,6 +604,23 @@ export interface KidnapState {
   captors: string;
   outcome?: "freed" | "rescued" | "escaped" | "dead";
   summary?: string;
+  /** The escape mini-game, while the player is planning to run. */
+  escape?: KidnapEscape;
+}
+
+export interface KidnapEscape {
+  captives: { name: string; brave: number }[];
+  /** How much a guard relaxes around you, 0-100. */
+  guardTrust: number;
+  /** How suspicious the captors are, 0-100. */
+  noise: number;
+  /** What you have learned about the camp. */
+  insight: number;
+  /** Captives who will run with you. */
+  allies: number;
+  attempts: number;
+  /** The last thing that happened, for the modal. */
+  note: string;
 }
 
 export type Pending = { kind: "event"; id: string; data: EventData } | { kind: "kidnap"; k: KidnapState };

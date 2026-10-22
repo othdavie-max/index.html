@@ -322,7 +322,8 @@ test("social media: accounts need a smartphone; posting grows followers over tim
 test("vehicles are recorded assets: buying costs cash, selling returns it", () => {
   const g = aliveAt(25);
   const p = structuredClone(g.p);
-  p.money = 5_500_000 * p.index * 3;
+  p.possessions.license = true;
+  p.money = 14_000_000 * p.index * 3;
   const before = p.money;
   const msg = buyVehicle(p, "corolla-used", false);
   assert.ok(msg.includes("bought"), msg);
@@ -335,13 +336,14 @@ test("vehicles are recorded assets: buying costs cash, selling returns it", () =
   assert.ok(p.money > mid);
   // financed purchase creates a loan and a vehicle, and the net cash change is the deposit
   const p2 = structuredClone(g.p);
-  p2.money = 5_500_000 * p2.index * 2;
+  p2.possessions.license = true;
+  p2.money = 14_000_000 * p2.index * 2;
   p2.credit = 70;
   const b2 = p2.money;
   buyVehicle(p2, "corolla-used", true);
   assert.equal(p2.vehicles.length, 1);
   assert.ok(p2.loans.some((l) => l.id === p2.vehicles[0].loanId && l.direction === "owed"));
-  assert.ok(b2 - p2.money < 5_500_000 * p2.index, "only the deposit leaves your cash");
+  assert.ok(b2 - p2.money < 14_000_000 * p2.index, "only the deposit leaves your cash");
   assert.ok(ledgerBalances(p2));
 });
 

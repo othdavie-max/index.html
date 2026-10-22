@@ -3,7 +3,8 @@ import { STATE_BY_ID } from "./data";
 import { bizValue } from "./business";
 import { receivables, totalDebt } from "./loans";
 import type { KidnapState, Player } from "./types";
-import { T, chance, clamp, naira, pick, rand, randInt } from "./util";
+import { luckBonus } from "./helpers";
+import { T, chance, clamp, naira, pick, rand, randInt, rng } from "./util";
 
 const CAPTORS: readonly (readonly [string, string])[] = [
   ["armed men in military camo stopped your vehicle", "armed men wey wear military camo stop your vehicle"],
@@ -89,7 +90,12 @@ export type KidnapAction =
   | { type: "start" }
   | { type: "offer"; pct: number }
   | { type: "police" }
-  | { type: "payfull" };
+  | { type: "payfull" }
+  | { type: "escapeStart" }
+  | { type: "escapeAct"; move: EscapeMove }
+  | { type: "escapeStop" };
+
+export type EscapeMove = "befriend" | "allies" | "scout" | "fakeSick" | "run";
 
 function endVictim(p: Player, k: KidnapState, outcome: NonNullable<KidnapState["outcome"]>, paid: number) {
   k.stage = "over";
@@ -121,9 +127,98 @@ function endVictim(p: Player, k: KidnapState, outcome: NonNullable<KidnapState["
 }
 
 /** Pure-ish: mutates the passed clone of the player and kidnap state. */
+const CAPTIVE_NAMES = ["Chinedu", "Hauwa", "Bolaji", "Emeka", "Zainab", "Sunday", "Ngozi", "Ibrahim", "Titi", "Femi"];
+
+function escapeMove(p: Player, k: KidnapState, move: EscapeMove) {
+  const e = k.escape;
+  if (!e) return;
+  const roll = (n: number) => chance(clamp(n, 0.05, 0.92));
+  switch (move) {
+    case "befriend": {
+      if (roll(0.55 + p.stats.reputation / 400 + luckBonus(p))) {
+        e.guardTrust = clamp(e.guardTrust + randInt(15, 28));
+        e.noise = clamp(e.noise + 4);
+        e.note = T("One of the younger guards starts chatting with you about football and his village. He lowers his guard a little.", "One young guard start to yarn with you about football and him village. E relax small.");
+      } else {
+        e.noise = clamp(e.noise + 16);
+        e.note = T("The guard turns cold. 'Why you dey ask me questions?' He watches you closely now.", "The guard turn cold. 'Why you dey ask me question?' E dey watch you well now.");
+      }
+      return;
+    }
+    case "allies": {
+      const cand = e.captives.filter((c) => c.brave >= 0).length;
+      if (e.allies >= cand) { e.note = T("Everyone who dares is already with you.", "Everybody wey get mind don join you."); return; }
+      if (roll(0.5 + p.stats.connections / 300)) {
+        e.allies += 1;
+        e.noise = clamp(e.noise + 7);
+        const c = e.captives[e.allies - 1];
+        e.note = T(`${c?.name ?? "A fellow captive"} whispers: 'If you run, I am coming with you.'`, `${c?.name ?? "One fellow captive"} whisper: 'If you run, I dey follow you.'`);
+      } else {
+        e.noise = clamp(e.noise + 14);
+        e.note = T("A captive panics and shouts for the guards. You pretend it was a nightmare.", "One captive panic and shout for guards. You pretend say na bad dream.");
+      }
+      return;
+    }
+    case "scout": {
+      e.insight += 1;
+      e.noise = clamp(e.noise + 3);
+      e.note = e.insight === 1 ? T("You learn that the night guard sleeps near the fire, and the back fence is only wire.", "You learn say night guard dey sleep near fire, and the back fence na only wire.") : T("You count the guards and memorise the path to the stream. You are almost ready.", "You count the guards and memorise the way to the stream. You nearly ready.");
+      return;
+    }
+    case "fakeSick": {
+      e.guardTrust = clamp(e.guardTrust + 8);
+      p.stats.health = clamp(p.stats.health - 3);
+      if (chance(0.4)) { e.insight += 1; e.note = T("They untie you to give water. You see where the keys hang.", "Dem untie you give water. You see where dem dey hang the keys."); }
+      else e.note = T("They grumble but give you water and a blanket. They do not suspect a thing.", "Dem complain but dem give you water and blanket. Dem no suspect anything.");
+      return;
+    }
+    case "run": {
+      e.attempts += 1;
+      const pr = clamp(0.08 + e.insight * 0.17 + e.guardTrust / 260 + e.allies * 0.09 + p.stats.fitness / 330 - e.noise / 220 + luckBonus(p), 0.03, 0.88);
+      if (chance(pr)) {
+        const buddies = e.allies > 0 ? T(` ${e.allies} fellow captive${e.allies > 1 ? "s" : ""} run with you.`, ` ${e.allies} fellow captive${e.allies > 1 ? "s" : ""} run with you.`) : "";
+        k.history.push(T(`You slip away in the dark and run until your lungs burn.${buddies}`, `You slip comot for dark and run until your chest dey pain you.${buddies}`));
+        endVictim(p, k, "escaped", 0);
+        return;
+      }
+      const bad = chance(0.12 + e.noise / 400);
+      if (bad && e.noise > 55) {
+        k.history.push(T("A guard catches you at the fence. This time he is not gentle.", "Guard catch you for the fence. This time e no gentle at all."));
+        endVictim(p, k, "dead", 0);
+        return;
+      }
+      p.stats.health = clamp(p.stats.health - 12);
+      k.demand = Math.round(k.demand * 1.15);
+      k.patience = Math.max(0, k.patience - 1);
+      e.guardTrust = 0;
+      e.noise = clamp(e.noise + 25);
+      e.allies = Math.max(0, e.allies - 1);
+      e.note = T("They drag you back, beat you and chain you tighter. The price goes up.", "Dem drag you come back, beat you and chain you tighter. The price don go up.");
+      k.history.push(e.note);
+      checkOver(p, k);
+      return;
+    }
+  }
+}
+
 export function kidnapStep(p: Player, k: KidnapState, a: KidnapAction): void {
   if (k.stage === "over") return;
   switch (a.type) {
+    case "escapeStart": {
+      if (k.escape) return;
+      const n = randInt(2, 4);
+      const names = [...CAPTIVE_NAMES].sort(() => rng() - 0.5).slice(0, n);
+      k.escape = { captives: names.map((name) => ({ name, brave: randInt(0, 3) })), guardTrust: 0, noise: 5, insight: 0, allies: 0, attempts: 0, note: T(`You are not alone: ${names.join(", ")} are held here too. If you are going to run, plan it carefully.`, `You no dey alone: ${names.join(", ")} dey here too. If you wan run, plan am well.`) };
+      return;
+    }
+    case "escapeStop": {
+      k.escape = undefined;
+      return;
+    }
+    case "escapeAct": {
+      escapeMove(p, k, a.move);
+      return;
+    }
     case "savings": {
       if (k.usedSavings || p.money <= 0) return;
       k.usedSavings = true;

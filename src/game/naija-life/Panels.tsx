@@ -18,10 +18,12 @@ import { POSTGRAD, postgradBlock } from "./education";
 import { listingBlock, planQuote } from "./property";
 import { STAGE_LABEL, activePartners, adoptBlock, dateCost, datingAllowed, divorceBlock, fertilityBlock, intimacyBlock, relHint } from "./relationships";
 import { CONTENT, PLATFORMS, postBlock, socialBlock, totalFollowers } from "./social";
-import { VEHICLE_MODELS, priceOf, repairCost, isInsured } from "./vehicles";
+import { VEHICLE_MODELS, licenseBlock, licenseCost, modelOf, needsLicense, priceOf, repairCost, isInsured } from "./vehicles";
+import { VehicleArt } from "./VehicleArt";
 import { beneficiaries, currentShares, totalPct } from "./will";
-import type { Candidate, Npc, PartnerRel, Platform, Player } from "./types";
-import { Badge, Bar, Btn, Card, H, cx } from "./ui";
+import type { Candidate, Npc, PartnerRel, Platform, Player, StateInfo } from "./types";
+import { Badge, Bar, Btn, Card, H, Sheet, cx } from "./ui";
+import { riskLabel, transportOptions } from "./travel";
 import { PRISON_OPS, appealCost, prisonBlockOp } from "./prison";
 import { T, naira } from "./util";
 
@@ -517,41 +519,89 @@ export function HousingCard({ p, run }: { p: Player; run: Run }) {
   );
 }
 
+const CAT_LABEL: Record<string, () => string> = {
+  taxi: () => T("Work vehicles", "Work vehicles"),
+  car: () => T("Everyday cars", "Everyday cars"),
+  suv: () => T("SUVs and trucks", "SUV and trucks"),
+  luxury: () => T("Luxury", "Luxury"),
+  supercar: () => T("Supercars", "Supercars"),
+  hypercar: () => T("Hypercars", "Hypercars"),
+  helicopter: () => T("Helicopters", "Helicopters"),
+  jet: () => T("Private jets", "Private jets"),
+  boat: () => T("Boats", "Boats"),
+  yacht: () => T("Yachts", "Yachts"),
+};
+
 export function GarageCard({ p, run }: { p: Player; run: Run }) {
   const [show, setShow] = useState(false);
+  const [cat, setCat] = useState("car");
+  const lic = licenseBlock(p);
   return (
     <Card>
-      <H sub={T("Cars cost fuel, repairs and insurance every month.", "Car dey chop fuel, repair and insurance every month.")}>{T("Garage", "Garage")}</H>
-      {p.vehicles.map((v) => (
-        <div key={v.id} className="mb-2 rounded-xl bg-slate-50 p-3">
-          <div className="flex justify-between text-sm"><span className="font-semibold">{v.name}</span><span className="text-blue-600">{naira(v.value)}</span></div>
-          <div className="text-[11px] text-slate-500">{T("Condition", "Condition")} {v.condition}% · {v.role} · {isInsured(p, v) ? T("insured", "insured") : T("uninsured", "no insurance")}{v.loanId ? T(" · on finance", " · on finance") : ""}</div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <Btn small tone="ghost" onClick={() => run({ t: "car", op: "repair", id: v.id })}>{T("Repair", "Repair")} ({naira(repairCost(p, v))})</Btn>
-            <Btn small tone="ghost" onClick={() => run({ t: "car", op: "insure", id: v.id })}>{T("Insure", "Insure")}</Btn>
-            {v.role === "personal" ? (
-              <>
-                <Btn small tone="ghost" onClick={() => run({ t: "car", op: "taxi", id: v.id })}>{T("Run as taxi", "Use as taxi")}</Btn>
-                <Btn small tone="ghost" onClick={() => run({ t: "car", op: "ridehail", id: v.id })}>{T("Ride-hail", "Ride-hail")}</Btn>
-              </>
-            ) : <Btn small tone="ghost" onClick={() => run({ t: "car", op: "personal", id: v.id })}>{T("Personal use", "Personal use")}</Btn>}
-            <Btn small tone="red" onClick={() => run({ t: "car", op: "sell", id: v.id })}>{T("Sell", "Sell")}</Btn>
+      <H sub={T("Cars, boats and aircraft cost money to run every month. Rent them out to earn.", "Cars, boats and aircraft dey chop money every month. Rent them out make dem bring money.")}>{T("Garage and fleet", "Garage and fleet")}</H>
+      <div className="mb-3 flex items-center justify-between rounded-xl bg-slate-50 p-3">
+        <div className="text-[12px]"><div className="font-bold text-[#0b2a6b]">{T("Driver's licence", "Driver's licence")}</div><div className="text-slate-500">{p.possessions.license ? T("You can drive.", "You fit drive.") : T("Needed to buy and drive a car. Failing costs another fee.", "You need am to buy and drive car. If you fail, you go pay again.")}</div></div>
+        {p.possessions.license ? <Badge tone="green">{T("Licensed", "Licensed")}</Badge> : (
+          <div className="flex shrink-0 flex-col gap-1">
+            <Btn small tone="gold" disabled={Boolean(lic)} title={lic ?? ""} onClick={() => run({ t: "license" })}>{T("Take the test", "Do the test")} ({naira(licenseCost(p))})</Btn>
+            <Btn small tone="ghost" disabled={Boolean(lic)} onClick={() => run({ t: "license", settle: true })}>{T("Settle the examiner", "Settle examiner")}</Btn>
           </div>
-        </div>
-      ))}
-      <Btn small tone="ghost" onClick={() => setShow(!show)}>{show ? T("Hide dealership", "Hide dealership") : T("Browse dealership", "See car dealer")}</Btn>
-      {show && (
-        <div className="mt-2 space-y-1.5">
-          {p.age < 18 && <p className="text-xs text-slate-500">{T("You must be 18 to buy a vehicle.", "You must reach 18 to buy vehicle.")}</p>}
-          {VEHICLE_MODELS.map((m) => (
-            <div key={m.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-              <div className="text-sm"><div className="font-semibold">{m.name}</div><div className="text-[11px] text-slate-500">{m.kind}{m.revenue ? T(" · earns income", " · e dey bring money") : ""}</div></div>
-              <div className="flex flex-col gap-1">
-                <Btn small tone="ghost" disabled={p.age < 18 || p.money < priceOf(p, m)} onClick={() => run({ t: "car", op: "buy", id: m.id })}>{naira(priceOf(p, m))}</Btn>
-                <Btn small tone="ghost" disabled={p.age < 18 || p.money < priceOf(p, m) * 0.3} onClick={() => run({ t: "car", op: "buyLoan", id: m.id })}>{T("30% down", "30% deposit")}</Btn>
+        )}
+      </div>
+      {p.vehicles.map((v) => {
+        const m = modelOf(v.modelId);
+        return (
+          <div key={v.id} className="mb-2 rounded-xl bg-slate-50 p-3">
+            <div className="flex gap-3">
+              <VehicleArt art={m?.art ?? "sedan"} color={m?.color ?? "#64748b"} size={84} />
+              <div className="min-w-0 flex-1">
+                <div className="flex justify-between text-[13px]"><span className="truncate font-bold text-[#0b2a6b]">{v.name}</span><span className="shrink-0 text-blue-600">{naira(v.value)}</span></div>
+                <div className="text-[11px] text-slate-500">{T("Condition", "Condition")} {v.condition}% · {v.role === "personal" ? T("personal", "personal") : v.role === "rental" ? T("for hire", "for hire") : v.role} · {isInsured(p, v) ? T("insured", "insured") : T("uninsured", "no insurance")}{v.loanId ? T(" · on finance", " · dem still dey owe") : ""}</div>
               </div>
             </div>
-          ))}
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <Btn small tone="ghost" onClick={() => run({ t: "car", op: "repair", id: v.id })}>{T("Repair", "Repair")} ({naira(repairCost(p, v))})</Btn>
+              <Btn small tone="ghost" onClick={() => run({ t: "car", op: "insure", id: v.id })}>{T("Insure", "Insure")}</Btn>
+              {v.role === "personal" ? (
+                <>
+                  {m?.rentYield ? <Btn small tone="ghost" onClick={() => run({ t: "car", op: "rental", id: v.id })}>{m.cat === "jet" || m.cat === "helicopter" ? T("Charter it out", "Put am for charter") : m.cat === "boat" || m.cat === "yacht" ? T("Hire it out", "Hire am out") : T("Rent it out", "Rent am out")}</Btn> : null}
+                  {m && ["taxi", "car"].includes(m.cat) && <Btn small tone="ghost" onClick={() => run({ t: "car", op: "taxi", id: v.id })}>{T("Run as taxi", "Use as taxi")}</Btn>}
+                </>
+              ) : <Btn small tone="ghost" onClick={() => run({ t: "car", op: "personal", id: v.id })}>{T("Personal use", "Personal use")}</Btn>}
+              <Btn small tone="red" onClick={() => run({ t: "car", op: "sell", id: v.id })}>{T("Sell", "Sell")}</Btn>
+            </div>
+          </div>
+        );
+      })}
+      <Btn small tone="ghost" onClick={() => setShow(!show)}>{show ? T("Hide showroom", "Hide showroom") : T("Browse the showroom", "See the showroom")}</Btn>
+      {show && (
+        <div className="mt-3">
+          <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1">
+            {Object.keys(CAT_LABEL).map((c) => <button key={c} type="button" onClick={() => setCat(c)} className={cx("shrink-0 rounded-full px-3 py-1 text-[11.5px] font-bold", cat === c ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600")}>{CAT_LABEL[c]()}</button>)}
+          </div>
+          {p.age < 18 && <p className="mb-2 text-xs text-slate-500">{T("You must be 18 to buy a vehicle.", "You must reach 18 to buy vehicle.")}</p>}
+          <div className="space-y-2">
+            {VEHICLE_MODELS.filter((m) => m.cat === cat).map((m) => {
+              const price = priceOf(p, m);
+              const noLic = needsLicense(m) && !p.possessions.license;
+              return (
+                <div key={m.id} className="rounded-xl bg-slate-50 p-2.5">
+                  <div className="flex gap-3">
+                    <VehicleArt art={m.art} color={m.color} size={92} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13px] font-bold text-[#0b2a6b]">{m.name}</div>
+                      <div className="text-[11px] text-slate-500">{m.kind === "new" ? T("Brand new", "Brand new") : T("Tokunbo / used", "Tokunbo / used")}{m.revenue ? T(" · earns income", " · e dey bring money") : ""}{m.rentYield ? T(" · can be rented out", " · you fit rent am out") : ""}</div>
+                      <div className="mt-0.5 text-[13px] font-extrabold text-blue-600">{naira(price)}</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex gap-1.5">
+                    <Btn small tone="gold" disabled={p.age < 18 || p.money < price || noLic} onClick={() => run({ t: "car", op: "buy", id: m.id })}>{noLic ? T("Needs licence", "Need licence") : T("Buy", "Buy")}</Btn>
+                    <Btn small tone="ghost" disabled={p.age < 18 || p.money < price * 0.3 || noLic} onClick={() => run({ t: "car", op: "buyLoan", id: m.id })}>{T("30% down", "30% deposit")}</Btn>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </Card>
@@ -982,5 +1032,29 @@ export function HeadlinesCard({ p }: { p: Player }) {
       <H>{T("In the news", "Gist for ground")}</H>
       <ul className="space-y-1.5">{news.map((n, i) => <li key={i} className="text-xs text-slate-700"><span className="text-blue-600">{T("Age", "Age")} {n.age}:</span> {p.lang === "en" ? n.en : n.pcm}</li>)}</ul>
     </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Travel: choose how to go
+// ---------------------------------------------------------------------------
+export function TravelSheet({ p, to, run, onClose }: { p: Player; to: StateInfo; run: Run; onClose: () => void }) {
+  const opts = transportOptions(p, to);
+  return (
+    <Sheet title={T(`Travel to ${to.name}`, `Travel go ${to.name}`)} onClose={onClose}>
+      <p className="mb-3 text-[12px] text-slate-500">{T("How you travel decides what it costs and how risky it is. Roads are where kidnappers wait.", "How you travel go decide the cost and the risk. Na road kidnappers dey wait.")}</p>
+      <div className="space-y-2">
+        {opts.map((o) => (
+          <button key={o.id} type="button" disabled={Boolean(o.block) || p.money < o.cost} onClick={() => { onClose(); run({ t: "travel", to: to.id, mode: o.id }); }} className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left transition hover:bg-blue-50 disabled:opacity-45">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[14px] font-bold text-[#0b2a6b]">{o.label}</span>
+              <span className="text-[13px] font-extrabold text-blue-600">{naira(o.cost)}</span>
+            </div>
+            <div className="text-[11.5px] text-slate-500">{o.block ?? o.blurb}</div>
+            {!o.block && <div className={cx("mt-1 text-[11px] font-semibold", o.risk < 0.012 ? "text-emerald-600" : o.risk < 0.03 ? "text-amber-600" : "text-red-600")}>{riskLabel(o.risk)} · {(o.risk * 100).toFixed(1)}% {T("chance of being kidnapped", "chance of kidnap")}</div>}
+          </button>
+        ))}
+      </div>
+    </Sheet>
   );
 }

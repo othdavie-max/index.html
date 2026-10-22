@@ -1,5 +1,5 @@
 import {
-  HOUSE_KINDS, JOB_BY_ID, OFFICES, STATE_BY_ID, TRAVEL_STATES, TRIBES_BY_REGION, birthWeight, defaultReligion, poolFor, travelCost,
+  HOUSE_KINDS, JOB_BY_ID, OFFICES, STATE_BY_ID, TRAVEL_STATES, TRIBES_BY_REGION, birthWeight, defaultReligion, poolFor,
 } from "./data";
 import { AUTOS, EVENTS } from "./events";
 import { AUTOS2, EVENTS2 } from "./events2";
@@ -8,6 +8,7 @@ import { EVENTS4 } from "./events4";
 import { EVENTS5, graduationData } from "./events5";
 import { EVENTS6 } from "./events6";
 import { KID_EVENTS } from "./kids";
+import { transportOptions, type TransportMode } from "./travel";
 import { buyListing, refreshListings, type PurchaseMode } from "./property";
 import { EDU_EVENTS, enrollPostgrad, finishPostgrad } from "./education";
 import { yearlyNews } from "./news";
@@ -28,7 +29,7 @@ import { auditBalance, coverShortfall, reconcile, snapshot, transact } from "./l
 import { lenderOffers, loanBlock, repayLoan, takeLoan, totalDebt, borrowFrom, giftTo, lendTo } from "./loans";
 import { planEstate } from "./will";
 import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
-import { buyVehicle, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
+import { buyVehicle, takeDrivingTest, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
 import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
 import { closeBusiness, fireStaff, hireStaff, sellBusiness, startBusiness, toggleManager, upgradeBusiness } from "./business";
@@ -705,7 +706,7 @@ export type Action =
   | { t: "apply"; job: string; bribe?: boolean }
   | { t: "quit" }
   | { t: "expand" }
-  | { t: "travel"; to: string }
+  | { t: "travel"; to: string; mode?: TransportMode }
   | { t: "build"; kind: HouseKind }
   | { t: "sell"; id: string }
   | { t: "use"; id: string; use: HouseUse }
@@ -727,7 +728,7 @@ export type Action =
   | { t: "give"; npc: string; amount: number; mode: "gift" | "loan" }
   | { t: "rent"; tier: string }
   | { t: "moveHome" }
-  | { t: "car"; op: "buy" | "buyLoan" | "sell" | "repair" | "insure" | "taxi" | "ridehail" | "personal"; id: string }
+  | { t: "car"; op: "buy" | "buyLoan" | "sell" | "repair" | "insure" | "taxi" | "ridehail" | "personal" | "rental"; id: string }
   | { t: "insure"; plan: "none" | "basic" | "premium" }
   | { t: "checkup" }
   | { t: "treat"; cond: string; facility: string }
@@ -746,6 +747,8 @@ export type Action =
   | { t: "trade"; id: string }
   | { t: "postgrad"; id: string }
   | { t: "adopt" }
+  | { t: "surrender" }
+  | { t: "license"; settle?: boolean }
   | { t: "fertility" }
   | { t: "property"; id: string; mode: PurchaseMode; years?: number }
   | { t: "buy"; item: "phone" | "smartphone" | "laptop" };
@@ -804,6 +807,8 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "trade": return { reason: T("Vocational training", "Vocational training"), category: "education" };
     case "postgrad": return { reason: T("Postgraduate study", "Postgraduate study"), category: "education" };
     case "adopt": return { reason: T("Adoption", "Adoption"), category: "family" };
+    case "license": return { reason: T("Driving test", "Driving test"), category: "personal" };
+    case "surrender": return { reason: T("Surrendered to life", "Surrender for life"), category: "other" };
     case "fertility": return { reason: T("Fertility treatment", "Fertility treatment"), category: "health" };
     case "property": return { reason: T("Property purchase", "Property purchase"), category: "asset" };
     case "sell": return { reason: T("Sold property", "Sell property"), category: "asset" };
@@ -906,14 +911,21 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "travel": {
       const to = STATE_BY_ID[a.to];
       if (!to || a.to === p.state || p.prison > 0 || p.age < 16) return { g: g0, msg: "" };
-      const cost = Math.round(travelCost(st, to) * p.index * (st.abroad ? 6 : 1));
-      if (p.money < cost) return { g: g0, msg: T(`Need ${naira(cost)} for the trip.`, `You need ${naira(cost)} for this trip.`) };
-      p.money -= cost;
-      p.traveled = true;
+      const opts = transportOptions(p, to);
+      const mode = a.mode ?? opts.find((o) => !o.block)?.id ?? "flight";
+      const o = opts.find((x) => x.id === mode);
+      if (!o || o.block) return { g: g0, msg: o?.block ?? "" };
+      if (p.money < o.cost) return { g: g0, msg: T(`Need ${naira(o.cost)} for the trip.`, `You need ${naira(o.cost)} for this trip.`) };
+      transact(p, { amount: -o.cost, reason: T(`Travel to ${to.name} (${o.label})`, `Travel go ${to.name} (${o.label})`), category: "transport" });
+      p.traveled = o.road;
       const note = moveTo(p, a.to);
       const oppNote = to.opp > st.opp ? T("More opportunities here.", "More opportunity dey here.") : to.opp < st.opp ? T("Fewer opportunities here.", "Opportunity no plenty here.") : "";
-      bump(p, "stress", 3);
-      return out(T(`You travelled to ${to.name} (${to.capital}). ${oppNote}${note}`, `You travel go ${to.name} (${to.capital}). ${oppNote}${note}`));
+      bump(p, "stress", o.road ? 3 : 0);
+      if (chance(o.risk)) {
+        g.queue.unshift({ kind: "kidnap", k: makeKidnap(p) });
+        return out(T(`On the way to ${to.name} your ${o.road ? "vehicle is stopped by armed men" : "trip is cut short"}...`, `For road go ${to.name}, armed men stop your ${o.road ? "vehicle" : "trip"}...`));
+      }
+      return out(T(`You travelled to ${to.name} (${to.capital}) by ${o.label.toLowerCase()}. ${oppNote}${note}`, `You travel go ${to.name} (${to.capital}) by ${o.label.toLowerCase()}. ${oppNote}${note}`));
     }
     case "build": {
       if (p.prison > 0 || st.abroad) return { g: g0, msg: "" };
@@ -932,6 +944,12 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "trade": return out(enrollTrade(p, a.id));
     case "postgrad": return out(enrollPostgrad(p, a.id));
     case "adopt": return out(adoptChild(p));
+    case "license": return out(takeDrivingTest(p, Boolean(a.settle)));
+    case "surrender": {
+      p.alive = false;
+      p.cause = T("Surrendered to life", "Surrender for life");
+      return out(T("You let go of this life. Someone new will carry the family name.", "You release this life. Another person go carry the family name."));
+    }
     case "fertility": return out(fertilityTreatment(p));
     case "property": { const m = buyListing(p, a.id, a.mode, a.years ?? 15); return out(m); }
     case "sell": {
@@ -1079,7 +1097,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           if (a.op === "sell") return out(sellVehicle(p, a.id));
           if (a.op === "repair") return out(repairVehicle(p, a.id));
           if (a.op === "insure") return out(insureVehicle(p, a.id));
-          return out(setRole(p, a.id, a.op === "taxi" ? "taxi" : a.op === "ridehail" ? "ridehail" : "personal"));
+          return out(setRole(p, a.id, a.op === "taxi" ? "taxi" : a.op === "ridehail" ? "ridehail" : a.op === "rental" ? "rental" : "personal"));
         }
         case "insure": return out(setInsurance(p, a.plan));
         case "checkup": {

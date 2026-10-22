@@ -74,6 +74,32 @@ export function KidnapModal({ p, k, onAction, onDone }: { p: Player; k: KidnapSt
         ))}
       </div>
 
+      {k.escape && (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3">
+          <div className="text-[13px] font-extrabold text-[#0b2a6b]">{T("Plan your escape", "Plan your escape")}</div>
+          <p className="mt-1 text-[12px] leading-snug text-slate-600">{k.escape.note}</p>
+          <div className="mt-2 grid grid-cols-3 gap-2 text-[10.5px] text-slate-600">
+            <div>{T("Guard trust", "Guard trust")}<div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white"><div className="h-full bg-emerald-500" style={{ width: `${k.escape.guardTrust}%` }} /></div></div>
+            <div>{T("Suspicion", "Suspicion")}<div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white"><div className="h-full bg-red-500" style={{ width: `${k.escape.noise}%` }} /></div></div>
+            <div>{T("Allies", "Allies")}: <b>{k.escape.allies}</b> · {T("Know-how", "Know-how")}: <b>{k.escape.insight}</b></div>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            <Btn small tone="ghost" onClick={() => onAction({ type: "escapeAct", move: "befriend" })}>{T("Befriend a guard", "Befriend one guard")}</Btn>
+            <Btn small tone="ghost" onClick={() => onAction({ type: "escapeAct", move: "allies" })}>{T("Talk to the captives", "Yarn with captives")}</Btn>
+            <Btn small tone="ghost" onClick={() => onAction({ type: "escapeAct", move: "scout" })}>{T("Study the camp", "Study the camp")}</Btn>
+            <Btn small tone="ghost" onClick={() => onAction({ type: "escapeAct", move: "fakeSick" })}>{T("Pretend to be sick", "Pretend say you sick")}</Btn>
+          </div>
+          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+            <Btn small tone="red" onClick={() => onAction({ type: "escapeAct", move: "run" })}>{T("Make a run for it!", "Run now now!")}</Btn>
+            <Btn small tone="ghost" onClick={() => onAction({ type: "escapeStop" })}>{T("Wait for the ransom", "Wait for ransom")}</Btn>
+          </div>
+        </div>
+      )}
+
+      {!k.escape && (
+        <Btn tone="ghost" className="mt-4 w-full" onClick={() => onAction({ type: "escapeStart" })}>{T("Plan an escape instead", "Plan how to run")}</Btn>
+      )}
+
       {k.stage === "raise" && (
         <div className="mt-4 space-y-2">
           <p className="text-xs text-slate-500">{T("Your family has to raise money before talks begin. Each source can be used once.", "Your family must gather money before talks start. Each way na once only.")}</p>

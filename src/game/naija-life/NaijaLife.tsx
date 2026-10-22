@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Share2 } from "lucide-react";
 import {
-  ALL_TRIBES, HOUSE_KINDS, INVESTMENTS, JOBS, LUXURIES, OFFICES, RELIGIONS, STATES, STATE_BY_ID, TRAVEL_STATES, payMult, travelCost,
+  ALL_TRIBES, HOUSE_KINDS, INVESTMENTS, JOBS, LUXURIES, OFFICES, RELIGIONS, STATES, STATE_BY_ID, TRAVEL_STATES, payMult,
   type JobDef,
 } from "./data";
 import {
@@ -16,7 +16,7 @@ import { KidnapModal } from "./KidnapModal";
 import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
-import { RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
+import { TravelSheet, RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { meritOf } from "./military";
 import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
@@ -86,6 +86,7 @@ export default function NaijaLife() {
   const [lang, setLangState] = useState<Lang>("pcm");
   const [bell, setBell] = useState(false);
   const [tour, setTour] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState(false);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>("life");
   const [result, setResult] = useState<string | null>(null);
@@ -269,6 +270,17 @@ export default function NaijaLife() {
         </Sheet>
       )}
 
+      {confirmEnd && (
+        <Sheet title={T("Surrender to life?", "Surrender for life?")} onClose={() => setConfirmEnd(false)}>
+          <p className="text-[13px] leading-relaxed text-slate-600">{T("This ends this character's life in the game, and you carry on as your child or start a new family. It cannot be undone.", "This go end this character life for the game, and you go continue as your pikin or start new family. You no fit undo am.")}</p>
+          <p className="mt-2 text-[12px] leading-relaxed text-slate-500">{T("If you are ever struggling in real life, please talk to someone you trust.", "If real life ever dey hard for you, abeg talk to person wey you trust.")}</p>
+          <div className="mt-4 space-y-2">
+            <Btn tone="ghost" className="w-full" onClick={() => setConfirmEnd(false)}>{T("No, keep playing", "No, make I continue")}</Btn>
+            <Btn tone="red" className="w-full" onClick={() => { setConfirmEnd(false); run({ t: "surrender" }); }}>{T("Yes, surrender to life", "Yes, surrender")}</Btn>
+          </div>
+        </Sheet>
+      )}
+
       {tour && <Tutorial setTab={setTab} onClose={() => setTour(false)} />}
 
       {bell && (
@@ -301,6 +313,7 @@ export default function NaijaLife() {
             <Btn tone="ghost" className="w-full" onClick={() => { setMenu(false); setBell(true); }}>{T("Alerts and history", "Alerts and history")}</Btn>
             <Btn tone="ghost" className="w-full" onClick={() => setMenu(false)}>{T("Back to the game", "Go back to game")}</Btn>
             <Btn tone="ghost" className="w-full" onClick={() => { setGame(null); setMenu(false); }}>{T("Switch life (save slots)", "Change life (save slots)")}</Btn>
+            <Btn tone="ghost" className="w-full" onClick={() => { setMenu(false); setConfirmEnd(true); }}>{T("Surrender to life", "Surrender for life")}</Btn>
             <Btn tone="red" className="w-full" onClick={() => { setSlots((s) => { const next = [...s]; next[slot] = null; writeSlots(next); return next; }); setGame(null); setMenu(false); }}>{T("Abandon this life and start over", "Abandon this life make we start again")}</Btn>
           </div>
         </Sheet>
@@ -767,6 +780,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
 // Map tab
 // ---------------------------------------------------------------------------
 function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
+  const [dest, setDest] = useState<string | null>(null);
   const st = STATE_BY_ID[p.state];
   const regions = Array.from(new Set(TRAVEL_STATES.map((s) => s.region)));
   return (
@@ -794,7 +808,6 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           <H>{r}</H>
           <div className="space-y-2">
             {TRAVEL_STATES.filter((s) => s.region === r).map((s) => {
-              const cost = Math.round(travelCost(st, s) * p.index * (st.abroad ? 6 : 1));
               const here = s.id === p.state;
               const mine = p.houses.some((h) => h.state === s.id);
               return (
@@ -803,8 +816,8 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
                     <div className="text-sm font-semibold">
                       {s.name} {s.id === p.family.state && <Badge>{T("family", "family")}</Badge>} {mine && <Badge tone="gold">{T("your house", "your house")}</Badge>} {s.id === p.birthState && <Badge tone="green">{T("home", "home")}</Badge>}
                     </div>
-                    <Btn small tone={here ? "ghost" : "green"} disabled={here || p.age < 16 || p.money < cost || p.prison > 0} onClick={() => run({ t: "travel", to: s.id })}>
-                      {here ? T("Here", "Here") : T(`Go (${naira(cost)})`, `Go (${naira(cost)})`)}
+                    <Btn small tone={here ? "ghost" : "green"} disabled={here || p.age < 16 || p.prison > 0} onClick={() => setDest(s.id)}>
+                      {here ? T("Here", "Here") : T("Go", "Go")}
                     </Btn>
                   </div>
                   <div className="mt-1.5 grid grid-cols-3 gap-2">
@@ -818,6 +831,7 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           </div>
         </Card>
       ))}
+      {dest && STATE_BY_ID[dest] && <TravelSheet p={p} to={STATE_BY_ID[dest]} run={run} onClose={() => setDest(null)} />}
       {STATES.find((s) => s.abroad) && p.state === "abroad" && <p className="text-center text-xs text-slate-500">{T("You are abroad. Travel back to any Nigerian state from the lists above.", "You dey abroad. You fit travel back go any Naija state from the lists above.")}</p>}
     </>
   );
