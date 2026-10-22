@@ -2,6 +2,7 @@ import { INVESTMENTS } from "./data";
 import { I, bump, jobDef, randomName, stateOf } from "./helpers";
 import type { AutoDef, EventDef, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt } from "./util";
+import { lookToStr, randomLook } from "./look";
 
 const adult = (p: Player) => p.age >= 18;
 const food = (p: Player) => ["akara", "corn", "suya", "purewater"].includes(p.job?.id ?? "");
@@ -77,10 +78,10 @@ export const EVENTS3: EventDef[] = [
   {
     id: "remote_job",
     title: "Dollar job offer",
-    weight: (p) => (p.age >= 20 && p.age <= 45 && p.stats.smarts >= 60 && p.edu !== "none" && stateOf(p).opp >= 3 ? 1.6 : 0),
+    weight: (p) => (p.age >= 20 && p.age <= 45 && p.stats.smarts >= 65 && p.edu === "tertiary" && stateOf(p).opp >= 4 ? 0.9 : 0),
     text: () => "A foreign startup message you on LinkedIn: 'We love your profile. Remote role, $3,000 a month. Interview Friday.'",
     choices: () => [
-      { label: "Ace the interview", run: (q) => { if (chance(0.4 + q.stats.smarts / 250)) { q.money += I(q, 6_000_000); bump(q, "happiness", 8); bump(q, "connections", 3); return "You get the job! Dollar salary hit your account every month. Naira dey cry in a corner."; } bump(q, "stress", 4); return "You miss out for the final round. Light cut during the Zoom, abeg."; } },
+      { label: "Ace the interview", run: (q) => { if (chance(0.4 + q.stats.smarts / 250)) { q.money += I(q, 4_000_000); bump(q, "happiness", 8); bump(q, "connections", 3); return "You get the job! Dollar salary hit your account every month. Naira dey cry in a corner."; } bump(q, "stress", 4); return "You miss out for the final round. Light cut during the Zoom, abeg."; } },
       { label: "Not for me", run: () => "You prefer to stay where you are." },
     ],
   },
@@ -88,10 +89,10 @@ export const EVENTS3: EventDef[] = [
     id: "aunty_matchmaker",
     title: "Aunty's candidate",
     weight: (p) => (!p.spouse && !p.flags.dating && p.age >= 22 && p.age <= 40 ? 2.5 : 0),
-    init: (p) => ({ name: randomName(p.tribe, p.gender === "male" ? "female" : "male") }),
+    init: (p) => { const g = p.gender === "male" ? "female" : "male"; return { name: randomName(p.tribe, g), look: lookToStr(randomLook(g, { region: stateOf(p).region, religion: p.religion })) }; },
     text: (_p, d) => `Aunty call you after service: 'I don see one very good person for you, ${d.name} from our church/mosque. Responsible, hardworking, fine too. No dull yourself!'`,
-    choices: () => [
-      { label: "Meet them for a date", run: (q) => { if (chance(0.4 + q.stats.looks / 300)) { q.flags.dating = "someone Aunty introduced"; bump(q, "happiness", 8); return "The date go very well. Aunty don start planning the aso-ebi."; } bump(q, "happiness", -2); return "No spark at all. Aunty vex but she go find another."; } },
+    choices: (_p, d) => [
+      { label: "Meet them for a date", run: (q) => { if (chance(0.4 + q.stats.looks / 300)) { q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); bump(q, "happiness", 8); return "The date go very well. Aunty don start planning the aso-ebi."; } bump(q, "happiness", -2); return "No spark at all. Aunty vex but she go find another."; } },
       { label: "Politely refuse", run: (q) => { q.family.happy = clamp(q.family.happy - 3); return "Aunty hiss and say 'you go regret this one'."; } },
     ],
   },
@@ -210,7 +211,7 @@ export const EVENTS3: EventDef[] = [
     weight: (p) => (selfEmployed(p) ? 2 : 0),
     text: () => "A celebrity's PA call: 'Madam/Oga says he heard about your business. We need 500 packs for an event this weekend. Can you deliver?'",
     choices: (p) => [
-      { label: "Take it, hire extra hands", sub: naira(I(p, 250_000)), run: (q) => { q.money -= I(q, 250_000); if (chance(0.75)) { const g = I(q, rand(1_000_000, 3_500_000)); q.money += g; bump(q, "reputation", 6); return `You deliver. The celebrity tag you online and the money enter: ${naira(g)}.`; } bump(q, "stress", 8); return "You couldn't complete on time. They cancelled and refused to pay you for the part you finished."; } },
+      { label: "Take it, hire extra hands", sub: naira(I(p, 250_000)), run: (q) => { q.money -= I(q, 250_000); if (chance(0.75)) { const g = I(q, rand(350_000, 1_400_000)); q.money += g; bump(q, "reputation", 6); return `You deliver. The celebrity tag you online and the money enter: ${naira(g)}.`; } bump(q, "stress", 8); return "You couldn't complete on time. They cancelled and refused to pay you for the part you finished."; } },
       { label: "Decline politely", run: () => "You no wan stress your business beyond capacity." },
     ],
   },
@@ -317,7 +318,7 @@ export const AUTOS3: AutoDef[] = [
   { id: "aso_ebi", weight: (p) => (adult(p) ? 2.5 : 0), run: (p) => { p.money -= I(p, 90_000); bump(p, "happiness", 2); return "Aso-ebi fabric arrive and the tailor tells you to 'come back next week' four times."; } },
   { id: "pidgin_proverb", weight: () => 2, run: (p) => { bump(p, "smarts", 1); return pick(["Elder tell you: 'Wetin old man see sitting down, small pikin no fit see am even if e climb tree.'", "Your grandmother remind you: 'Slow and steady wins the race, but bring chop along.'", "Auntie says: 'Na who dey carry load dey know the weight.'"]); } },
   { id: "birthday", weight: (p) => (adult(p) ? 1.5 : 0), run: (p) => { bump(p, "happiness", 5); p.money -= I(p, 30_000); return "Friends surprise you with cake and suya. You pretend to be shy. You are not."; } },
-  { id: "sidehustle_win", weight: (p) => (adult(p) ? 1.5 : 0), run: (p) => { const g = I(p, randInt(100_000, 500_000)); p.money += g; return `A small deal you almost forgot about pay out: ${naira(g)}.`; } },
+  { id: "sidehustle_win", weight: (p) => (adult(p) ? 1.5 : 0), run: (p) => { const g = I(p, randInt(30_000, 150_000)); p.money += g; return `A small deal you almost forgot about pay out: ${naira(g)}.`; } },
   { id: "police_extortion", weight: (p) => (adult(p) && !p.politics ? 1.5 : 0), run: (p) => { p.money -= I(p, 20_000); bump(p, "stress", 3); return "Police stop your bus 'for routine check' and the whole bus pay 'tea money'."; } },
   { id: "enrol_kids", weight: (p) => (p.kids.length > 0 ? 1.5 : 0), run: (p) => { bump(p, "happiness", 3); return "Your child say something so smart that you take it for the family WhatsApp group."; } },
   { id: "bad_road", weight: (p) => (stateOf(p).opp <= 4 ? 3 : 1), run: (p) => { bump(p, "stress", 3); p.money -= adult(p) ? I(p, 40_000) : 0; return "The road to the main market don collapse again. Taxi fares double, and the councillor 'is aware'."; } },

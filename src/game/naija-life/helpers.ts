@@ -84,3 +84,6 @@ export function expandCostFor(p: Player): number | null {
   if (!rung.upgrade) return null;
   return Math.round(rung.upgrade * Math.pow(p.index, 0.9));
 }
+
+/** Small bonus (or penalty) to a probability from the hidden luck stat. */
+export const luckBonus = (p: Player) => (p.luck - 50) / 300;

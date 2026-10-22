@@ -13,13 +13,15 @@ import {
   type Action, worth,
 } from "./engine";
 import { eduAtLeast, eligibleJobs, jobDef, jobTitle } from "./helpers";
+import { Avatar } from "./Avatar";
 import { KidnapModal } from "./KidnapModal";
+import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, displayLook, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
-import { naira } from "./util";
+import { naira, setDeflator } from "./util";
 
 const SAVE_KEY = "naija-life-save-v1";
 type Tab = "life" | "work" | "money" | "family" | "map" | "power" | "legacy";
@@ -111,7 +113,10 @@ export default function NaijaLife() {
   }
 
   const p = game.p;
+  setDeflator(p.index);
   const view = result === null ? describePending(game) : null;
+  const evHead = game.queue[0];
+  const evLook = evHead && evHead.kind === "event" && typeof evHead.data.look === "string" ? strToLook(evHead.data.look) : null;
   const kidnap = result === null && game.queue[0]?.kind === "kidnap" ? game.queue[0] : null;
   const busy = game.queue.length > 0 || result !== null;
 
@@ -167,6 +172,11 @@ export default function NaijaLife() {
 
       {view && p.alive && (
         <Sheet title={view.title}>
+          {evLook && (
+            <div className="mb-3 flex justify-center">
+              <Avatar look={evLook} gender={p.gender === "male" ? "female" : "male"} age={26} mood={75} size={110} />
+            </div>
+          )}
           <p className="text-[15px] leading-relaxed text-white/90">{view.text}</p>
           <div className="mt-4 space-y-2">
             {view.choices.map((c, i) => (
@@ -242,13 +252,33 @@ function Shell({ children }: { children: React.ReactNode }) {
 // ---------------------------------------------------------------------------
 // Start screen
 // ---------------------------------------------------------------------------
-function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: { name: string; gender: Gender; stateId: string | null; tribe: string | null; religion: string | null }) => void; hasSave: boolean; onContinue: () => void }) {
+function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} className={cx("rounded-full border px-3 py-1.5 text-xs font-semibold transition", active ? "border-[#f5b82e] bg-[#f5b82e]/15 text-[#f5b82e]" : "border-white/15 bg-white/5 text-white/70 hover:bg-white/10")}>
+      {children}
+    </button>
+  );
+}
+
+function Swatch({ color, active, onClick, label }: { color: string; active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button type="button" aria-label={label} onClick={onClick} className={cx("h-8 w-8 rounded-full border-2 transition", active ? "border-[#f5b82e] scale-110" : "border-white/20")} style={{ background: color }} />
+  );
+}
+
+type NewOpts = { name: string; gender: Gender; stateId: string | null; tribe: string | null; religion: string | null; look: Look };
+
+function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: NewOpts) => void; hasSave: boolean; onContinue: () => void }) {
   const [name, setName] = useState("");
   const [gender, setGender] = useState<Gender>("male");
   const [stateId, setStateId] = useState("");
   const [tribe, setTribe] = useState("");
   const [religion, setReligion] = useState("");
+  const [look, setLook] = useState<Look>(() => randomLook("male", { region: "South West" }));
   const field = "mt-1 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-[#f5b82e]";
+  const set = (patch: Partial<Look>) => setLook((l) => ({ ...l, ...patch }));
+  const regionNow = () => (stateId ? STATE_BY_ID[stateId]?.region : undefined);
+  const reroll = (g: Gender = gender) => setLook(randomLook(g, { region: regionNow(), religion: religion || undefined }));
   return (
     <div className="flex-1 px-5 pb-10 pt-10">
       <div className="h-1.5 w-full overflow-hidden rounded-full">
@@ -260,6 +290,44 @@ function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: { name: st
       {hasSave && <Btn tone="gold" className="mt-6 w-full" onClick={onContinue}>Continue your life</Btn>}
 
       <Card className="mt-6 space-y-4">
+        <H>Your look</H>
+        <div className="sticky top-0 z-10 -mx-4 flex items-center gap-4 border-b border-white/10 bg-[#0e2218] px-4 py-3">
+          <Avatar look={look} gender={gender} age={22} mood={72} size={112} />
+          <div className="space-y-2">
+            <p className="text-xs text-white/60">Your parents, partner and children will look like family.</p>
+            <Btn small tone="ghost" onClick={() => reroll()}>Randomise look</Btn>
+          </div>
+        </div>
+        <div>
+          <span className="text-xs text-white/70">Skin tone</span>
+          <div className="mt-1.5 flex flex-wrap gap-2">{SKINS.map((c, i) => <Swatch key={c} color={c} label={`Skin tone ${i + 1}`} active={look.skin === i} onClick={() => set({ skin: i })} />)}</div>
+        </div>
+        <div>
+          <span className="text-xs text-white/70">Hairstyle</span>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">{HAIRS.map((h) => <Chip key={h.id} active={look.hair === h.id} onClick={() => set({ hair: h.id })}>{h.label}</Chip>)}</div>
+        </div>
+        <div>
+          <span className="text-xs text-white/70">Hair colour</span>
+          <div className="mt-1.5 flex flex-wrap gap-2">{HAIR_COLORS.map((c, i) => <Swatch key={c} color={c} label={`Hair colour ${i + 1}`} active={look.hairColor === i} onClick={() => set({ hairColor: i })} />)}</div>
+        </div>
+        {gender === "male" && (
+          <div>
+            <span className="text-xs text-white/70">Beard</span>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">{BEARDS.map((b) => <Chip key={b.id} active={look.beard === b.id} onClick={() => set({ beard: b.id })}>{b.label}</Chip>)}</div>
+          </div>
+        )}
+        <div>
+          <span className="text-xs text-white/70">Cap or headwear</span>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">{WEARS.map((w) => <Chip key={w.id} active={look.wear === w.id} onClick={() => set({ wear: w.id })}>{w.label}</Chip>)}</div>
+        </div>
+        <div>
+          <span className="text-xs text-white/70">Outfit</span>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">{OUTFITS.map((o) => <Chip key={o.id} active={look.outfit === o.id} onClick={() => set({ outfit: o.id })}>{o.label}</Chip>)}</div>
+          <div className="mt-2 flex flex-wrap gap-2">{OUTFIT_COLORS.map((c, i) => <Swatch key={c} color={c} label={`Outfit colour ${i + 1}`} active={look.outfitColor === i} onClick={() => set({ outfitColor: i })} />)}</div>
+        </div>
+      </Card>
+
+      <Card className="mt-4 space-y-4">
         <H>New life</H>
         <label className="block text-xs text-white/70">Name (optional)
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Amina Bello" className={field} maxLength={32} />
@@ -268,7 +336,7 @@ function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: { name: st
           <span className="text-xs text-white/70">Gender</span>
           <div className="mt-1 grid grid-cols-2 gap-2">
             {(["male", "female"] as Gender[]).map((g) => (
-              <button key={g} type="button" onClick={() => setGender(g)} className={cx("rounded-xl border px-3 py-2.5 text-sm font-semibold capitalize", gender === g ? "border-[#f5b82e] bg-[#f5b82e]/15 text-[#f5b82e]" : "border-white/15 bg-white/5 text-white/70")}>{g}</button>
+              <button key={g} type="button" onClick={() => { setGender(g); reroll(g); }} className={cx("rounded-xl border px-3 py-2.5 text-sm font-semibold capitalize", gender === g ? "border-[#f5b82e] bg-[#f5b82e]/15 text-[#f5b82e]" : "border-white/15 bg-white/5 text-white/70")}>{g}</button>
             ))}
           </div>
         </div>
@@ -290,7 +358,7 @@ function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: { name: st
             {RELIGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
         </label>
-        <Btn className="w-full py-3 text-base" onClick={() => onStart({ name, gender, stateId: stateId || null, tribe: tribe || null, religion: religion || null })}>Be born 🇳🇬</Btn>
+        <Btn className="w-full py-3 text-base" onClick={() => onStart({ name, gender, stateId: stateId || null, tribe: tribe || null, religion: religion || null, look })}>Be born 🇳🇬</Btn>
       </Card>
       <p className="mt-6 text-center text-[11px] text-white/40">A fictional game. All people, events and results are made up for fun.</p>
     </div>
@@ -300,18 +368,31 @@ function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: { name: st
 // ---------------------------------------------------------------------------
 // Header
 // ---------------------------------------------------------------------------
+function shownLook(p: Player): Look {
+  return displayLook(p.look, {
+    age: p.age,
+    student: Boolean(p.school) && p.school?.stage !== "tertiary",
+    soldier: p.job?.id === "soldier",
+    office: p.politics?.office,
+    military: p.politics?.militaryRuler,
+  });
+}
+
 function Header({ p, onMenu }: { p: Player; onMenu: () => void }) {
   const st = STATE_BY_ID[p.state];
   const title = officeTitle(p) ?? jobTitle(p);
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-[#07130e]/95 px-4 pb-3 pt-3 backdrop-blur">
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="font-serif text-lg font-bold leading-tight">{p.name} {p.surname}</div>
-          <div className="text-xs text-white/60">Age {p.age} · {p.birthYear + p.age} · {title}</div>
-          <div className="mt-0.5 text-xs text-emerald-200/70">📍 {st.name}{p.prison > 0 ? " · in Kuje prison" : ""}</div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Avatar look={shownLook(p)} gender={p.gender} age={p.age} mood={p.stats.happiness} size={56} dim={!p.alive} />
+          <div className="min-w-0">
+            <div className="truncate font-serif text-lg font-bold leading-tight">{p.name} {p.surname}</div>
+            <div className="text-xs text-white/60">Age {p.age} · {title}</div>
+            <div className="mt-0.5 text-xs text-emerald-200/70">📍 {st.name}{p.prison > 0 ? " · in Kuje prison" : ""}</div>
+          </div>
         </div>
-        <div className="text-right">
+        <div className="shrink-0 text-right">
           <div className="text-lg font-extrabold text-[#f5b82e]">{naira(p.money)}</div>
           <div className="text-[11px] text-white/50">Worth {naira(worth(p))}{p.debt > 0 ? ` · Debt ${naira(p.debt)}` : ""}</div>
           <button type="button" onClick={onMenu} className="mt-1 text-[11px] text-white/50 underline">Menu</button>
@@ -365,7 +446,6 @@ function LifeTab({ g, run }: { g: Game; run: (a: Action) => void }) {
           <Card key={`${e.age}-${idx}`} className={idx === 0 ? "border-[#f5b82e]/40" : ""}>
             <div className="mb-1 flex items-baseline justify-between">
               <span className="text-sm font-bold text-[#f5b82e]">Age {e.age}</span>
-              <span className="text-[11px] text-white/40">{e.year}</span>
             </div>
             <ul className="space-y-1.5">
               {e.lines.map((l, i) => (
@@ -608,17 +688,34 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
 // ---------------------------------------------------------------------------
 // Family tab
 // ---------------------------------------------------------------------------
+function Person({ look, gender, age, label, sub, dim }: { look: Look; gender: Gender; age: number; label: string; sub?: string; dim?: boolean }) {
+  return (
+    <div className="flex w-[84px] flex-col items-center text-center">
+      <Avatar look={look} gender={gender} age={age} size={72} dim={dim} />
+      <div className="mt-1 w-full truncate text-xs font-semibold">{label}</div>
+      {sub && <div className="text-[10px] text-white/50">{sub}</div>}
+    </div>
+  );
+}
+
 function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const fam = STATE_BY_ID[p.family.state];
   const gifts = [100_000, 500_000, 2_000_000, 10_000_000];
+  const luckWord = p.luck >= 65 ? "Born under a lucky star" : p.luck <= 35 ? "Life no easy for you" : "Fortune is neutral";
   return (
     <>
       <Card>
         <H>Your people</H>
-        <p className="text-sm text-white/85">
+        <div className="flex flex-wrap gap-3">
+          {p.family.dad && <Person look={p.family.dad} gender="male" age={p.age + 29} label="Papa" sub={p.family.parentsAlive ? "alive" : "late"} dim={!p.family.parentsAlive} />}
+          {p.family.mom && <Person look={p.family.mom} gender="female" age={p.age + 26} label="Mama" sub={p.family.parentsAlive ? "alive" : "late"} dim={!p.family.parentsAlive} />}
+          {p.spouse?.look && <Person look={p.spouse.look} gender={p.gender === "male" ? "female" : "male"} age={p.age} label={p.spouse.name} sub={`spouse · ${Math.round(p.spouse.happy)}% happy`} />}
+          {p.kids.map((k, i) => k.look && <Person key={i} look={k.look} gender={k.gender} age={k.age} label={k.name} sub={`age ${k.age}`} />)}
+        </div>
+        <p className="mt-3 text-sm text-white/85">
           Family lives in <b>{fam.name}</b>. {fam.opp <= 3 ? "Opportunities there are limited. They would love to move somewhere better." : fam.opp >= 7 ? "They are in a strong market." : "Life there is steady."}
         </p>
-        <p className="mt-1 text-sm text-white/70">Parents: {p.family.parentsAlive ? "alive" : "passed away"} · Family happiness {Math.round(p.family.happy)}%</p>
+        <p className="mt-1 text-sm text-white/70">Family happiness {Math.round(p.family.happy)}% · {luckWord}</p>
         {p.houses.length > 0 && <p className="mt-2 text-xs text-[#f5b82e]">Tip: Use a house as &quot;Family&quot; in the Money tab to bring them to your state.</p>}
         <div className="mt-3 flex flex-wrap gap-2">
           {gifts.map((a) => (
@@ -628,16 +725,8 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           ))}
         </div>
       </Card>
-      <Card>
-        <H>Spouse</H>
-        {p.spouse ? <p className="text-sm">{p.spouse.name} · happiness {Math.round(p.spouse.happy)}%</p> : p.flags.dating ? <p className="text-sm">Dating {String(p.flags.dating)}. A proposal may be coming.</p> : <p className="text-sm text-white/60">Single. Use &quot;Look for love&quot; in the Life tab.</p>}
-      </Card>
-      <Card>
-        <H>Children</H>
-        {p.kids.length === 0 ? <p className="text-sm text-white/60">No children yet.</p> : (
-          <ul className="space-y-1 text-sm">{p.kids.map((k, i) => <li key={i}>{k.name} · age {k.age} · {k.gender === "male" ? "son" : "daughter"}</li>)}</ul>
-        )}
-      </Card>
+      {!p.spouse && p.flags.dating && <Card><H>Dating</H><p className="text-sm">Dating {String(p.flags.dating)}. A proposal may be coming.</p></Card>}
+      {!p.spouse && !p.flags.dating && <Card><H>Spouse</H><p className="text-sm text-white/60">Single. Use &quot;Look for love&quot; in the Life tab.</p></Card>}
       <Card>
         <H>Achievements</H>
         {p.achievements.length === 0 ? <p className="text-sm text-white/60">None yet.</p> : <div className="flex flex-wrap gap-1.5">{p.achievements.map((a) => <Badge key={a} tone="gold">🏆 {a}</Badge>)}</div>}
@@ -898,7 +987,7 @@ function LegacyTab({ g }: { g: Game }) {
               <div key={i} className="rounded-xl bg-white/5 p-3">
                 <div className="flex justify-between"><span className="font-semibold">{l.name}</span><Badge tone="gold">Gen {l.generation}</Badge></div>
                 <div className="text-xs text-[#f5b82e]">{l.epitaph}</div>
-                <div className="text-[11px] text-white/50">{l.born}–{l.died} · {l.highestOffice} · peak {naira(l.peakWorth)} · {l.cause}</div>
+                <div className="text-[11px] text-white/50">Lived {l.ageAtDeath} yrs · {l.highestOffice} · peak {naira(l.peakWorth)} · {l.cause}</div>
               </div>
             ))}
           </div>
@@ -933,6 +1022,7 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
   };
   return (
     <Sheet title="Your life has ended">
+      <div className="mb-2 flex justify-center"><Avatar look={p.look} gender={p.gender} age={p.age} size={96} dim /></div>
       <p className="font-serif text-2xl font-bold">{p.name} {p.surname}</p>
       <p className="text-sm text-white/70">Died at {p.age} · {p.cause}</p>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">

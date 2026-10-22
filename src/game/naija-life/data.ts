@@ -277,10 +277,13 @@ export const JOBS: JobDef[] = [
 ];
 export const JOB_BY_ID: Record<string, JobDef> = Object.fromEntries(JOBS.map((j) => [j.id, j]));
 
+/** Real-world wages are lower than first guessed; formal jobs pay more steadily than hustles. */
+export const PAY_SCALE: Record<JobGroup, number> = { petty: 0.6, formal: 0.8, creative: 0.6, crime: 0.7 };
+
 export function payMult(job: JobDef, st: StateInfo): number {
   switch (job.group) {
     case "formal": return 0.55 + 0.1 * st.opp;
-    case "petty": return 0.7 + 0.09 * st.opp;
+    case "petty": return 0.8 + 0.1 * st.opp;
     case "creative": return 0.5 + 0.1 * st.opp;
     default: return 0.8 + 0.04 * st.opp;
   }

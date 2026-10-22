@@ -1,7 +1,8 @@
 import { COURSES, STATE_BY_ID, TRAVEL_STATES } from "./data";
-import { I, bump, eligibleJobs, enterPrison, jobDef, moveTo, randomName, stateOf } from "./helpers";
+import { I, bump, eligibleJobs, luckBonus, enterPrison, jobDef, moveTo, randomName, stateOf } from "./helpers";
 import type { AutoDef, Choice, EventDef, Pending, Player } from "./types";
 import { chance, clamp, naira, pick, rand, randInt } from "./util";
+import { kidLook, lookToStr, randomLook, strToLook } from "./look";
 
 const isSelfEmployed = (p: Player) => Boolean(jobDef(p)?.selfEmployed);
 const adult = (p: Player) => p.age >= 18;
@@ -44,7 +45,7 @@ export const EVENTS: EventDef[] = [
     weight: (p) => (p.age >= 16 ? 2.5 : 0),
     text: () => "Unknown number: \"CONGRATULATIONS! Your BVN don win ₦5,000,000 for Presidential Empowerment Draw. Send ₦25,000 to claim am.\"",
     choices: (p) => [
-      { label: "Send the ₦25,000", disabled: p.money < 25_000 ? "Not enough cash" : false, run: (q) => { q.money -= 25_000; bump(q, "happiness", -6); return "Dem scam you. The number don switch off. Lesson learnt."; } },
+      { label: "Send the ₦25,000", disabled: p.money < I(p, 25_000) ? "Not enough cash" : false, run: (q) => { q.money -= I(q, 25_000); bump(q, "happiness", -6); return "Dem scam you. The number don switch off. Lesson learnt."; } },
       { label: "Ignore it", run: () => "You see through am. Sharp guy." },
       { label: "Report to the bank", run: (q) => { bump(q, "smarts", 1); return "The bank thank you and do nothing."; } },
     ],
@@ -55,12 +56,12 @@ export const EVENTS: EventDef[] = [
     weight: (p) => (adult(p) && !p.spouse && !p.flags.dating ? 3 : 0),
     init: (p) => {
       const g = p.gender === "male" ? "female" : "male";
-      return { name: `${randomName(p.tribe, g)} ${pick(["Okoro", "Bello", "Adeola", "Nwachukwu", "Danjuma", "Ekpo"])}`, where: pick(["at church", "at a friend's wedding", "on Instagram", "at the market", "in the danfo"]) };
+      return { name: `${randomName(p.tribe, g)} ${pick(["Okoro", "Bello", "Adeola", "Nwachukwu", "Danjuma", "Ekpo"])}`, where: pick(["at church", "at a friend's wedding", "on Instagram", "at the market", "in the danfo"]), look: lookToStr(randomLook(g, { region: stateOf(p).region, religion: p.religion })) };
     },
     text: (_p, d) => `You meet ${d.name} ${d.where}. Something dey there o.`,
     choices: (p, d) => [
-      { label: "Shoot your shot", run: (q) => { if (chance(0.3 + q.stats.looks / 250 + q.stats.happiness / 400 + q.stats.reputation / 400)) { q.flags.dating = String(d.name); bump(q, "happiness", 12); return `${d.name} said yes! You are officially dating.`; } bump(q, "happiness", -6); return `${d.name} leave you on 'seen'. Chai.`; } },
-      { label: "Spend on a fancy date", sub: naira(I(p, 80_000)), disabled: p.money < I(p, 80_000) ? "Not enough cash" : false, run: (q) => { q.money -= I(q, 80_000); if (chance(0.7)) { q.flags.dating = String(d.name); bump(q, "happiness", 14); return `The jollof, the music, the vibes sweet die. ${d.name} is now your girlfriend/boyfriend.`; } return "You spent it all and got friend-zoned. Painful."; } },
+      { label: "Shoot your shot", run: (q) => { if (chance(0.3 + q.stats.looks / 250 + q.stats.happiness / 400 + q.stats.reputation / 400)) { q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); bump(q, "happiness", 12); return `${d.name} said yes! You are officially dating.`; } bump(q, "happiness", -6); return `${d.name} leave you on 'seen'. Chai.`; } },
+      { label: "Spend on a fancy date", sub: naira(I(p, 80_000)), disabled: p.money < I(p, 80_000) ? "Not enough cash" : false, run: (q) => { q.money -= I(q, 80_000); if (chance(0.7)) { q.flags.dating = String(d.name); q.flags.datingLook = String(d.look); bump(q, "happiness", 14); return `The jollof, the music, the vibes sweet die. ${d.name} is now your girlfriend/boyfriend.`; } return "You spent it all and got friend-zoned. Painful."; } },
       { label: "Not interested", run: () => "You waka go. Maybe next time." },
     ],
   },
@@ -72,7 +73,7 @@ export const EVENTS: EventDef[] = [
     text: (p, d) => `You and ${p.flags.dating} don dey serious. Their family wan meet yours. The bride price list don land: ${naira(Number(d.bride))} plus yam tubers, wrappers, and 'miscellaneous'.`,
     choices: (p, d) => {
       const price = Number(d.bride);
-      const finish = (q: Player, cost: number, family: number): string => { q.money -= cost; q.spouse = { name: String(q.flags.dating), happy: 80 }; delete q.flags.dating; q.family.happy = clamp(q.family.happy + family); bump(q, "happiness", 15); return `You don marry! ${q.spouse.name} is now your spouse.`; };
+      const finish = (q: Player, cost: number, family: number): string => { q.money -= cost; q.spouse = { name: String(q.flags.dating), happy: 80, look: strToLook(String(q.flags.datingLook ?? "")) ?? randomLook(q.gender === "male" ? "female" : "male", { region: stateOf(q).region }) }; delete q.flags.dating; delete q.flags.datingLook; q.family.happy = clamp(q.family.happy + family); bump(q, "happiness", 15); return `You don marry! ${q.spouse.name} is now your spouse.`; };
       return [
         { label: "Full traditional wedding", sub: naira(price * 2), disabled: p.money < price * 2 ? "Need more money" : false, run: (q) => finish(q, price * 2, 12) },
         { label: "Negotiate the price", sub: naira(price * 0.6), run: (q) => { if (chance(0.6)) return finish(q, price * 0.6, 5); bump(q, "happiness", -8); delete q.flags.dating; return "The negotiation turn argument. Dem cancel the wedding."; } },
@@ -180,8 +181,8 @@ export const EVENTS: EventDef[] = [
     weight: (p) => (adult(p) && p.age < 50 && p.money > I(p, 100_000) ? 2.5 : 0),
     text: () => "Your guy talk say 'Arsenal go win, 7 odds, sure bet'. The app dey open. The odds dey sweet you.",
     choices: (p) => [
-      { label: "Stake small", sub: naira(p.money * 0.03), run: (q) => { const a = q.money * 0.03; q.money -= a; if (chance(0.2)) { q.money += a * 7; return `E enter! You win ${naira(a * 7)}!`; } return `Lost ${naira(a)}. 'It was almost', you tell yourself.`; } },
-      { label: "Go all in (30%)", sub: naira(p.money * 0.3), run: (q) => { const a = q.money * 0.3; q.money -= a; if (chance(0.15)) { q.money += a * 8; return `ALL IN WON. ${naira(a * 8)} in the bank. Legend.`; } bump(q, "stress", 10); return `Betting app swallow ${naira(a)}. You swear 'never again'.`; } },
+      { label: "Stake small", sub: naira(p.money * 0.03), run: (q) => { const a = q.money * 0.03; q.money -= a; if (chance(0.2 + luckBonus(q) / 2)) { q.money += a * 7; return `E enter! You win ${naira(a * 7)}!`; } return `Lost ${naira(a)}. 'It was almost', you tell yourself.`; } },
+      { label: "Go all in (30%)", sub: naira(p.money * 0.3), run: (q) => { const a = q.money * 0.3; q.money -= a; if (chance(0.15 + luckBonus(q) / 2)) { q.money += a * 8; return `ALL IN WON. ${naira(a * 8)} in the bank. Legend.`; } bump(q, "stress", 10); return `Betting app swallow ${naira(a)}. You swear 'never again'.`; } },
       { label: "Delete the app", run: (q) => { bump(q, "smarts", 1); return "You saved yourself today."; } },
     ],
   },
@@ -191,7 +192,7 @@ export const EVENTS: EventDef[] = [
     weight: (p) => (adult(p) && p.money > I(p, 2_000_000) ? 2 : 0),
     text: () => "Your friend show you screenshot of one online platform. \"Invest ₦100K, get ₦200K in 30 days! Everyone is making it!\"",
     choices: (p) => [
-      { label: "Invest 20% of your cash", sub: naira(p.money * 0.2), run: (q) => { const a = q.money * 0.2; q.money -= a; if (chance(0.35)) { q.money += a * 2; return `You double your money! You cash out in time. ${naira(a * 2)} back.`; } bump(q, "stress", 12); return `The platform crash overnight. ${naira(a)} gone. The founder is in Dubai.`; } },
+      { label: "Invest 20% of your cash", sub: naira(p.money * 0.2), run: (q) => { const a = q.money * 0.2; q.money -= a; if (chance(0.3 + luckBonus(q))) { q.money += a * 2; return `You double your money! You cash out in time. ${naira(a * 2)} back.`; } bump(q, "stress", 12); return `The platform crash overnight. ${naira(a)} gone. The founder is in Dubai.`; } },
       { label: "Run away from it", run: (q) => { bump(q, "smarts", 1); return "If it sounds too good to be true... You did not touch it."; } },
     ],
   },
@@ -348,12 +349,13 @@ export const AUTOS: AutoDef[] = [
   { id: "baby", weight: (p) => (p.spouse && p.age >= 21 && p.age <= 44 && p.kids.length < 5 ? 6 : 0), run: (p) => {
     const gender = chance(0.5) ? "male" : "female";
     const name = randomName(p.tribe, gender);
-    p.kids.push({ name, age: 0, gender });
+    const dadLook = p.gender === "male" ? p.look : p.spouse?.look; const momLook = p.gender === "female" ? p.look : p.spouse?.look;
+    p.kids.push({ name, age: 0, gender, look: kidLook(dadLook, momLook, gender) });
     bump(p, "happiness", 12);
     p.money -= I(p, 250_000);
     return `${p.spouse?.name} born ${name}! The naming ceremony pull half the street.`;
   } },
-  { id: "viral", weight: (p) => (p.job && isSelfEmployed(p) ? 1.6 : p.job?.id === "creator" || p.job?.id === "singer" || p.job?.id === "actor" ? 2.5 : 0), run: (p) => {
+  { id: "viral", weight: (p) => (p.job && isSelfEmployed(p) ? 1.0 * (0.4 + p.luck / 80) : p.job?.id === "creator" || p.job?.id === "singer" || p.job?.id === "actor" ? 1.6 * (0.4 + p.luck / 80) : 0), run: (p) => {
     const j = jobDef(p);
     if (j && p.job && p.job.rank < j.ladder.length - 1) { p.job.rank += 1; p.flags.viral = (Number(p.flags.viral) || 0) + 1; return `Your ${j.group === "creative" ? "post" : "business"} go VIRAL! You move up to: ${j.ladder[p.job.rank].title}.`; }
     bump(p, "reputation", 3); return "Your stuff go viral again. People dey recognise you everywhere.";

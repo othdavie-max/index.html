@@ -1,3 +1,5 @@
+import type { Look } from "./look";
+
 export type Gender = "male" | "female";
 export type Edu = "none" | "primary" | "secondary" | "tertiary";
 export type WealthClass = "struggling" | "middle" | "rich";
@@ -89,6 +91,7 @@ export interface Kid {
   name: string;
   age: number;
   gender: Gender;
+  look?: Look;
 }
 
 export interface LogEntry {
@@ -123,8 +126,11 @@ export interface Player {
   job: JobState | null;
   houses: House[];
   holdings: Holding[];
-  family: { state: string; happy: number; parentsAlive: boolean };
-  spouse: { name: string; happy: number } | null;
+  look: Look;
+  /** Hidden fortune stat, 0-100. Shapes windfalls and disasters. */
+  luck: number;
+  family: { state: string; happy: number; parentsAlive: boolean; dad?: Look; mom?: Look };
+  spouse: { name: string; happy: number; look?: Look } | null;
   kids: Kid[];
   traveled: boolean;
   actionsLeft: number;

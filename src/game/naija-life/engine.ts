@@ -1,17 +1,19 @@
 import {
-  HOUSE_KINDS, JOB_BY_ID, OFFICES, STATE_BY_ID, TRAVEL_STATES, TRIBES_BY_REGION, birthWeight, defaultReligion, payMult, poolFor, travelCost,
+  HOUSE_KINDS, JOB_BY_ID, PAY_SCALE, OFFICES, STATE_BY_ID, TRAVEL_STATES, TRIBES_BY_REGION, birthWeight, defaultReligion, payMult, poolFor, travelCost,
 } from "./data";
 import { AUTOS, EVENTS } from "./events";
 import { AUTOS2, EVENTS2 } from "./events2";
 import { AUTOS3, EVENTS3 } from "./events3";
-import { I, bump, expandCostFor, jobDef, jobTitle, moveTo, randomName, stateOf } from "./helpers";
+import { EVENTS4 } from "./events4";
+import { I, bump, expandCostFor, jobDef, jobTitle, luckBonus, moveTo, randomName, stateOf } from "./helpers";
 import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from "./kidnap";
 import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings, yearlyUpkeep } from "./lifestyle";
 import { POLITICS_EVENTS, canContest, canJoinPolitics, canPlotCoup, contestPending, freshNation, joinPolitics, migratePolitics, plotCoup, politicalRelease, powerMoveBlock, runGov, runPowerMove, yearlyPolitics, GOV_ACTIONS } from "./politics";
 import type { EventDef, Game, Gender, HoldingKind, House, HouseKind, HouseUse, LineageEntry, Pending, Player } from "./types";
-import { chance, clamp, naira, pick, rand, randInt, uid, weightedPick } from "./util";
+import { chance, clamp, naira, pick, rand, randInt, setDeflator, uid, weightedPick } from "./util";
+import { kidLook, parentLook, randomLook, type Look } from "./look";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...POLITICS_EVENTS];
 const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -32,13 +34,28 @@ function settle(p: Player) {
     p.debt += -p.money;
     p.money = 0;
   }
+  // Lenders only go so far: beyond this you cut back, sell things and write the rest off.
+  const cap = 2_000_000 * Math.pow(p.index, 0.95);
+  if (p.debt > cap) {
+    p.debt = cap;
+    p.stats.stress += 3;
+    p.stats.happiness -= 2;
+  }
   p.peakWorth = Math.max(p.peakWorth, netWorth(p));
   for (const k of Object.keys(p.stats) as (keyof Player["stats"])[]) p.stats[k] = clamp(p.stats[k]);
 }
 
 /** Fill in fields that older saves do not have. */
 export function migrate(g: Game): Game {
-  migratePolitics(g.p);
+  const p = g.p;
+  migratePolitics(p);
+  const region = stateOf(p).region;
+  if (!p.look) p.look = randomLook(p.gender, { region, religion: p.religion });
+  if (typeof p.luck !== "number") p.luck = randInt(25, 75);
+  if (!p.family.dad) p.family.dad = parentLook(p.look, "male", region, p.religion);
+  if (!p.family.mom) p.family.mom = parentLook(p.look, "female", region, p.religion);
+  if (p.spouse && !p.spouse.look) p.spouse.look = randomLook(p.gender === "male" ? "female" : "male", { region });
+  for (const k of p.kids) if (!k.look) k.look = kidLook(p.gender === "male" ? p.look : p.spouse?.look, p.gender === "female" ? p.look : p.spouse?.look, k.gender);
   return g;
 }
 
@@ -55,6 +72,7 @@ export interface NewLifeOptions {
   stateId: string | null;
   tribe: string | null;
   religion: string | null;
+  look?: Look;
 }
 
 function pickBirthState(): string {
@@ -96,6 +114,7 @@ export function newGame(opts: NewLifeOptions): Game {
   const [first, ...rest] = raw.split(/\s+/);
   const given = first || randomName(tribe, opts.gender);
   const surname = rest.join(" ") || pick(surnamePool);
+  const look = opts.look ?? randomLook(opts.gender, { region: st.region, religion });
   const conn = cls === "rich" ? randInt(30, 55) : cls === "middle" ? randInt(10, 25) : randInt(3, 10);
   const p: Player = {
     id: uid(),
@@ -122,7 +141,9 @@ export function newGame(opts: NewLifeOptions): Game {
     job: null,
     houses: [],
     holdings: [],
-    family: { state: stateId, happy: 70, parentsAlive: true },
+    look,
+    luck: randInt(20, 80),
+    family: { state: stateId, happy: 70, parentsAlive: true, dad: parentLook(look, "male", st.region, religion), mom: parentLook(look, "female", st.region, religion) },
     spouse: null,
     kids: [],
     traveled: false,
@@ -139,6 +160,7 @@ export function newGame(opts: NewLifeOptions): Game {
     peakWorth: 0,
     log: [],
   };
+  setDeflator(1);
   addLog(p, `You were born in ${st.capital}, ${st.name} State, to ${CLASS_TEXT[cls]}. You are ${tribe}, ${religion}.`);
   if (st.opp <= 3) addLog(p, "Opportunities are few in your area. Many people here dream of moving to Abuja or Lagos.");
   return { p, queue: [], dynasty: { surname, lineage: [] } };
@@ -221,7 +243,9 @@ export function startHeir(g0: Game, kidIndex: number): Game {
     job: null,
     houses: old.houses.map((h) => ({ ...h, value: h.value })),
     holdings: old.holdings.map((h) => ({ ...h, invested: Math.round(h.invested * estate), value: Math.round(h.value * estate) })),
-    family: { state: old.state, happy: 60, parentsAlive: false },
+    look: kid.look ?? randomLook(kid.gender, { region: stateOf(old).region, religion: old.religion }),
+    luck: clamp(old.luck + randInt(-20, 20), 10, 90),
+    family: { state: old.state, happy: 60, parentsAlive: false, dad: old.gender === "male" ? old.look : old.spouse?.look, mom: old.gender === "female" ? old.look : old.spouse?.look },
     spouse: null,
     kids: [],
     traveled: false,
@@ -238,6 +262,7 @@ export function startHeir(g0: Game, kidIndex: number): Game {
     peakWorth: 0,
     log: [],
   };
+  setDeflator(p.index);
   enrollByAge(p);
   if (p.age >= 18 && cls === "rich" && chance(0.6)) {
     p.edu = "tertiary";
@@ -314,6 +339,7 @@ export function ageUp(g0: Game): Game {
     lines.push(`Economic shock: prices jump ${Math.round(rate * 100)}% this year.`);
   }
   p.index *= 1 + rate;
+  setDeflator(p.index);
   for (const h of p.houses) h.value = Math.round(h.value * (1 + rate * 0.9));
   for (const k of p.kids) k.age += 1;
 
@@ -331,12 +357,13 @@ export function ageUp(g0: Game): Game {
     const j = jobDef(p);
     if (p.job && j) {
       const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
-      const pay = rung.pay * payMult(j, st) * Math.pow(p.index, j.group === "formal" ? 0.86 : 0.92) * rand(0.75, 1.25);
-      income += pay;
+      const volatility = j.group === "formal" ? rand(0.92, 1.08) : rand(0.55, 1.4);
+      const pay = rung.pay * PAY_SCALE[j.group] * payMult(j, st) * Math.pow(p.index, j.group === "formal" ? 0.86 : 0.92) * volatility;
+      income += p.flags.investorShare ? pay * 0.88 : pay;
       p.job.years += 1;
       if (!j.selfEmployed && p.job.rank < j.ladder.length - 1 && p.job.years >= 2) {
-        const base = j.group === "creative" ? 0.07 + (p.stats.looks + p.stats.smarts) / 1500 : 0.12 + p.stats.connections / 400 + p.stats.smarts / 500;
-        if (chance(base + p.stats.connections / 600)) {
+        const base = j.group === "creative" ? 0.05 + (p.stats.looks + p.stats.smarts) / 1800 : 0.07 + p.stats.connections / 500 + p.stats.smarts / 700;
+        if (chance(base + p.stats.connections / 800 + luckBonus(p) / 3)) {
           p.job.rank += 1;
           p.job.years = 0;
           lines.push(`Promotion! You don become: ${j.ladder[p.job.rank].title}.`);
@@ -356,13 +383,13 @@ export function ageUp(g0: Game): Game {
     let rent = 0;
     if (p.age >= 18) {
       const atHome = p.age < 24 && p.family.state === p.state;
-      living = 550_000 * st.cost * Math.pow(p.index, 0.95) * (1 + 0.2 * Math.min(p.kids.length, 4)) * (atHome ? 0.5 : 1);
+      living = 420_000 * st.cost * Math.pow(p.index, 0.95) * (1 + 0.2 * Math.min(p.kids.length, 4)) * (atHome ? 0.5 : 1);
       const homeHere = p.houses.some((h) => h.state === p.state && (h.use === "owner" || h.use === "family"));
-      rent = homeHere || atHome ? 0 : 250_000 * st.cost * Math.pow(p.index, 0.95);
+      rent = homeHere || atHome ? 0 : 180_000 * st.cost * Math.pow(p.index, 0.95);
     }
     if (!p.job && !p.school && p.age >= 18 && !(p.politics && p.politics.office >= 0)) {
       // Odd jobs, family support and small small hustle keep you afloat.
-      income += 300_000 * (0.6 + st.opp / 10) * Math.pow(p.index, 0.92) * rand(0.7, 1.2);
+      income += 220_000 * (0.6 + st.opp / 10) * Math.pow(p.index, 0.92) * rand(0.6, 1.2);
     }
     const upkeep = yearlyUpkeep(p);
     p.money += income - living - rent - upkeep;
@@ -409,7 +436,7 @@ export function ageUp(g0: Game): Game {
   // Random life events
   const used = new Set<string>(pending.flatMap((x) => (x.kind === "event" ? [x.id] : [])));
   if (p.age >= 6 && p.prison >= 0) {
-    const tries = p.prison > 0 ? 1 : chance(0.7) ? 1 : 0;
+    const tries = p.prison > 0 ? 1 : chance(p.age < 13 ? 0.28 : 0.7) ? 1 : 0;
     for (let i = 0; i < tries; i++) {
       const ev = weightedPick(ALL_EVENTS.filter((e) => !used.has(e.id)).map((e) => ({ item: e, w: e.weight(p) })));
       if (ev) {
@@ -463,6 +490,7 @@ export interface PendingView {
 }
 
 export function describePending(g: Game): PendingView | null {
+  setDeflator(g.p.index);
   const pe = g.queue[0];
   if (!pe || pe.kind !== "event") return null;
   const def = EVENT_DEFS[pe.id];
@@ -476,6 +504,7 @@ export function describePending(g: Game): PendingView | null {
 
 export function choose(g0: Game, idx: number): { g: Game; text: string } {
   const g = structuredClone(g0);
+  setDeflator(g.p.index);
   const pe = g.queue[0];
   if (!pe || pe.kind !== "event") return { g: g0, text: "" };
   const def = EVENT_DEFS[pe.id];
@@ -494,6 +523,7 @@ export function choose(g0: Game, idx: number): { g: Game; text: string } {
 
 export function kidnapAction(g0: Game, a: KidnapAction): Game {
   const g = structuredClone(g0);
+  setDeflator(g.p.index);
   const pe = g.queue[0];
   if (!pe || pe.kind !== "kidnap") return g0;
   kidnapStep(g.p, pe.k, a);
@@ -581,6 +611,7 @@ export function buildCost(p: Player, kind: HouseKind): number {
 export function act(g0: Game, a: Action): { g: Game; msg: string } {
   const g = structuredClone(g0);
   const p = g.p;
+  setDeflator(p.index);
   const out = (msg: string) => {
     addLog(p, msg);
     settle(p);
@@ -609,7 +640,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         pr += 0.3;
         if (chance(0.15)) bump(p, "reputation", -10);
       }
-      if (chance(clamp(pr, 0.05, 0.97))) {
+      if (chance(clamp(pr + luckBonus(p), 0.05, 0.97))) {
         p.job = { id: j.id, rank: 0, years: 0 };
         return out(`You got the job: ${j.ladder[0].title}.`);
       }
@@ -695,9 +726,9 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         case "study": bump(p, "smarts", 3); bump(p, "stress", 2); return out("You studied hard. Knowledge is power.");
         case "gym": bump(p, "health", 5); bump(p, "happiness", 2); return out("You worked out. You feel stronger.");
         case "worship": bump(p, "happiness", 3); bump(p, "reputation", 2); return out(`You went to ${p.religion === "Muslim" ? "the mosque" : "church"}. Peace of mind.`);
-        case "hawk": { const g2 = I(p, 40_000) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 3); bump(p, "health", -1); return out(`You hawked on the street and made ${naira(g2)}.`); }
+        case "hawk": { const g2 = I(p, rand(3_000, 9_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 3); bump(p, "health", -1); return out(`You hawked on the street and made ${naira(g2)}.`); }
         case "network": bump(p, "connections", 4); return out("You networked at an owambe and exchanged numbers.");
-        case "gig": { const g2 = I(p, rand(150_000, 600_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 2); return out(`You did odd jobs and earned ${naira(g2)}.`); }
+        case "gig": { const g2 = I(p, rand(8_000, 40_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 2); return out(`You did odd jobs and earned ${naira(g2)}.`); }
         case "date": g.queue.unshift({ kind: "event", id: "love", data: EVENT_DEFS.love.init ? EVENT_DEFS.love.init(p) : {} }); return out("You went out looking for love...");
         case "godfather":
           if (chance(0.25)) return out("A 'godfather' collected your money and disappeared. You were scammed.");

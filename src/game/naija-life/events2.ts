@@ -1,5 +1,5 @@
 import { STATE_BY_ID, TRAVEL_STATES, travelCost } from "./data";
-import { I, bump, expandCostFor, jobDef, ownsHouseIn, stateOf } from "./helpers";
+import { I, bump, expandCostFor, jobDef, luckBonus, ownsHouseIn, stateOf } from "./helpers";
 import type { AutoDef, EventDef, Player } from "./types";
 import { chance, clamp, naira, pick, rand } from "./util";
 
@@ -119,8 +119,8 @@ export const EVENTS2: EventDef[] = [
     weight: (p) => (adult(p) ? 2 : 0),
     text: () => "Election season! Party agents dey share rice, branded T-shirts and ₦5,000 per head. 'Vote for us and you go chop better.'",
     choices: () => [
-      { label: "Collect the money, vote your conscience", run: (q) => { q.money += 5000; bump(q, "smarts", 1); return "You collect the rice, dey smile, and vote for who you want. Ballot no get camera."; } },
-      { label: "Sell your PVC", run: (q) => { q.money += 20_000; bump(q, "reputation", -4); return "₦20K for one card. Democracy sold for pocket money."; } },
+      { label: "Collect the money, vote your conscience", run: (q) => { q.money += I(q, 5_000); bump(q, "smarts", 1); return "You collect the rice, dey smile, and vote for who you want. Ballot no get camera."; } },
+      { label: "Sell your PVC", run: (q) => { q.money += I(q, 20_000); bump(q, "reputation", -4); return "₦20K for one card. Democracy sold for pocket money."; } },
       { label: "Become a polling observer", run: (q) => { bump(q, "reputation", 4); bump(q, "connections", 2); bump(q, "stress", 5); return "You watch collation until 3am. You see things. You count and verify."; } },
       { label: "Stay at home", run: (q) => { bump(q, "stress", -2); return "You skip the whole thing. Holiday on election day."; } },
     ],
@@ -175,7 +175,7 @@ export const EVENTS2: EventDef[] = [
     weight: (p) => (adult(p) && p.money > I(p, 5_000_000) ? 2 : 0),
     text: () => "A smooth-talking agent show you one 'prime plot' near the new airport road: 'Last plot! C of O ready. Price go double next week.'",
     choices: (p) => [
-      { label: "Buy it now", sub: naira(p.money * 0.2), run: (q) => { const a = q.money * 0.2; q.money -= a; if (chance(0.55)) { q.money += a * 1.4; return `The plot is genuine! You resell for ${naira(a * 1.4)}. You feel like Dangote.`; } bump(q, "stress", 12); return `The same plot was sold to five people. ${naira(a)} gone. The agent switch off his phone.`; } },
+      { label: "Buy it now", sub: naira(p.money * 0.2), run: (q) => { const a = q.money * 0.2; q.money -= a; if (chance(0.5 + luckBonus(q))) { q.money += a * 1.4; return `The plot is genuine! You resell for ${naira(a * 1.4)}. You feel like Dangote.`; } bump(q, "stress", 12); return `The same plot was sold to five people. ${naira(a)} gone. The agent switch off his phone.`; } },
       { label: "Verify with a lawyer first", sub: naira(I(p, 1_000_000)), disabled: p.money < I(p, 1_000_000) ? "Not enough cash" : false, run: (q) => { q.money -= I(q, 1_000_000); if (chance(0.5)) { bump(q, "smarts", 2); return "Your lawyer find out say na scam. You dodge am by inches."; } const a = q.money * 0.15; q.money += a * 0.4; return "The papers are real. You buy small and make small profit."; } },
       { label: "Walk away", run: () => "Too good to be true usually isn't. You pass." },
     ],
@@ -197,7 +197,7 @@ export const EVENTS2: EventDef[] = [
     weight: (p) => (p.job && jobDef(p)?.group === "formal" ? 3 : 0),
     text: () => "Your oga call you: 'This contract go pass your table. But something must enter my pocket. You go get your own share. Make we chop together.'",
     choices: () => [
-      { label: "Join the arrangement", run: (q) => { const g = I(q, rand(1_000_000, 4_000_000)); q.money += g; bump(q, "reputation", -6); if (chance(0.12)) { q.job = null; return `You collect ${naira(g)}. Then a whistleblower talk and you get sacked quietly.`; } return `You collect ${naira(g)}. Another 'bonus' for Ghana-must-go.`; } },
+      { label: "Join the arrangement", run: (q) => { const g = I(q, rand(250_000, 1_200_000)); q.money += g; bump(q, "reputation", -6); if (chance(0.12)) { q.job = null; return `You collect ${naira(g)}. Then a whistleblower talk and you get sacked quietly.`; } return `You collect ${naira(g)}. Another 'bonus' for Ghana-must-go.`; } },
       { label: "Refuse and stay clean", run: (q) => { bump(q, "stress", 6); if (chance(0.25)) { q.job = null; return "He sack you for 'poor attitude'. Integrity fit cost you."; } bump(q, "reputation", 4); return "He sulk for a month but respects you quietly."; } },
       { label: "Report him", run: (q) => { if (chance(0.4)) { bump(q, "reputation", 10); return "Management investigate and suspend him. You become a hero."; } q.job = null; bump(q, "stress", 12); return "The report 'disappear' and you are suddenly 'redundant'. Chai."; } },
     ],
