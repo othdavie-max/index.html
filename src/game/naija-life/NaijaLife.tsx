@@ -10,7 +10,7 @@ import {
 } from "./data";
 import {
   ACTIVITIES, act, activityBlock, ageUp, ackKidnap, applyBlock, buildCost, choose, describePending, expandCost, kidnapAction, migrate, newGame, startHeir, startNewFamily,
-  type Action, worth,
+  type Action, type NewLifeOptions, worth,
 } from "./engine";
 import { eduAtLeast, eligibleJobs, jobDef, jobTitle } from "./helpers";
 import { Avatar } from "./Avatar";
@@ -18,14 +18,20 @@ import { KidnapModal } from "./KidnapModal";
 import { BEARDS, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, displayLook, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
-import { PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
+import { HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { meritOf } from "./military";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
-import { chance, naira, setDeflator } from "./util";
+import { FAMILY_PRESETS } from "./family";
+import { notificationsFor } from "./notices";
+import { T, chance, naira, setDeflator, setLang } from "./util";
+import type { Lang } from "./util";
 
 const SAVE_KEY = "naija-life-save-v1";
+const SLOTS_KEY = "naija-life-slots-v1";
+const LANG_KEY = "naija-life-lang";
+const SLOT_COUNT = 3;
 type Tab = "life" | "phone" | "work" | "money" | "family" | "health" | "law" | "map" | "power" | "legacy";
 
 const TABS: { id: Tab; label: string; icon: typeof Hourglass }[] = [
@@ -41,28 +47,59 @@ const TABS: { id: Tab; label: string; icon: typeof Hourglass }[] = [
   { id: "legacy", label: "Legacy", icon: Trophy },
 ];
 
-function loadSave(): Game | null {
+function parseGame(raw: unknown): Game | null {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return null;
-    const g = JSON.parse(raw) as Game;
+    const g = raw as Game;
     return g && g.p && g.dynasty ? migrate(g) : null;
   } catch {
     return null;
   }
 }
-function writeSave(g: Game | null) {
+/** Three save slots. An older single save becomes slot 1. */
+function loadSlots(): (Game | null)[] {
+  const slots: (Game | null)[] = Array.from({ length: SLOT_COUNT }, () => null);
   try {
-    if (g) localStorage.setItem(SAVE_KEY, JSON.stringify(g));
-    else localStorage.removeItem(SAVE_KEY);
+    const raw = localStorage.getItem(SLOTS_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw) as unknown[];
+      arr.slice(0, SLOT_COUNT).forEach((x, i) => { slots[i] = x ? parseGame(x) : null; });
+    } else {
+      const old = localStorage.getItem(SAVE_KEY);
+      if (old) slots[0] = parseGame(JSON.parse(old));
+    }
+  } catch {
+    /* unreadable save: start fresh */
+  }
+  return slots;
+}
+function writeSlots(slots: (Game | null)[]) {
+  try {
+    localStorage.setItem(SLOTS_KEY, JSON.stringify(slots));
   } catch {
     /* storage unavailable: play without saving */
   }
 }
+function loadLang(): Lang {
+  try {
+    return localStorage.getItem(LANG_KEY) === "en" ? "en" : "pcm";
+  } catch {
+    return "pcm";
+  }
+}
+function hashSeed(s: string): number {
+  const t = s.trim();
+  if (/^\d+$/.test(t)) return Number(t) >>> 0;
+  let h = 2166136261;
+  for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
 
 export default function NaijaLife() {
   const [game, setGame] = useState<Game | null>(null);
-  const [saved, setSaved] = useState<Game | null>(null);
+  const [slots, setSlots] = useState<(Game | null)[]>(() => Array.from({ length: SLOT_COUNT }, () => null));
+  const [slot, setSlot] = useState(0);
+  const [lang, setLangState] = useState<Lang>("pcm");
+  const [bell, setBell] = useState(false);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>("life");
   const [result, setResult] = useState<string | null>(null);
@@ -72,7 +109,8 @@ export default function NaijaLife() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSaved(loadSave());
+    setSlots(loadSlots());
+    setLangState(loadLang());
     setReady(true);
   }, []);
 
@@ -83,8 +121,19 @@ export default function NaijaLife() {
   }, []);
 
   useEffect(() => {
-    if (ready && game) writeSave(game);
-  }, [game, ready]);
+    if (!ready || !game) return;
+    setSlots((s) => {
+      const next = [...s];
+      next[slot] = game;
+      writeSlots(next);
+      return next;
+    });
+  }, [game, ready, slot]);
+  const chooseLang = (l: Lang) => {
+    setLangState(l);
+    try { localStorage.setItem(LANG_KEY, l); } catch { /* ignore */ }
+    setGame((g) => (g ? { ...g, p: { ...g.p, lang: l } } : g));
+  };
 
   useEffect(() => {
     if (!toast) return;
@@ -102,13 +151,17 @@ export default function NaijaLife() {
   if (!ready) return <div className="min-h-screen bg-[#07130e]" />;
 
   if (!game) {
+    setLang(lang);
     return (
       <Shell>
         <StartScreen
-          hasSave={Boolean(saved)}
-          onContinue={() => saved && setGame(saved)}
-          onStart={(o) => {
-            writeSave(null);
+          slots={slots}
+          lang={lang}
+          onLang={chooseLang}
+          onContinue={(i) => { setSlot(i); setLangState(slots[i]?.p.lang ?? lang); setGame(slots[i]); setTab("life"); }}
+          onDelete={(i) => setSlots((s) => { const next = [...s]; next[i] = null; writeSlots(next); return next; })}
+          onStart={(o, i) => {
+            setSlot(i);
             setGame(newGame(o));
             setTab("life");
           }}
@@ -119,6 +172,7 @@ export default function NaijaLife() {
 
   const p = game.p;
   setDeflator(p.index);
+  setLang(p.lang);
   const view = result === null ? describePending(game) : null;
   const evHead = game.queue[0];
   const evLook = evHead && evHead.kind === "event" && typeof evHead.data.look === "string" ? strToLook(evHead.data.look) : null;
@@ -127,7 +181,7 @@ export default function NaijaLife() {
 
   return (
     <Shell>
-      <Header p={p} onMenu={() => setMenu(true)} />
+      <Header p={p} onMenu={() => setMenu(true)} onBell={() => setBell(true)} count={notificationsFor(p).filter((n) => n.level !== "green").length} />
       <main className="flex-1 space-y-3 px-4 pb-44 pt-3">
         {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}
         {tab === "life" && <><PrisonCard p={p} run={run} /><LifeTab g={game} run={run} /></>}
@@ -225,7 +279,7 @@ export default function NaijaLife() {
         <DeathScreen
           g={game}
           onHeir={(i) => { setGame(startHeir(game, i)); setTab("life"); }}
-          onNew={(o) => { setGame(startNewFamily(game, o)); setTab("life"); }}
+          onNew={(o) => { setGame(startNewFamily(game, { ...o, lang: game.p.lang })); setTab("life"); }}
         />
       )}
 
@@ -238,12 +292,35 @@ export default function NaijaLife() {
         </Sheet>
       )}
 
+      {bell && (
+        <Sheet title={T("Alerts and history", "Alerts and history")} onClose={() => setBell(false)}>
+          <H>{T("Needs your attention", "Wetin need your attention")}</H>
+          {notificationsFor(p).length === 0 && <p className="text-sm text-white/60">{T("Nothing urgent.", "Nothing serious.")}</p>}
+          <ul className="space-y-1.5">
+            {notificationsFor(p).map((n, i) => <li key={i} className={cx("rounded-xl px-3 py-2 text-sm", n.level === "red" ? "bg-red-500/15 text-red-200" : "bg-[#f5b82e]/10 text-[#f5b82e]")}>{n.text}</li>)}
+          </ul>
+          <H>{T("Recent years", "Wetin don happen")}</H>
+          <div className="max-h-64 space-y-2 overflow-y-auto">
+            {[...p.log].reverse().slice(0, 12).map((e, i) => (
+              <div key={i} className="rounded-xl bg-white/5 p-2.5">
+                <div className="text-[11px] font-semibold text-[#f5b82e]">{T("Age", "Age")} {e.age}</div>
+                {e.lines.slice(0, 4).map((l, j) => <p key={j} className="text-xs text-white/75">{l}</p>)}
+              </div>
+            ))}
+          </div>
+        </Sheet>
+      )}
+
       {menu && (
-        <Sheet title="Menu" onClose={() => setMenu(false)}>
-          <p className="text-sm text-white/70">Your life is saved automatically on this device.</p>
+        <Sheet title={T("Menu", "Menu")} onClose={() => setMenu(false)}>
+          <p className="text-sm text-white/70">{T(`Saved automatically in slot ${slot + 1} on this device.`, `Game dey save by itself for slot ${slot + 1} for this device.`)}</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {(["en", "pcm"] as Lang[]).map((l) => <Btn key={l} tone={p.lang === l ? "gold" : "ghost"} onClick={() => chooseLang(l)}>{l === "en" ? "English" : "Pidgin"}</Btn>)}
+          </div>
           <div className="mt-4 space-y-2">
-            <Btn tone="ghost" className="w-full" onClick={() => setMenu(false)}>Back to the game</Btn>
-            <Btn tone="red" className="w-full" onClick={() => { writeSave(null); setSaved(null); setGame(null); setMenu(false); }}>Abandon this life & start over</Btn>
+            <Btn tone="ghost" className="w-full" onClick={() => setMenu(false)}>{T("Back to the game", "Go back to game")}</Btn>
+            <Btn tone="ghost" className="w-full" onClick={() => { setGame(null); setMenu(false); }}>{T("Switch life (save slots)", "Change life (save slots)")}</Btn>
+            <Btn tone="red" className="w-full" onClick={() => { setSlots((s) => { const next = [...s]; next[slot] = null; writeSlots(next); return next; }); setGame(null); setMenu(false); }}>{T("Abandon this life and start over", "Abandon this life make we start again")}</Btn>
           </div>
         </Sheet>
       )}
@@ -276,9 +353,12 @@ function Swatch({ color, active, onClick, label }: { color: string; active: bool
   );
 }
 
-type NewOpts = { name: string; gender: Gender; stateId: string | null; tribe: string | null; religion: string | null; look: Look };
+type NewOpts = { name: string; gender: Gender; stateId: string | null; tribe: string | null; religion: string | null; look: Look; lang: Lang; seed?: number | null; familyConfig?: NewLifeOptions["familyConfig"]; forceArchetype?: NewLifeOptions["forceArchetype"] };
 
-function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: NewOpts) => void; hasSave: boolean; onContinue: () => void }) {
+function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { onStart: (o: NewOpts, slot: number) => void; slots: (Game | null)[]; onContinue: (i: number) => void; onDelete: (i: number) => void; lang: Lang; onLang: (l: Lang) => void }) {
+  const [seedText, setSeedText] = useState("");
+  const [preset, setPreset] = useState("real");
+  const [target, setTarget] = useState(() => { const e = slots.findIndex((s) => !s); return e >= 0 ? e : 0; });
   const [name, setName] = useState("");
   const [gender, setGender] = useState<Gender>("male");
   const [stateId, setStateId] = useState("");
@@ -297,7 +377,23 @@ function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: NewOpts) =
       <h1 className="mt-6 font-serif text-5xl font-black leading-[1.05] text-white">Naija<br /><span className="text-[#f5b82e]">Life</span></h1>
       <p className="mt-3 text-sm leading-relaxed text-white/70">Live a whole Nigerian life: from akara by the roadside to Aso Rock. Hustle, travel between states, build houses, survive NEPA, dodge kidnappers, and leave a legacy your children inherit.</p>
 
-      {hasSave && <Btn tone="gold" className="mt-6 w-full" onClick={onContinue}>Continue your life</Btn>}
+      <div className="mt-5 grid grid-cols-2 gap-2" role="group" aria-label="Language">
+        {(["en", "pcm"] as Lang[]).map((l) => (
+          <button key={l} type="button" onClick={() => onLang(l)} className={cx("rounded-xl border px-3 py-2.5 text-sm font-semibold", lang === l ? "border-[#f5b82e] bg-[#f5b82e]/15 text-[#f5b82e]" : "border-white/15 bg-white/5 text-white/70")}>{l === "en" ? "English" : "Pidgin"}</button>
+        ))}
+      </div>
+
+      {slots.some(Boolean) && (
+        <Card className="mt-6 space-y-2">
+          <H>{T("Your lives", "Your lives")}</H>
+          {slots.map((s, i) => s && (
+            <div key={i} className="flex items-center justify-between gap-2 rounded-xl bg-white/5 p-3">
+              <div className="min-w-0 text-sm"><div className="truncate font-semibold">{s.p.name} {s.p.surname}</div><div className="text-[11px] text-white/50">{T("Slot", "Slot")} {i + 1} · {T("Age", "Age")} {s.p.age} · {s.p.alive ? naira(worth(s.p)) : T("Died", "Don die")}</div></div>
+              <div className="flex shrink-0 gap-1.5"><Btn small tone="gold" onClick={() => onContinue(i)}>{T("Continue", "Continue")}</Btn><Btn small tone="ghost" onClick={() => onDelete(i)}>✕</Btn></div>
+            </div>
+          ))}
+        </Card>
+      )}
 
       <Card className="mt-6 space-y-4">
         <H>Your look</H>
@@ -368,7 +464,26 @@ function StartScreen({ onStart, hasSave, onContinue }: { onStart: (o: NewOpts) =
             {RELIGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
         </label>
-        <Btn className="w-full py-3 text-base" onClick={() => onStart({ name, gender, stateId: stateId || null, tribe: tribe || null, religion: religion || null, look })}>Be born 🇳🇬</Btn>
+        <details className="rounded-xl border border-white/10 bg-white/5 p-3">
+          <summary className="cursor-pointer text-xs font-semibold text-white/70">{T("Advanced: family background and seed", "Advanced: family background and seed")}</summary>
+          <label className="mt-3 block text-xs text-white/70">{T("Family background", "Family background")}
+            <select value={preset} onChange={(e) => setPreset(e.target.value)} className={field}>
+              {FAMILY_PRESETS.map((x) => <option key={x.id} value={x.id}>{T(x.en, x.pcm)}</option>)}
+            </select>
+          </label>
+          <label className="mt-3 block text-xs text-white/70">{T("Seed (same seed, same life, as long as you make the same choices)", "Seed (same seed go give you same life if you do same choices)")}
+            <input value={seedText} onChange={(e) => setSeedText(e.target.value)} placeholder={T("optional", "optional")} className={field} maxLength={24} />
+          </label>
+        </details>
+        <label className="block text-xs text-white/70">{T("Save in", "Save for")}
+          <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className={field}>
+            {slots.map((s, i) => <option key={i} value={i}>{T("Slot", "Slot")} {i + 1}{s ? ` · ${s.p.name} (${T("will be replaced", "go replace am")})` : ` · ${T("empty", "empty")}`}</option>)}
+          </select>
+        </label>
+        <Btn className="w-full py-3 text-base" onClick={() => {
+          const pr = FAMILY_PRESETS.find((x) => x.id === preset);
+          onStart({ name, gender, stateId: stateId || null, tribe: tribe || null, religion: religion || null, look, lang, seed: seedText.trim() ? hashSeed(seedText) : null, familyConfig: pr?.cfg, forceArchetype: pr?.force }, target);
+        }}>{T("Be born", "Born me")} 🇳🇬</Btn>
       </Card>
       <p className="mt-6 text-center text-[11px] text-white/40">A fictional game. All people, events and results are made up for fun.</p>
     </div>
@@ -388,7 +503,7 @@ function shownLook(p: Player): Look {
   });
 }
 
-function Header({ p, onMenu }: { p: Player; onMenu: () => void }) {
+function Header({ p, onMenu, onBell, count }: { p: Player; onMenu: () => void; onBell: () => void; count: number }) {
   const st = STATE_BY_ID[p.state];
   const title = officeTitle(p) ?? jobTitle(p);
   return (
@@ -399,13 +514,16 @@ function Header({ p, onMenu }: { p: Player; onMenu: () => void }) {
           <div className="min-w-0">
             <div className="truncate font-serif text-lg font-bold leading-tight">{p.name} {p.surname}</div>
             <div className="text-xs text-white/60">Age {p.age} · {title}</div>
-            <div className="mt-0.5 text-xs text-emerald-200/70">📍 {st.name}{p.prison > 0 ? " · in Kuje prison" : ""}</div>
+            <div className="mt-0.5 text-xs text-emerald-200/70">📍 {st.name}{p.prison > 0 ? T(" · in Kuje prison", " · for Kuje prison") : ""}</div>
           </div>
         </div>
         <div className="shrink-0 text-right">
           <div className="text-lg font-extrabold text-[#f5b82e]">{naira(p.money)}</div>
           <div className="text-[11px] text-white/50">Worth {naira(worth(p))}{p.debt > 0 ? ` · Debt ${naira(p.debt)}` : ""}</div>
-          <button type="button" onClick={onMenu} className="mt-1 text-[11px] text-white/50 underline">Menu</button>
+          <div className="mt-1 flex justify-end gap-3 text-[11px] text-white/50">
+            <button type="button" onClick={onBell} className="underline" aria-label="Notifications">{T("Alerts", "Alerts")}{count > 0 ? ` (${count})` : ""}</button>
+            <button type="button" onClick={onMenu} className="underline">{T("Menu", "Menu")}</button>
+          </div>
         </div>
       </div>
       <div className="mt-2.5 grid grid-cols-4 gap-x-3 gap-y-1.5">
@@ -430,6 +548,7 @@ function LifeTab({ g, run }: { g: Game; run: (a: Action) => void }) {
   const logs = useMemo(() => [...p.log].reverse(), [p.log]);
   return (
     <>
+      <HeadlinesCard p={p} />
       <Card>
         <H sub={`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`}>Activities</H>
         <div className="grid grid-cols-2 gap-2">
@@ -560,6 +679,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           {group("Creative careers", eligible.filter((j) => j.group === "creative"), "Slow start, huge upside.")}
           {group("Risky paths", eligible.filter((j) => j.group === "crime"), "Fast money. Heavy consequences.")}
           <TradeCard p={p} run={run} />
+          <PostgradCard p={p} run={run} />
           <BusinessCard p={p} run={run} />
           <SkillsCard p={p} run={run} />
           {locked.length > 0 && (
@@ -615,6 +735,7 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       </Card>
 
       <MortgageCard p={p} run={run} />
+      <PropertyMarketCard p={p} run={run} />
 
       {p.houses.length > 0 && (
         <Card>

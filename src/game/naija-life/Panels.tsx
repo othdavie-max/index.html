@@ -13,6 +13,9 @@ import { FACILITIES, TEMPLATES, facilitiesFor, treatmentCost } from "./health";
 import { GROWTH_ACTIVITIES, SKILLS, TRADES, tradeBlock, enlistBlock, gymBlock, growthBlock, learnBlock, skillLevel } from "./life";
 import { activeOwed, activeOwedToMe, lenderOffers, loanBlock, previewLoan, receivables, totalDebt } from "./loans";
 import { summaries } from "./ledger";
+import { monthlySummary, upcomingPayments } from "./notices";
+import { POSTGRAD, postgradBlock } from "./education";
+import { listingBlock, planQuote } from "./property";
 import { STAGE_LABEL, activePartners, dateCost, datingAllowed, intimacyBlock } from "./relationships";
 import { CONTENT, PLATFORMS, postBlock, socialBlock, totalFollowers } from "./social";
 import { VEHICLE_MODELS, priceOf, repairCost, isInsured } from "./vehicles";
@@ -372,7 +375,7 @@ function Betting({ p, run }: { p: Player; run: Run }) {
 // Money extras: ledger, summaries, debts, housing, cars, subscriptions
 // ---------------------------------------------------------------------------
 export function LedgerCard({ p }: { p: Player }) {
-  const [view, setView] = useState<"summary" | "history">("summary");
+  const [view, setView] = useState<"summary" | "months" | "upcoming" | "history">("summary");
   const [cat, setCat] = useState("all");
   const years = summaries(p);
   const cats = Array.from(new Set(p.ledger.map((t) => t.category)));
@@ -381,10 +384,30 @@ export function LedgerCard({ p }: { p: Player }) {
     <Card>
       <H sub="Every naira in and out is recorded.">Ledger</H>
       <div className="mb-2 flex gap-1.5">
-        <Btn small tone={view === "summary" ? "gold" : "ghost"} onClick={() => setView("summary")}>Yearly summary</Btn>
-        <Btn small tone={view === "history" ? "gold" : "ghost"} onClick={() => setView("history")}>Transactions</Btn>
+        <Btn small tone={view === "summary" ? "gold" : "ghost"} onClick={() => setView("summary")}>{T("Yearly", "Yearly")}</Btn>
+        <Btn small tone={view === "months" ? "gold" : "ghost"} onClick={() => setView("months")}>{T("Monthly", "Monthly")}</Btn>
+        <Btn small tone={view === "upcoming" ? "gold" : "ghost"} onClick={() => setView("upcoming")}>{T("Upcoming", "Wetin dey come")}</Btn>
+        <Btn small tone={view === "history" ? "gold" : "ghost"} onClick={() => setView("history")}>{T("Transactions", "Transactions")}</Btn>
       </div>
-      {view === "summary" ? (
+      {view === "months" ? (
+        <div className="space-y-2">
+          {monthlySummary(p).length === 0 && <p className="text-sm text-white/60">{T("Nothing recorded yet.", "Nothing dey yet.")}</p>}
+          {monthlySummary(p).map((m) => (
+            <div key={m.key} className="rounded-xl bg-white/5 p-3 text-sm">
+              <div className="flex justify-between"><span className="font-semibold">{T("Age", "Age")} {m.age} · {T("month", "month")} {m.month}</span><span className={m.income - m.expense >= 0 ? "text-emerald-300" : "text-red-300"}>{naira(m.income - m.expense)}</span></div>
+              <div className="text-[11px] text-white/50">{T("In", "In")} {naira(m.income)} · {T("Out", "Out")} {naira(m.expense)}</div>
+              <div className="mt-1 text-[11px] text-white/60">{m.cats.filter((c) => c.amount < 0).sort((a, b) => a.amount - b.amount).slice(0, 3).map((c) => `${c.category} ${naira(-c.amount)}`).join(" · ")}</div>
+            </div>
+          ))}
+        </div>
+      ) : view === "upcoming" ? (
+        <ul className="space-y-1.5">
+          {upcomingPayments(p).length === 0 && <p className="text-sm text-white/60">{T("No scheduled payments.", "No payment dey wait for you.")}</p>}
+          {upcomingPayments(p).map((u, i) => (
+            <li key={i} className="flex justify-between rounded-xl bg-white/5 px-3 py-2 text-sm"><span>{u.label}<span className="block text-[10px] text-white/40">{u.inMonths <= 0 ? T("this month", "this month") : T(`in ${u.inMonths} month${u.inMonths === 1 ? "" : "s"}`, `for ${u.inMonths} month${u.inMonths === 1 ? "" : "s"}`)}</span></span><span className="text-red-300">{naira(u.amount)}</span></li>
+          ))}
+        </ul>
+      ) : view === "summary" ? (
         <div className="space-y-2">
           {years.length === 0 && <p className="text-sm text-white/60">Nothing recorded yet.</p>}
           {years.slice(0, 8).map((y) => (
@@ -855,6 +878,75 @@ export function PrisonCard({ p, run, full }: { p: Player; run: Run; full?: boole
           );
         })}
       </div>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Property market, postgraduate study, headlines
+// ---------------------------------------------------------------------------
+export function PropertyMarketCard({ p, run }: { p: Player; run: Run }) {
+  const [years, setYears] = useState(15);
+  if (p.age < 18) return null;
+  const list = p.listings ?? [];
+  return (
+    <Card>
+      <H sub={T("Existing houses for sale this year. Prices change with condition. Banks need good credit; a parent can co-sign.", "Houses wey dey for sale this year. Price depend on condition. Bank need good credit; parent fit co-sign.")}>{T("Property market", "Property market")}</H>
+      <div className="mb-2 flex items-center gap-1.5 text-xs">{T("Mortgage term", "Mortgage term")}: {[10, 15, 20].map((y) => <Btn key={y} small tone={years === y ? "gold" : "ghost"} onClick={() => setYears(y)}>{y}</Btn>)}</div>
+      <div className="space-y-2">
+        {list.length === 0 && <p className="text-sm text-white/60">{T("No listings right now.", "No house dey for sale now.")}</p>}
+        {list.map((l) => {
+          const mort = l.kind === "land" ? null : mortgageQuote(p, l.kind, years, { price: l.price });
+          const cos = l.kind === "land" ? null : mortgageQuote(p, l.kind, years, { price: l.price, cosign: true });
+          const plan = planQuote(p, l);
+          return (
+            <div key={l.id} className="rounded-xl bg-white/5 p-3">
+              <div className="flex justify-between text-sm"><span className="font-semibold">{HOUSE_KINDS[l.kind].label} · {STATE_BY_ID[l.stateId].name}</span><span className="text-[#f5b82e]">{naira(l.price)}</span></div>
+              <div className="text-[11px] text-white/50">{l.condition === "good" ? T("Good condition", "Good condition") : l.condition === "fair" ? T("Fair, a little worn", "Fair, small wear") : T("Run-down, cheap but worth less", "Run-down, cheap but e worth less")} · {T("worth", "worth")} {naira(l.value)}</div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <Btn small tone="ghost" disabled={Boolean(listingBlock(p, l, "cash"))} onClick={() => run({ t: "property", id: l.id, mode: "cash" })}>{T("Pay cash", "Pay cash")}</Btn>
+                {mort && <Btn small tone="ghost" disabled={Boolean(mort.block)} title={mort.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "mortgage", years })}>{T("Mortgage", "Mortgage")} · {naira(mort.monthly)}/{T("mo", "mo")}</Btn>}
+                {cos && <Btn small tone="ghost" disabled={Boolean(cos.block)} title={cos.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "cosign", years })}>{T("Parent co-signs", "Parent co-sign")} · {naira(cos.monthly)}/{T("mo", "mo")}</Btn>}
+                <Btn small tone="ghost" disabled={Boolean(plan.block)} title={plan.block ?? ""} onClick={() => run({ t: "property", id: l.id, mode: "plan" })}>{T("Rent-to-own plan", "Rent-to-own plan")} · {naira(plan.monthly)}/{T("mo", "mo")}</Btn>
+              </div>
+              {(mort?.block || cos?.block) && <p className="mt-1 text-[10px] text-white/40">{mort?.block}{mort?.block && cos?.block ? " · " : ""}{cos?.block}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+export function PostgradCard({ p, run }: { p: Player; run: Run }) {
+  if (p.edu !== "tertiary" || p.age < 21) return null;
+  if (p.flags.postgrad === "PhD") return <Card><H>{T("Postgraduate study", "Postgraduate study")}</H><p className="text-sm text-white/70">{T("You hold a PhD.", "You don get PhD.")}</p></Card>;
+  return (
+    <Card>
+      <H sub={T("A higher degree raises your pay and your standing.", "Higher degree go raise your pay and respect.")}>{T("Postgraduate study", "Postgraduate study")}</H>
+      {p.flags.postgrad && <p className="mb-2 text-xs text-white/60">{T("Current: Master's degree", "Current: Master's degree")}</p>}
+      <div className="space-y-2">
+        {POSTGRAD.map((d) => {
+          const b = postgradBlock(p, d.id);
+          return (
+            <div key={d.id} className="flex items-center justify-between rounded-xl bg-white/5 p-3">
+              <div className="text-sm"><div className="font-semibold">{T(d.en, d.pcm)}</div><div className="text-[11px] text-white/50">{d.years} {T("yr", "yr")}</div></div>
+              <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "postgrad", id: d.id })}>{b ?? T("Enrol", "Register")}</Btn>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+export function HeadlinesCard({ p }: { p: Player }) {
+  const news = (p.world?.news ?? []).slice(-3).reverse();
+  if (news.length === 0) return null;
+  return (
+    <Card>
+      <H>{T("In the news", "Gist for ground")}</H>
+      <ul className="space-y-1.5">{news.map((n, i) => <li key={i} className="text-xs text-white/75"><span className="text-[#f5b82e]">{T("Age", "Age")} {n.age}:</span> {p.lang === "en" ? n.en : n.pcm}</li>)}</ul>
     </Card>
   );
 }

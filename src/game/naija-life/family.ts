@@ -18,6 +18,18 @@ export const DEFAULT_FAMILY_CONFIG: FamilyConfig = {
   structures: { "two-parent": 56, "single-mother": 14, "single-father": 4, grandparents: 6, relatives: 5, divorced: 8, "parents-abroad": 5, orphan: 2 },
 };
 
+/** Ready-made family mixes for the start screen. */
+export const FAMILY_PRESETS: { id: string; en: string; pcm: string; cfg?: FamilyConfig; force?: FamilyArchetype }[] = [
+  { id: "real", en: "Realistic mix (default)", pcm: "Real life mix (default)" },
+  { id: "rich", en: "Mostly wealthy families", pcm: "Mostly rich family", cfg: { archetypes: { nepo: 22, strictRich: 20, upperMiddle: 25, newlyRich: 12, fallenRich: 6, middle: 10, struggling: 3, lapo: 2 }, structures: DEFAULT_FAMILY_CONFIG.structures } },
+  { id: "poor", en: "Mostly struggling families", pcm: "Mostly poor family", cfg: { archetypes: { nepo: 0, strictRich: 0, upperMiddle: 2, newlyRich: 1, fallenRich: 4, middle: 15, struggling: 38, lapo: 40 }, structures: DEFAULT_FAMILY_CONFIG.structures } },
+  { id: "equal", en: "Equal chance of everything", pcm: "Everything get equal chance", cfg: { archetypes: { nepo: 12, strictRich: 12, upperMiddle: 12, newlyRich: 12, fallenRich: 12, middle: 12, struggling: 12, lapo: 12 }, structures: DEFAULT_FAMILY_CONFIG.structures } },
+  { id: "nepo", en: "Born a nepo baby", pcm: "Born as nepo baby", force: "nepo" },
+  { id: "lapo", en: "Born in a lapo family", pcm: "Born for lapo family", force: "lapo" },
+  { id: "strict", en: "Rich but strict parents", pcm: "Rich but strict parents", force: "strictRich" },
+  { id: "fallen", en: "A family that lost its money", pcm: "Family wey don lose money", force: "fallenRich" },
+];
+
 interface ArchSpec {
   label: string;
   income: [number, number];

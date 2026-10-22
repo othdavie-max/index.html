@@ -1,5 +1,6 @@
 import { STATE_BY_ID } from "./data";
 import { monthIndex, transact } from "./ledger";
+import { businessMultiplier } from "./news";
 import type { Business, EventDef, Player } from "./types";
 import { chance, clamp, naira, rand, uid } from "./util";
 import { I, bump, stateOf } from "./helpers";
@@ -141,7 +142,7 @@ export function businessMonth(p: Player, lines: string[]) {
     const st = STATE_BY_ID[b.stateId];
     const season = k.seasonal ? ([6, 7, 8, 9, 10].includes(p.month) ? 1.9 : 0.45) : p.month === 12 ? 1.25 : p.month === 1 ? 0.85 : 1;
     const demand = 0.55 + st.opp / 9;
-    const mgmt = (b.manager ? 0.88 : 1) * (p.prison > 0 && !b.manager ? 0.3 : 1); // unattended while you are locked up
+    const mgmt = businessMultiplier(p) * (b.manager ? 0.88 : 1) * (p.prison > 0 && !b.manager ? 0.3 : 1); // unattended while you are locked up
     const staffLift = 1 + 0.11 * Math.min(b.staff, b.level * 4);
     const rev = sc(p, k.baseRevenue) * Math.pow(b.level, 1.38) * demand * (b.quality / 60) * staffLift * season * rand(0.62, 1.38) * mgmt;
     const stock = rev * k.stockPct;

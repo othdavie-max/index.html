@@ -2,8 +2,9 @@ import { HOUSE_KINDS } from "./data";
 import { monthIndex, transact } from "./ledger";
 import { previewLoan, takeLoan, type LoanOffer, type LoanPreview } from "./loans";
 import { stateOf, bump } from "./helpers";
+import { capacityOf, primaryProvider, remember } from "./family";
 import type { House, HouseKind, Player } from "./types";
-import { naira, uid } from "./util";
+import { T, naira, uid } from "./util";
 
 const price = (p: Player, kind: HouseKind) => Math.round(HOUSE_KINDS[kind].build * stateOf(p).cost * Math.pow(p.index, 0.95));
 
@@ -22,14 +23,31 @@ export interface MortgageQuote extends LoanPreview {
 }
 
 /** Terms shown to the player before they commit. */
-export function mortgageQuote(p: Player, kind: HouseKind, years: number): MortgageQuote {
-  const pr = price(p, kind);
-  const down = Math.round(pr * (p.credit >= 75 ? 0.2 : 0.3));
+export interface PurchaseOpts {
+  /** Agreed price when buying an existing listing. */
+  price?: number;
+  /** A parent co-signs the loan. */
+  cosign?: boolean;
+}
+
+export function mortgageQuote(p: Player, kind: HouseKind, years: number, opts: PurchaseOpts = {}): MortgageQuote {
+  const pr = opts.price ?? price(p, kind);
+  const cosigner = opts.cosign ? primaryProvider(p) : null;
+  const down = Math.round(pr * (cosigner ? 0.1 : p.credit >= 75 ? 0.2 : 0.3));
   const principal = pr - down;
   const term = Math.min(Math.max(years * 12, OFFER.minTerm), OFFER.maxTerm);
   const prev = previewLoan(p, OFFER, principal, term);
   const income = p.fin.length ? p.fin[p.fin.length - 1].income : 0;
   let block: string | null = null;
+  if (opts.cosign) {
+    if (!cosigner) block = T("No parent or guardian available to co-sign", "Nobody for house fit co-sign");
+    else if (cosigner.closeness < 40 || cosigner.trust < 40) block = T(`${cosigner.name.split(" ")[0]} does not trust you enough to co-sign`, `${cosigner.name.split(" ")[0]} no trust you enough to co-sign`);
+    else if (cosigner.income * p.index * 0.45 < prev.monthly * 12) block = T(`${cosigner.name.split(" ")[0]}'s income is too low to back this loan`, `${cosigner.name.split(" ")[0]} income no reach to back this loan`);
+    else if (p.age < 18) block = T("Mortgages start at age 18 with a co-signer", "Mortgage start from age 18 with co-signer");
+    else if (p.money < down + prev.fee) block = `You need ${naira(down + prev.fee)} for the deposit and fee`;
+    else if (p.loans.some((l) => l.direction === "owed" && l.status === "active" && l.houseId)) block = "You already have a mortgage";
+    return { ...prev, kind, price: pr, down, years: term / 12, apr: OFFER.monthlyRate * 12, block };
+  }
   if (p.age < 21) block = "Mortgages start at age 21";
   else if (kind === "land") block = "Banks do not give mortgages for bare land";
   else if (stateOf(p).abroad) block = "Not available abroad";
@@ -41,8 +59,8 @@ export function mortgageQuote(p: Player, kind: HouseKind, years: number): Mortga
   return { ...prev, kind, price: pr, down, years: term / 12, apr: OFFER.monthlyRate * 12, block };
 }
 
-export function takeMortgage(p: Player, kind: HouseKind, years: number): string {
-  const q = mortgageQuote(p, kind, years);
+export function takeMortgage(p: Player, kind: HouseKind, years: number, opts: PurchaseOpts & { value?: number } = {}): string {
+  const q = mortgageQuote(p, kind, years, opts);
   if (q.block) return q.block;
   transact(p, { amount: -q.down, reason: `Deposit on a ${HOUSE_KINDS[kind].label.toLowerCase()}`, category: "asset" });
   takeLoan(p, OFFER, q.principal, Math.round(q.years * 12));
@@ -50,8 +68,12 @@ export function takeMortgage(p: Player, kind: HouseKind, years: number): string 
   transact(p, { amount: -q.principal, reason: `Bank paid the seller for your ${HOUSE_KINDS[kind].label.toLowerCase()}`, category: "asset" });
   loan.note = `Mortgage on a ${HOUSE_KINDS[kind].label.toLowerCase()}`;
   const hasOwner = p.houses.some((h) => h.state === p.state && h.use === "owner");
-  const h: House = { id: uid(), state: p.state, kind, value: Math.round(q.price * 1.1), use: hasOwner ? "empty" : "owner", loanId: loan.id };
+  const h: House = { id: uid(), state: p.state, kind, value: opts.value ?? Math.round(q.price * 1.1), use: hasOwner ? "empty" : "owner", loanId: loan.id };
   loan.houseId = h.id;
+  if (opts.cosign) {
+    const c = primaryProvider(p);
+    if (c) { loan.cosignerId = c.id; remember(p, c, T("Co-signed your mortgage.", "Co-sign your mortgage."), "good"); c.closeness = Math.min(100, c.closeness + 3); }
+  }
   p.houses.push(h);
   p.prestige += kind === "flats" ? 2 : 1;
   bump(p, "happiness", 6);

@@ -18,6 +18,13 @@ import { CRIME_BY_ID, crimeBlock } from "../crime";
 import { mortgageQuote } from "../mortgage";
 import { MILITARY_EVENTS, boardDue, meritOf } from "../military";
 import { EVENTS6, addCousin } from "../events6";
+import { SUPPORT_EVENTS } from "../support";
+import { KID_EVENTS } from "../kids";
+import { EDU_EVENTS, enrollPostgrad } from "../education";
+import { yearlyNews, modActive } from "../news";
+import { refreshListings, planQuote } from "../property";
+import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
+import { T, setLang } from "../util";
 import { beneficiaries, setShare, planEstate } from "../will";
 import { randomLook } from "../look";
 import { STATE_BY_ID } from "../data";
@@ -135,6 +142,7 @@ test("asking parents and friends records money and creates liabilities for loans
   p.loans.push(loan);
   const before = totalDebt(p);
   assert.ok(before >= 100_000);
+  p.money = Math.max(p.money, 1_000_000 * p.index);
   const paid = repayLoan(p, loan.id, 100_000 + 1);
   assert.ok(paid > 0);
   assert.ok(totalDebt(p) < before);
@@ -203,6 +211,7 @@ test("every money movement over a life is recorded and balances", () => {
 test("rent is charged on a real schedule and not twice", () => {
   const g = aliveAt(24, "middle");
   let q = structuredClone(g);
+  q.p.money = 500_000_000; q.p.prison = 0;
   q = act(q, { t: "rent", tier: "selfcon" }).g;
   assert.equal(q.p.housing.type, "rented");
   q.p.money = 500_000_000;
@@ -693,4 +702,164 @@ test("prison closes outside actions, freezes nothing financial, and offers priso
   }
   assert.ok(cut > 3, `appeals sometimes work (${cut})`);
   assert.ok(free > 0 && free < 40, `escapes sometimes work (${free})`);
+});
+
+test("parent replies need an answer: loans, conditions, questions and chores", () => {
+  const base = structuredClone(aliveAt(21, "upperMiddle"));
+  const ev = SUPPORT_EVENTS[0];
+  const mk = (type: string) => {
+    const p = structuredClone(base.p);
+    p.money = 1_000_000 * p.index;
+    p.actionsLeft = 3;
+    const n = Object.values(p.npcs).find((x) => x.role === "dad" || x.role === "mom")!;
+    return { p, n, d: { npcId: n.id, kind: "pocket", rtype: type, amount: 100_000, text: "reply" } };
+  };
+  const loan = mk("loan"); const before = loan.p.money;
+  ev.choices(loan.p, loan.d)[0].run(loan.p);
+  assert.ok(loan.p.money > before && loan.p.loans.some((l) => l.direction === "owed"), "accepting a loan adds cash and a liability");
+  const decl = mk("loan"); ev.choices(decl.p, decl.d)[1].run(decl.p);
+  assert.equal(decl.p.loans.length, base.p.loans.length, "declining takes nothing");
+  const cond = mk("conditional"); const c0 = cond.p.money; ev.choices(cond.p, cond.d)[0].run(cond.p);
+  assert.ok(cond.p.money > c0);
+  let lieOk = 0, lieCaught = 0;
+  for (let s = 1; s <= 60; s++) { const x = mk("askPurpose"); setSeed(s); const m0 = x.p.money; ev.choices(x.p, x.d)[1].run(x.p); if (x.p.money > m0) lieOk++; else lieCaught++; }
+  assert.ok(lieOk > 10 && lieCaught > 5, `lying sometimes works (${lieOk}/${lieCaught})`);
+  const work = mk("workForIt"); const w0 = work.p.money; const a0 = work.p.actionsLeft;
+  ev.choices(work.p, work.d)[0].run(work.p);
+  assert.ok(work.p.money > w0 && work.p.actionsLeft === a0 - 1, "chores pay and cost an action");
+  // asking through the game queues the follow-up instead of resolving silently
+  let queued = 0;
+  for (let s = 1; s <= 80; s++) {
+    const g = structuredClone(base); g.p.age = 20; setSeed(s);
+    const n = Object.values(g.p.npcs).find((x) => x.role === "dad" || x.role === "mom")!;
+    const r = act(g, { t: "ask", npc: n.id, kind: "loan", amount: 500_000 * g.p.index });
+    if (r.g.queue[0]?.kind === "event" && r.g.queue[0].id === "support_reply") queued++;
+  }
+  assert.ok(queued > 3, `some replies need an answer (${queued})`);
+});
+
+test("world news changes the economy for a while and is shown to the player", () => {
+  const g = structuredClone(aliveAt(30));
+  const p = g.p;
+  let seen = 0;
+  for (let s = 1; s <= 200 && seen < 3; s++) { setSeed(s); const lines: string[] = []; const before = p.world?.news.length ?? 0; yearlyNews(p, lines); if ((p.world?.news.length ?? 0) > before) seen++; p.age += 1; }
+  assert.ok(seen >= 1, "headlines occur");
+  const q = structuredClone(aliveAt(30)).p;
+  q.world = { until: { fuel: q.age + 1 }, news: [{ age: q.age, en: "Fuel up", pcm: "Fuel up" }] };
+  assert.ok(modActive(q, "fuel"));
+  assert.ok(notificationsFor(q).some((n) => n.text === "Fuel up"));
+  q.world.until.fuel = q.age - 1;
+  assert.equal(modActive(q, "fuel"), false);
+});
+
+test("postgraduate study, boarding school and kids events", () => {
+  const p = structuredClone(aliveAt(26)).p;
+  p.edu = "tertiary"; p.school = null; p.prison = 0; delete p.flags.postgrad;
+  assert.ok(enrollPostgrad(p, "phd").length > 0 && p.school === null, "PhD needs a Master's first");
+  enrollPostgrad(p, "masters");
+  assert.equal((p.school as { type: string } | null)?.type, "postgrad");
+  let g: Game = { ...structuredClone(aliveAt(26)), p };
+  g.p.money = 500_000_000 * g.p.index;
+  g = resolveAll(ageUp(g));
+  assert.equal(g.p.school, null);
+  assert.equal(g.p.flags.postgrad, "Masters");
+  const boarding = EDU_EVENTS.find((e) => e.id === "boarding_choice")!;
+  const kid = structuredClone(aliveAt(10)).p;
+  boarding.choices(kid, {})[1].run(kid);
+  assert.equal(kid.flags.boarding, true);
+  const dad = Object.values(kid.npcs).find((n) => n.role === "dad" || n.role === "mom")!;
+  assert.ok(dad.closeness >= 0);
+  const parent = structuredClone(aliveAt(40)).p;
+  parent.kids = [{ name: "Tola", age: 9, gender: "female", look: parent.look }, { name: "Seun", age: 22, gender: "male", look: parent.look }];
+  parent.money = 500_000_000 * parent.index;
+  for (const e of KID_EVENTS) {
+    assert.ok(e.weight(parent) > 0, `${e.id} can occur`);
+    const q = structuredClone(parent);
+    const d = e.init?.(q) ?? {};
+    const c0 = q.money;
+    const ch = e.choices(q, d);
+    ch[0].run(q);
+    assert.ok(q.money <= c0 + 1, `${e.id}: first choice does not create money`);
+    assert.ok(ledgerBalances(q));
+  }
+  assert.equal(KID_EVENTS.find((e) => e.id === "kid_asks_money")!.weight(structuredClone({ ...parent, kids: [parent.kids[0]] })), 0);
+});
+
+test("property market: cash, mortgage, parent co-sign and payment plan", () => {
+  const g = structuredClone(aliveAt(30, "upperMiddle"));
+  const p = g.p;
+  p.prison = 0; p.credit = 80; p.loans = []; p.debt = 0;
+  p.fin.push({ age: p.age - 1, income: 90_000_000 * p.index, expense: 1, borrowed: 0, cats: {} });
+  refreshListings(p);
+  assert.ok(p.listings!.length >= 3);
+  const l = p.listings!.find((x) => x.kind !== "land")!;
+  p.money = l.price * 3;
+  const cash = structuredClone(g);
+  cash.p.listings = p.listings; cash.p.money = p.money;
+  const r = act(cash, { t: "property", id: l.id, mode: "cash" });
+  assert.equal(r.g.p.houses.length, cash.p.houses.length + 1);
+  assert.ok(r.g.p.money <= p.money - l.price + 1);
+  assert.ok(!r.g.p.listings!.some((x) => x.id === l.id), "a bought listing leaves the market");
+  const mort = structuredClone(g); mort.p.listings = p.listings; mort.p.money = p.money;
+  const rm = act(mort, { t: "property", id: l.id, mode: "mortgage", years: 15 });
+  assert.ok(rm.g.p.loans.some((x) => x.houseId), rm.msg);
+  const cs = structuredClone(g); cs.p.listings = p.listings; cs.p.money = l.price * 0.2;
+  const prov = Object.values(cs.p.npcs).find((n) => n.role === "dad" || n.role === "mom" || n.role === "guardian")!;
+  prov.closeness = 90; prov.trust = 90; prov.income = 500_000_000;
+  const rc = act(cs, { t: "property", id: l.id, mode: "cosign", years: 15 });
+  const cl = rc.g.p.loans.find((x) => x.houseId);
+  assert.ok(cl && cl.cosignerId, rc.msg);
+  const plan = planQuote(p, l);
+  assert.ok(plan.interest > 0 && plan.months === 36);
+  const pl = structuredClone(g); pl.p.listings = p.listings; pl.p.money = l.price * 0.3;
+  const rp = act(pl, { t: "property", id: l.id, mode: "plan" });
+  assert.ok(rp.g.p.loans.some((x) => x.houseId && x.lenderType === "other"), rp.msg);
+  assert.ok(ledgerBalances(rp.g.p) && ledgerBalances(rm.g.p) && ledgerBalances(rc.g.p));
+  // default on a co-signed loan hurts the parent
+  const bad = structuredClone(rc.g); const bl = bad.p.loans.find((x) => x.houseId)!;
+  bl.missed = 3; bl.monthly = bl.balance * 50; bad.p.money = 0;
+  const cid = bl.cosignerId!; const c0 = bad.p.npcs[cid].closeness;
+  const after = resolveAll(ageUp(bad));
+  assert.ok(after.p.npcs[cid].closeness < c0, "the co-signer pays the price");
+});
+
+test("ledger views: monthly summary, upcoming payments and alerts", () => {
+  const g = aliveAt(28);
+  const p = structuredClone(g.p);
+  assert.ok(monthlySummary(p).length > 0);
+  const rows = monthlySummary(p);
+  for (let i = 1; i < rows.length; i++) assert.ok(rows[i - 1].key > rows[i].key, "newest month first");
+  p.housing = { type: "rented", stateId: p.state, annualRent: 1_000_000, paidUntil: p.age * 12 + p.month + 3, arrears: 0, landlord: "selfcon" };
+  assert.ok(upcomingPayments(p).some((u) => /rent/i.test(u.label) && u.inMonths === 3));
+  p.housing.arrears = 2;
+  assert.ok(notificationsFor(p).some((n) => n.level === "red"));
+});
+
+test("two languages: every legacy and new event has English and Pidgin text, and play never breaks in either", () => {
+  const sample = structuredClone(aliveAt(34));
+  const diff = new Set<string>();
+  for (const lang of ["en", "pcm"] as const) {
+    for (let s = 1; s <= 6; s++) {
+      setSeed(s);
+      let g = newGame({ ...OPTS, lang });
+      for (let y = 0; y < 60 && g.p.alive; y++) {
+        g = ageUp(g);
+        for (let k = 0; k < 40 && g.queue.length; k++) {
+          const head = g.queue[0];
+          if (head.kind === "kidnap") { g = resolveAll(g); continue; }
+          const v = describePending(g);
+          if (!v) break;
+          assert.ok(v.title && v.text, `${head.id} has a title and text in ${lang}`);
+          assert.ok(!/\[object Object\]|undefined/.test(v.title + v.text + v.choices.map((c) => c.label).join(" ")), `${head.id} text has no leaks in ${lang}`);
+          if (lang === "en") diff.add(`${head.id}`);
+          g = choose(g, Math.max(0, v.choices.findIndex((c) => !c.disabled))).g;
+        }
+        assert.equal(g.p.lang, lang);
+      }
+    }
+  }
+  assert.ok(diff.size > 15, "many distinct events were exercised");
+  setLang("en"); const e = T("Hello", "Howfa"); setLang("pcm"); const c = T("Hello", "Howfa");
+  assert.equal(e, "Hello"); assert.equal(c, "Howfa");
+  void sample;
 });

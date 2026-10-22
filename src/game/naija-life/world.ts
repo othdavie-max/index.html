@@ -45,6 +45,7 @@ export function initWorld(p: Player, st: StateInfo, cfg: FamilyConfig = DEFAULT_
 
 /** Old saves had no NPCs or ledger. Fill everything in without losing progress. */
 export function migrateWorld(p: Player) {
+  if (!p.world) p.world = { until: {}, news: [] };
   if (typeof p.month !== "number") p.month = 12;
   if (!p.ledger) p.ledger = [];
   if (typeof p.txCount !== "number") p.txCount = p.ledger.length;

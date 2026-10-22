@@ -94,12 +94,31 @@ export interface Politics {
   defected: boolean;
 }
 
+export interface Listing {
+  id: string;
+  stateId: string;
+  kind: HouseKind;
+  condition: "good" | "fair" | "rundown";
+  price: number;
+  /** What the house is worth once you own it. */
+  value: number;
+}
+
+export interface WorldState {
+  /** Condition name -> last age it is in force. */
+  until: Record<string, number>;
+  news: { age: number; en: string; pcm: string }[];
+}
+
 export interface Kid {
   name: string;
   age: number;
   gender: Gender;
   look?: Look;
   otherParentId?: string;
+  /** How close you are to this child, 0-100. */
+  closeness?: number;
+  smarts?: number;
 }
 
 export interface LogEntry {
@@ -137,6 +156,8 @@ export interface Player {
   look: Look;
   /** Hidden fortune stat, 0-100. Shapes windfalls and disasters. */
   luck: number;
+  world?: WorldState;
+  listings?: Listing[];
   /** Language the game is told in. */
   lang: "en" | "pcm";
   /** Month within the current age year, 1-12. */
@@ -309,6 +330,8 @@ export interface Loan {
   lastCharged: number;
   /** House that secures this loan (mortgage). */
   houseId?: string;
+  /** NPC who co-signed this loan and pays the price if you default. */
+  cosignerId?: string;
   note?: string;
 }
 

@@ -11,6 +11,8 @@ import { SOCIAL_JOBS, socialMonth } from "./social";
 import { marketMonth, yearlyUpkeep } from "./lifestyle";
 import { ownsPersonalCar, vehicleMonth } from "./vehicles";
 import type { Pending, Player } from "./types";
+import { costMultiplier, payMultiplier } from "./news";
+import { degreeBonus } from "./education";
 import { chance, clamp, naira, rand } from "./util";
 
 export interface MonthCtx {
@@ -36,7 +38,7 @@ export function monthlyLiving(p: Player) {
   const kids = 1 + 0.2 * Math.min(p.kids.length, 4);
   const lifestyle = clamp(1 + Math.max(0, netWorthReal(p)) / 45_000_000 * 0.6, 1, 2.2);
   const withFamily = p.housing.type === "family";
-  const base = (420_000 * st.cost * Math.pow(p.index, 0.95) * kids * lifestyle) / 12 * (withFamily ? 0.45 : 1);
+  const base = (420_000 * st.cost * costMultiplier(p) * Math.pow(p.index, 0.95) * kids * lifestyle) / 12 * (withFamily ? 0.45 : 1);
   return {
     food: base * 0.42,
     transport: base * 0.17,
@@ -53,8 +55,9 @@ export function schoolFeeFor(p: Player): number {
   if (st === "tertiary") {
     if (p.school.type === "polytechnic") fee = 140_000;
     else if (p.school.type === "vocational") fee = 250_000;
+    else if (p.school.type === "postgrad") fee = p.flags.postgradTrack === "phd" ? 450_000 : 700_000;
     else fee = SCHOOL_FEES.tertiary[(p.flags.schoolType as SchoolType) ?? "public"];
-  } else fee = SCHOOL_FEES[st][(p.flags.schoolType as SchoolType) ?? "public"];
+  } else fee = SCHOOL_FEES[st][(p.flags.schoolType as SchoolType) ?? "public"] * (st === "secondary" && p.flags.boarding ? 1.6 : 1);
   return fee * Math.pow(p.index, 0.92) * (p.flags.scholarship ? 0.3 : 1);
 }
 
@@ -243,6 +246,6 @@ export function annualPay(p: Player): number {
   const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
   const volatility = j.group === "formal" ? rand(0.92, 1.08) : rand(0.8, 1.2);
   const pay = rung.pay * PAY_SCALE[j.group] * payMult(j, st) * Math.pow(p.index, j.group === "formal" ? 0.86 : 0.92) * volatility;
-  const skilled = pay * (1 + skillPayBonus(p, j.id));
+  const skilled = pay * (1 + skillPayBonus(p, j.id)) * payMultiplier(p) * degreeBonus(p);
   return p.flags.investorShare ? skilled * 0.88 : skilled;
 }

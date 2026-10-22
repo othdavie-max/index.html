@@ -1,7 +1,7 @@
 import { remember } from "./family";
 import { transact } from "./ledger";
 import type { Loan, Npc, Pending, Player } from "./types";
-import { chance, clamp, naira, rand, uid } from "./util";
+import { T, chance, clamp, naira, rand, uid } from "./util";
 
 const idxNow = (p: Player) => p.age * 12 + p.month;
 
@@ -181,7 +181,9 @@ export function processLoansMonth(p: Player, lines: string[], pending: Pending[]
           loan.balance = 0;
           if (loan.houseId) {
             const hi = p.houses.findIndex((h) => h.id === loan.houseId);
-            if (hi >= 0) { p.houses.splice(hi, 1); lines.push("The bank repossessed your house."); p.stats.happiness = clamp(p.stats.happiness - 15); }
+            if (hi >= 0) { p.houses.splice(hi, 1); lines.push(T("The bank repossessed your house.", "Bank don take your house.")); p.stats.happiness = clamp(p.stats.happiness - 15); }
+            const cs = loan.cosignerId ? p.npcs[loan.cosignerId] : null;
+            if (cs) { cs.closeness = clamp(cs.closeness - 30); cs.trust = clamp(cs.trust - 30); remember(p, cs, T("Was left to deal with the bank after you defaulted on a loan they co-signed.", "Bank come meet dem after you default for the loan wey dem co-sign."), "bad"); lines.push(T(`${cs.name.split(" ")[0]} was dragged into your default and is furious.`, `${cs.name.split(" ")[0]} enter your default wahala and e vex well well.`)); }
           }
           for (const n of Object.values(p.npcs)) if (n.role === "friend" && chance(0.25)) { n.trust = clamp(n.trust - 4); }
         }

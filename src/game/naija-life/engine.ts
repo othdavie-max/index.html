@@ -7,6 +7,11 @@ import { AUTOS3, EVENTS3 } from "./events3";
 import { EVENTS4 } from "./events4";
 import { EVENTS5, graduationData } from "./events5";
 import { EVENTS6 } from "./events6";
+import { KID_EVENTS } from "./kids";
+import { buyListing, refreshListings, type PurchaseMode } from "./property";
+import { EDU_EVENTS, enrollPostgrad, finishPostgrad } from "./education";
+import { yearlyNews } from "./news";
+import { SUPPORT_EVENTS, yearlyPromises } from "./support";
 import { PRISON_EVENTS, fugitiveYear, prisonBlock, prisonOp } from "./prison";
 import { MILITARY_EVENTS, SERVICE_JOBS, boardDue } from "./military";
 import { HEALTH_EVENTS, developCondition, yearlyHealth } from "./health";
@@ -43,7 +48,7 @@ import { kidLook, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -87,6 +92,7 @@ export function migrate(g: Game): Game {
   if (p.spouse && !p.spouse.look) p.spouse.look = randomLook(p.gender === "male" ? "female" : "male", { region });
   for (const k of p.kids) if (!k.look) k.look = kidLook(p.gender === "male" ? p.look : p.spouse?.look, p.gender === "female" ? p.look : p.spouse?.look, k.gender);
   migrateWorld(p);
+  if (!p.listings) refreshListings(p);
   syncLegacyFamily(p);
   return g;
 }
@@ -465,13 +471,16 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
     p.edu = "primary";
     p.school = { stage: "secondary", yearsLeft: 6, type: "school" };
     assignSchoolType(p);
-    lines.push("You pass Common Entrance and start secondary school.");
+    lines.push(T("You pass Common Entrance and start secondary school.", "You pass Common Entrance and start secondary school."));
+    pending.push({ kind: "event", id: "boarding_choice", data: {} });
   } else if (stage === "secondary") {
     p.edu = "secondary";
     lines.push("You finish secondary school. WAEC result don come out.");
     pending.push({ kind: "event", id: "jamb", data: {} });
   } else if (stage === "tertiary" && prevType === "vocational") {
     lines.push(finishTrade(p));
+  } else if (stage === "tertiary" && prevType === "postgrad") {
+    lines.push(finishPostgrad(p));
   } else {
     p.edu = "tertiary";
     lines.push(`You graduate${p.course ? ` with degree in ${p.course}` : ""}. Your family throw small party.`);
@@ -541,6 +550,9 @@ export function ageUp(g0: Game): Game {
     if (p.age >= 14 && fy && (fy.income > 0 || fy.expense > 0)) lines.push(`Money this year: ${naira(fy.income)} in, ${naira(fy.expense)} out.`);
   }
   yearlyWorld(p, lines, pending);
+  yearlyPromises(p, lines);
+  yearlyNews(p, lines);
+  refreshListings(p);
   yearlyHealth(p, lines, pending);
   yearlyRelationships(p, lines, pending);
   yearlyCrime(p, lines, pending);
@@ -745,6 +757,8 @@ export type Action =
   | { t: "enlist"; branch?: "army" | "navy" | "airforce" }
   | { t: "mortgage"; kind: HouseKind; years: number }
   | { t: "trade"; id: string }
+  | { t: "postgrad"; id: string }
+  | { t: "property"; id: string; mode: PurchaseMode; years?: number }
   | { t: "buy"; item: "phone" | "smartphone" | "laptop" };
 
 export interface ActivityDef {
@@ -799,6 +813,8 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "prison": return { reason: "Prison", category: "other" };
     case "mortgage": return { reason: "Mortgage", category: "asset" };
     case "trade": return { reason: "Vocational training", category: "education" };
+    case "postgrad": return { reason: "Postgraduate study", category: "education" };
+    case "property": return { reason: "Property purchase", category: "asset" };
     case "sell": return { reason: "Sold property", category: "asset" };
     case "use": return { reason: "Property change", category: "asset" };
     case "send": return { reason: "Money sent home", category: "family" };
@@ -923,6 +939,8 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "prison": return out(prisonOp(p, a.op));
     case "mortgage": { if (p.prison > 0) return { g: g0, msg: "" }; const m = takeMortgage(p, a.kind, a.years); return out(m); }
     case "trade": return out(enrollTrade(p, a.id));
+    case "postgrad": return out(enrollPostgrad(p, a.id));
+    case "property": { const m = buyListing(p, a.id, a.mode, a.years ?? 15); return out(m); }
     case "sell": {
       const i = p.houses.findIndex((h) => h.id === a.id);
       if (i < 0) return { g: g0, msg: "" };
@@ -1041,8 +1059,14 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           const spec = SUPPORT_KINDS[a.kind];
           if (!spec || p.age < spec.minAge) return { g: g0, msg: "You are too young to ask for that." };
           const reply = evaluateSupport(p, n, a.kind, a.amount);
-          const msg = applySupport(p, n, a.kind, reply);
-          return out(msg);
+          if (reply.type === "full" || reply.type === "partial" || reply.type === "refuse") return out(applySupport(p, n, a.kind, reply));
+          n.asks += 1;
+          if (reply.type === "later") {
+            if (chance(0.6)) p.flags[`promise_${n.id}_${a.kind}`] = reply.amount > 0 ? reply.amount : a.amount;
+            return out(reply.text);
+          }
+          g.queue.unshift({ kind: "event", id: "support_reply", data: { npcId: n.id, kind: a.kind, rtype: reply.type, amount: Math.round(reply.amount), text: reply.text, month: p.month } });
+          return out(reply.text);
         }
         case "borrow": {
           const n = p.npcs[a.npc];

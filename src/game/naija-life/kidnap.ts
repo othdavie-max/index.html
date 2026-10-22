@@ -1,3 +1,4 @@
+import { kidnapMultiplier } from "./news";
 import { STATE_BY_ID } from "./data";
 import { bizValue } from "./business";
 import { receivables, totalDebt } from "./loans";
@@ -35,6 +36,7 @@ export function kidnapRisk(p: Player): number {
   else if (worth > 20_000_000) r *= 1.6;
   else if (worth > 2_000_000) r *= 1.2;
   if (p.traveled) r *= 2.2;
+  r *= kidnapMultiplier(p);
   if (p.flags.own_bodyguards) r *= 0.55;
   if (p.flags.own_convoy) r *= 0.6;
   if (p.flags.own_jet) r *= 0.4;

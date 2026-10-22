@@ -1,3 +1,4 @@
+import { modActive } from "./news";
 import { applySupport, evaluateSupport, primaryProvider } from "./family";
 import { I, bump, stateOf } from "./helpers";
 import { monthIndex, transact } from "./ledger";
@@ -42,7 +43,7 @@ export function treatmentCost(p: Player, cond: Condition, f: Facility): { total:
 }
 
 export function facilitiesFor(p: Player, cond: Condition): Facility[] {
-  return FACILITIES.filter((f) => f.maxSeverity >= cond.severity && (!cond.needsSurgery || f.surgery));
+  return FACILITIES.filter((f) => f.maxSeverity >= cond.severity && (!cond.needsSurgery || f.surgery) && !(f.id === "gov" && modActive(p, "strike")));
 }
 
 // ---------------------------------------------------------------------------
