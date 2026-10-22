@@ -761,13 +761,34 @@ function Person({ look, gender, age, label, sub, dim }: { look: Look; gender: Ge
 }
 
 function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [sub, setSub] = useState<"people" | "love" | "will">("people");
+  const [sub, setSub] = useState<"people" | "love" | "will" | "awards" | null>(null);
   const fam = STATE_BY_ID[p.family.state];
   const gifts = [100_000, 500_000, 2_000_000, 10_000_000];
   const luckWord = p.luck >= 65 ? T("Born under a lucky star", "Luck dey your side") : p.luck <= 35 ? T("Life no easy for you", "Life no easy for you") : T("Fortune is neutral", "Luck dey middle");
   return (
     <>
-      <SubTabs value={sub} onChange={setSub} tabs={[{ id: "people", label: T("My people", "My people") }, { id: "love", label: T("Love life", "Love life") }, ...(p.age >= 18 ? [{ id: "will" as const, label: T("Will", "Will") }] : [])]} />
+      {sub === null && (
+        <div className="space-y-4">
+          <section>
+            <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Family", "Family")}</h2>
+            <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+              {[
+                { id: "people" as const, emoji: "👨‍👩‍👧", tile: "bg-sky-100", name: T("My people", "My people"), desc: T(`${p.kids.length} child${p.kids.length === 1 ? "" : "ren"} · family happiness ${Math.round(p.family.happy)}%`, `${p.kids.length} pikin · family happiness ${Math.round(p.family.happy)}%`) },
+                { id: "love" as const, emoji: "❤️", tile: "bg-rose-100", name: T("Love life", "Love life"), desc: p.spouse ? T(`Married to ${p.spouse.name}`, `You marry ${p.spouse.name}`) : p.flags.dating ? T(`Dating ${String(p.flags.dating)}`, `You dey date ${String(p.flags.dating)}`) : T("Dating, marriage and children", "Dating, marriage and pikin") },
+                ...(p.age >= 18 ? [{ id: "will" as const, emoji: "📜", tile: "bg-amber-100", name: T("Will", "Will"), desc: T("Decide who gets what", "Decide who go get wetin") }] : []),
+                { id: "awards" as const, emoji: "🏆", tile: "bg-violet-100", name: T("Achievements", "Achievements"), desc: T(`${p.achievements.length} earned`, `${p.achievements.length} don win`) },
+              ].map((r) => (
+                <button key={r.id} type="button" onClick={() => setSub(r.id)} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition active:bg-slate-50">
+                  <span className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[24px]", r.tile)}>{r.emoji}</span>
+                  <span className="min-w-0 flex-1"><span className="block text-[15px] font-extrabold leading-tight text-[#0b2a6b]">{r.name}</span><span className="block truncate text-[12px] leading-snug text-slate-500">{r.desc}</span></span>
+                  <span className="shrink-0 text-xl font-black text-blue-500">›</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+      {sub !== null && <button type="button" onClick={() => setSub(null)} className="mb-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm ring-1 ring-slate-200">‹ {T("Family", "Family")}</button>}
       {sub === "people" && (<>
       <Card>
         <H>{T("Your people", "Your people")}</H>
@@ -791,6 +812,8 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         </div>
       </Card>
       <PeopleCard p={p} run={run} />
+      </>)}
+      {sub === "awards" && (<>
       <Card>
         <H>{T("Achievements", "Achievements")}</H>
         {p.achievements.length === 0 ? <p className="text-sm text-slate-500">{T("None yet.", "Nothing yet.")}</p> : <div className="flex flex-wrap gap-1.5">{p.achievements.map((a) => <Badge key={a} tone="gold">{a}</Badge>)}</div>}
