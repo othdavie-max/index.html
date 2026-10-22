@@ -6,14 +6,18 @@ import { T, chance, clamp, dual, naira, pick, rand, randInt, uid } from "./util"
 /** Careers whose income comes from followers, not a salary ladder. */
 export const SOCIAL_JOBS = ["creator", "tiktoker", "influencer", "youtuber", "streamer", "fitness"];
 
-export const PLATFORMS: { id: Platform; label: string; blurb: string; payoutPer1k: number; minAge: number }[] = [
-  { id: "gram", get label() { return T("Gram", "Gram"); }, get blurb() { return T("Photos, reels and brand deals. No payouts, but sponsors love it.", "Photo, reels and brand deals. Dem no dey pay you directly, but sponsors dey love am."); }, payoutPer1k: 0, minAge: 13 },
-  { id: "toktik", get label() { return T("TokTik", "TokTik"); }, get blurb() { return T("Short videos and trends. A small creator fund.", "Short videos and trends. Small creator fund dey."); }, payoutPer1k: 900, minAge: 13 },
-  { id: "vidtube", get label() { return T("VidTube", "VidTube"); }, get blurb() { return T("Long videos. The best ad revenue, and the slowest growth.", "Long videos. Ad money best here, but followers dey grow slow."); }, payoutPer1k: 2200, minAge: 13 },
+export type ContentKind = "photo" | "skit" | "music" | "vlog" | "fitness" | "live" | "trend" | "prank" | "thread" | "hottake" | "tutorial" | "market" | "group";
+
+/** Real platform names. Ids stay the same so old saves keep working. */
+export const PLATFORMS: { id: Platform; label: string; blurb: string; payoutPer1k: number; minAge: number; viral: number; content: ContentKind[] }[] = [
+  { id: "gram", get label() { return T("Instagram", "Instagram"); }, get blurb() { return T("Photos, reels and brand deals. No payouts, but sponsors love it.", "Photo, reels and brand deals. Dem no dey pay you directly, but sponsors dey love am."); }, payoutPer1k: 0, minAge: 13, viral: 1, content: ["photo", "trend", "fitness", "vlog", "music"] },
+  { id: "toktik", get label() { return T("TikTok", "TikTok"); }, get blurb() { return T("Short videos and trends. Fast growth, a small creator fund.", "Short videos and trends. Followers dey grow fast, small creator fund dey."); }, payoutPer1k: 900, minAge: 13, viral: 1.25, content: ["skit", "trend", "music", "prank", "fitness", "live"] },
+  { id: "vidtube", get label() { return T("YouTube", "YouTube"); }, get blurb() { return T("Long videos. The best ad revenue, and the slowest growth.", "Long videos. Ad money best here, but followers dey grow slow."); }, payoutPer1k: 2200, minAge: 13, viral: 0.7, content: ["vlog", "tutorial", "music", "skit", "live"] },
+  { id: "facebook", get label() { return T("Facebook", "Facebook"); }, get blurb() { return T("Pages, groups and Marketplace. Slow to go viral, but great for selling and for reaching older people.", "Pages, groups and Marketplace. E no dey viral fast, but e good for selling and for reaching older people."); }, payoutPer1k: 400, minAge: 13, viral: 0.8, content: ["photo", "vlog", "live", "market", "group"] },
+  { id: "twitter", get label() { return T("Twitter", "Twitter"); }, get blurb() { return T("Threads, hot takes and debates. Big reach, big wahala. Good for reputation and politics.", "Threads, hot takes and debates. Big reach, big wahala. E good for reputation and politics."); }, payoutPer1k: 150, minAge: 13, viral: 1.1, content: ["thread", "hottake", "trend", "live", "photo"] },
 ];
 const PLATFORM_BY_ID = Object.fromEntries(PLATFORMS.map((x) => [x.id, x])) as Record<Platform, (typeof PLATFORMS)[number]>;
 
-export type ContentKind = "photo" | "skit" | "music" | "vlog" | "fitness" | "live" | "trend" | "prank";
 export const CONTENT: { id: ContentKind; label: string; cost: number; viral: number; edge: number }[] = [
   { id: "photo", get label() { return T("Photo set", "Photo set"); }, cost: 2_000, viral: 0.8, edge: 0.01 },
   { id: "skit", get label() { return T("Comedy skit", "Comedy skit"); }, cost: 8_000, viral: 1.2, edge: 0.03 },
@@ -23,6 +27,11 @@ export const CONTENT: { id: ContentKind; label: string; cost: number; viral: num
   { id: "live", get label() { return T("Livestream", "Live stream"); }, cost: 3_000, viral: 0.7, edge: 0.03 },
   { id: "trend", get label() { return T("Join a viral trend", "Join one viral trend"); }, cost: 4_000, viral: 1.5, edge: 0.04 },
   { id: "prank", get label() { return T("Risky prank", "Risky prank"); }, cost: 10_000, viral: 2.4, edge: 0.2 },
+  { id: "thread", get label() { return T("Write a thread", "Write thread"); }, cost: 1_000, viral: 1.1, edge: 0.05 },
+  { id: "hottake", get label() { return T("Post a hot take", "Post hot take"); }, cost: 500, viral: 2.0, edge: 0.25 },
+  { id: "tutorial", get label() { return T("Tutorial or explainer", "Tutorial or explainer"); }, cost: 12_000, viral: 0.8, edge: 0.01 },
+  { id: "market", get label() { return T("List on Marketplace", "List for Marketplace"); }, cost: 1_500, viral: 0.3, edge: 0 },
+  { id: "group", get label() { return T("Grow your group", "Grow your group"); }, cost: 2_000, viral: 0.4, edge: 0.01 },
 ];
 
 export function newSocial(p: Player): SocialState {
@@ -66,6 +75,8 @@ export function postBlock(p: Player, plat: Platform, kind: ContentKind): string 
   if (!p.social?.accounts[plat]) return T("Create the account first", "Open the account first");
   if (p.social.postsLeft <= 0) return T("No time to post more this year", "You no get time to post more this year");
   const c = CONTENT.find((x) => x.id === kind);
+  if (!PLATFORM_BY_ID[plat].content.includes(kind)) return T("Not made for this platform", "E no fit this platform");
+  if (kind === "tutorial" && p.social.skill < 20) return T("Build your skill first", "Build your skill first");
   if (c && p.money < I(p, c.cost)) return T("Not enough cash", "Cash no reach");
   return null;
 }
@@ -85,7 +96,7 @@ export function post(p: Player, plat: Platform, kind: ContentKind): string {
   const base = 18 + Math.pow(acc.followers, 0.55);
   let gain = base * (0.4 + score / 60);
   let msg = "";
-  if (chance(clamp((0.012 + s.skill / 3000 + luckBonus(p) / 25) * c.viral, 0, 0.3))) {
+  if (chance(clamp((0.012 + s.skill / 3000 + luckBonus(p) / 25) * c.viral * PLATFORM_BY_ID[plat].viral, 0, 0.3))) {
     gain *= rand(10, 80);
     msg = T(" It goes VIRAL.", " E go VIRAL!");
     s.brand = clamp(s.brand + 10);
@@ -95,6 +106,16 @@ export function post(p: Player, plat: Platform, kind: ContentKind): string {
     msg = T(" Barely anyone watches.", " Almost nobody watch am.");
   }
   gain = Math.round(gain);
+  if (kind === "market") {
+    const sale = Math.round(I(p, rand(8_000, 60_000)) * Math.pow(Math.max(acc.followers, 50) / 1000, 0.4) * (0.6 + p.stats.smarts / 150));
+    transact(p, { amount: sale, reason: T("Facebook Marketplace sale", "Facebook Marketplace sale"), category: "social" });
+    acc.followers += Math.round(gain * 0.3);
+    return T(`Your Marketplace listing sells for ${naira(sale)}. Buyers ask if the price is last.`, `Your Marketplace listing sell for ${naira(sale)}. Buyers dey ask if na last price.`);
+  }
+  if (kind === "group") { acc.engagement = clamp(acc.engagement + 0.006, 0.015, 0.12); gain = Math.round(gain * 0.6); }
+  if (kind === "tutorial") { acc.engagement = clamp(acc.engagement + 0.004, 0.015, 0.12); s.skill = clamp(s.skill + 1.2, 0, 100); }
+  if (plat === "twitter" && kind === "thread" && acc.followers > 3000) { bump(p, "connections", 1); bump(p, "reputation", 1); }
+  if (plat === "twitter" && kind === "hottake") bump(p, "reputation", chance(0.5) ? 1 : -1);
   acc.followers += gain;
   acc.engagement = clamp(acc.engagement + (score > 60 ? 0.003 : -0.001), 0.015, 0.12);
   s.skill = clamp(s.skill + 0.8, 0, 100);

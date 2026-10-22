@@ -11,7 +11,7 @@ import { borrowFrom, lenderOffers, previewLoan, repayLoan, takeLoan, totalDebt }
 import { eligible } from "../eligibility";
 import { FACILITIES, developCondition, treatmentCost } from "../health";
 import { createProfile, datingAllowed, intimacyBlock, refreshDeck, swipe } from "../relationships";
-import { createAccount, post, totalFollowers } from "../social";
+import { PLATFORMS, createAccount, post, totalFollowers } from "../social";
 import { invest, divest, marketMonth } from "../lifestyle";
 import { buyVehicle, sellVehicle } from "../vehicles";
 import { CRIME_BY_ID, crimeBlock } from "../crime";
@@ -1057,4 +1057,21 @@ test("business mini-game: small kinds, policies, hiring and firing real people",
   assert.ok(noNaN(gg.p) && ledgerBalances(gg.p));
   // firing removes the person
   if (after?.crew?.length) { const d = act(gg, { t: "biz", op: "dismiss", id: b0.id, worker: after.crew[0].id }); assert.equal(d.g.p.businesses.find((x) => x.id === b0.id)!.crew!.length, after.crew.length - 1); }
+});
+
+test("social platforms: five real platforms with their own content", () => {
+  const g = aliveAt(20);
+  g.p.prison = 0; g.p.possessions.smartphone = true; g.p.money = 5_000_000;
+  let cur = g;
+  for (const plat of ["gram", "toktik", "vidtube", "facebook", "twitter"] as const) cur = act(cur, { t: "social", op: "account", platform: plat }).g;
+  assert.equal(Object.keys(cur.p.social!.accounts).length, 5);
+  assert.ok(PLATFORMS.find((x) => x.id === "twitter")!.label === "Twitter" && PLATFORMS.find((x) => x.id === "gram")!.label === "Instagram");
+  const wrong = act(cur, { t: "social", op: "post", platform: "facebook", content: "hottake" });
+  assert.equal(wrong.g.p.social!.accounts.facebook!.posts, 0, "hot takes belong on Twitter");
+  const before = cur.p.money;
+  const sale = act(cur, { t: "social", op: "post", platform: "facebook", content: "market" });
+  assert.ok(sale.g.p.money > before - 5_000, "Marketplace listings earn money");
+  const tw = act(cur, { t: "social", op: "post", platform: "twitter", content: "thread" });
+  assert.equal(tw.g.p.social!.accounts.twitter!.posts, 1);
+  assert.ok(ledgerBalances(tw.g.p) && ledgerBalances(sale.g.p));
 });

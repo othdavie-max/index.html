@@ -463,7 +463,7 @@ export interface DatingState {
 // ---------------------------------------------------------------------------
 // Social media and fame
 // ---------------------------------------------------------------------------
-export type Platform = "gram" | "toktik" | "vidtube";
+export type Platform = "gram" | "toktik" | "vidtube" | "facebook" | "twitter";
 
 export interface SocialAccount {
   followers: number;

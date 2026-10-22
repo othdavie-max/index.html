@@ -7,7 +7,7 @@ import type { Action } from "./engine";
 import { BET_KINDS, betBlock, betProfit } from "./betting";
 import { BIZ_KINDS, BIZ_BY_ID, PRICE_LABEL, STOCK_LABEL, hireCost, startBlock, startCostFor, upgradeCost, valuation, workerPay } from "./business";
 import { CRIMES, crimeBlock } from "./crime";
-import { HOME_TIERS, HOUSE_KINDS, STATE_BY_ID } from "./data";
+import { HOME_TIERS, HOUSE_KINDS, LUXURIES, STATE_BY_ID } from "./data";
 import { mortgageBalance, mortgageQuote } from "./mortgage";
 import { SUPPORT_KINDS, defaultAmount, supportKindsFor, capacityOf, type SupportKind } from "./family";
 import { FACILITIES, TEMPLATES, facilitiesFor, treatmentCost } from "./health";
@@ -22,6 +22,7 @@ import { STAGE_LABEL, activePartners, adoptBlock, dateCost, datingAllowed, divor
 import { CONTENT, PLATFORMS, postBlock, socialBlock, totalFollowers } from "./social";
 import { VEHICLE_MODELS, licenseBlock, licenseCost, modelOf, needsLicense, priceOf, repairCost, isInsured } from "./vehicles";
 import { VehicleArt } from "./VehicleArt";
+import { UNI_BY_ID } from "./universities";
 import { beneficiaries, currentShares, totalPct } from "./will";
 import type { Business, Candidate, Npc, PartnerRel, Platform, Player, StateInfo } from "./types";
 import { Badge, Bar, Btn, Card, H, Sheet, cx } from "./ui";
@@ -64,7 +65,7 @@ export function PhoneTab({ p, run }: { p: Player; run: Run }) {
   const apps: { id: PhoneApp; label: string; sub: string }[] = [
     { id: "wallet", label: T("Wallet", "Wallet"), sub: T("Loans and balance", "Loan and balance") },
     { id: "spark", label: "Spark", sub: T("Dating app", "Dating app") },
-    { id: "social", label: "Gram / TokTik", sub: T("Social media", "Social media") },
+    { id: "social", label: "Facebook, Instagram, TikTok...", sub: T("Social media", "Social media") },
     { id: "bet", label: "Naija9ja Bet", sub: T("Sports betting", "Sports betting") },
   ];
   if (app === "home") {
@@ -361,8 +362,9 @@ function Social({ p, run }: { p: Player; run: Run }) {
           <div className="mb-2 flex gap-1.5">
             {(Object.keys(s.accounts) as Platform[]).map((k) => <Btn key={k} small tone={plat === k ? "gold" : "ghost"} onClick={() => setPlat(k)}>{PLATFORMS.find((x) => x.id === k)?.label}</Btn>)}
           </div>
+          <p className="mb-2 text-[11px] text-slate-500">{PLATFORMS.find((x) => x.id === plat)?.blurb}</p>
           <div className="grid grid-cols-2 gap-2">
-            {CONTENT.map((c) => {
+            {CONTENT.filter((c) => PLATFORMS.find((x) => x.id === plat)?.content.includes(c.id)).map((c) => {
               const b = postBlock(p, plat, c.id);
               return (
                 <button key={c.id} type="button" disabled={Boolean(b)} onClick={() => run({ t: "social", op: "post", platform: plat, content: c.id })} className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-left text-xs disabled:opacity-40">
@@ -477,24 +479,73 @@ export function LedgerCard({ p }: { p: Player }) {
 }
 
 export function NetWorthCard({ p }: { p: Player }) {
+  const [tab, setTab] = useState<"over" | "assets" | "debts" | "stuff">("over");
   const holdings = p.holdings.reduce((s, h) => s + h.value, 0);
   const houses = p.houses.reduce((s, h) => s + h.value, 0);
   const cars = p.vehicles.reduce((s, v) => s + v.value, 0);
-  const biz = p.businesses.filter((b) => b.status === "open").reduce((s, b) => s + valuation(p, b), 0);
+  const open = p.businesses.filter((b) => b.status === "open");
+  const biz = open.reduce((s, b) => s + valuation(p, b), 0);
   const owed = receivables(p);
   const debt = totalDebt(p);
+  const assets = Math.max(0, p.money) + holdings + houses + cars + biz + owed;
+  const net = assets - debt;
+  const parts: [string, number, string][] = [
+    [T("Cash", "Cash"), Math.max(0, p.money), "bg-emerald-400"], [T("Investments", "Investments"), holdings, "bg-blue-500"], [T("Property", "Property"), houses, "bg-amber-400"],
+    [T("Vehicles", "Vehicles"), cars, "bg-violet-400"], [T("Businesses", "Businesses"), biz, "bg-pink-400"], [T("Owed to you", "Wetin people owe you"), owed, "bg-slate-400"],
+  ];
+  const loans = p.loans.filter((l) => l.direction === "owed" && l.status === "active");
+  const pl = (h: { invested: number; value: number }) => (h.invested > 0 ? ((h.value - h.invested) / h.invested) * 100 : 0);
+  const luxOwned = LUXURIES.filter((l) => l.once && p.flags[`own_${l.id}`]);
+  const Tab = ({ id, children }: { id: typeof tab; children: React.ReactNode }) => <button type="button" onClick={() => setTab(id)} className={cx("flex-1 rounded-lg px-1 py-1.5 text-[11px] font-semibold", tab === id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600")}>{children}</button>;
+  const Line = ({ k, sub, v, bad }: { k: string; sub?: string; v: string; bad?: boolean }) => (
+    <div className="flex items-start justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm"><div className="min-w-0"><div className="truncate font-semibold">{k}</div>{sub && <div className="text-[11px] text-slate-500">{sub}</div>}</div><div className={cx("shrink-0 text-right font-semibold", bad ? "text-red-600" : "text-slate-800")}>{v}</div></div>
+  );
   return (
     <Card>
-      <H sub={T("Cash is not the same as wealth.", "Cash no be the same as wealth.")}>{T("Assets and liabilities", "Assets and debts")}</H>
-      <dl className="space-y-1 text-sm">
-        <Row k={T("Cash", "Cash")} v={naira(p.money)} />
-        <Row k={T("Investments", "Investments")} v={naira(holdings)} />
-        <Row k={T("Property", "Property")} v={naira(houses)} />
-        <Row k={T("Vehicles", "Vehicles")} v={naira(cars)} />
-        <Row k={T("Businesses", "Businesses")} v={naira(biz)} />
-        <Row k={T("Owed to you", "Wetin people owe you")} v={naira(owed)} />
-        <Row k={T("Debts", "Debts")} v={`-${naira(debt)}`} bad={debt > 0} />
-      </dl>
+      <H sub={T("Cash is not the same as wealth.", "Cash no be the same as wealth.")}>{T("Your wealth", "Your wealth")}</H>
+      <div className="mb-2 flex gap-1"><Tab id="over">{T("Overview", "Overview")}</Tab><Tab id="assets">{T("Assets", "Assets")}</Tab><Tab id="debts">{T("Liabilities", "Debts")}</Tab><Tab id="stuff">{T("Belongings", "Belongings")}</Tab></div>
+      {tab === "over" && (
+        <>
+          <div className="text-2xl font-extrabold text-[#0b2a6b]">{naira(net)}</div>
+          <div className="text-[11px] text-slate-500">{T("net worth", "net worth")} · {T("assets", "assets")} {naira(assets)} · {T("debts", "debts")} {naira(debt)}</div>
+          <div className="mt-2 flex h-3 overflow-hidden rounded-full bg-slate-100">{parts.filter((x) => x[1] > 0).map(([k, v, c]) => <div key={k} className={c} style={{ width: `${(v / Math.max(1, assets)) * 100}%` }} title={k} />)}</div>
+          <dl className="mt-2 space-y-1 text-sm">{parts.map(([k, v, c]) => <div key={k} className="flex justify-between"><dt className="flex items-center gap-1.5 text-slate-600"><span className={cx("h-2 w-2 rounded-full", c)} />{k}</dt><dd className="font-semibold">{naira(v)} <span className="text-[11px] font-normal text-slate-400">{assets > 0 ? Math.round((v / assets) * 100) : 0}%</span></dd></div>)}<Row k={T("Debts", "Debts")} v={`-${naira(debt)}`} bad={debt > 0} /></dl>
+        </>
+      )}
+      {tab === "assets" && (
+        <div className="space-y-1.5">
+          <Line k={T("Cash", "Cash")} v={naira(p.money)} />
+          {p.holdings.map((h) => <Line key={h.id} k={h.label} sub={`${T("put in", "wetin you put")} ${naira(h.invested)}`} v={`${naira(h.value)} (${pl(h) >= 0 ? "+" : ""}${pl(h).toFixed(0)}%)`} bad={pl(h) < 0} />)}
+          {p.houses.map((h) => <Line key={h.id} k={`${HOUSE_KINDS[h.kind].label}${h.project ? ` (${T("building", "building")})` : ""}`} sub={`${locationOf(h.loc)?.name ?? STATE_BY_ID[h.state]?.name} · ${h.use}${h.loanId ? ` · ${T("mortgaged", "mortgage")}` : ""}`} v={naira(h.value)} />)}
+          {p.vehicles.map((v) => <Line key={v.id} k={v.name} sub={`${v.role}${v.loanId ? ` · ${T("on loan", "on loan")}` : ""}`} v={naira(v.value)} />)}
+          {open.map((b) => <Line key={b.id} k={b.name} sub={`${BIZ_BY_ID[b.kind]?.label} · ${T("level", "level")} ${b.level}`} v={naira(valuation(p, b))} />)}
+          {owed > 0 && <Line k={T("Money owed to you", "Money wey people owe you")} v={naira(owed)} />}
+          {assets <= 0 && <p className="text-xs text-slate-500">{T("Nothing yet.", "Nothing yet.")}</p>}
+        </div>
+      )}
+      {tab === "debts" && (
+        <div className="space-y-1.5">
+          {p.debt > 0 && <Line k={T("Other debts", "Other debts")} v={`-${naira(p.debt)}`} bad />}
+          {loans.map((l) => <Line key={l.id} k={l.lenderName} sub={`${l.houseId ? `${T("mortgage", "mortgage")} · ` : ""}${T("monthly", "monthly")} ${naira(l.monthly)} · ${(l.apr * 100).toFixed(0)}%${l.missed ? ` · ${T("missed", "missed")} ${l.missed}` : ""}`} v={`-${naira(l.balance)}`} bad />)}
+          {debt <= 0 && <p className="text-xs text-slate-500">{T("You owe nobody. Sleep well.", "You no owe anybody. Sleep well.")}</p>}
+          <Row k={T("Total debts", "Total debts")} v={`-${naira(debt)}`} bad={debt > 0} />
+        </div>
+      )}
+      {tab === "stuff" && (
+        <div className="space-y-2">
+          {p.vehicles.length > 0 && <div className="grid grid-cols-2 gap-2">{p.vehicles.map((v) => { const m = modelOf(v.modelId); return <div key={v.id} className="rounded-xl bg-slate-50 p-2 text-center"><VehicleArt art={m?.art ?? "sedan"} color={m?.color ?? "#64748b"} size={110} /><div className="truncate text-xs font-semibold">{v.name}</div><div className="text-[11px] text-slate-500">{naira(v.value)}</div></div>; })}</div>}
+          {p.houses.length > 0 && <div className="grid grid-cols-2 gap-2">{p.houses.map((h) => <div key={h.id} className="rounded-xl bg-slate-50 p-2 text-center"><div className="text-2xl">{h.kind === "land" ? "🌿" : h.kind === "plaza" ? "🏬" : h.kind === "mansion" ? "🏰" : "🏠"}</div><div className="truncate text-xs font-semibold">{HOUSE_KINDS[h.kind].label}</div><div className="truncate text-[11px] text-slate-500">{locationOf(h.loc)?.name ?? STATE_BY_ID[h.state]?.name}</div></div>)}</div>}
+          <div className="flex flex-wrap gap-1.5 text-[11px]">
+            {p.possessions.phone && <Badge>{p.possessions.smartphone ? T("Smartphone", "Smartphone") : T("Phone", "Phone")}</Badge>}
+            {p.possessions.laptop && <Badge>{T("Laptop", "Laptop")}</Badge>}
+            {p.possessions.license && <Badge tone="green">{T("Driver's licence", "Driver's licence")}</Badge>}
+            {p.campus?.graduated && <Badge tone="gold">{UNI_BY_ID[p.campus.uni]?.short} {p.campus.cls}</Badge>}
+            {luxOwned.map((l) => <Badge key={l.id} tone="gold">{l.label}</Badge>)}
+            {p.achievements.slice(0, 6).map((x) => <Badge key={x}>{x}</Badge>)}
+          </div>
+          {p.vehicles.length + p.houses.length === 0 && !p.possessions.phone && luxOwned.length === 0 && <p className="text-xs text-slate-500">{T("You own very little for now.", "You no get plenty things yet.")}</p>}
+        </div>
+      )}
     </Card>
   );
 }
