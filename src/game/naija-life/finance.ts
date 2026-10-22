@@ -4,7 +4,7 @@ import { jobDef, stateOf } from "./helpers";
 import { coverShortfall, monthIndex, transact } from "./ledger";
 import { adjustCredit, processLoansMonth, totalDebt } from "./loans";
 import { businessMonth } from "./business";
-import { growthMonth } from "./life";
+import { growthMonth, skillPayBonus } from "./life";
 import { healthMonth, incomeFactor } from "./health";
 import { spouseMonth } from "./relationships";
 import { SOCIAL_JOBS, socialMonth } from "./social";
@@ -224,5 +224,6 @@ export function annualPay(p: Player): number {
   const rung = j.ladder[Math.min(p.job.rank, j.ladder.length - 1)];
   const volatility = j.group === "formal" ? rand(0.92, 1.08) : rand(0.8, 1.2);
   const pay = rung.pay * PAY_SCALE[j.group] * payMult(j, st) * Math.pow(p.index, j.group === "formal" ? 0.86 : 0.92) * volatility;
-  return p.flags.investorShare ? pay * 0.88 : pay;
+  const skilled = pay * (1 + skillPayBonus(p, j.id));
+  return p.flags.investorShare ? skilled * 0.88 : skilled;
 }

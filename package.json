@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:game": "npx --yes tsx --test src/game/naija-life/tests/*.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
