@@ -9,7 +9,7 @@ import { buildObituary } from "./obituary";
 import type { Mourner, Obituary } from "./types";
 import type { Player } from "./types";
 import type { Look } from "./look";
-import { Badge, Btn, Card, H, Sheet, cx } from "./ui";
+import { Btn, ListGroup, ListRow } from "./ui";
 import { T, naira } from "./util";
 
 // ---------------------------------------------------------------------------
@@ -69,54 +69,40 @@ export function MomentsPanel({ p }: { p: Player }) {
     setMsg(r === "shared" ? T("Shared!", "Shared!") : T("Card ready. Save it or screenshot it!", "Card don ready. Save am or take screenshot!"));
   };
   return (
-    <Card>
-      <H sub={T("Funny highlights from your life. Share them with your friends.", "Funny highlights from your life. Share am give your friends.")}>{T("Moments", "Moments")}</H>
-      {moments.length === 0 && <p className="text-sm text-slate-500">{T("Nothing yet. Become president, escape kidnappers, go viral or graduate with First Class and a moment appears.", "Nothing yet. Become president, escape kidnappers, go viral or make First Class and moment go show.")}</p>}
-      <div className="space-y-2">
+    <>
+      <ListGroup title={T("Moments", "Moments")} sub={T("Funny highlights from your life. Share them with your friends.", "Funny highlights from your life. Share am give your friends.")}>
+        {moments.length === 0 && <ListRow emoji="📸" tile="bg-slate-100" wrap name={T("Nothing yet", "Nothing yet")} desc={T("Become president, escape kidnappers, go viral or graduate with First Class and a moment appears.", "Become president, escape kidnappers, go viral or make First Class and moment go show.")} />}
         {moments.map((m) => (
-          <div key={m.id} className="rounded-xl bg-slate-50 p-3">
-            <div className="flex items-center justify-between"><span className="text-sm font-extrabold text-[#0b2a6b]">{m.emoji} {m.title}</span><Badge>{T("Age", "Age")} {m.age}</Badge></div>
-            <p className="mt-1 text-[13px] leading-snug text-slate-700">{p.lang === "en" ? m.en : m.pcm}</p>
-            <div className="mt-2 flex gap-1.5"><Btn small tone="gold" onClick={() => share(m)}>{T("Share post", "Share post")}</Btn><Btn small tone="ghost" onClick={() => share(m, true)}>{T("Story size", "Story size")}</Btn></div>
+          <div key={m.id}>
+            <ListRow emoji={m.emoji} tile="bg-amber-100" name={m.title} right={`${T("Age", "Age")} ${m.age}`} desc={p.lang === "en" ? m.en : m.pcm} wrap />
+            <div className="flex gap-1.5 px-3.5 pb-3"><Btn small tone="gold" onClick={() => share(m)}>{T("Share post", "Share post")}</Btn><Btn small tone="ghost" onClick={() => share(m, true)}>{T("Story size", "Story size")}</Btn></div>
           </div>
         ))}
-      </div>
-      {msg && <p className="mt-2 text-xs text-emerald-600">{msg}</p>}
-    </Card>
+      </ListGroup>
+      {msg && <p className="px-1 text-xs text-emerald-600">{msg}</p>}
+    </>
   );
 }
 
 export function GoalsPanel({ p }: { p: Player }) {
   const unlocked = useUnlocks();
   return (
-    <Card>
-      <H sub={T("Finish a goal to unlock a cosmetic for every future character. Nothing here costs money.", "Finish goal to unlock cosmetic for every next character. Nothing here dey cost money.")}>{T("Bucket list", "Bucket list")}</H>
-      <div className="space-y-2">
-        {(p.goals ?? []).map((g) => {
-          const d = GOAL_BY_ID[g.id];
-          if (!d) return null;
-          return (
-            <div key={g.id} className={cx("flex items-center gap-3 rounded-xl p-3", g.done ? "bg-emerald-50" : "bg-slate-50")}>
-              <span className="text-2xl">{g.done ? "✅" : "🎯"}</span>
-              <div className="min-w-0 flex-1"><div className="text-sm font-bold text-[#0b2a6b]">{T(d.en, d.pcm)}</div><div className="text-[11px] text-slate-500">{d.unlock ? T(`Reward: ${d.unlock.en}`, `Reward: ${d.unlock.pcm}`) : T("Reward: pride", "Reward: pride")}{g.done ? ` · ${T("age", "age")} ${g.doneAge}` : ""}</div></div>
-            </div>
-          );
-        })}
-      </div>
-      <p className="mt-3 text-[11px] text-slate-500">{T(`Cosmetics unlocked so far: ${unlocked.size}`, `Cosmetic wey you don unlock: ${unlocked.size}`)}</p>
-    </Card>
+    <ListGroup title={T("Bucket list", "Bucket list")} sub={`${T("Finish a goal to unlock a cosmetic for every future character. Nothing here costs money.", "Finish goal to unlock cosmetic for every next character. Nothing here dey cost money.")} ${T(`Cosmetics unlocked so far: ${unlocked.size}`, `Cosmetic wey you don unlock: ${unlocked.size}`)}`}>
+      {(p.goals ?? []).map((g) => {
+        const d = GOAL_BY_ID[g.id];
+        if (!d) return null;
+        return <ListRow key={g.id} emoji={g.done ? "✅" : "🎯"} tile={g.done ? "bg-emerald-100" : "bg-slate-100"} name={T(d.en, d.pcm)} desc={`${d.unlock ? T(`Reward: ${d.unlock.en}`, `Reward: ${d.unlock.pcm}`) : T("Reward: pride", "Reward: pride")}${g.done ? ` · ${T("done", "done")}` : ""}`} />;
+      })}
+    </ListGroup>
   );
 }
 
 export function GistPanel({ p }: { p: Player }) {
   const day = todayKey();
   return (
-    <Card>
-      <H sub={T("What people are saying today. These stories are generated by the game; a live feed from real players comes with online play.", "Wetin people dey talk today. Na the game generate these stories; live feed from real players go come with online play.")}>{T("Naija Gist", "Naija Gist")}</H>
-      <ul className="space-y-2">
-        {gistFor(day, p).map((g, i) => <li key={i} className={cx("rounded-xl px-3 py-2 text-[13px] leading-snug", g.you ? "bg-blue-50 text-blue-900" : "bg-slate-50 text-slate-700")}>{p.lang === "en" ? g.en : g.pcm}</li>)}
-      </ul>
-    </Card>
+    <ListGroup title={T("Naija Gist", "Naija Gist")} sub={T("What people are saying today. These stories are generated by the game; a live feed from real players comes with online play.", "Wetin people dey talk today. Na the game generate these stories; live feed from real players go come with online play.")}>
+      {gistFor(day, p).map((g, i) => <ListRow key={i} emoji={g.you ? "⭐" : "🗞️"} tile={g.you ? "bg-blue-100" : "bg-sky-100"} name={p.lang === "en" ? g.en : g.pcm} wrap />)}
+    </ListGroup>
   );
 }
 
@@ -131,18 +117,15 @@ export function ChallengePanel({ p }: { p: Player }) {
     setMsg(r === "shared" ? T("Shared!", "Shared!") : T("Card ready. Save it or screenshot it!", "Card don ready. Save am or take screenshot!"));
   };
   return (
-    <Card>
-      <H sub={T("Everyone gets the same start this week. Start it from the main menu.", "Everybody get the same start this week. Start am from main menu.")}>{T("Weekly challenge", "Weekly challenge")}</H>
-      <p className="text-sm font-bold text-[#0b2a6b]">{c.title}</p>
-      <p className="text-xs text-slate-500">{c.goal}</p>
-      <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
-        <Badge tone="gold">{T("Your best", "Your best")}: {best != null ? naira(best) : "–"}</Badge>
-        {mine && <Badge tone="green">{mine.score !== undefined ? T(`This life: ${naira(mine.score)}`, `This life: ${naira(mine.score)}`) : T("In progress: score locks in at 40", "E dey go: score go lock for 40")}</Badge>}
-      </div>
-      <p className="mt-2 text-[11px] text-slate-500">{T("Scores are saved on this device. A shared leaderboard needs online play, so for now post your card and challenge your friends.", "Score dey save for this device. Shared leaderboard need online play, so for now post your card challenge your friends.")}</p>
-      <Btn small tone="ghost" className="mt-2" onClick={share}>{T("Share my score", "Share my score")}</Btn>
-      {msg && <p className="mt-2 text-xs text-emerald-600">{msg}</p>}
-    </Card>
+    <>
+      <ListGroup title={T("Weekly challenge", "Weekly challenge")} sub={T("Everyone gets the same start this week. Start it from the main menu.", "Everybody get the same start this week. Start am from main menu.")}>
+        <ListRow emoji="🏆" tile="bg-amber-100" name={c.title} desc={c.goal} wrap />
+        <ListRow emoji="🥇" tile="bg-emerald-100" name={T("Your best", "Your best")} right={best != null ? naira(best) : "–"} />
+        {mine && <ListRow emoji="⏳" tile="bg-sky-100" name={mine.score !== undefined ? T(`This life: ${naira(mine.score)}`, `This life: ${naira(mine.score)}`) : T("In progress", "E dey go")} desc={mine.score !== undefined ? undefined : T("Score locks in at 40", "Score go lock for 40")} />}
+        <ListRow emoji="📤" tile="bg-violet-100" name={T("Share my score", "Share my score")} desc={T("Scores are saved on this device. Post your card and challenge your friends.", "Score dey save for this device. Post your card challenge your friends.")} wrap onClick={share} />
+      </ListGroup>
+      {msg && <p className="px-1 text-xs text-emerald-600">{msg}</p>}
+    </>
   );
 }
 

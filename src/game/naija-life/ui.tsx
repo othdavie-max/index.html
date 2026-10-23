@@ -175,3 +175,48 @@ export function Hub({ groups, top, back }: { groups: HubGroup[]; top?: ReactNode
   if (row) return (<><BackPill label={back} onClick={() => setOpen(null)} />{row.node}</>);
   return (<>{top}<HubList groups={groups} onPick={(r) => (r.onClick ? r.onClick() : setOpen(r.id))} /></>);
 }
+
+/** A titled group of rows in one rounded white card: the app's standard list. */
+export function ListGroup({ title, sub, children }: { title?: ReactNode; sub?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="mb-4">
+      {title && <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{title}</h2>}
+      {sub && <p className="-mt-0.5 mb-1.5 px-1 text-[11px] text-slate-500">{sub}</p>}
+      <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">{children}</div>
+    </section>
+  );
+}
+
+export interface ListRowProps { emoji: string; tile?: string; name: ReactNode; desc?: ReactNode; right?: ReactNode; onClick?: () => void; disabled?: boolean; note?: ReactNode; wrap?: boolean }
+
+/** One row: emoji tile, name and a short line, an optional right-hand value, a chevron when tappable. */
+export function ListRow({ emoji, tile = "bg-slate-100", name, desc, right, onClick, disabled, note, wrap }: ListRowProps) {
+  const body = (
+    <>
+      <span className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[24px]", tile)}>{emoji}</span>
+      <span className="min-w-0 flex-1">
+        <span className={cx("block text-[15px] font-extrabold leading-tight text-[#0b2a6b]", !wrap && "truncate")}>{name}</span>
+        {desc && <span className={cx("block text-[12px] leading-snug text-slate-500", !wrap && "truncate")}>{desc}</span>}
+        {note && <span className="block text-[11px] leading-snug text-red-600">{note}</span>}
+      </span>
+      {right && <span className="shrink-0 text-right text-[12px] font-bold text-slate-700">{right}</span>}
+      {onClick && <span className="shrink-0 text-xl font-black text-blue-500">›</span>}
+    </>
+  );
+  if (!onClick) return <div className="flex w-full items-center gap-3 px-3.5 py-3">{body}</div>;
+  return <button type="button" onClick={onClick} disabled={disabled} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition active:bg-slate-50 disabled:opacity-50">{body}</button>;
+}
+
+/** A bottom sheet with an emoji header, for the details and buttons behind a row. */
+export function ActionSheet({ emoji, tile = "bg-slate-100", title, sub, onClose, children }: { emoji: string; tile?: string; title: string; sub?: ReactNode; onClose: () => void; children: ReactNode }) {
+  return (
+    <Sheet onClose={onClose}>
+      <div className="mb-3 flex items-center gap-3">
+        <span className={cx("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-[28px]", tile)}>{emoji}</span>
+        <div className="min-w-0 flex-1"><div className="text-[17px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{title}</div>{sub && <div className="text-xs text-slate-500">{sub}</div>}</div>
+        <button type="button" onClick={onClose} aria-label={T("Close", "Close")} className="rounded-full bg-slate-100 px-2.5 py-1 text-sm text-slate-500">✕</button>
+      </div>
+      {children}
+    </Sheet>
+  );
+}

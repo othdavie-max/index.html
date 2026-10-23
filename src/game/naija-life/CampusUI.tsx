@@ -6,7 +6,7 @@ import { CAMPUS_OPS, CLUBS, campusBlock, classOf, cutFor, enrolBlock, familyCanP
 import { KIND_LABEL, MAJOR_BY_ID, UNIS, UNI_BY_ID, majorsOf, type Uni, type UniKind } from "./universities";
 import { STATE_BY_ID } from "./data";
 import type { Player } from "./types";
-import { Badge, Btn, Card, H, Sheet, cx } from "./ui";
+import { Badge, Btn, Card, H, ListGroup, ListRow, Sheet, cx } from "./ui";
 import { T, naira } from "./util";
 
 type Run = (a: Action) => void;
@@ -16,6 +16,8 @@ const Chip = ({ active, onClick, children }: { active?: boolean; onClick: () => 
 );
 
 /** Pick a university, a course and how you will pay. */
+const OP_EMOJI: Record<string, string> = { study: "📖", group: "👥", party: "🎉", club: "🎭", hustle: "🛍️", dept: "🙋", sug: "🗳️", siwes: "🏭", project: "📝", scholar: "🎓", sort: "💸", cult: "🕶️" };
+
 export function AdmissionCard({ p, run }: { p: Player; run: Run }) {
   const [kind, setKind] = useState<UniKind | "all">("all");
   const [uniId, setUniId] = useState<string | null>(null);
@@ -28,38 +30,30 @@ export function AdmissionCard({ p, run }: { p: Player; run: Run }) {
   const lowestFee = (u: Uni) => Math.min(...majorsOf(u).map((m) => uniFee(p, u, m)));
   const reachable = (u: Uni) => majorsOf(u).some((m) => score >= cutFor(p, u, m));
   return (
-    <Card>
+    <div>
       <H sub={T(`JAMB score ${score}. Fees, cut-off marks and prestige all differ. Your family's wealth decides what you can afford.`, `JAMB score ${score}. Fees, cut-off and prestige all different. Your family money go decide wetin you fit afford.`)}>{T("Choose your university", "Choose your university")}</H>
       <div className="mb-2 flex flex-wrap gap-1.5">
         {(["all", "federal", "state", "private"] as const).map((k) => <Chip key={k} active={kind === k} onClick={() => setKind(k)}>{k === "all" ? T("All", "All") : KIND_LABEL[k]()}</Chip>)}
       </div>
-      <div className="max-h-[420px] space-y-1.5 overflow-y-auto pr-0.5">
+      <ListGroup>
         {list.map((u) => (
-          <button key={u.id} type="button" onClick={() => setUniId(u.id)} className={cx("w-full rounded-xl bg-slate-50 p-2.5 text-left", !reachable(u) && "opacity-55")}>
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0"><div className="truncate text-sm font-semibold">{u.short} <span className="font-normal text-slate-500">· {STATE_BY_ID[u.state]?.name}</span></div><div className="truncate text-[11px] text-slate-500">{u.name}</div></div>
-              <div className="shrink-0 text-right text-[11px]"><div className="font-semibold text-blue-700">{T("from", "from")} {naira(lowestFee(u))}/{T("yr", "yr")}</div><div className="text-slate-500">{T("cut-off", "cut-off")} {u.cut}+</div></div>
-            </div>
-            <div className="mt-1 flex gap-1"><Badge tone={u.kind === "private" ? "gold" : "green"}>{KIND_LABEL[u.kind]()}</Badge><Badge>{T("Prestige", "Prestige")} {u.prestige}/10</Badge></div>
-          </button>
+          <ListRow key={u.id} emoji={u.kind === "private" ? "🏛️" : "🎓"} tile={u.kind === "private" ? "bg-amber-100" : "bg-emerald-100"} name={u.short}
+            desc={`${STATE_BY_ID[u.state]?.name} · ${KIND_LABEL[u.kind]()} · ${T("Prestige", "Prestige")} ${u.prestige}/10`}
+            right={<span className="block"><span className="block text-blue-700">{naira(lowestFee(u))}/{T("yr", "yr")}</span><span className="block text-[11px] font-normal text-slate-500">{T("cut-off", "cut-off")} {u.cut}+</span></span>}
+            disabled={false} onClick={() => setUniId(u.id)} />
         ))}
-      </div>
+      </ListGroup>
       {uni && (
         <Sheet title={uni.name} onClose={close}>
           <p className="mb-2 text-xs text-slate-500">{uni.blurb}</p>
           {!majorId ? (
-            <div className="space-y-1.5">
+            <ListGroup>
               {majorsOf(uni).map((m) => {
                 const cut = cutFor(p, uni, m);
                 const ok = score >= cut;
-                return (
-                  <button key={m.id} type="button" disabled={!ok} onClick={() => setMajorId(m.id)} className="flex w-full items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-left text-sm disabled:opacity-40">
-                    <span><span className="font-semibold">{m.label}</span><span className="block text-[11px] text-slate-500">{m.years} {T("years", "years")} · {T("cut-off", "cut-off")} {cut}</span></span>
-                    <span className="text-xs font-semibold text-blue-700">{naira(uniFee(p, uni, m))}/{T("yr", "yr")}</span>
-                  </button>
-                );
+                return <ListRow key={m.id} emoji="📘" tile="bg-violet-100" name={m.label} desc={`${m.years} ${T("years", "years")} · ${T("cut-off", "cut-off")} ${cut}`} right={`${naira(uniFee(p, uni, m))}/${T("yr", "yr")}`} disabled={!ok} onClick={() => setMajorId(m.id)} />;
               })}
-            </div>
+            </ListGroup>
           ) : (() => {
             const m = MAJOR_BY_ID[majorId];
             const fee = uniFee(p, uni, m);
@@ -70,24 +64,20 @@ export function AdmissionCard({ p, run }: { p: Player; run: Run }) {
               { id: "aid", en: "Scholarship", pcm: "Scholarship", sub: aid > 0 ? T(`${Math.round(aid * 100)}% off for your score`, `${Math.round(aid * 100)}% off for your score`) : T("Your score is not high enough", "Your score no high reach") },
             ];
             return (
-              <div className="space-y-2">
-                <div className="rounded-xl bg-blue-50 p-3 text-sm"><div className="font-semibold">{m.label}</div><div className="text-xs text-slate-600">{m.years} {T("years", "years")} · {naira(fee)}/{T("yr", "yr")}</div></div>
-                {modes.map((x) => {
-                  const b = enrolBlock(p, uni, m, x.id);
-                  return (
-                    <div key={x.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                      <div className="text-sm"><div className="font-semibold">{T(x.en, x.pcm)}</div><div className="text-[11px] text-slate-500">{b ?? x.sub}</div></div>
-                      <Btn small tone="gold" disabled={Boolean(b)} onClick={() => { run({ t: "enrol", uni: uni.id, major: m.id, pay: x.id }); close(); }}>{T("Enrol", "Enrol")}</Btn>
-                    </div>
-                  );
-                })}
+              <div>
+                <ListGroup title={m.label} sub={`${m.years} ${T("years", "years")} · ${naira(fee)}/${T("yr", "yr")}`}>
+                  {modes.map((x) => {
+                    const b = enrolBlock(p, uni, m, x.id);
+                    return <ListRow key={x.id} emoji={x.id === "family" ? "👨‍👩‍👧" : x.id === "self" ? "💰" : "🎖️"} tile="bg-sky-100" name={T(x.en, x.pcm)} desc={b ?? x.sub} wrap disabled={Boolean(b)} onClick={() => { run({ t: "enrol", uni: uni.id, major: m.id, pay: x.id }); close(); }} />;
+                  })}
+                </ListGroup>
                 <Btn small tone="ghost" onClick={() => setMajorId(null)}>{T("Back to courses", "Back to courses")}</Btn>
               </div>
             );
           })()}
         </Sheet>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -121,46 +111,33 @@ export function CampusCard({ p, run }: { p: Player; run: Run }) {
         {c.aid > 0 && <Badge tone="green">{T("Scholarship", "Scholarship")} {Math.round(c.aid * 100)}%</Badge>}
       </div>
       <p className="mt-2 text-[11px] text-slate-500">{T("Each activity can be done once a year. Grades are worked out when you grow up a year. Your results, network and offices help you after graduation.", "You fit do each activity once for one year. Dem go work out grade when you grow up. Your result, network and office go help you after school.")}</p>
-      <div className="mt-2 grid grid-cols-2 gap-1.5">
+      <ListGroup>
         {CAMPUS_OPS.map((o) => {
           const b = o.id === "club" ? (c.used.includes("club") || c.clubs.length >= 3 ? campusBlock(p, "club", "x") ?? T("Already done this year", "You don do am this year") : null) : campusBlock(p, o.id, o.id === "sug" ? "low" : undefined);
           const hidden = (o.id === "siwes" && c.year < Math.max(2, total - 2)) || (o.id === "project" && c.year < total) || (o.id === "sug" && c.year < 2) || ((o.id === "sug" || o.id === "dept") && c.sug === "lost" && o.id === "sug");
           if (hidden && b) return null;
-          return (
-            <button key={o.id} type="button" disabled={Boolean(b) && o.id !== "sug"} onClick={() => (o.id === "club" ? setClubs(true) : o.id === "sug" ? setSug(true) : run({ t: "campus", op: o.id }))} className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-left text-xs disabled:opacity-40">
-              <span className="block font-semibold">{T(o.en, o.pcm)}</span>
-              <span className="block text-[11px] text-slate-500">{b ?? T(o.descEn, o.descPcm)}</span>
-            </button>
-          );
+          return <ListRow key={o.id} emoji={OP_EMOJI[o.id] ?? "🎓"} tile="bg-violet-100" name={T(o.en, o.pcm)} desc={b ?? T(o.descEn, o.descPcm)} wrap disabled={Boolean(b) && o.id !== "sug"} onClick={() => (o.id === "club" ? setClubs(true) : o.id === "sug" ? setSug(true) : run({ t: "campus", op: o.id }))} />;
         })}
-      </div>
+      </ListGroup>
       {clubs && (
         <Sheet title={T("Join a club", "Join a club")} onClose={() => setClubs(false)}>
-          <div className="space-y-1.5">
+          <ListGroup>
             {CLUBS.map((x) => {
               const b = campusBlock(p, "club", x.id);
-              return (
-                <div key={x.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                  <div className="text-sm"><div className="font-semibold">{T(x.en, x.pcm)}</div><div className="text-[11px] text-slate-500">{b ?? x.blurb}</div></div>
-                  <Btn small tone="gold" disabled={Boolean(b)} onClick={() => { run({ t: "campus", op: "club", arg: x.id }); setClubs(false); }}>{T("Join", "Join")}</Btn>
-                </div>
-              );
+              return <ListRow key={x.id} emoji="🎭" tile="bg-amber-100" name={T(x.en, x.pcm)} desc={b ?? x.blurb} disabled={Boolean(b)} onClick={() => { run({ t: "campus", op: "club", arg: x.id }); setClubs(false); }} />;
             })}
-          </div>
+          </ListGroup>
         </Sheet>
       )}
       {sug && (
         <Sheet title={T("Run for SUG president", "Run for SUG president")} onClose={() => setSug(false)}>
           <p className="mb-2 text-xs text-slate-500">{T("Winning gives leadership, a huge network and a head start in politics. Chances depend on your network, leadership, reputation and your campaign money.", "If you win, you go get leadership, big network and head start for politics. Chance depend on your network, leadership, reputation and campaign money.")}</p>
-          {(["low", "high"] as const).map((lv) => {
-            const b = campusBlock(p, "sug", lv);
-            return (
-              <div key={lv} className="mb-1.5 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                <div className="text-sm"><div className="font-semibold">{lv === "low" ? T("Modest campaign", "Small campaign") : T("Big campaign", "Big campaign")}</div><div className="text-[11px] text-slate-500">{b ?? naira(lv === "low" ? 600_000 * p.index : 3_000_000 * p.index)}</div></div>
-                <Btn small tone="gold" disabled={Boolean(b)} onClick={() => { run({ t: "campus", op: "sug", arg: lv }); setSug(false); }}>{T("Run", "Run")}</Btn>
-              </div>
-            );
-          })}
+          <ListGroup>
+            {(["low", "high"] as const).map((lv) => {
+              const b = campusBlock(p, "sug", lv);
+              return <ListRow key={lv} emoji="🗳️" tile="bg-yellow-100" name={lv === "low" ? T("Modest campaign", "Small campaign") : T("Big campaign", "Big campaign")} desc={b ?? undefined} right={naira(lv === "low" ? 600_000 * p.index : 3_000_000 * p.index)} disabled={Boolean(b)} onClick={() => { run({ t: "campus", op: "sug", arg: lv }); setSug(false); }} />;
+            })}
+          </ListGroup>
         </Sheet>
       )}
     </Card>

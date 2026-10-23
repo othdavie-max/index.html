@@ -112,8 +112,6 @@ function campFinish(q: Player, score: number): string {
   return T(`Camp ends. Nobody will remember you. That is also a strategy (score ${score}/9).`, `Camp end. Nobody go remember you. Na strategy too (score ${score}/9).`);
 }
 
-const convicted = (p: Player) => (p.crime?.record ?? []).some((r) => r.outcome === "convicted");
-
 function ppaEvent(): Pending { return { kind: "event", id: "nysc_ppa", data: {} }; }
 
 export const NYSC_EVENTS: EventDef[] = [
