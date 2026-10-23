@@ -251,6 +251,10 @@ export function classOf(g: number): string {
   return g >= 4.5 ? "First Class" : g >= 3.5 ? "Second Class Upper" : g >= 2.4 ? "Second Class Lower" : g >= 1.5 ? "Third Class" : "Pass";
 }
 
+/** How likely a university is to be shut by strikes. Private schools never are. */
+const STRIKE_FACTOR: Record<string, number> = { unilorin: 0.3, lasu: 0.4, oou: 0.7, unilag: 1, uniabuja: 1.3, unimaid: 1.2 };
+export const strikeFactor = (u: { id: string; kind: string }) => (u.kind === "private" ? 0 : STRIKE_FACTOR[u.id] ?? 1);
+
 /** Called each year while a student. Returns false if the student is withdrawn. */
 export function campusYearEnd(p: Player, lines: string[]): void {
   if (!inCampus(p)) return;
@@ -277,10 +281,18 @@ export function campusYearEnd(p: Player, lines: string[]): void {
     c.trouble = 40;
     lines.push(T("The senate suspends you for a year over your record.", "Senate suspend you for one year because of your record."));
   }
-  if (u.kind !== "private" && p.school && p.school.yearsLeft > 1 && chance(0.2)) {
+  // ASUU strikes hit public universities; a few rarely close, and private schools never do.
+  if (p.school && p.school.yearsLeft > 1 && chance(0.13 * strikeFactor(u))) {
     p.school.yearsLeft += 1;
     c.strikes += 1;
-    lines.push(T("An ASUU strike drags on for months. Graduation is pushed back a year.", "ASUU strike drag for months. Dem push your graduation back one year."));
+    lines.push(T(`An ASUU strike drags on for months. ${u.short} shuts down and graduation is pushed back a year.`, `ASUU strike drag for months. ${u.short} close and dem push your graduation back one year.`));
+  }
+  // Carryover: fail enough courses and you repeat the year.
+  if (p.school && g < 1.6 && chance(Math.min(0.9, (1.6 - g) * 0.8 + 0.15))) {
+    p.school.yearsLeft += 1;
+    c.carry = (c.carry ?? 0) + 1;
+    c.year -= 1;
+    lines.push(T("You have carryover courses. You must repeat the year and graduation slips.", "You get carryover. You must repeat the year and your graduation go late."));
   }
   c.year += 1;
   c.effort = 0;

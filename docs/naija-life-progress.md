@@ -86,3 +86,9 @@ Business revenue growth, margins and creator payouts were reduced in this pass b
 - Jailed students are expelled (school, campus record, course and open admission cleared); after release they redo JAMB and apply again, and a conviction adds 25 marks to every cut-off (`cutFor`).
 - A corps member who is jailed is removed from service with no certificate; on release `nysc_remobilise` lets them apply to serve again or forget it.
 - Researched online: the NYSC Act sanctions (extension, repeat, withheld certificate) are documented, but no source spelled out the rule for a jailed corper, so removal is a game design choice.
+
+## Everyday Nigerian scenarios and schooling delays
+- `scenarios.ts` plus `scenariosA-D.ts`: 74 data-driven rare events (school, money and work, home and faith, love, roads, health, danger, national life). Weights are scaled by `RARITY` so a life sees about four of them and any single one shows up in under a fifth of lives. If a player cannot afford any choice, a free "Do nothing" option is added so no one is stuck.
+- Removed: Japa (action, map entry, achievements, gist), the protest event trigger and the abroad story. Politics exile still moves a character abroad.
+- ASUU strikes now use a per-university factor: private universities never strike, UNILORIN and LASU rarely, others normally. Carryover repeats a year when GPA is poor. Poor students in primary and secondary school can repeat a class, and some children from poor homes start school at 7 or 8.
+- NYSC mobilises only graduates under 30. Older graduates get an exemption with no penalty, including students who spilled over past 30.

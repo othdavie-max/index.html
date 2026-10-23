@@ -12,7 +12,7 @@ interface Gate {
  * Every random event is adult-only unless it appears here with a lower minimum age.
  * This keeps children away from adult life and requires possessions where they matter.
  */
-const GATES: Record<string, Gate> = {
+export const GATES: Record<string, Gate> = {
   // Childhood and school
   teacher_flog: { minAge: 6, maxAge: 16, needs: ["school"] },
   inter_house: { minAge: 8, maxAge: 17, needs: ["school"] },

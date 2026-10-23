@@ -33,7 +33,6 @@ export const MOMENT_DEFS: MomentDef[] = [
   { id: "billionaire", emoji: "💰", title: ["Billionaire", "Billionaire"], check: (p) => p.peakWorth / p.index >= 1_000_000_000, en: (p) => `Billionaire at ${p.age}. A relative I have never met now says we are "very close".`, pcm: (p) => `Billionaire at ${p.age}. Relative wey I never meet before dey talk say we "very close".` },
   { id: "jet", emoji: "🛩️", title: ["Private jet", "Private jet"], check: (p) => ownsCat(p, "jet"), en: () => "I bought a private jet. Third Mainland Bridge traffic can now hold my coat.", pcm: () => "I buy private jet. Third Mainland Bridge traffic fit hold my coat now." },
   { id: "yacht", emoji: "🛥️", title: ["Yacht life", "Yacht life"], check: (p) => ownsCat(p, "yacht"), en: () => "I own a yacht. Lekki flooding is now a lifestyle choice.", pcm: () => "I get yacht. Lekki flood don turn lifestyle." },
-  { id: "japa", emoji: "✈️", title: ["JAPA!", "JAPA!"], check: (p) => p.achievements.includes("Japa success"), en: () => "JAPA don land. Please do not call me for \"small something\" this month.", pcm: () => "JAPA don land. Abeg no call me for \"small something\" this month." },
   { id: "viral", emoji: "📈", title: ["Went viral", "I blow!"], check: (p) => p.achievements.includes("Went viral"), en: () => "I went viral. My cousins who never replied my messages now call me \"brand\".", pcm: () => "I go viral. Cousins wey no dey reply my message dey call me \"brand\" now." },
   { id: "arrested", emoji: "🚔", title: ["Arrested", "Dem arrest me"], check: (p) => p.crime.record.length > 0, en: (p) => `Arrested at ${p.age}. The policeman asked "what have you brought for me?" and I had nothing. Pray for me.`, pcm: (p) => `Dem arrest me at ${p.age}. Policeman ask "wetin you bring for me?" and I get nothing. Pray for me.` },
   { id: "married", emoji: "💍", title: ["Married", "I don marry"], check: (p) => Boolean(p.spouse), en: (p) => `Married at ${p.age}. The aso-ebi money has finished me, but love is sweet.`, pcm: (p) => `I marry at ${p.age}. Aso-ebi money don finish me, but love sweet.` },
@@ -71,7 +70,6 @@ export const GOAL_DEFS: GoalDef[] = [
   { id: "sug", en: "Become SUG president", pcm: "Become SUG president", check: (p) => p.campus?.sug === "won", unlock: { kind: "wear", id: "redcap", en: "Red cap", pcm: "Red cap" } },
   { id: "wealth", en: "Reach ₦500M net worth", pcm: "Reach ₦500M net worth", check: (p) => real(p) >= 500_000_000, unlock: { kind: "outfit", id: "blazer", en: "Blazer", pcm: "Blazer" } },
   { id: "governor", en: "Become Governor", pcm: "Become Governor", check: (p) => high(p) >= 4, unlock: { kind: "hair", id: "bun", en: "Top bun", pcm: "Top bun" } },
-  { id: "japa", en: "Japa successfully", pcm: "Japa well well", check: (p) => p.achievements.includes("Japa success"), unlock: { kind: "hair", id: "puffs", en: "Twin puffs", pcm: "Twin puffs" } },
   { id: "kids3", en: "Raise three children", pcm: "Raise three pikin", check: (p) => p.kids.length >= 3, unlock: { kind: "wear", id: "band", en: "Headband", pcm: "Headband" } },
   { id: "biz3", en: "Run three businesses", pcm: "Run three business", check: (p) => p.businesses.length >= 3, unlock: { kind: "hair", id: "bob", en: "Bob cut", pcm: "Bob cut" } },
   { id: "viral", en: "Go viral online", pcm: "Go viral online", check: (p) => p.achievements.includes("Went viral"), unlock: { kind: "outfit", id: "hoodie", en: "Hoodie", pcm: "Hoodie" } },
@@ -161,7 +159,6 @@ const GIST: ((s: string, a: number) => [string, string])[] = [
   (s) => [`A landlord in ${s} just raised rent again. Tenants are "praying".`, `Landlord for ${s} raise rent again. Tenants dey "pray".`],
   (s, a) => [`Someone in ${s} bought a private jet at ${a + 35}. The traffic cried.`, `Person for ${s} buy private jet at ${a + 35}. Traffic cry.`],
   (s) => [`A student in ${s} became SUG president and promised free Wi-Fi.`, `One student for ${s} become SUG president and promise free Wi-Fi.`],
-  (s, a) => [`Someone from ${s} japa'd at ${a + 24} and posted snow on day one.`, `Person from ${s} japa at ${a + 24} and post snow for day one.`],
   (s) => [`Ponzi alert in ${s}: "40% monthly" has vanished again.`, `Ponzi alert for ${s}: "40% monthly" don vanish again.`],
   (s, a) => [`A trader in ${s} turned ₦${(a + 2) * 20}K into three shops.`, `Trader for ${s} turn ₦${(a + 2) * 20}K to three shop.`],
   (s) => [`Fuel queue in ${s} stretches three kilometres. Someone is selling pure water.`, `Fuel queue for ${s} reach three kilometres. Person dey sell pure water.`],
@@ -261,7 +258,7 @@ export const ENGAGE_EVENTS: EventDef[] = [
   {
     id: "abroad_first_winter",
     title: dual("First winter abroad", "First winter abroad"),
-    weight: (p) => (p.state === "abroad" && p.flags.abroadStory === undefined ? 4 : 0),
+    weight: () => 0,
     text: () => T("You have been abroad a few months. It is freezing, your jollof tastes different and you miss home in a way you did not expect.", "You don stay abroad few months. Cold dey freeze you, your jollof taste different and you dey miss house pass wetin you think."),
     choices: (p) => [
       { label: T("Find the Nigerian community", "Find Nigerian community"), run: (q) => { q.flags.abroadStory = 1; bump(q, "happiness", 6); bump(q, "connections", 4); return T("A church hall, suya and people who speak your Pidgin. You feel at home.", "Church hall, suya and people wey dey speak your Pidgin. You feel at home."); } },

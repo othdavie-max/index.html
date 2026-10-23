@@ -11,7 +11,8 @@ import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
 import { buildObituary } from "./obituary";
 import { ENGAGE_EVENTS, assignGoals, engageYear } from "./engage";
-import { NYSC_EVENTS, nyscRelease, nyscYear, serving } from "./nysc";
+import { SCENARIO_EVENTS } from "./scenariosAll";
+import { NYSC_EVENTS, NYSC_MAX_AGE, nyscRelease, nyscYear, serving } from "./nysc";
 import { fillClassmates, interact, makeFriend, refreshOccupation, refreshPeople } from "./people";
 import { campusDo, campusHire, campusYearEnd, enrol, graduateCampus, writeJamb } from "./campus";
 import { transportOptions, type TransportMode } from "./travel";
@@ -57,7 +58,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -460,7 +461,11 @@ const causes = () => [T("Heart attack", "Heart attack"), T("Stroke", "Stroke"), 
 
 function schoolTick(p: Player, lines: string[], pending: Pending[]) {
   if (p.prison > 0) return;
-  if (!p.school && p.age === 6 && p.edu === "none") {
+  if (p.age === 6 && !p.school && p.edu === "none" && p.flags.schoolStart === undefined) {
+    // Some children, mostly from poorer homes, start school late.
+    p.flags.schoolStart = p.classAtBirth === "struggling" && chance(0.3) ? 6 + randInt(1, 2) : 6;
+  }
+  if (!p.school && p.edu === "none" && p.age >= Number(p.flags.schoolStart ?? 6) && p.age <= 9) {
     p.school = { stage: "primary", yearsLeft: 6, type: "school" };
     assignSchoolType(p);
     const t = p.flags.schoolType;
@@ -473,6 +478,10 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
   }
   if (!p.school) return;
   if (p.school.stage !== "tertiary") bump(p, "smarts", chance(0.5) ? 1 : 0);
+  if (p.school.stage !== "tertiary" && p.school.yearsLeft > 1 && p.stats.smarts < 35 && chance(0.1)) {
+    p.school.yearsLeft += 1;
+    lines.push(T("You fail the end-of-year exams and repeat the class.", "You fail end-of-year exam and you repeat class."));
+  }
   if (p.school.stage === "tertiary" && p.school.type === "university") campusYearEnd(p, lines);
   if (!p.school) return;
   p.school.yearsLeft -= 1;
@@ -502,7 +511,8 @@ function schoolTick(p: Player, lines: string[], pending: Pending[]) {
     schoolHousing(p, false);
     const grad = graduationData(p, true);
     if (grad) pending.push({ kind: "event", id: "graduation_support", data: grad });
-    if (!p.flags.nysc && p.age < 32) pending.push({ kind: "event", id: "nysc", data: { posted: pick(TRAVEL_STATES.filter((s) => s.id !== "abuja" && s.id !== "lagos")).id } });
+    if (!p.flags.nysc && p.age >= NYSC_MAX_AGE) { p.flags.nysc = true; p.flags.nyscExempt = true; lines.push(T("You are over 30, so NYSC will not mobilise you. You get an exemption letter instead.", "You don pass 30, so NYSC no go mobilise you. Dem go give you exemption letter.")); }
+    else if (!p.flags.nysc) pending.push({ kind: "event", id: "nysc", data: { posted: pick(TRAVEL_STATES.filter((s) => s.id !== "abuja" && s.id !== "lagos")).id } });
   }
 }
 
@@ -1064,21 +1074,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       }
       return { g: g0, msg: "" };
     }
-    case "japa": {
-      const cost = I(p, 8_000_000);
-      if (p.age < 18 || p.money < cost || st.abroad || p.prison > 0) return { g: g0, msg: "" };
-      p.money -= cost;
-      const pr = 0.3 + (p.edu === "tertiary" ? 0.25 : p.edu === "secondary" ? 0.1 : 0) + p.stats.smarts / 300;
-      if (chance(pr)) {
-        moveTo(p, "abroad");
-        p.family.happy = clamp(p.family.happy + 8);
-        if (!p.achievements.includes("Japa success")) p.achievements.push("Japa success");
-        return out(T("JAPA SUCCESSFUL! Your visa was approved. You flew out of Nigeria for a new life.", "JAPA SUCCESSFUL! Dem approve your visa. You fly comot Nigeria go new life."));
-      }
-      bump(p, "stress", 10);
-      p.money += cost * 0.15;
-      return out(T("Your visa was refused. IELTS, flights and application fees gone. Maybe try again.", "Dem refuse your visa. IELTS, flight and application fees don waste. Maybe try again."));
-    }
+    case "japa": return { g: g0, msg: "" };
     case "luxury": {
       const block = luxuryBlock(p, a.id);
       if (block) return { g: g0, msg: block };

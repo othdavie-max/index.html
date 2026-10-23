@@ -1559,3 +1559,50 @@ test("prison expels students, ends NYSC and makes reapplying harder", () => {
   g = ageUp(g);
   assert.ok(g.queue.some((x) => x.kind === "event" && x.id === "nysc_remobilise"), "offered to serve again after release");
 });
+
+test("NYSC stops at 30 and graduates over 30 get an exemption", () => {
+  const g = graduate(31);
+  g.p.age = 31;
+  g.queue = [];
+  g.p.school = { stage: "tertiary", yearsLeft: 1, type: "university" };
+  const r = ageUp(g);
+  assert.ok(!r.queue.some((x) => x.kind === "event" && x.id === "nysc"), "no posting after 30");
+  assert.equal(r.p.flags.nyscExempt, true);
+  assert.equal(r.p.flags.nysc, true);
+  assert.ok(!r.p.flags.nyscSkipped, "no skip penalty for the exempt");
+});
+
+test("strikes never close private universities and low-strike schools are rare", async () => {
+  const { strikeFactor } = await import("../campus");
+  assert.equal(strikeFactor({ id: "covenant", kind: "private" }), 0);
+  assert.ok(strikeFactor({ id: "unilorin", kind: "federal" }) < strikeFactor({ id: "ui", kind: "federal" }));
+});
+
+test("poor results mean carryover and a later graduation", () => {
+  let delayed = 0;
+  for (let s = 40; s < 60; s++) {
+    let g = liveTo(18, s);
+    g.p.edu = "secondary"; g.p.school = null; g.p.money = 500_000_000; g.p.stats.smarts = 25;
+    g = act(g, { t: "jamb" }).g; g.p.flags.admScore = 380;
+    const u = UNIS.find((x) => x.kind === "private")!;
+    g = act(g, { t: "enrol", uni: u.id, major: majorsOf(u)[0].id, pay: "self" }).g;
+    if (!g.p.campus) continue;
+    const years = g.p.school!.yearsLeft;
+    for (let i = 0; i < years + 1 && g.p.alive && g.p.school; i++) { g.p.stats.smarts = 25; g = resolveAll(ageUp(g)); }
+    if (g.p.school || g.p.campus?.carry) delayed++;
+  }
+  assert.ok(delayed > 0, "someone with weak grades should have repeated a year or been withdrawn");
+});
+
+test("every everyday scenario is rare, gated and can always be answered", async () => {
+  const { SCENARIO_EVENTS } = await import("../scenariosAll");
+  assert.ok(SCENARIO_EVENTS.length >= 70, "plenty of scenarios");
+  const g = liveTo(30, 5);
+  g.p.money = 0;
+  for (const ev of SCENARIO_EVENTS) {
+    assert.ok(ev.weight(g.p) <= 1.3, `${ev.id} is too common`);
+    const ch = ev.choices(g.p, {});
+    assert.ok(ch.some((c) => !c.disabled), `${ev.id} has no answer for a broke player`);
+    assert.ok(ev.text(g.p, {}).length > 20);
+  }
+});

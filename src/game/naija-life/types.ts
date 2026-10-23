@@ -763,6 +763,8 @@ export interface Campus {
   /** Disciplinary record, 0-100. */
   trouble: number;
   strikes: number;
+  /** Years repeated because of failed courses. */
+  carry?: number;
   graduated?: boolean;
   cls?: string;
   gradAge?: number;

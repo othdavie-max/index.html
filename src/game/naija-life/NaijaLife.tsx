@@ -778,11 +778,6 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   return (
     <>
       <Hub back={T("Map", "Map")} top={top} groups={[
-        { title: T("Abroad", "Abroad"), rows: [{ id: "japa", emoji: "✈️", tile: "bg-sky-100", name: T("Japa", "Japa"), desc: T("Visa, IELTS and a new life abroad", "Visa, IELTS and new life abroad"), node: (
-          <ListGroup title={T("Japa", "Japa")} sub={T("Flights, IELTS and visa fees add up, and visas can be refused. A degree improves your odds.", "Flight, IELTS and visa fees dey add up, and dem fit refuse visa. Degree dey help your chance.")}>
-            <ListRow emoji="✈️" tile="bg-sky-100" name={T("Start Japa process", "Start Japa process")} right={naira(8_000_000 * p.index)} desc={p.state === "abroad" ? T("You are abroad. Travel back to any Nigerian state from the regions list.", "You dey abroad. Travel go any Nigerian state from the regions list.") : undefined} wrap disabled={p.age < 18 || p.money < 8_000_000 * p.index || Boolean(st.abroad) || p.prison > 0} onClick={() => run({ t: "japa" })} />
-          </ListGroup>
-        ) }] },
         { title: T("Travel in Nigeria", "Travel for Nigeria"), rows: regions.map((r) => ({
           id: r, emoji: REG_EMOJI[r]?.[0] ?? "📍", tile: REG_EMOJI[r]?.[1] ?? "bg-slate-100", name: r, desc: T(`${TRAVEL_STATES.filter((x) => x.region === r).length} states`, `${TRAVEL_STATES.filter((x) => x.region === r).length} states`),
           node: (

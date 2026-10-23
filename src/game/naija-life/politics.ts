@@ -293,7 +293,6 @@ export function yearlyPolitics(p: Player, lines: string[], pending: Pending[]): 
   pol.yearsLeft -= 1;
 
   if (pol.godfather && chance(0.5)) pending.push(evt("godfather_demand"));
-  if (n.approval < 40 || n.welfare < 30) { if (chance(0.5)) pending.push(evt("protest")); }
   if (pol.office === 5 && n.security < 32 && n.heat > 45 && chance(0.4)) pending.push(evt("coup"));
   if (n.heat > 60 && chance(0.45)) pending.push(evt("efcc", { inOffice: true }));
 

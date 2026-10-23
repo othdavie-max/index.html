@@ -12,6 +12,8 @@ import { T, chance, clamp, dual, naira, pick, randInt } from "./util";
  * then pass-out where the PPA either keeps you or lets you go.
  */
 export const NYSC_ALLOWANCE = 77_000;
+/** NYSC only mobilises graduates under 30. */
+export const NYSC_MAX_AGE = 30;
 
 export const serving = (p: Player) => p.flags.nyscServing === true;
 
@@ -119,6 +121,7 @@ export const NYSC_EVENTS: EventDef[] = [
     id: "nysc",
     title: dual("NYSC posting", "NYSC posting"),
     weight: () => 0,
+    valid: (p) => p.age < NYSC_MAX_AGE,
     init: () => ({ posted: pick(TRAVEL_STATES.filter((s) => s.id !== "abuja" && s.id !== "lagos")).id }),
     text: (_p, d) => T(`You are a graduate! NYSC has posted you to ${STATE_BY_ID[String(d.posted)].name} State. It is one year of service: a month of camp, then your PPA, then pass-out.`, `You don graduate! NYSC don post you go ${STATE_BY_ID[String(d.posted)].name} State. Na one year: one month camp, then your PPA, then pass-out.`),
     choices: (p, d) => [
@@ -131,7 +134,7 @@ export const NYSC_EVENTS: EventDef[] = [
     id: "nysc_remobilise",
     title: dual("NYSC after prison", "NYSC after prison"),
     weight: () => 0,
-    valid: (p) => p.edu === "tertiary" && !p.flags.nysc && !serving(p),
+    valid: (p) => p.edu === "tertiary" && !p.flags.nysc && !serving(p) && p.age < NYSC_MAX_AGE,
     text: (p) => p.flags.nyscTerminated
       ? T("You were removed from service when you were jailed, so there is no certificate. The NYSC discipline office says you may apply to be remobilised and start the year again.", "Dem remove you from service when dem jail you, so no certificate. NYSC discipline office talk say you fit apply make dem remobilise you start the year again.")
       : T("You never did your national service. With a prison record, NYSC will still mobilise you, but expect questions.", "You never do your national service. Even with prison record, NYSC go still mobilise you, but expect questions."),
@@ -309,5 +312,7 @@ export function nyscAllowance(p: Player): number {
 
 /** Called the year a prison term ends: graduates who never finished NYSC get another chance to apply. */
 export function nyscRelease(p: Player, pending: Pending[]) {
-  if (p.edu === "tertiary" && !p.flags.nysc && p.age <= 40) pending.push({ kind: "event", id: "nysc_remobilise", data: {} });
+  if (p.edu !== "tertiary" || p.flags.nysc) return;
+  if (p.age >= NYSC_MAX_AGE) { p.flags.nysc = true; p.flags.nyscExempt = true; return; }
+  pending.push({ kind: "event", id: "nysc_remobilise", data: {} });
 }
