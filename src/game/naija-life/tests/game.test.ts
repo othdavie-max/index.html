@@ -27,7 +27,7 @@ import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
 import { getSound, setSound, sfx, unlockAudio } from "../sound";
-import { jobTitle as jobTitleOf } from "../helpers";
+import { jobTitle as jobTitleOf, enterPrison } from "../helpers";
 import { occupationFor } from "../occupation";
 import { buildObituary } from "../obituary";
 import { INTERACTIONS, interact, interactBlock, interactionsFor, makeFriend, refreshOccupation, refreshPeople } from "../people";
@@ -37,8 +37,8 @@ import { ENGAGE_EVENTS, GOAL_DEFS, MOMENT_DEFS, challengeFor, engageYear, gistFo
 import { VEHICLE_MODELS, modelOf, needsLicense, priceOf, takeDrivingTest, licenseBlock } from "../vehicles";
 import { transportOptions, tripRisk } from "../travel";
 import { makeKidnap } from "../kidnap";
-import { UNIS, MAJORS, UNI_BY_ID, MAJOR_BY_ID, offers, cutoffFor } from "../universities";
-import { enrolBlock, uniFee, openAdmission, familyCanPay, campusPay } from "../campus";
+import { majorsOf, UNIS, MAJORS, UNI_BY_ID, MAJOR_BY_ID, offers, cutoffFor } from "../universities";
+import { cutFor, enrolBlock, uniFee, openAdmission, familyCanPay, campusPay } from "../campus";
 import { PRISON_EVENTS } from "../prison";
 import { PPA_BY_ID, placeOdds, keepOdds } from "../nysc";
 import { beneficiaries, setShare, planEstate } from "../will";
@@ -1534,4 +1534,28 @@ test("prison freezes NYSC and queued events; service resumes after release", () 
   assert.equal(g.p.flags.nyscServing, true, "service paused, not finished");
   assert.ok(Number(g.p.flags.nyscStart) > start);
   assert.ok(!g.queue.some((x) => x.kind === "event" && x.id.startsWith("nysc")));
+});
+
+test("prison expels students, ends NYSC and makes reapplying harder", () => {
+  // Student expelled.
+  let g = liveTo(19, 21);
+  g.p.school = { stage: "tertiary", yearsLeft: 3, type: "university" };
+  g.p.flags.admOpen = 1;
+  g.p.crime = { ...(g.p.crime ?? { record: [] }), record: [{ age: 19, charge: "fraud", severity: 3, outcome: "convicted" }] } as never;
+  enterPrison(g.p, 2);
+  assert.equal(g.p.school, null);
+  assert.equal(g.p.campus, undefined);
+  assert.equal(g.p.flags.admOpen, undefined);
+  const u = UNIS[0]; const mj = MAJOR_BY_ID[majorsOf(u)[0].id];
+  assert.equal(cutFor(g.p, u, mj), cutoffFor(u, mj) + 25);
+
+  // Corper removed, offered remobilisation on release.
+  g = graduate(16); g.p.stats.health = 95;
+  g = pickLabel(g, /Go and serve/); g = pickLabel(g, /Skip camp/); g = pickLabel(g, /Small NGO/);
+  enterPrison(g.p, 1); g.queue = [];
+  assert.equal(g.p.flags.nyscServing, false);
+  assert.equal(g.p.flags.nyscTerminated, true);
+  assert.ok(!g.p.flags.nysc, "no certificate");
+  g = ageUp(g);
+  assert.ok(g.queue.some((x) => x.kind === "event" && x.id === "nysc_remobilise"), "offered to serve again after release");
 });

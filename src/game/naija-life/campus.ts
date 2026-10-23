@@ -46,10 +46,13 @@ export const uniFee = (p: Player, u: Uni, mj: Major) => Math.round(u.fee * mj.fe
 /** Merit aid a university would offer, as a share of the fee. */
 export function meritAid(p: Player, u: Uni, mj: Major): number {
   const score = Number(p.flags.admScore ?? 0);
-  const over = score - cutoffFor(u, mj);
+  const over = score - cutFor(p, u, mj);
   if (u.kind === "private") return over >= 70 ? 1 : over >= 40 ? 0.5 : over >= 20 ? 0.25 : 0;
   return score >= 320 ? 0.3 : 0;
 }
+
+/** Cut-off for this applicant. A conviction on record makes admission committees pickier. */
+export const cutFor = (p: Player, u: Uni, mj: Major) => cutoffFor(u, mj) + ((p.crime?.record ?? []).some((r) => r.outcome === "convicted") ? 25 : 0);
 
 export type PayMode = "family" | "self" | "aid";
 
@@ -64,7 +67,7 @@ export function enrolBlock(p: Player, u: Uni, mj: Major, pay: PayMode): string |
   if (p.school) return T("You are already in school", "You dey school already");
   if (!offers(u, mj.id)) return T(`${u.short} does not offer this`, `${u.short} no dey offer this one`);
   const score = Number(p.flags.admScore ?? 0);
-  const cut = cutoffFor(u, mj);
+  const cut = cutFor(p, u, mj);
   if (score < cut) return T(`Cut-off is ${cut}. You scored ${score}`, `Cut-off na ${cut}. You score ${score}`);
   const fee = uniFee(p, u, mj);
   const aid = pay === "aid" ? meritAid(p, u, mj) : 0;

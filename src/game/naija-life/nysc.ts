@@ -112,6 +112,8 @@ function campFinish(q: Player, score: number): string {
   return T(`Camp ends. Nobody will remember you. That is also a strategy (score ${score}/9).`, `Camp end. Nobody go remember you. Na strategy too (score ${score}/9).`);
 }
 
+const convicted = (p: Player) => (p.crime?.record ?? []).some((r) => r.outcome === "convicted");
+
 function ppaEvent(): Pending { return { kind: "event", id: "nysc_ppa", data: {} }; }
 
 export const NYSC_EVENTS: EventDef[] = [
@@ -125,6 +127,23 @@ export const NYSC_EVENTS: EventDef[] = [
       { label: T("Go and serve", "Go serve"), sub: T(`${STATE_BY_ID[String(d.posted)].name} State`, `${STATE_BY_ID[String(d.posted)].name} State`), run: (q) => { const note = moveTo(q, String(d.posted)); q.flags.nyscServing = true; q.flags.nyscStart = q.age; q.flags.nyscPosted = String(d.posted); q.flags.nyscPerf = 50; return { text: T(`You pack your khaki and go. ${note}`, `You pack your khaki and go. ${note}`), spawn: [{ kind: "event", id: "nysc_camp", data: {} }] }; } },
       { label: T("Work your posting to Abuja", "Work your posting go Abuja"), sub: naira(I(p, 150_000)), disabled: p.money < I(p, 150_000) ? T("Not enough cash", "Cash no reach") : false, run: (q) => { transact(q, { amount: -I(q, 150_000), reason: T("Redeployment to Abuja", "Redeployment go Abuja"), category: "other" }); const note = moveTo(q, "abuja"); q.flags.nyscServing = true; q.flags.nyscStart = q.age; q.flags.nyscPosted = "abuja"; q.flags.nyscPerf = 50; bump(q, "connections", 2); return { text: T(`Your posting changes to Abuja. Big-company PPAs are nearer now. ${note}`, `Your posting change go Abuja. Big company PPA near you now. ${note}`), spawn: [{ kind: "event", id: "nysc_camp", data: {} }] }; } },
       { label: T("Skip NYSC entirely", "Skip NYSC totally"), sub: T("Saves a year, costs you", "Save one year, e go cost you"), run: (q) => { q.flags.nysc = true; q.flags.nyscSkipped = true; bump(q, "reputation", -6); return T("No certificate. You saved a year, but formal employers will ask for it.", "No certificate. You save one year, but formal employers go ask for am."); } },
+    ],
+  },
+  {
+    id: "nysc_remobilise",
+    title: dual("NYSC after prison", "NYSC after prison"),
+    weight: () => 0,
+    valid: (p) => p.edu === "tertiary" && !p.flags.nysc && !serving(p),
+    text: (p) => p.flags.nyscTerminated
+      ? T("You were removed from service when you were jailed, so there is no certificate. The NYSC discipline office says you may apply to be remobilised and start the year again.", "Dem remove you from service when dem jail you, so no certificate. NYSC discipline office talk say you fit apply make dem remobilise you start the year again.")
+      : T("You never did your national service. With a prison record, NYSC will still mobilise you, but expect questions.", "You never do your national service. Even with prison record, NYSC go still mobilise you, but expect questions."),
+    choices: () => [
+      { label: T("Apply to serve again", "Apply to serve again"), run: (q) => {
+        if (chance(0.6 + q.stats.connections / 400)) { delete q.flags.nyscTerminated; return { text: T("Approved. A fresh posting letter arrives.", "Dem approve am. Fresh posting letter land."), spawn: [{ kind: "event", id: "nysc", data: { posted: pick(TRAVEL_STATES.filter((s) => s.id !== "abuja" && s.id !== "lagos")).id } }] }; }
+        bump(q, "stress", 3);
+        return T("The officer says the file must go back to Abuja. Come back next year.", "Officer talk say file must go Abuja. Come back next year.");
+      } },
+      { label: T("Forget NYSC", "Forget NYSC"), run: (q) => { q.flags.nysc = true; q.flags.nyscSkipped = true; return T("No certificate. Formal employers will notice.", "No certificate. Formal employers go notice."); } },
     ],
   },
   {
@@ -288,4 +307,9 @@ export function nyscYear(p: Player, lines: string[], pending: Pending[], wasInsi
 
 export function nyscAllowance(p: Player): number {
   return serving(p) && p.flags.nyscPpa ? NYSC_ALLOWANCE * p.index : 0;
+}
+
+/** Called the year a prison term ends: graduates who never finished NYSC get another chance to apply. */
+export function nyscRelease(p: Player, pending: Pending[]) {
+  if (p.edu === "tertiary" && !p.flags.nysc && p.age <= 40) pending.push({ kind: "event", id: "nysc_remobilise", data: {} });
 }

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import type { Action } from "./engine";
-import { CAMPUS_OPS, CLUBS, campusBlock, classOf, enrolBlock, familyCanPay, jambBlock, meritAid, uniFee, type PayMode } from "./campus";
-import { KIND_LABEL, MAJOR_BY_ID, UNIS, UNI_BY_ID, cutoffFor, majorsOf, type Uni, type UniKind } from "./universities";
+import { CAMPUS_OPS, CLUBS, campusBlock, classOf, cutFor, enrolBlock, familyCanPay, jambBlock, meritAid, uniFee, type PayMode } from "./campus";
+import { KIND_LABEL, MAJOR_BY_ID, UNIS, UNI_BY_ID, majorsOf, type Uni, type UniKind } from "./universities";
 import { STATE_BY_ID } from "./data";
 import type { Player } from "./types";
 import { Badge, Btn, Card, H, Sheet, cx } from "./ui";
@@ -26,7 +26,7 @@ export function AdmissionCard({ p, run }: { p: Player; run: Run }) {
   const uni = uniId ? UNI_BY_ID[uniId] : null;
   const close = () => { setUniId(null); setMajorId(null); };
   const lowestFee = (u: Uni) => Math.min(...majorsOf(u).map((m) => uniFee(p, u, m)));
-  const reachable = (u: Uni) => majorsOf(u).some((m) => score >= cutoffFor(u, m));
+  const reachable = (u: Uni) => majorsOf(u).some((m) => score >= cutFor(p, u, m));
   return (
     <Card>
       <H sub={T(`JAMB score ${score}. Fees, cut-off marks and prestige all differ. Your family's wealth decides what you can afford.`, `JAMB score ${score}. Fees, cut-off and prestige all different. Your family money go decide wetin you fit afford.`)}>{T("Choose your university", "Choose your university")}</H>
@@ -50,7 +50,7 @@ export function AdmissionCard({ p, run }: { p: Player; run: Run }) {
           {!majorId ? (
             <div className="space-y-1.5">
               {majorsOf(uni).map((m) => {
-                const cut = cutoffFor(uni, m);
+                const cut = cutFor(p, uni, m);
                 const ok = score >= cut;
                 return (
                   <button key={m.id} type="button" disabled={!ok} onClick={() => setMajorId(m.id)} className="flex w-full items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-left text-sm disabled:opacity-40">

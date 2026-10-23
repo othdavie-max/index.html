@@ -68,7 +68,22 @@ export function enterPrison(p: Player, years: number): string {
   p.job = null;
   bump(p, "reputation", -25);
   bump(p, "happiness", -20);
-  return T(`You were sentenced to ${years} year${years > 1 ? "s" : ""} in Kuje.${seized ? " EFCC seized half of your money." : ""} `, `Dem sentence you to ${years} year${years > 1 ? "s" : ""} for Kuje.${seized ? " EFCC seize half of your money." : ""} `);
+  let fallout = "";
+  if (p.school) {
+    // A convicted student is expelled and has to reapply from scratch after release.
+    fallout += T("The school expels you. ", "The school expel you. ");
+    p.school = null;
+    delete p.campus;
+    p.course = null;
+    p.flags.expelledAge = p.age;
+  }
+  if (p.flags.admOpen) { delete p.flags.admOpen; fallout += T("Your admission offer is withdrawn. ", "Dem withdraw your admission. "); }
+  if (p.flags.nyscServing === true) {
+    p.flags.nyscServing = false;
+    p.flags.nyscTerminated = true;
+    fallout += T("NYSC removes you from service: no certificate. ", "NYSC remove you from service: no certificate. ");
+  }
+  return T(`You were sentenced to ${years} year${years > 1 ? "s" : ""} in Kuje.${seized ? " EFCC seized half of your money." : ""} ${fallout}`, `Dem sentence you to ${years} year${years > 1 ? "s" : ""} for Kuje.${seized ? " EFCC seize half of your money." : ""} ${fallout}`);
 }
 
 export function addLoot(p: Player, amount: number) {

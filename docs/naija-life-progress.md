@@ -81,3 +81,8 @@ Business revenue growth, margins and creator payouts were reduced in this pass b
 - Placement and retention odds use connections, smarts, degree class (`campusHire`), camp score, Abuja/Lagos posting and family wealth: poor graduates face a steep penalty for oil, bank and tech PPAs, rich graduates get a boost. A "pull a string" payment improves a top-tier slot.
 - Service year: ₦77,000/month (inflation-adjusted) for 12 months, title "Corps member (NYSC)", formal job applications blocked, side hustles allowed, two corper events (supervisor, CDS or side hustle or late allowance). CDS is a single in-year event, not a yearly cycle.
 - Pass-out: discharge certificate; the PPA either retains you (job set, career continues) or you are unemployed and job hunting. Skipping NYSC entirely gives no certificate, a reputation hit and a formal-hiring penalty.
+
+## Prison fallout
+- Jailed students are expelled (school, campus record, course and open admission cleared); after release they redo JAMB and apply again, and a conviction adds 25 marks to every cut-off (`cutFor`).
+- A corps member who is jailed is removed from service with no certificate; on release `nysc_remobilise` lets them apply to serve again or forget it.
+- Researched online: the NYSC Act sanctions (extension, repeat, withheld certificate) are documented, but no source spelled out the rule for a jailed corper, so removal is a game design choice.

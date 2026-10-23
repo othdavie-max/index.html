@@ -11,7 +11,7 @@ import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
 import { buildObituary } from "./obituary";
 import { ENGAGE_EVENTS, assignGoals, engageYear } from "./engage";
-import { NYSC_EVENTS, nyscYear, serving } from "./nysc";
+import { NYSC_EVENTS, nyscRelease, nyscYear, serving } from "./nysc";
 import { fillClassmates, interact, makeFriend, refreshOccupation, refreshPeople } from "./people";
 import { campusDo, campusHire, campusYearEnd, enrol, graduateCampus, writeJamb } from "./campus";
 import { transportOptions, type TransportMode } from "./travel";
@@ -536,7 +536,7 @@ export function ageUp(g0: Game): Game {
     bump(p, "health", -3);
     bump(p, "happiness", -4);
     lines.push(p.prison > 0 ? T("Another year in Kuje prison.", "Another year for Kuje prison.") : T("You are released from prison.", "Dem don release you from prison."));
-    if (p.prison === 0) politicalRelease(p, pending);
+    if (p.prison === 0) { politicalRelease(p, pending); nyscRelease(p, pending); }
     runMonths(p, { lines, pending, yearPay: 0, rate });
     settle(p);
   } else {
