@@ -1830,3 +1830,35 @@ test("classmates exist in every stage, including NYSC, and can be turned into fr
   interact(p, m.id, "befriend");
   assert.equal(p.npcs[m.id].role, "friend");
 });
+
+test("hooking up, asking a friend out and the Yahoo hustle all work", async () => {
+  const { hookUp } = await import("../relationships");
+  const y = await import("../yahoo");
+  const { interact } = await import("../people");
+  const g = aliveAt(24);
+  const p = structuredClone(g.p);
+  p.prison = 0; p.money = 1e10; p.rel.outingsLeft = 50; p.spouse = null; p.rel.partners = [];
+  let went = 0;
+  for (let i = 0; i < 40 && !went; i++) { hookUp(p, "condom"); went = Number(p.flags.hookups ?? 0); }
+  assert.ok(went > 0, "a hook-up eventually happens");
+  // ask a friend out
+  p.gender = "male";
+  const f = Object.values(p.npcs).find((n) => n.role === "classmate") ?? Object.values(p.npcs)[0];
+  Object.assign(f, { role: "friend", gender: "female", alive: true, ageDelta: 0, closeness: 95 });
+  p.age = 24;
+  let dating = false;
+  for (let i = 0; i < 30 && !dating; i++) { f.met = 0; p.rel.partners = []; interact(p, f.id, "askout"); dating = p.rel.partners.length > 0; if (!p.npcs[f.id]) break; }
+  assert.ok(dating || !p.npcs[f.id], "a close friend can be asked out");
+  // Yahoo
+  p.job = { id: "yahoo", rank: 0, years: 0 };
+  p.flags.yahooAge = -1;
+  assert.ok(y.sessionsLeft(p) > 0);
+  y.hunt(p);
+  const ms = y.marksOf(p);
+  assert.ok(ms.length > 0, "clients found");
+  for (let i = 0; i < 3; i++) y.work(p, ms[0].id, "chat");
+  const before = p.crime.heat;
+  y.cashOut(p, ms[0].id);
+  assert.ok(p.crime.heat >= before, "cashing out raises heat");
+  assert.ok(y.sessionsLeft(p) <= 3 && y.sessionsLeft(p) >= 0);
+});

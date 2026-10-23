@@ -22,7 +22,7 @@ import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, workStage, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
-import { JobsView, NyscPanel, RealtorView, SchoolPanel } from "./WorkUI";
+import { JobsView, NyscPanel, RealtorView, SchoolPanel, YahooPanel } from "./WorkUI";
 import { isRealtor } from "./realtor";
 import { ActionSheet, BackPill, SubNavContext, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
@@ -523,7 +523,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 // ---------------------------------------------------------------------------
 // Work tab
 // ---------------------------------------------------------------------------
-type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | "classmates" | null;
+type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | "classmates" | "yahoo" | null;
 
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const [sub, setSub] = useState<WorkSub>(null);
@@ -537,6 +537,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     ...(stage === "admission" ? [{ id: "admission", emoji: "🎓", tile: "bg-violet-100", name: T("Choose your university", "Choose your university"), desc: T(`JAMB score ${Number(p.flags.admScore ?? 0)}. Pick a school and a course`, `JAMB score ${Number(p.flags.admScore ?? 0)}. Pick school and course`) }] : []),
     ...(stage === "university" && p.campus && !p.campus.graduated ? [{ id: "campus", emoji: "🏛️", tile: "bg-violet-100", name: T("Campus life", "Campus life"), desc: `${T("Year", "Year")} ${p.campus.year} · CGPA ${p.campus.gpas.length ? p.campus.cgpa.toFixed(2) : "–"}` }] : []),
     ...(["primary", "secondary", "university", "nysc"].includes(stage) ? [{ id: "classmates", emoji: "🧑‍🤝‍🧑", tile: "bg-rose-100", name: stage === "nysc" ? T("Corps mates", "Corps mates") : T("Classmates", "Classmates"), desc: T(`${Object.values(p.npcs).filter((n) => n.role === "classmate" && !n.former && n.alive).length} around you · make friends`, `${Object.values(p.npcs).filter((n) => n.role === "classmate" && !n.former && n.alive).length} around you · make friends`) }] : []),
+    ...(p.job?.id === "yahoo" ? [{ id: "yahoo", emoji: "💻", tile: "bg-violet-100", name: T("Online hustle", "Online hustle"), desc: T(`EFCC attention ${Math.round(p.crime.heat)}%`, `EFCC attention ${Math.round(p.crime.heat)}%`) }] : []),
     ...(canApply ? [{ id: "admission", emoji: "📝", tile: "bg-violet-100", name: T("Apply to university", "Apply to university"), desc: T("Write JAMB, pick a school and a course", "Write JAMB, pick school and course") }] : []),
     ...(grown && stage !== "infant" && stage !== "nursery" ? [{ id: "jobs", emoji: "💼", tile: "bg-amber-100", name: stage === "work" ? T("Jobs and hustles", "Jobs and hustles") : T("Side hustles and jobs", "Side hustle and jobs"), desc: cur ? cur.ladder[Math.min(p.job?.rank ?? 0, cur.ladder.length - 1)].title : T("Find work or start a hustle", "Find work or start hustle") }] : []),
     ...(p.age >= 18 ? [{ id: "biz", emoji: "🏪", tile: "bg-emerald-100", name: T("My businesses", "My businesses"), desc: p.businesses.length ? T(`${p.businesses.length} running`, `${p.businesses.length} dey run`) : T("Akara stand to hotel", "Akara stand to hotel") }] : []),
@@ -554,6 +555,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         )
       ) : <BackPill label={T("Back", "Back")} onClick={() => setSub(null)} />}
       {sel === "classmates" && <PeopleList p={p} run={run} group="class" />}
+      {sel === "yahoo" && <YahooPanel p={p} run={run} />}
       {sel === "school" && <SchoolPanel p={p} />}
       {sel === "nysc" && <NyscPanel p={p} />}
       {sel === "admission" && (<><AdmissionCard p={p} run={run} /><DegreeCard p={p} run={run} /></>)}

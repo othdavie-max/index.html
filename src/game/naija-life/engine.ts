@@ -39,10 +39,11 @@ import { auditBalance, coverShortfall, reconcile, snapshot, transact } from "./l
 import { lenderOffers, loanBlock, repayLoan, takeLoan, totalDebt, borrowFrom, giftTo, lendTo } from "./loans";
 import { planEstate } from "./will";
 import { PARENT_EVENTS, willWarning } from "./inherit";
+import { YAHOO_EVENTS, cashOut, dropMark, hunt, launder, layLow, quitYahoo, settleContact, upgradeKit, work as yahooWork, yahooYear, type Approach } from "./yahoo";
 import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
 import { buyVehicle, takeDrivingTest, insureVehicle, setService, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
-import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
+import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, hookUp, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
 import { acceptOffer, closeBusiness, declineOffers, dismiss, haggleOffer, ensureCrew, fireStaff, hirePick, hireStaff, raisePay, recruit, listForSale, setPolicy, setLever, setLevers, businessAct, startBusiness, toggleManager, trainWorker, upgradeBusiness } from "./business";
 import { placeBet, type BetKind } from "./betting";
 import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
@@ -61,7 +62,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -568,7 +569,6 @@ export function ageUp(g0: Game): Game {
         }
       }
       if (boardDue(p)) pending.push({ kind: "event", id: "promotion_board", data: { month: randInt(1, 12) } });
-      if (j.id === "yahoo" && chance(0.08 + p.job.rank * 0.07 + (p.money > 40_000_000 * p.index ? 0.07 : 0))) pending.push({ kind: "event", id: "arrested", data: { ...(EVENT_DEFS.arrested.init?.(p) ?? {}), month: randInt(1, 12) } });
       if (j.id === "kidnapper" && chance(0.1 + p.job.rank * 0.04)) pending.push({ kind: "event", id: "arrested", data: { ...(EVENT_DEFS.arrested.init?.(p) ?? {}), month: randInt(1, 12) } });
     }
     runMonths(p, { lines, pending, yearPay, rate });
@@ -585,6 +585,7 @@ export function ageUp(g0: Game): Game {
   yearlyHealth(p, lines, pending);
   yearlyRelationships(p, lines, pending);
   yearlyCrime(p, lines, pending);
+  yahooYear(p, lines, pending);
   fugitiveYear(p, lines);
   yearlyGrowth(p);
   yearlySocial(p, lines, (id, data) => pending.push({ kind: "event", id, data: { month: randInt(1, 12), ...(data ?? {}) } }));
@@ -785,7 +786,8 @@ export type Action =
   | { t: "insure"; plan: "none" | "basic" | "premium" }
   | { t: "checkup" }
   | { t: "treat"; cond: string; facility: string }
-  | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
+  | { t: "yahoo"; op: "hunt" | "work" | "cash" | "drop" | "kit" | "low" | "launder" | "settle" | "quit"; id?: string; how?: Approach }
+  | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "hookup" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
   | { t: "realtor"; op: "show" | "find"; client?: string; listing?: string }
   | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "levers" | "act"; id: string; sets?: Record<string, number>; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
   | { t: "bet"; kind: BetKind; stake: number }
@@ -904,7 +906,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "realtor": return { reason: T("Estate agency", "Estate agency"), category: "business" };
     case "bet": return { reason: T("Betting", "Betting"), category: "betting" };
     case "social": return { reason: T("Social media", "Social media"), category: "social" };
-    case "crime": return { reason: T("Crime", "Crime"), category: "crime" };
+    case "crime": case "yahoo": return { reason: T("Crime", "Crime"), category: "crime" };
     case "will": case "gym": return { reason: T("Personal", "Personal"), category: "personal" };
     case "learn": return { reason: T("Learning", "Learning"), category: "education" };
     case "growth": return { reason: T("Activity", "Activity"), category: "personal" };
@@ -1194,6 +1196,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "spend": return dm(spendTime(p, a.npc ?? ""));
             case "official": return dm(makeOfficial(p, a.npc ?? ""));
             case "meet": return out(meetSomeone(p));
+            case "hookup": return out(hookUp(p, a.prot ?? "condom"));
             case "movein": return dm(moveIn(p, a.npc ?? ""));
             case "planb": return out(emergencyPill(p));
             case "divorce": return out(divorce(p));
@@ -1214,6 +1217,20 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           return dm(T(`${n.name.split(" ")[0]} says yes. Now the families need to meet.`, `${n.name.split(" ")[0]} say yes. Now the families must meet.`));
         }
         case "marry": { const r = partnerOf(p, a.npc ?? ""); if (!r || r.stage !== "engaged") return { g: g0, msg: T("You need to be engaged first.", "You must engage first.") }; marry(p, a.npc ?? ""); return dm(T("You are married!", "You don marry!")); }
+          }
+          return { g: g0, msg: "" };
+        }
+        case "yahoo": {
+          switch (a.op) {
+            case "hunt": return out(hunt(p));
+            case "work": return out(yahooWork(p, a.id ?? "", a.how ?? "chat"));
+            case "cash": return out(cashOut(p, a.id ?? ""));
+            case "drop": return out(dropMark(p, a.id ?? ""));
+            case "kit": return out(upgradeKit(p));
+            case "low": return out(layLow(p));
+            case "launder": return out(launder(p));
+            case "settle": return out(settleContact(p));
+            case "quit": return out(quitYahoo(p));
           }
           return { g: g0, msg: "" };
         }

@@ -171,6 +171,45 @@ export function chat(p: Player, npcId: string, tone: ChatTone): string {
   return T(`${first(n)} gives dry answers. (${delta})`, `${first(n)} dey give dry answer. (${delta})`);
 }
 
+/** A no-strings night out: meet someone for the evening, and what follows. */
+export function hookUp(p: Player, prot: Protection): string {
+  if (p.age < 18) return T("Adults only", "Na only adult");
+  if (p.prison > 0) return T("Not from prison", "No fit from prison");
+  const left = p.rel.outingsLeft ?? 4;
+  if (left <= 0) return T("You have been out enough this year.", "You don go out enough this year.");
+  const cost = Math.round(25_000 * Math.pow(p.index, 0.92));
+  if (p.money < cost) return T(`You need ${naira(cost)} for a night out.`, `You need ${naira(cost)} for night out.`);
+  p.rel.outingsLeft = left - 1;
+  transact(p, { amount: -cost, reason: T("A night out", "Night out"), category: "dating" });
+  const c = makeCandidate(p, pick(lookingGenders(p)));
+  const pr = clamp(0.5 + (p.stats.looks - 50) / 250 + p.stats.connections / 500 + luckBonus(p) - (c.attractiveness - 60) / 500, 0.15, 0.85);
+  if (!chance(pr)) return T("You go out, the club is packed and nobody bites. You go home alone.", "You go out, club full but nobody gree. You go house alone.");
+  const npc = matchWith(p, c);
+  const rel = partnerOf(p, npc.id)!;
+  rel.affection = 58;
+  logMsg(p, npc.id, "note", T("A night out. No strings.", "Night out. No strings."));
+  const lines = [spendTheNight(p, npc.id, prot)];
+  p.flags.hookups = Number(p.flags.hookups ?? 0) + 1;
+  bump(p, "happiness", 4);
+  bump(p, "reputation", -1);
+  // Someone you are committed to may hear about it.
+  const bound = committedPartners(p).filter((x) => x.npc.id !== npc.id);
+  for (const { rel: r0, npc: n0 } of bound) {
+    r0.cheated = true;
+    if (chance(0.3 + traitNum(n0, "jealous", 40) / 250)) {
+      r0.affection = clamp(r0.affection - 25); r0.trust = clamp(r0.trust - 30);
+      lines.push(T(`${first(n0)} finds out. It is bad.`, `${first(n0)} sabi wetin happen. E bad.`));
+    }
+  }
+  if (p.spouse) {
+    p.spouse.happy = clamp(p.spouse.happy - (chance(0.35) ? 25 : 4));
+    lines.push(T("You are married. This will not stay quiet forever.", "You don marry. This thing no go hide forever."));
+  }
+  if (chance(0.5)) { rel.stage = "ex"; rel.exitReason = T("one night", "one night"); lines.push(T(`${first(npc)} is gone by morning.`, `${first(npc)} don disappear by morning.`)); }
+  else lines.push(T(`${first(npc)} leaves a number. You can keep in touch, or not.`, `${first(npc)} leave number. You fit keep contact, or not.`));
+  return lines.join(" ");
+}
+
 export type DatePlan = "cheap" | "nice" | "luxury";
 const DATE_COST: Record<DatePlan, number> = { cheap: 8_000, nice: 35_000, luxury: 150_000 };
 export const dateCost = (p: Player, plan: DatePlan) => Math.round(DATE_COST[plan] * Math.pow(p.index, 0.92));

@@ -253,22 +253,55 @@ function PartnerRow({ p, rel, npc, run }: { p: Player; rel: PartnerRel; npc: Npc
 
 /** Relationships and family planning, available without a phone. */
 export function RelationshipsCard({ p, run }: { p: Player; run: Run }) {
+  const [sheet, setSheet] = useState<null | "hook" | string>(null);
   if (p.age < 18) return null;
   const partners = activePartners(p);
   const fertile = fertilityBlock(p);
   const adopt = adoptBlock(p);
+  const mkBlock = makeFriendBlock(p);
+  const outings = p.rel.outingsLeft ?? 4;
+  const crushes = Object.values(p.npcs).filter((n) => n.alive && ["friend", "classmate", "colleague"].includes(n.role) && n.gender !== p.gender && p.age + n.ageDelta >= 18).sort((a, b) => b.closeness - a.closeness).slice(0, 12);
+  const sel = sheet && sheet !== "hook" ? p.npcs[sheet] : null;
+  const close = () => setSheet(null);
   return (
     <>
-      <ListGroup title={T("Love and family life", "Love and family life")} sub={T("Meet people, date, marry and start a family. No phone needed.", "Meet people, date, marry and start family. You no need phone.")}>
-        <ListRow emoji="💘" tile="bg-rose-100" name={T("Go out and meet someone", "Go out meet person")} desc={`${p.rel.outingsLeft ?? 4} ${T("outings left", "outings remain")}`} disabled={p.prison > 0} onClick={() => run({ t: "dating", op: "meet" })} />
+      <ListGroup title={T("Love", "Love")} sub={T(`${outings} outing${outings === 1 ? "" : "s"} left this year. Meeting people costs a little money.`, `${outings} outing remain this year. To meet people dey cost small money.`)}>
+        <ListRow emoji="💘" tile="bg-rose-100" name={T("Meet someone", "Meet person")} desc={T("Go out and look for love", "Go out find love")} disabled={p.prison > 0 || outings <= 0} onClick={() => run({ t: "dating", op: "meet" })} />
+        <ListRow emoji="🔥" tile="bg-orange-100" name={T("Hook up", "Hook up")} desc={T("A night out, no strings attached", "Night out, no strings")} disabled={p.prison > 0 || outings <= 0} onClick={() => setSheet("hook")} />
+        <ListRow emoji="🤝" tile="bg-sky-100" name={T("Make a friend", "Make friend")} desc={T("Meet someone new, just as friends", "Meet new person, just as friend")} note={mkBlock} disabled={Boolean(mkBlock)} onClick={() => run({ t: "friend" })} />
+      </ListGroup>
+      {crushes.length > 0 && (
+        <ListGroup title={T("Friends you could date", "Friends wey you fit date")} sub={T("Tap someone to ask them out or plan a date.", "Tap person make you toast am or plan date.")}>
+          {crushes.map((n) => <ListRow key={n.id} emoji={n.gender === "female" ? "👩🏾" : "👨🏾"} tile="bg-rose-100" name={n.name} desc={`${Math.round(n.closeness)}% ${T("close", "close")} · ${n.role === "classmate" ? T("classmate", "classmate") : n.role === "colleague" ? T("colleague", "colleague") : T("friend", "friend")}`} onClick={() => setSheet(n.id)} />)}
+        </ListGroup>
+      )}
+      <ListGroup title={T("Family life", "Family life")}>
         <ListRow emoji="👶" tile="bg-amber-100" name={T("Adopt a child", "Adopt pikin")} note={adopt} disabled={Boolean(adopt)} onClick={() => run({ t: "adopt" })} />
         <ListRow emoji="🧬" tile="bg-violet-100" name={T("Fertility treatment", "Fertility treatment")} note={fertile} disabled={Boolean(fertile)} onClick={() => run({ t: "fertility" })} />
         {p.spouse && <ListRow emoji="💔" tile="bg-rose-100" name={T("Divorce", "Divorce")} note={divorceBlock(p)} disabled={Boolean(divorceBlock(p))} onClick={() => run({ t: "dating", op: "divorce" })} />}
         {p.flags.pregnantBy && p.flags.keepPregnancy ? <ListRow emoji="🍼" tile="bg-sky-100" name={T("A baby is on the way", "Baby dey come")} /> : null}
       </ListGroup>
       <ListGroup title={T("Partners", "Partners")}>
-        {partners.length === 0 ? <ListRow emoji="🧍" tile="bg-slate-100" name={T("You are single", "You dey single")} desc={T("Go out, or use the Spark app on your phone.", "Go out, or use Spark for your phone.")} wrap /> : partners.map(({ rel, npc }) => <PartnerRow key={npc.id} p={p} rel={rel} npc={npc} run={run} />)}
+        {partners.length === 0 ? <ListRow emoji="🧍" tile="bg-slate-100" name={T("You are single", "You dey single")} desc={T("Meet someone, hook up, or ask a friend out.", "Meet person, hook up, or toast your friend.")} wrap /> : partners.map(({ rel, npc }) => <PartnerRow key={npc.id} p={p} rel={rel} npc={npc} run={run} />)}
       </ListGroup>
+      {sheet === "hook" && (
+        <ActionSheet emoji="🔥" tile="bg-orange-100" title={T("Hook up", "Hook up")} sub={T("You go out for the night and see who bites. The rest stays private. Protection matters.", "You go out for night and see who gree. The rest na private. Protection matter.")} onClose={close}>
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100">
+            <ListRow emoji="🛡️" tile="bg-emerald-100" name={T("Use protection", "Use protection")} desc={T("Safest", "Safest")} onClick={() => { run({ t: "dating", op: "hookup", prot: "condom" }); close(); }} />
+            <ListRow emoji="⚠️" tile="bg-amber-100" name={T("No protection", "No protection")} desc={T("Risk of infection and pregnancy", "Risk of infection and belle")} onClick={() => { run({ t: "dating", op: "hookup", prot: "none" }); close(); }} />
+          </div>
+          {p.spouse && <p className="mt-2 text-xs text-red-600">{T("You are married. If this comes out, it will cost you.", "You don marry. If this thing comot, e go cost you.")}</p>}
+        </ActionSheet>
+      )}
+      {sel && (
+        <ActionSheet emoji={sel.gender === "female" ? "👩🏾" : "👨🏾"} tile="bg-rose-100" title={sel.name} sub={`${Math.round(sel.closeness)}% ${T("close", "close")}`} onClose={close}>
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100">
+            <ListRow emoji="💘" tile="bg-rose-100" name={T("Ask them out", "Toast am")} desc={T("Free, but they may say no", "Free, but dem fit say no")} onClick={() => { run({ t: "interact", npc: sel.id, id: "askout" }); close(); }} />
+            <ListRow emoji="🍷" tile="bg-violet-100" name={T("Take them on a date", "Carry am go date")} desc={naira(I(p, 20000))} disabled={p.money < I(p, 20000)} onClick={() => { run({ t: "interact", npc: sel.id, id: "date_friend" }); close(); }} />
+            <ListRow emoji="💬" tile="bg-sky-100" name={T("Just hang out", "Just hang out")} desc={T("Build the friendship", "Build the friendship")} onClick={() => { run({ t: "interact", npc: sel.id, id: "hangout" }); close(); }} />
+          </div>
+        </ActionSheet>
+      )}
     </>
   );
 }
