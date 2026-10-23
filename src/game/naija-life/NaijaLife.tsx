@@ -9,7 +9,7 @@ import {
   act, ageUp, ackKidnap, buildCost, choose, describePending, kidnapAction, migrate, newGame, startHeir, startNewFamily,
   type Action, type NewLifeOptions, worth,
 } from "./engine";
-import { jobDef } from "./helpers";
+import { jobDef, randomName } from "./helpers";
 import { Avatar } from "./Avatar";
 import { AdmissionCard, CampusCard, DegreeCard } from "./CampusUI";
 import { SoundToggles, useGameSounds } from "./SoundUI";
@@ -411,14 +411,37 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
       )}
 
       <Card className="mt-6 space-y-4">
-        <H>{T("Your look", "Your look")}</H>
-        <div className="sticky top-0 z-10 -mx-4 flex items-center gap-4 border-b border-slate-200 bg-white px-4 py-3">
-          <Avatar look={look} gender={gender} age={22} mood={72} size={112} />
+        <H sub={T("Your family, your luck and your starting point are decided by life, as in real life.", "Life go decide your family, your luck and where you start, as e be for real life.")}>{T("New life", "New life")}</H>
+        <div className="flex items-center gap-4">
+          <Avatar look={look} gender={gender} age={22} mood={72} size={96} />
           <div className="space-y-2">
             <p className="text-xs text-slate-500">{T("Your parents, partner and children will look like family.", "Your parents, partner and pikin go resemble you.")}</p>
             <Btn small tone="ghost" onClick={() => reroll()}>{T("Randomise look", "Random look")}</Btn>
           </div>
         </div>
+        <label className="block text-xs text-slate-600">{T("Name (optional)", "Name (optional)")}
+          <span className="mt-1 flex gap-2">
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder={T("e.g. Amina Bello", "e.g. Amina Bello")} className={field + " flex-1"} maxLength={32} />
+            <button type="button" onClick={() => setName(randomName("", gender))} aria-label={T("Random name", "Random name")} className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 text-lg">🎲</button>
+          </span>
+        </label>
+        <div>
+          <span className="text-xs text-slate-600">{T("Gender", "Gender")}</span>
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            {(["male", "female"] as Gender[]).map((g) => (
+              <button key={g} type="button" onClick={() => { setGender(g); reroll(g); }} className={cx("rounded-xl border px-3 py-3 text-sm font-bold capitalize", gender === g ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")}>{g === "male" ? T("Male", "Male") : T("Female", "Female")}</button>
+            ))}
+          </div>
+        </div>
+        <label className="block text-xs text-slate-600">{T("Born in", "Where you born")}
+          <select value={stateId} onChange={(e) => setStateId(e.target.value)} className={field}>
+            <option value="">{T("Random (like real life)", "Random (as e be for real life)")}</option>
+            {TRAVEL_STATES.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </label>
+        <details className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <summary className="cursor-pointer text-xs font-bold text-slate-600">{T("Customise your look", "Change your look")}</summary>
+          <div className="mt-3 space-y-4">
         <div>
           <span className="text-xs text-slate-600">{T("Skin tone", "Skin colour")}</span>
           <div className="mt-1.5 flex flex-wrap gap-2">{SKINS.map((c, i) => <Swatch key={c} color={c} label={T(`Skin tone ${i + 1}`, `Skin colour ${i + 1}`)} active={look.skin === i} onClick={() => set({ skin: i })} />)}</div>
@@ -453,41 +476,22 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
           <div className="mt-1.5 flex flex-wrap gap-1.5">{OUTFITS.map((o) => { const lk = isLocked("outfit", o.id, unlocked); return <Chip key={o.id} active={look.outfit === o.id} locked={lk} hint={lockHint("outfit", o.id)} onClick={() => set({ outfit: o.id })}>{lk ? "🔒 " : ""}{o.label}</Chip>; })}</div>
           <div className="mt-2 flex flex-wrap gap-2">{OUTFIT_COLORS.map((c, i) => <Swatch key={c} color={c} label={T(`Outfit colour ${i + 1}`, `Outfit colour ${i + 1}`)} active={look.outfitColor === i} onClick={() => set({ outfitColor: i })} />)}</div>
         </div>
-      </Card>
-
-      <Card className="mt-4 space-y-4">
-        <H>{T("New life", "New life")}</H>
-        <label className="block text-xs text-slate-600">{T("Name (optional)", "Name (optional)")}
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={T("e.g. Amina Bello", "e.g. Amina Bello")} className={field} maxLength={32} />
-        </label>
-        <div>
-          <span className="text-xs text-slate-600">{T("Gender", "Gender")}</span>
-          <div className="mt-1 grid grid-cols-2 gap-2">
-            {(["male", "female"] as Gender[]).map((g) => (
-              <button key={g} type="button" onClick={() => { setGender(g); reroll(g); }} className={cx("rounded-xl border px-3 py-2.5 text-sm font-semibold capitalize", gender === g ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")}>{g === "male" ? T("male", "male") : T("female", "female")}</button>
-            ))}
           </div>
-        </div>
-        <label className="block text-xs text-slate-600">{T("Born in", "Where you born")}
-          <select value={stateId} onChange={(e) => setStateId(e.target.value)} className={field}>
-            <option value="">{T("Random (like real life)", "Random (as e be for real life)")}</option>
-            {TRAVEL_STATES.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </label>
-        <label className="block text-xs text-slate-600">{T("Tribe", "Tribe")}
-          <select value={tribe} onChange={(e) => setTribe(e.target.value)} className={field}>
-            <option value="">{T("Based on state", "Based on state")}</option>
-            {ALL_TRIBES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </label>
-        <label className="block text-xs text-slate-600">{T("Religion", "Religion")}
-          <select value={religion} onChange={(e) => setReligion(e.target.value)} className={field}>
-            <option value="">{T("Random", "Random")}</option>
-            {RELIGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </label>
+        </details>
         <details className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <summary className="cursor-pointer text-xs font-semibold text-slate-600">{T("Advanced: family background and seed", "Advanced: family background and seed")}</summary>
+          <summary className="cursor-pointer text-xs font-bold text-slate-600">{T("More options", "More options")}</summary>
+          <label className="mt-3 block text-xs text-slate-600">{T("Tribe", "Tribe")}
+            <select value={tribe} onChange={(e) => setTribe(e.target.value)} className={field}>
+              <option value="">{T("Based on state", "Based on state")}</option>
+              {ALL_TRIBES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+          <label className="mt-3 block text-xs text-slate-600">{T("Religion", "Religion")}
+            <select value={religion} onChange={(e) => setReligion(e.target.value)} className={field}>
+              <option value="">{T("Random", "Random")}</option>
+              {RELIGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </label>
           <label className="mt-3 block text-xs text-slate-600">{T("Family background", "Family background")}
             <select value={preset} onChange={(e) => setPreset(e.target.value)} className={field}>
               {FAMILY_PRESETS.map((x) => <option key={x.id} value={x.id}>{T(x.en, x.pcm)}</option>)}
@@ -496,12 +500,19 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
           <label className="mt-3 block text-xs text-slate-600">{T("Seed (same seed, same life, as long as you make the same choices)", "Seed (same seed go give you same life if you do same choices)")}
             <input value={seedText} onChange={(e) => setSeedText(e.target.value)} placeholder={T("optional", "optional")} className={field} maxLength={24} />
           </label>
+          <label className="mt-3 block text-xs text-slate-600">{T("Save in", "Save for")}
+            <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className={field}>
+              {slots.map((s, i) => <option key={i} value={i}>{T("Slot", "Slot")} {i + 1}{s ? ` · ${s.p.name} (${T("will be replaced", "go replace am")})` : ` · ${T("empty", "empty")}`}</option>)}
+            </select>
+          </label>
         </details>
-        <label className="block text-xs text-slate-600">{T("Save in", "Save for")}
-          <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className={field}>
-            {slots.map((s, i) => <option key={i} value={i}>{T("Slot", "Slot")} {i + 1}{s ? ` · ${s.p.name} (${T("will be replaced", "go replace am")})` : ` · ${T("empty", "empty")}`}</option>)}
-          </select>
-        </label>
+        {slots.every(Boolean) && (
+          <label className="block text-xs font-semibold text-red-600">{T("All three slots are full. Which life should this replace?", "All three slot don full. Which life make this replace?")}
+            <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className={field}>
+              {slots.map((s, i) => <option key={i} value={i}>{T("Slot", "Slot")} {i + 1} · {s?.p.name}</option>)}
+            </select>
+          </label>
+        )}
         <Btn className="w-full py-3 text-base" onClick={() => {
           const pr = FAMILY_PRESETS.find((x) => x.id === preset);
           onStart({ name, gender, stateId: stateId || null, tribe: tribe || null, religion: religion || null, look, lang, seed: seedText.trim() ? hashSeed(seedText) : null, familyConfig: pr?.cfg, forceArchetype: pr?.force }, target);
