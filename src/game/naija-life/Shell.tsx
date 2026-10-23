@@ -1,6 +1,7 @@
 "use client";
 
 import { TONE_STYLE, toneOf } from "./tone";
+import { EconStrip } from "./EconUI";
 import { useMemo, useState } from "react";
 import {
   Baby, Backpack, Brain, Briefcase, Flag as FlagIcon, GraduationCap, School, ChevronRight, Compass, Crown, Gavel, Heart, HeartPulse, Hourglass, Map as MapIcon, MapPin, Menu as MenuIcon,
@@ -280,6 +281,7 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
   const logs = useMemo(() => [...p.log].reverse(), [p.log]);
   return (
     <div className="space-y-2.5">
+      <EconStrip p={p} />
       <section>
         <button type="button" onClick={() => setOpen(!open)} data-tour="activities" className="mb-1.5 flex w-full items-center justify-between px-1" aria-expanded={open}>
           <span className="text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Activities", "Activities")}</span>

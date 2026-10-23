@@ -1,3 +1,4 @@
+import { shockFx } from "./economy";
 import { I } from "./helpers";
 import { monthIndex, transact } from "./ledger";
 import { netWorth } from "./kidnap";
@@ -109,9 +110,9 @@ function applyEvent(p: Player, id: string) {
   if (!ev) return;
   ev.hit(p.market, p);
   pushFeed(p.market, p, { kind: "news", tone: ev.tone, en: ev.en, pcm: ev.pcm });
-  if (id === "devalue") for (const h of p.holdings) if (h.kind === "usd") h.value = Math.round(h.value * 1.12);
-  if (id === "oildown") for (const h of p.holdings) if (h.kind === "usd") h.value = Math.round(h.value * 1.05);
-  if (id === "oilup") for (const h of p.holdings) if (h.kind === "usd") h.value = Math.round(h.value * 0.97);
+  if (id === "devalue") shockFx(p, 0.12);
+  if (id === "oildown") shockFx(p, 0.05);
+  if (id === "oilup") shockFx(p, -0.03);
   if (ev.then) (p.market.pending ??= []).push({ inMonths: randInt(2, 3), id: ev.then });
 }
 

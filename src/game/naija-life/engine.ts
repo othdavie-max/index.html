@@ -22,6 +22,7 @@ import { buyListing, completeProjects, developLand, houseYear, refreshListings, 
 import { defaultLocationFor, locationOf } from "./locations";
 import { EDU_EVENTS, enrollPostgrad, finishPostgrad } from "./education";
 import { yearlyNews } from "./news";
+import { MONEY_EVENTS, econYear } from "./economy";
 import { SUPPORT_EVENTS, yearlyPromises } from "./support";
 import { PRISON_EVENTS, fugitiveYear, prisonBlock, prisonOp } from "./prison";
 import { MILITARY_EVENTS, SERVICE_JOBS, boardDue } from "./military";
@@ -64,7 +65,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...MONEY_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -583,6 +584,7 @@ export function ageUp(g0: Game): Game {
   yearlyPromises(p, lines);
   completeProjects(p, lines);
   yearlyNews(p, lines);
+  econYear(p, rate, lines, pending);
   refreshListings(p);
   yearlyHealth(p, lines, pending);
   yearlyRelationships(p, lines, pending);
@@ -1210,7 +1212,12 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "propose": {
           const r = partnerOf(p, a.npc ?? "");
           const n = p.npcs[a.npc ?? ""];
-          if (!r || !n || r.stage !== "exclusive") return { g: g0, msg: T("You need to be exclusive first.", "You must dey exclusive first.") };
+          if (!r || !n || !["dating", "exclusive"].includes(r.stage)) return { g: g0, msg: T("You need to be dating first.", "You must dey date first.") };
+          if (r.stage === "dating") {
+            if (r.affection < 60) return { g: g0, msg: T(`${n.name.split(" ")[0]} says: "Let's give it more time."`, `${n.name.split(" ")[0]} talk: "Make we give am more time."`) };
+            r.stage = "exclusive";
+            p.flags.dating = n.name; p.flags.datingLook = lookToStr(n.look); p.flags.datingNpc = n.id;
+          }
           if (r.affection < 70) return { g: g0, msg: T(`${n.name.split(" ")[0]} is not ready yet. Build more affection.`, `${n.name.split(" ")[0]} never ready. Build more love first.`) };
           if (p.age < 20) return { g: g0, msg: T("You need to be at least 20 to marry.", "You must reach at least 20 before you marry.") };
           r.stage = "engaged";

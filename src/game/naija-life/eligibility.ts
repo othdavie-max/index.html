@@ -69,6 +69,7 @@ export const GATES: Record<string, Gate> = {
   friend_help: { minAge: 18 },
   parent_estate: { minAge: 0 },
   efcc_raid: { minAge: 16 },
+  black_tax: { minAge: 20 },
   talent_discovered: { minAge: 7 },
   talent_audition: { minAge: 14 },
   school_talent_show: { minAge: 8 },

@@ -105,7 +105,7 @@ export function yearlyHoldings(p: Player, rate: number, lines: string[]): void {
   for (const h of p.holdings) {
     let r = 0;
     switch (h.kind) {
-      case "usd": r = rate * rand(0.8, 1.3); break;
+      case "usd": continue; // follows the exchange rate, see economy.ts
       case "farm": r = rand(-0.1, 0.3) - (STATE_BY_ID[p.state].risk >= 7 ? 0.1 : 0); break;
       case "oil": r = rand(-0.4, 0.9); break;
       case "school": r = rand(0.05, 0.2); break;

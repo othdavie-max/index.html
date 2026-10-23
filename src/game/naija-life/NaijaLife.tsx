@@ -28,6 +28,7 @@ import { petsOf } from "./bitlife";
 import { JobsView, NyscPanel, RealtorView, SchoolPanel, YahooPanel } from "./WorkUI";
 import { isRealtor } from "./realtor";
 import { eventEmoji } from "./tone";
+import { Pops, changeChips, type Chip } from "./Pops";
 import { ActionSheet, BackPill, SubNavContext, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
 import { notificationsFor } from "./notices";
@@ -99,6 +100,7 @@ export default function NaijaLife() {
   useGameSounds(game);
   const [result, setResult] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+  const [chips, setChips] = useState<Chip[]>([]);
   const [menu, setMenu] = useState(false);
   const [cardImg, setCardImg] = useState<{ url: string; text: string } | null>(null);
 
@@ -149,15 +151,22 @@ export default function NaijaLife() {
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(""), 3500);
+    const t = setTimeout(() => setToast(""), 3200);
     return () => clearTimeout(t);
   }, [toast]);
+  useEffect(() => {
+    if (!chips.length) return;
+    const t = setTimeout(() => setChips([]), 2800);
+    return () => clearTimeout(t);
+  }, [chips]);
 
   const run = (a: Action) => {
     if (!game) return;
     const r = act(game, a);
     setGame(r.g);
     if (r.msg) setToast(r.msg);
+    const c = changeChips(game.p, r.g.p, 1);
+    if (c.length && r.g.p.age === game.p.age) setChips(c);
   };
 
   if (!ready) return <div className="min-h-screen bg-[#f3f8ff]" />;
@@ -220,13 +229,9 @@ export default function NaijaLife() {
       </main>
       </SubNavContext.Provider>
 
-      {toast && (
-        <div className="fixed inset-x-0 bottom-44 z-40 mx-auto w-[92%] max-w-md rounded-2xl bg-slate-800 px-4 py-2.5 text-center text-sm font-medium text-white shadow-xl">
-          {toast}
-        </div>
-      )}
+      <Pops chips={chips} note={toast} />
 
-      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { const next = ageUp(game); setGame(next); setTab("life"); const d = changeSummary(game.p, next.p); if (d) setToast(d); try { navigator.vibrate?.(next.p.alive ? 12 : [40, 60, 40]); } catch { /* no haptics */ } }} />
+      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { const next = ageUp(game); setGame(next); setTab("life"); const c = changeChips(game.p, next.p, 2); if (c.length && next.p.alive) setChips(c); try { navigator.vibrate?.(next.p.alive ? 12 : [40, 60, 40]); } catch { /* no haptics */ } }} />
 
       {result !== null && (
         <Sheet>
@@ -529,20 +534,6 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 // Work tab
 // ---------------------------------------------------------------------------
 type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | "classmates" | "yahoo" | "talent" | null;
-
-/** "Health -6 · Happiness +4 · Cash +₦120k" after each birthday, so the effect of a year is visible. */
-function changeSummary(a: Player, b: Player): string {
-  if (!b.alive || b.age === a.age && a.alive === b.alive) return "";
-  const names: [keyof Player["stats"], string, string][] = [["health", "Health", "Health"], ["happiness", "Happiness", "Happiness"], ["smarts", "Smarts", "Smarts"], ["looks", "Looks", "Looks"], ["stress", "Stress", "Stress"], ["reputation", "Rep", "Rep"]];
-  const parts: string[] = [];
-  for (const [k, en, pcm] of names) {
-    const d = Math.round(b.stats[k] - a.stats[k]);
-    if (Math.abs(d) >= 3) parts.push(`${T(en, pcm)} ${d > 0 ? "+" : "−"}${Math.abs(d)}`);
-  }
-  const m = b.money - a.money;
-  if (Math.abs(m) >= 50_000 * b.index) parts.push(`${T("Cash", "Cash")} ${m > 0 ? "+" : "−"}${naira(Math.abs(m))}`);
-  return parts.slice(0, 4).join(" · ");
-}
 
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const [sub, setSub] = useState<WorkSub>(null);

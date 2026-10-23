@@ -1914,3 +1914,57 @@ test("pets, lottery, style, talent, DNA, ribbons and the new events all work", a
     }
   }
 });
+
+test("economy: mood, dollar rate, standing and black tax", async () => {
+  const eco = await import("../economy");
+  const g = aliveAt(35);
+  const p = structuredClone(g.p);
+  p.prison = 0;
+  p.world = p.world ?? { until: {}, news: [] };
+  assert.ok(["steady", "election"].includes(eco.econMood(p).id) || eco.econMood(p).id.length > 0);
+  const r0 = eco.fxRate(p);
+  assert.ok(r0 > 0);
+  p.world.until.recession = p.age + 2;
+  assert.equal(eco.econMood(p).id, "recession");
+  p.world.until.crash = p.age + 1;
+  assert.equal(eco.econMood(p).id, "crash");
+  p.holdings.push({ id: "u1", kind: "usd", label: "Dollar", invested: 1000, value: 1000, since: 0 });
+  eco.shockFx(p, 0.2);
+  assert.equal(p.holdings.find((h) => h.id === "u1")!.value, 1200);
+  assert.ok(eco.fxRate(p) > r0);
+  const lines: string[] = [];
+  for (let i = 0; i < 5; i++) eco.yearlyEcon(p, 0.1, lines);
+  assert.ok(eco.fxRate(p) > r0, "naira loses value over time");
+  eco.statusYear(p, lines);
+  assert.ok(eco.statusOf(p) >= 0 && eco.statusOf(p) <= 100);
+  p.fin = [{ age: p.age - 1, income: 20_000_000 * p.index, expense: 0, borrowed: 0, cats: {} }];
+  assert.ok(eco.blackTaxDemand(p) > 0);
+  const pend: import("../types").Pending[] = [];
+  for (let i = 0; i < 20; i++) eco.blackTaxYear(p, pend);
+  assert.ok(pend.length > 0, "family asks for black tax");
+  const ev = eco.MONEY_EVENTS[0];
+  const d = { amount: eco.blackTaxDemand(p), why: 0 };
+  p.money = 1e10;
+  for (let i = 0; i < ev.choices(p, d).length; i++) { const q = structuredClone(p); assert.ok(typeof ev.choices(q, d)[i].run(q) === "string"); }
+});
+
+test("you can propose straight from dating, and a partner who is not ready says so", () => {
+  let q = structuredClone(aliveAt(26));
+  q.p.prison = 0; q.p.spouse = null; q.p.rel.partners = []; q.p.possessions.smartphone = true; q.p.money = 1e10; q.queue = [];
+  q.p.age = Math.max(q.p.age, 26);
+  q = act(q, { t: "dating", op: "profile", bio: "hello there friend", interests: ["music"] }).g;
+  const base0 = q;
+  for (let s = 3; s < 60 && !q.p.rel.partners.length; s++) {
+    q = structuredClone(base0); setSeed(s);
+    for (let i = 0; i < 12 && q.p.rel.deck.length; i++) q = act(q, { t: "dating", op: "swipe", npc: q.p.rel.deck[0].id, like: true }).g;
+  }
+  const rel = q.p.rel.partners[0];
+  assert.ok(rel, "a match");
+  rel.stage = "dating"; rel.affection = 40;
+  let r = act(q, { t: "dating", op: "propose", npc: rel.npcId });
+  assert.equal(r.g.p.rel.partners[0].stage, "dating", "not ready yet");
+  q.p.rel.partners[0].affection = 80;
+  r = act(q, { t: "dating", op: "propose", npc: rel.npcId });
+  assert.equal(r.g.p.rel.partners[0].stage, "engaged", "engaged after a proposal from dating");
+  assert.ok(r.g.queue.some((e) => e.kind === "event" && e.id === "proposal"), "the wedding choices open");
+});

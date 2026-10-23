@@ -214,7 +214,13 @@ function PartnerRow({ p, rel, npc, run }: { p: Player; rel: PartnerRel; npc: Npc
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Btn small tone="ghost" onClick={() => setOpen(!open)}>{open ? T("Close", "Close") : T("Actions", "Actions")}</Btn>
         {rel.stage !== "chatting" && <Btn small tone="ghost" onClick={() => run({ t: "dating", op: "spend", npc: npc.id })}>{T("Spend time", "Spend time")}</Btn>}
+        {rel.stage === "dating" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "official", npc: npc.id })}>{T("Make it official", "Make am official")}</Btn>}
+        {(rel.stage === "dating" || rel.stage === "exclusive") && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "propose", npc: npc.id })}>💍 {T("Propose", "Propose")}</Btn>}
+        {rel.stage === "engaged" && <Btn small tone="gold" onClick={() => run({ t: "dating", op: "marry", npc: npc.id })}>💍 {T("Marry", "Marry")}</Btn>}
       </div>
+      {(rel.stage === "dating" || rel.stage === "exclusive") && (
+        <p className="mt-1 text-[11px] text-slate-500">{T("To marry: be at least 20, have love of 70 or more, then propose. Their family will send the bride price list.", "To marry: reach 20, get love 70 or more, then propose. Their family go send bride price list.")}</p>
+      )}
       {open && (
         <div className="mt-2 space-y-2 border-t border-slate-200 pt-2">
           <Thread rel={rel} />

@@ -33,9 +33,14 @@ const NEWS: NewsDef[] = [
     run: (p) => {
       p.world!.until.crash = p.age + 1;
       p.index *= 1.07;
-      for (const h of p.holdings) if (h.kind === "usd") { h.value = Math.round(h.value * 1.3); if (h.units !== undefined) h.units *= 1.3; }
+      p.flags.fxShock = 0.25;
       return dual("The naira crashes against the dollar. Prices jump, but dollar savings gain value.", "Naira crash against dollar. Prices jump, but dollar savings gain value.");
     },
+  },
+  {
+    id: "recession",
+    weight: (p) => (modActive(p, "recession") || modActive(p, "boom") ? 0 : 1.3),
+    run: (p) => { p.world!.until.recession = p.age + 2; return dual("The economy slips into recession. Pay stalls, shops go quiet and property softens for two years.", "Economy enter recession. Pay stall, shop quiet and property soft for two years."); },
   },
   {
     id: "insecurity",
@@ -83,10 +88,10 @@ export function yearlyNews(p: Player, lines: string[]) {
 }
 
 /** Multipliers other systems read. */
-export const costMultiplier = (p: Player) => (modActive(p, "fuel") ? 1.22 : 1) * (modActive(p, "crash") ? 1.05 : 1);
-export const payMultiplier = (p: Player) => (modActive(p, "boom") ? 1.06 : 1);
+export const costMultiplier = (p: Player) => (modActive(p, "fuel") ? 1.22 : 1) * (modActive(p, "crash") ? 1.05 : 1) * (modActive(p, "recession") ? 1.03 : 1);
+export const payMultiplier = (p: Player) => (modActive(p, "boom") ? 1.06 : 1) * (modActive(p, "recession") ? 0.95 : 1);
 export const kidnapMultiplier = (p: Player) => (modActive(p, "insecurity") ? 1.5 : 1);
-export const businessMultiplier = (p: Player) => (modActive(p, "boom") ? 1.08 : 1) * (modActive(p, "grid") ? 0.93 : 1);
+export const businessMultiplier = (p: Player) => (modActive(p, "boom") ? 1.08 : 1) * (modActive(p, "grid") ? 0.93 : 1) * (modActive(p, "recession") ? 0.9 : 1);
 
 void STATE_BY_ID;
 void clamp;

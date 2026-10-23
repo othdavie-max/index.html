@@ -170,6 +170,11 @@ export function processLoansMonth(p: Player, lines: string[], pending: Pending[]
         loan.balance += late;
         adjustCredit(p, -5);
         if (loan.missed === 1) lines.push(T(`Missed payment: ${loan.lenderName} added a ${naira(late)} late fee. Reminders keep flooding your phone.`, `You miss payment: ${loan.lenderName} add ${naira(late)} late fee. Reminders dey enter your phone.`));
+        if (loan.missed === 3 && loan.lenderType !== "bank") {
+          for (const n of Object.values(p.npcs).filter((x) => x.alive && ["friend", "mom", "dad", "sibling", "cousin"].includes(x.role)).slice(0, 4)) n.closeness = clamp(n.closeness - 8);
+          p.stats.reputation = clamp(p.stats.reputation - 4);
+          lines.push(T("The loan app texts your contacts: 'Your friend owes us money.' Your phone does not stop ringing.", "Loan app text your contacts: 'Your friend dey owe us money.' Your phone no stop to ring."));
+        }
         if (loan.missed === 3) lines.push(T(`${loan.lenderName} sent a final warning and threatened to call your contacts.`, `${loan.lenderName} send final warning and threaten say dem go call your contacts.`));
         if (loan.missed >= 4) {
           loan.status = "defaulted";

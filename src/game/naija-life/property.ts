@@ -2,6 +2,7 @@ import { HOUSE_KINDS, STATE_BY_ID } from "./data";
 import { LOCATIONS, locationOf, marketMid } from "./locations";
 import { bump, stateOf } from "./helpers";
 import { monthIndex, transact } from "./ledger";
+import { propertyEcon } from "./economy";
 import { mortgageQuote, takeMortgage } from "./mortgage";
 import type { House, HouseKind, Listing, Loan, Player } from "./types";
 import { T, chance, naira, pick, rand, uid } from "./util";
@@ -45,7 +46,7 @@ export function refreshListings(p: Player) {
 export function houseYear(p: Player, h: House, inflation: number, lines: string[]) {
   const loc = locationOf(h.loc);
   if (!loc) { h.value = Math.round(h.value * (1 + inflation * 0.9)); return; }
-  const move = inflation * 0.9 + loc.growth + rand(-1, 1) * loc.vol;
+  const move = inflation * 0.9 + loc.growth + rand(-1, 1) * loc.vol + propertyEcon(p);
   h.value = Math.round(h.value * Math.max(0.5, 1 + move));
   if (chance(loc.risk * 0.5)) {
     const hit = rand(0.6, 0.88);
