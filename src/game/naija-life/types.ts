@@ -319,6 +319,10 @@ export interface Npc {
   former?: boolean;
   /** Times you spent time together this year. */
   met?: number;
+  /** How many favours they owe you. */
+  owes?: number;
+  /** A notable job they reached, such as Senator or Pastor. */
+  title?: string;
 }
 
 export type FamilyArchetype = "nepo" | "upperMiddle" | "middle" | "strictRich" | "struggling" | "lapo" | "newlyRich" | "fallenRich";

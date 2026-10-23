@@ -295,6 +295,7 @@ export function giftTo(p: Player, n: Npc, amount: number): string {
   const rel = clamp((amount / Math.max(1, (n.income * p.index) / 20)) * 6, 1, 14);
   n.closeness = clamp(n.closeness + rel);
   n.trust = clamp(n.trust + 2);
+  if (amount >= 20_000 * p.index) n.owes = Math.min(5, (n.owes ?? 0) + 1);
   remember(p, n, T(`You gave them ${naira(amount)}.`, `You give dem ${naira(amount)}.`), "good");
   return T(`You sent ${naira(amount)} to ${n.name.split(" ")[0]}. Appreciation level: high.`, `You send ${naira(amount)} to ${n.name.split(" ")[0]}. Appreciation dey high.`);
 }

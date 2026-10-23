@@ -1988,3 +1988,42 @@ test("local investments: agric, land, off-plan, ponzi and ajo pay, stall or coll
   v.buyPosition(p, "ponzi", 1e9);
   for (let i = 0; i < 3; i++) { const q = structuredClone(p); assert.ok(typeof ev.choices(q, {})[i].run(q) === "string"); }
 });
+
+test("rival, fortunes, favours, quests and milestones", async () => {
+  const r = await import("../rival");
+  const qz = await import("../quests");
+  const g = aliveAt(30);
+  const p = structuredClone(g.p);
+  p.prison = 0; p.age = 30; p.money = 1e9;
+  const lines: string[] = []; const pend: import("../types").Pending[] = [];
+  for (let i = 0; i < 25; i++) { r.rivalYear(p, lines, pend); r.npcFortunes(p, lines, pend); }
+  const rv = r.rivalOf(p);
+  assert.ok(rv && r.rivalNpc(p), "a rival exists");
+  assert.ok(r.rivalCompare(p).length === 6);
+  assert.ok(lines.length > 0, "the rival's life shows up in the feed");
+  // favours
+  const f = Object.values(p.npcs).find((n) => n.role === "friend") ?? r.rivalNpc(p)!;
+  f.owes = 2; f.title = "Senator"; f.alive = true; p.job = null;
+  assert.ok(r.powerOf(f) >= 1 && r.favourBlock(p, f, "contract") === null);
+  const m0 = p.money;
+  r.callFavour(p, f.id, "contract");
+  assert.ok(p.money > m0 && f.owes === 1);
+  p.prison = 6; r.callFavour(p, f.id, "legal");
+  assert.ok(p.prison < 6, "sentence cut");
+  p.prison = 0;
+  // quests
+  for (let y = 0; y < 3; y++) { p.age += 1; qz.questsYear(p, []); }
+  const qs = qz.questsOf(p);
+  assert.equal(qs.length, 3);
+  assert.ok(qs.every((q) => qz.QUEST_BY_ID[q.id]));
+  // milestones
+  const pend2: import("../types").Pending[] = [];
+  p.flags.mile_m1 = undefined as never; delete p.flags.mile_m1;
+  qz.milestonesYear(p, pend2);
+  assert.ok(pend2.some((x) => x.kind === "event" && x.id === "milestone"), "a milestone fires");
+  for (const e of [...r.RIVAL_EVENTS, ...qz.QUEST_EVENTS]) {
+    const d = e.init ? e.init(p) : { mid: "m1", npcId: f.id };
+    const n = e.choices(p, d).length;
+    for (let i = 0; i < n; i++) { const q = structuredClone(p); q.money = 1e10; assert.ok(typeof e.choices(q, d)[i].run(q) === "string", `${e.id}[${i}]`); }
+  }
+});

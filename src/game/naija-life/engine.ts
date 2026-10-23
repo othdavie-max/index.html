@@ -23,6 +23,8 @@ import { defaultLocationFor, locationOf } from "./locations";
 import { EDU_EVENTS, enrollPostgrad, finishPostgrad } from "./education";
 import { yearlyNews } from "./news";
 import { MONEY_EVENTS, econYear } from "./economy";
+import { RIVAL_EVENTS, callFavour, npcFortunes, rivalYear, type FavourKind } from "./rival";
+import { QUEST_EVENTS, milestonesYear, questsYear } from "./quests";
 import { INV2_EVENTS, buyPosition, inv2Year, sellPosition, type PosKind } from "./invest2";
 import { SUPPORT_EVENTS, yearlyPromises } from "./support";
 import { PRISON_EVENTS, fugitiveYear, prisonBlock, prisonOp } from "./prison";
@@ -66,7 +68,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...MONEY_EVENTS, ...INV2_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...MONEY_EVENTS, ...INV2_EVENTS, ...RIVAL_EVENTS, ...QUEST_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -593,6 +595,7 @@ export function ageUp(g0: Game): Game {
   yearlyCrime(p, lines, pending);
   yahooYear(p, lines, pending);
   bitYear(p, lines, pending);
+  if (p.alive && p.age >= 6) { rivalYear(p, lines, pending); npcFortunes(p, lines, pending); milestonesYear(p, pending); questsYear(p, lines); }
   fugitiveYear(p, lines);
   yearlyGrowth(p);
   yearlySocial(p, lines, (id, data) => pending.push({ kind: "event", id, data: { month: randInt(1, 12), ...(data ?? {}) } }));
@@ -796,6 +799,7 @@ export type Action =
   | { t: "yahoo"; op: "hunt" | "work" | "cash" | "drop" | "kit" | "low" | "launder" | "settle" | "quit"; id?: string; how?: Approach }
   | { t: "bl"; op: "pet" | "petcare" | "rehome" | "lotto" | "style" | "talent" | "practice" | "dna"; id?: string; care?: "play" | "feed" | "vet" }
   | { t: "inv2"; op: "buy" | "sell"; kind?: PosKind; id?: string; amount?: number }
+  | { t: "favour"; npc: string; kind: FavourKind }
   | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "hookup" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
   | { t: "realtor"; op: "show" | "find"; client?: string; listing?: string }
   | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "levers" | "act"; id: string; sets?: Record<string, number>; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
@@ -915,6 +919,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "realtor": return { reason: T("Estate agency", "Estate agency"), category: "business" };
     case "bet": return { reason: T("Betting", "Betting"), category: "betting" };
     case "social": return { reason: T("Social media", "Social media"), category: "social" };
+    case "favour": return { reason: T("Favour", "Favour"), category: "other" };
     case "inv2": return { reason: T("Investment", "Investment"), category: "investment" };
     case "bl": return { reason: T("Lifestyle", "Lifestyle"), category: "personal" };
     case "crime": case "yahoo": return { reason: T("Crime", "Crime"), category: "crime" };
@@ -1237,6 +1242,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           }
           return { g: g0, msg: "" };
         }
+        case "favour": return out(callFavour(p, a.npc, a.kind));
         case "inv2": return out(a.op === "buy" ? buyPosition(p, a.kind ?? "agric", Math.round(a.amount ?? 0)) : sellPosition(p, a.id ?? ""));
         case "bl": {
           switch (a.op) {
