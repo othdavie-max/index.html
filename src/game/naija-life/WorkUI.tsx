@@ -8,6 +8,9 @@ import { officeTitle } from "./politics";
 import { meritOf } from "./military";
 import { DegreeCard } from "./CampusUI";
 import { ActionSheet, Btn, ListGroup, ListRow } from "./ui";
+import { candidatesFor } from "./realtor";
+import { HOUSE_KINDS } from "./data";
+import { LOCATION_BY_ID } from "./locations";
 import type { Player } from "./types";
 import { T, naira } from "./util";
 
@@ -123,6 +126,36 @@ export function JobsView({ p, run }: { p: Player; run: Run }) {
             <Btn tone="ghost" onClick={() => { run({ t: "quit" }); setMine(false); }}>{T("Quit", "Quit")}</Btn>
           </div>
           {cur.selfEmployed && cost !== null && <p className="mt-2 text-[11px] text-slate-500">{T(`Next: ${cur.ladder[p.job.rank + 1].title}. Invest in your business to grow it. Moving to another state leaves it behind.`, `Next: ${cur.ladder[p.job.rank + 1].title}. Put money inside your business make am grow. If you move go another state, you leave am.`)}</p>}
+        </ActionSheet>
+      )}
+    </>
+  );
+}
+
+/** Estate agent desk: clients who want to buy or rent, and the properties to show them. */
+export function RealtorView({ p, run }: { p: Player; run: Run }) {
+  const [clientId, setClientId] = useState<string | null>(null);
+  const clients = p.clients ?? [];
+  const c = clients.find((x) => x.id === clientId) ?? null;
+  return (
+    <>
+      <ListGroup title={T("Your clients", "Your clients")} sub={T(`${p.dealsClosed ?? 0} deals closed. Commission: 3% on sales, 10% of a year's rent on lettings. ${p.actionsLeft} actions left this year.`, `${p.dealsClosed ?? 0} deals don close. Commission: 3% for sales, 10% of one year rent for letting. ${p.actionsLeft} action remain this year.`)}>
+        {clients.length === 0 && <ListRow emoji="📭" tile="bg-slate-100" name={T("No clients right now", "No client now")} desc={T("Advertise to find some", "Advertise to find some")} />}
+        {clients.map((x) => (
+          <ListRow key={x.id} emoji={x.want === "buy" ? "🛒" : "🔑"} tile={x.want === "buy" ? "bg-emerald-100" : "bg-sky-100"} name={x.name}
+            desc={`${x.want === "buy" ? T("Wants to buy", "Wan buy") : T("Wants to rent", "Wan rent")} ${HOUSE_KINDS[x.kind].label.toLowerCase()} · ${T("mood", "mood")} ${Math.round(x.mood)}`}
+            right={naira(x.budget)} onClick={() => setClientId(x.id)} />
+        ))}
+        <ListRow emoji="📣" tile="bg-amber-100" name={T("Advertise for clients", "Advertise for clients")} desc={T("Flyers, WhatsApp status and site boards", "Flyer, WhatsApp status and site board")} right={naira(25_000 * p.index)} onClick={() => run({ t: "realtor", op: "find" })} />
+      </ListGroup>
+      {c && (
+        <ActionSheet emoji={c.want === "buy" ? "🛒" : "🔑"} tile="bg-emerald-100" title={c.name} sub={`${c.want === "buy" ? T("Buying", "Buying") : T("Renting", "Renting")} · ${naira(c.budget)}`} onClose={() => setClientId(null)}>
+          <ListGroup title={T("Properties to show", "Properties to show")} sub={T("The better the fit, the better your chance. Each viewing uses one action.", "The better the fit, the better your chance. Each viewing use one action.")}>
+            {candidatesFor(p, c).map(({ l, fit }) => (
+              <ListRow key={l.id} emoji="🏠" tile="bg-amber-100" name={`${HOUSE_KINDS[l.kind].label} · ${LOCATION_BY_ID[l.loc ?? ""]?.name ?? l.stateId}`}
+                desc={`${l.condition} · ${T("fit", "fit")} ${fit}%`} right={naira(l.price)} disabled={p.actionsLeft <= 0} onClick={() => { run({ t: "realtor", op: "show", client: c.id, listing: l.id }); }} />
+            ))}
+          </ListGroup>
         </ActionSheet>
       )}
     </>

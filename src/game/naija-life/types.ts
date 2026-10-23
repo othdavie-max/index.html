@@ -98,6 +98,19 @@ export interface Politics {
   defected: boolean;
 }
 
+export interface RealtorClient {
+  id: string;
+  name: string;
+  want: "buy" | "rent";
+  kind: HouseKind;
+  /** Price (buy) or yearly rent they can afford. */
+  budget: number;
+  /** Years before they give up and go elsewhere. */
+  patience: number;
+  /** 0-100. Drops with every property that misses. */
+  mood: number;
+}
+
 export interface Listing {
   id: string;
   /** Neighbourhood id (see locations.ts). */
@@ -174,6 +187,9 @@ export interface Player {
   luck: number;
   world?: WorldState;
   listings?: Listing[];
+  /** People looking to buy or rent, for estate agents. */
+  clients?: RealtorClient[];
+  dealsClosed?: number;
   /** A paid financial adviser. */
   advisor?: { tier: 1 | 2 | 3; name: string; since: number; missed: number };
   /** Language the game is told in. */

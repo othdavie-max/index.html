@@ -1641,3 +1641,27 @@ test("businesses: many Nigerian kinds, interactive sale with haggling and instal
   assert.equal(q.pendingSale, undefined);
   assert.ok(q.money > money);
 });
+
+test("estate agents get clients, show properties and earn commission", async () => {
+  const { candidatesFor, realtorYear, isRealtor } = await import("../realtor");
+  let g = liveTo(26, 6);
+  g.p.prison = 0; g.p.money = 50_000_000; g.p.job = { id: "realtor", rank: 0, years: 0 };
+  assert.ok(isRealtor(g.p));
+  realtorYear(g.p, []);
+  assert.ok((g.p.clients ?? []).length > 0, "clients arrive");
+  g.p.actionsLeft = 30;
+  let earned = false;
+  for (let i = 0; i < 40 && !earned; i++) {
+    g.p.stats.reputation = 90; g.p.skills.sales = 90;
+    const c = g.p.clients![0];
+    if (!c) { realtorYear(g.p, []); continue; }
+    const best = candidatesFor(g.p, c)[0];
+    if (!best) { g.p.clients = g.p.clients!.slice(1); continue; }
+    const before = g.p.money;
+    g = act(g, { t: "realtor", op: "show", client: c.id, listing: best.l.id }).g;
+    if (g.p.money > before) earned = true;
+  }
+  assert.ok(earned, "a viewing eventually closes a deal");
+  assert.ok(ledgerBalances(g.p));
+  assert.ok((g.p.dealsClosed ?? 0) >= 1);
+});

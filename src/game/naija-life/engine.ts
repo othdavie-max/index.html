@@ -11,6 +11,7 @@ import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
 import { buildObituary } from "./obituary";
 import { ENGAGE_EVENTS, assignGoals, engageYear } from "./engage";
+import { findClients, realtorYear, showProperty } from "./realtor";
 import { SCENARIO_EVENTS } from "./scenariosAll";
 import { NYSC_EVENTS, NYSC_MAX_AGE, nyscRelease, nyscYear, serving } from "./nysc";
 import { fillClassmates, interact, makeFriend, refreshOccupation, refreshPeople } from "./people";
@@ -657,6 +658,7 @@ export function ageUp(g0: Game): Game {
     }
   }
   nyscYear(p, lines, pending, wasInside);
+  realtorYear(p, lines);
   refreshPeople(p);
   engageYear(p, lines);
   p.traveled = false;
@@ -782,6 +784,7 @@ export type Action =
   | { t: "checkup" }
   | { t: "treat"; cond: string; facility: string }
   | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
+  | { t: "realtor"; op: "show" | "find"; client?: string; listing?: string }
   | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline"; id: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
   | { t: "bet"; kind: BetKind; stake: number }
   | { t: "social"; op: "account" | "post" | "collab" | "gear"; platform?: Platform; content?: ContentKind }
@@ -896,6 +899,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "insure": case "checkup": case "treat": return { reason: T("Healthcare", "Health care"), category: "health" };
     case "dating": return { reason: T("Dating", "Dating"), category: "dating" };
     case "biz": return { reason: T("Business", "Business"), category: "business" };
+    case "realtor": return { reason: T("Estate agency", "Estate agency"), category: "business" };
     case "bet": return { reason: T("Betting", "Betting"), category: "betting" };
     case "social": return { reason: T("Social media", "Social media"), category: "social" };
     case "crime": return { reason: T("Crime", "Crime"), category: "crime" };
@@ -1210,6 +1214,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           }
           return { g: g0, msg: "" };
         }
+        case "realtor": return out(a.op === "find" ? findClients(p) : showProperty(p, a.client ?? "", a.listing ?? ""));
         case "biz": {
           switch (a.op) {
             case "start": return out(startBusiness(p, a.id, a.name ?? ""));

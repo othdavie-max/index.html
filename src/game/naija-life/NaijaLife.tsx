@@ -23,7 +23,8 @@ import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
-import { JobsView } from "./WorkUI";
+import { JobsView, RealtorView } from "./WorkUI";
+import { isRealtor } from "./realtor";
 import { ActionSheet, BackPill, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
 import { notificationsFor } from "./notices";
@@ -511,14 +512,15 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 // Work tab
 // ---------------------------------------------------------------------------
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [sub, setSub] = useState<"jobs" | "biz" | "learn" | null>(null);
+  const [sub, setSub] = useState<"jobs" | "biz" | "learn" | "agent" | null>(null);
   const cur = jobDef(p);
   return (
     <>
       {sub === null ? (
-        <HubList onPick={(r) => setSub(r.id as "jobs" | "biz" | "learn")} groups={[{ rows: [
+        <HubList onPick={(r) => setSub(r.id as "jobs" | "biz" | "learn" | "agent")} groups={[{ rows: [
           { id: "jobs", emoji: "💼", tile: "bg-amber-100", name: T("Jobs and hustles", "Jobs and hustles"), desc: cur ? cur.ladder[Math.min(p.job?.rank ?? 0, cur.ladder.length - 1)].title : T("Find work or start a hustle", "Find work or start hustle") },
           { id: "biz", emoji: "🏪", tile: "bg-emerald-100", name: T("My businesses", "My businesses"), desc: p.businesses.length ? T(`${p.businesses.length} running`, `${p.businesses.length} dey run`) : T("Akara stand to hotel", "Akara stand to hotel") },
+          ...(isRealtor(p) ? [{ id: "agent", emoji: "🏠", tile: "bg-sky-100", name: T("Property clients", "Property clients"), desc: T(`${(p.clients ?? []).length} looking for a home`, `${(p.clients ?? []).length} dey find house`) }] : []),
           { id: "learn", emoji: "🎓", tile: "bg-violet-100", name: T("Learn", "Learn"), desc: p.school ? T("In school now", "You dey school now") : T("School, trades, skills", "School, trade, skills") },
         ] }]} />
       ) : <BackPill label={T("Work", "Work")} onClick={() => setSub(null)} />}
@@ -534,6 +536,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         </>
       )}
       {sub === "jobs" && <JobsView p={p} run={run} />}
+      {sub === "agent" && <RealtorView p={p} run={run} />}
     </>
   );
 }
