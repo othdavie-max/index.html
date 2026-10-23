@@ -2,6 +2,7 @@ import { STATE_BY_ID, TRAVEL_STATES, poolFor } from "./data";
 import { transact } from "./ledger";
 import { kidLook, parentLook, randomLook, type Look } from "./look";
 import type { FamilyArchetype, FamilyBg, FamilyStructure, Gender, Loan, Npc, NpcRole, Player, StateInfo } from "./types";
+import { occupationFor } from "./occupation";
 import { T, chance, clamp, naira, pick, rand, randInt, uid, weightedPick } from "./util";
 
 // ---------------------------------------------------------------------------
@@ -133,6 +134,8 @@ export function npcsByRole(p: Player, ...roles: NpcRole[]): Npc[] {
   return Object.values(p.npcs).filter((n) => roles.includes(n.role));
 }
 
+export const jobsForArchetype = (a: FamilyArchetype): string[] => ARCH[a].jobs;
+
 export function addFriend(p: Player, ageDelta = randInt(-2, 3)): Npc {
   const gender: Gender = chance(0.5) ? "male" : "female";
   const spec = ARCH[pickFriendArch()];
@@ -142,6 +145,8 @@ export function addFriend(p: Player, ageDelta = randInt(-2, 3)): Npc {
     generosity: randInt(10, 90), strictness: randInt(10, 60), responsibility: randInt(25, 90), closeness: randInt(40, 80),
   });
   f.traits = [pick(["funny", "loyal", "ambitious", "dramatic", "laid-back", "generous", "stingy", "flashy"])];
+  f.adultJob = f.occupation;
+  f.occupation = occupationFor(Math.max(0, p.age + ageDelta), f.adultJob, f.id);
   p.npcs[f.id] = f;
   return f;
 }

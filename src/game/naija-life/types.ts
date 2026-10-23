@@ -253,7 +253,7 @@ export interface FinYear {
 // ---------------------------------------------------------------------------
 // People
 // ---------------------------------------------------------------------------
-export type NpcRole = "dad" | "mom" | "guardian" | "sibling" | "friend" | "cousin" | "uncle" | "aunt" | "grandparent" | "partner" | "ex" | "match" | "colleague" | "victim";
+export type NpcRole = "dad" | "mom" | "guardian" | "sibling" | "friend" | "classmate" | "cousin" | "uncle" | "aunt" | "grandparent" | "partner" | "ex" | "match" | "colleague" | "victim";
 
 export interface NpcMemory {
   age: number;
@@ -290,6 +290,15 @@ export interface Npc {
   gaveThisYear: number;
   traits: string[];
   memories: NpcMemory[];
+  /** The career they will have as an adult. Their job title follows their age. */
+  adultJob?: string;
+  /** Where you know them from, for classmates. */
+  school?: string;
+  stage?: "primary" | "secondary" | "university";
+  /** You have left that school, so they are an old classmate. */
+  former?: boolean;
+  /** Times you spent time together this year. */
+  met?: number;
 }
 
 export type FamilyArchetype = "nepo" | "upperMiddle" | "middle" | "strictRich" | "struggling" | "lapo" | "newlyRich" | "fallenRich";

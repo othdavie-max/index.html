@@ -10,6 +10,7 @@ import { EVENTS6 } from "./events6";
 import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
 import { ENGAGE_EVENTS, assignGoals, engageYear } from "./engage";
+import { fillClassmates, interact, makeFriend, refreshOccupation, refreshPeople } from "./people";
 import { campusDo, campusHire, campusYearEnd, enrol, graduateCampus, writeJamb } from "./campus";
 import { transportOptions, type TransportMode } from "./travel";
 import { buyListing, completeProjects, developLand, houseYear, refreshListings, type PurchaseMode } from "./property";
@@ -98,6 +99,8 @@ export function migrate(g: Game): Game {
   for (const k of p.kids) if (!k.look) k.look = kidLook(p.gender === "male" ? p.look : p.spouse?.look, p.gender === "female" ? p.look : p.spouse?.look, k.gender);
   migrateWorld(p);
   for (const b of p.businesses) ensureCrew(p, b);
+  for (const n of Object.values(p.npcs)) refreshOccupation(p, n);
+  fillClassmates(p);
   if (!p.listings) refreshListings(p);
   syncLegacyFamily(p);
   return g;
@@ -630,6 +633,7 @@ export function ageUp(g0: Game): Game {
     p.cause = p.age >= 66 ? T("Old age", "Old age") : pick(causes());
   }
 
+  refreshPeople(p);
   engageYear(p, lines);
   p.traveled = false;
   p.month = 12;
@@ -767,6 +771,8 @@ export type Action =
   | { t: "trade"; id: string }
   | { t: "postgrad"; id: string }
   | { t: "adopt" }
+  | { t: "interact"; npc: string; id: string }
+  | { t: "friend" }
   | { t: "jamb"; cheat?: boolean }
   | { t: "enrol"; uni: string; major: string; pay: "family" | "self" | "aid" }
   | { t: "campus"; op: string; arg?: string }
@@ -833,6 +839,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "postgrad": return { reason: T("Postgraduate study", "Postgraduate study"), category: "education" };
     case "adopt": return { reason: T("Adoption", "Adoption"), category: "family" };
     case "advisor": return { reason: T("Financial adviser", "Financial adviser"), category: "investment" };
+    case "interact": case "friend": return { reason: T("Time with people", "Time with people"), category: "personal" };
     case "jamb": return { reason: T("JAMB registration", "JAMB registration"), category: "education" };
     case "enrol": return { reason: T("University admission", "University admission"), category: "education" };
     case "campus": return { reason: T("Campus life", "Campus life"), category: "education" };
@@ -974,8 +981,10 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "trade": return out(enrollTrade(p, a.id));
     case "postgrad": return out(enrollPostgrad(p, a.id));
     case "adopt": return out(adoptChild(p));
+    case "interact": return out(interact(p, a.npc, a.id));
+    case "friend": return out(makeFriend(p));
     case "jamb": return out(writeJamb(p, Boolean(a.cheat)));
-    case "enrol": return out(enrol(p, a.uni, a.major, a.pay));
+    case "enrol": { const m = enrol(p, a.uni, a.major, a.pay); if (p.campus) fillClassmates(p); return out(m); }
     case "campus": return out(campusDo(p, a.op, a.arg));
     case "advisor": return out(a.op === "hire" ? hireAdvisor(p, a.tier ?? 1) : fireAdvisor(p));
     case "develop": return out(developLand(p, a.id, a.kind));

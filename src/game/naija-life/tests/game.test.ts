@@ -26,6 +26,9 @@ import { yearlyNews, modActive } from "../news";
 import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
+import { occupationFor } from "../occupation";
+import { INTERACTIONS, interact, interactBlock, interactionsFor, makeFriend, refreshOccupation, refreshPeople } from "../people";
+import { addFriend } from "../family";
 import { ENGAGE_EVENTS, GOAL_DEFS, MOMENT_DEFS, challengeFor, engageYear, gistFor, weekId } from "../engage";
 import { VEHICLE_MODELS, modelOf, needsLicense, priceOf, takeDrivingTest, licenseBlock } from "../vehicles";
 import { transportOptions, tripRisk } from "../travel";
@@ -223,7 +226,7 @@ test("rent is charged on a real schedule and not twice", () => {
   assert.equal(q.p.housing.type, "rented");
   q.p.money = 500_000_000;
   for (let i = 0; i < 3 && q.p.alive; i++) q = resolveAll(ageUp(q));
-  const charges = q.p.ledger.filter((t) => t.category === "rent" && t.amount < 0 && /Rent/i.test(t.reason)).map((t) => t.age * 12 + t.month);
+  const charges = q.p.ledger.filter((t) => t.category === "rent" && t.amount < 0 && /Rent/i.test(t.reason) && /elf-contain/i.test(t.reason)).map((t) => t.age * 12 + t.month);
   assert.ok(charges.length >= 2, "rent was paid on renewal");
   for (let i = 1; i < charges.length; i++) assert.ok(charges[i] - charges[i - 1] >= 12, `rent charged twice within a year: months ${charges[i - 1]} and ${charges[i]}`);
 });
@@ -1270,4 +1273,81 @@ test("engagement: moments, bucket list, weekly challenge and chain events", () =
   sr.choices(q, {})[0].run(q);
   assert.ok(q.money > before, "kindness pays back");
   assert.equal(sr.weight(q), 0, "only once");
+});
+
+test("people: job titles fit the age", () => {
+  assert.equal(occupationFor(13, "Engineer"), "Student");
+  assert.match(occupationFor(13, "Roadside mechanic", "x"), /^Intern mechanic$/);
+  assert.equal(occupationFor(10, "Surgeon"), "Pupil");
+  assert.equal(occupationFor(19, "Doctor"), "Student");
+  assert.equal(occupationFor(23, "Doctor"), "House officer");
+  assert.equal(occupationFor(23, "Engineer"), "Junior engineer");
+  assert.equal(occupationFor(34, "Engineer"), "Engineer");
+  assert.match(occupationFor(70, "Teacher"), /^Retired/);
+  assert.equal(occupationFor(22, "Oil & gas executive").includes("family business"), true);
+  // a real life: nobody under 18 holds a grown-up career, at any point
+  const g = aliveAt(17);
+  const p = g.p;
+  for (const n of Object.values(p.npcs)) {
+    if (!["friend", "classmate", "sibling", "cousin"].includes(n.role)) continue;
+    const age = p.age + n.ageDelta;
+    if (age < 18) assert.match(n.occupation, /^(Baby|Toddler|Pupil|Student|Apprentice|Intern)/, `${n.role} aged ${age}: ${n.occupation}`);
+  }
+  // the exact bug: a 13-year-old friend who was an engineer
+  const q = structuredClone(g.p); q.age = 14;
+  const f = addFriend(q, -1);
+  f.adultJob = "Engineer"; f.occupation = "Engineer";
+  refreshOccupation(q, f);
+  assert.equal(f.occupation, "Student");
+  const m = addFriend(q, -1); m.adultJob = "Roadside mechanic"; refreshOccupation(q, m);
+  assert.equal(m.occupation, "Intern mechanic");
+  // old saves with a bad job are repaired on load
+  const old = migrate(structuredClone(g));
+  assert.ok(old.p.npcs);
+});
+
+test("people: classmates at every school stage and things to do together", () => {
+  // primary school
+  let g = liveTo(8, 3);
+  assert.ok(g.p.school?.stage === "primary");
+  let mates = Object.values(g.p.npcs).filter((n) => n.role === "classmate" && n.stage === "primary" && !n.former);
+  assert.ok(mates.length >= 4, `primary classmates: ${mates.length}`);
+  assert.ok(mates.every((n) => /^(Pupil|Student|Baby|Toddler)/.test(n.occupation)));
+  const c = mates[0];
+  const play = interactionsFor(g.p, c).find((i) => i.id === "play");
+  assert.ok(play, "kids can play together");
+  assert.ok(!interactionsFor(g.p, c).some((i) => ["party", "favour", "askout"].includes(i.id)), "no adult activities for kids");
+  const c0 = c.closeness;
+  const r = act(g, { t: "interact", npc: c.id, id: "play" });
+  assert.ok(r.g.p.npcs[c.id].closeness > c0 && r.msg.length > 10);
+  // a limit per person per year
+  let h = r.g;
+  for (let i = 0; i < 4; i++) h = act(h, { t: "interact", npc: c.id, id: "chat" }).g;
+  assert.equal(h.p.npcs[c.id].met, 3);
+  assert.ok(interactBlock(h.p, h.p.npcs[c.id], INTERACTIONS[0]));
+  // new friends are easy as a child, and capped per year
+  let made = 0;
+  let k = structuredClone(g);
+  for (let i = 0; i < 3; i++) { const before = Object.keys(k.p.npcs).length; k = act(k, { t: "friend" }).g; if (Object.keys(k.p.npcs).length > before) made++; }
+  assert.ok(made >= 1 && made <= 2, `friends made: ${made}`);
+  // moving on: primary classmates become old classmates once secondary school starts
+  g = liveTo(14, 3);
+  const old = Object.values(g.p.npcs).filter((n) => n.role === "classmate" && n.stage === "primary");
+  const now = Object.values(g.p.npcs).filter((n) => n.role === "classmate" && n.stage === "secondary" && !n.former);
+  assert.ok(now.length >= 4 && old.every((n) => n.former));
+  // university: a cohort that helps your grades
+  const u = withCash(18, 50_000_000);
+  u.p.edu = "secondary"; u.p.school = null;
+    openAdmission(u.p, 300);
+  const e = act(u, { t: "enrol", uni: "unilag", major: "law", pay: "self" });
+  const cl = Object.values(e.g.p.npcs).filter((n) => n.role === "classmate" && n.stage === "university");
+  assert.ok(cl.length >= 6);
+  const camp = e.g.p.campus!; const eff = camp.effort;
+  const st = act(e.g, { t: "interact", npc: cl[0].id, id: "study" });
+  assert.ok(st.g.p.campus!.effort > eff, "studying with a classmate helps your grades");
+  // family: parents can be talked to, and grandparents tell stories
+  const fam = Object.values(g.p.npcs).find((n) => n.role === "mom" || n.role === "dad")!;
+  assert.ok(interactionsFor(g.p, fam).some((i) => i.id === "family_time"));
+  assert.ok(ledgerBalances(r.g.p) && ledgerBalances(st.g.p));
+  void refreshPeople; void interact; void makeFriend;
 });

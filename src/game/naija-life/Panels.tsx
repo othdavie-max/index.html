@@ -27,6 +27,7 @@ import { beneficiaries, currentShares, totalPct } from "./will";
 import type { Business, Candidate, Npc, PartnerRel, Platform, Player, StateInfo } from "./types";
 import { BackPill, Badge, Bar, Btn, Card, H, Hub, HubList, Sheet, SubTabs, cx } from "./ui";
 import { riskLabel, transportOptions } from "./travel";
+import { interactBlock, interactionsFor, makeFriendBlock } from "./people";
 import { PRISON_OPS, appealCost, prisonBlockOp } from "./prison";
 import { T, naira } from "./util";
 
@@ -37,7 +38,9 @@ const lookStr = (n: Npc): string => [n.look.skin, n.look.hair, n.look.hairColor,
 void lookStr;
 
 function Face({ n, p, size = 56 }: { n: Npc; p: Player; size?: number }) {
-  return <Avatar look={n.look} gender={n.gender} age={Math.max(0, p.age + n.ageDelta)} size={size} dim={!n.alive} />;
+  const age = Math.max(0, p.age + n.ageDelta);
+  const inUniform = (n.role === "classmate" || n.role === "friend") && n.stage && n.stage !== "university" && !n.former && age >= 5 && age < 18;
+  return <Avatar look={inUniform ? { ...n.look, outfit: "uniform" } : n.look} gender={n.gender} age={age} size={size} dim={!n.alive} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -706,64 +709,134 @@ export function SubsCard({ p }: { p: Player }) {
 // ---------------------------------------------------------------------------
 // Family extras: parents' backgrounds, asking for help
 // ---------------------------------------------------------------------------
-export function PeopleCard({ p, run }: { p: Player; run: Run }) {
+export function BackgroundCard({ p }: { p: Player }) {
+  return (
+    <Card>
+      <H sub={`${p.fam.label} · ${p.fam.structure.replace("-", " ")}`}>{T("Background", "Background")}</H>
+      <div className="flex flex-wrap gap-1.5">{p.fam.tags.map((t) => <Badge key={t} tone="gold">{t}</Badge>)}</div>
+      <p className="mt-2 text-xs text-slate-500">{T("Wealth and generosity are different things. Rich parents can be strict, and poor parents can be very giving.", "Money and generosity no be the same thing. Rich parents fit strong, poor parents fit give well.")}</p>
+    </Card>
+  );
+}
+
+const FAMILY_ROLES = ["dad", "mom", "guardian", "sibling", "grandparent", "uncle", "aunt", "cousin"];
+const roleWord = (n: Npc): string => {
+  const m: Record<string, [string, string]> = { dad: ["Dad", "Papa"], mom: ["Mom", "Mama"], guardian: ["Guardian", "Guardian"], sibling: [n.gender === "male" ? "Brother" : "Sister", n.gender === "male" ? "Brother" : "Sister"], grandparent: [n.gender === "male" ? "Grandfather" : "Grandmother", n.gender === "male" ? "Grandfather" : "Grandmother"], uncle: ["Uncle", "Uncle"], aunt: ["Aunty", "Aunty"], cousin: ["Cousin", "Cousin"], friend: ["Friend", "Padi"], classmate: ["Classmate", "Classmate"] };
+  const w = m[n.role];
+  return w ? T(w[0], w[1]) : n.role;
+};
+
+/** Family, friends or classmates, each with things to do together. */
+export function PeopleList({ p, run, group }: { p: Player; run: Run; group: "family" | "friends" | "class" }) {
   const [sel, setSel] = useState<string | null>(null);
-  const [kind, setKind] = useState<SupportKind | null>(null);
-  const [amt, setAmt] = useState(0);
-  const people = Object.values(p.npcs).filter((n) => n.alive && ["dad", "mom", "guardian", "sibling", "grandparent", "uncle", "aunt", "cousin", "friend"].includes(n.role));
+  const alive = Object.values(p.npcs).filter((n) => n.alive);
+  const list = group === "family" ? alive.filter((n) => FAMILY_ROLES.includes(n.role)) : group === "friends" ? alive.filter((n) => n.role === "friend") : alive.filter((n) => n.role === "classmate" && !n.former);
+  const old = group === "class" ? alive.filter((n) => n.role === "classmate" && n.former) : [];
   const npc = sel ? p.npcs[sel] : null;
-  const kinds = supportKindsFor(p);
+  const mkBlock = makeFriendBlock(p);
+  const row = (n: Npc) => (
+    <button key={n.id} type="button" onClick={() => setSel(n.id)} className="flex w-full items-center gap-3 bg-white px-3.5 py-2.5 text-left transition active:bg-slate-50">
+      <Face n={n} p={p} size={46} />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[14.5px] font-extrabold leading-tight text-[#0b2a6b]">{n.name}</span>
+        <span className="block truncate text-[12px] text-slate-500">{roleWord(n)} · {Math.max(0, p.age + n.ageDelta)} · {n.occupation}</span>
+        <span className="mt-1 block h-1 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-blue-500" style={{ width: `${Math.max(4, n.closeness)}%` }} /></span>
+      </span>
+      <span className="shrink-0 text-xl font-black text-blue-500">›</span>
+    </button>
+  );
+  const box = "divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]";
   return (
     <>
-      <Card>
-        <H sub={`${p.fam.label} · ${p.fam.structure.replace("-", " ")}`}>{T("Background", "Background")}</H>
-        <div className="flex flex-wrap gap-1.5">{p.fam.tags.map((t) => <Badge key={t} tone="gold">{t}</Badge>)}</div>
-        <p className="mt-2 text-xs text-slate-500">{T("Wealth and generosity are different things. Rich parents can be strict, and poor parents can be very giving.", "Money and generosity no be the same thing. Rich parents fit be strict, poor parents fit dey give well.")}</p>
-      </Card>
-      <Card>
-        <H sub={T("Tap someone to ask for help, borrow, lend or give.", "Tap person to ask for help, borrow, lend or give.")}>{T("People", "People")}</H>
-        <div className="grid grid-cols-2 gap-2">
-          {people.map((n) => (
-            <button key={n.id} type="button" onClick={() => { setSel(n.id); setKind(null); }} className={cx("flex items-center gap-2 rounded-xl border p-2 text-left", sel === n.id ? "border-blue-500" : "border-slate-200 bg-slate-50")}>
-              <Face n={n} p={p} size={44} />
-              <span className="min-w-0 text-xs"><span className="block truncate font-semibold">{n.name.split(" ")[0]}</span><span className="block text-[10px] capitalize text-slate-500">{n.role} · {T("close", "close")} {Math.round(n.closeness)}</span></span>
-            </button>
-          ))}
+      {group !== "family" && (
+        <div className="mb-3 flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-100">
+          <div className="min-w-0 text-[12px] text-slate-600">{group === "class" && p.school ? T("Your class", "Your class") : T("Your circle", "Your circle")}: <b>{list.length}</b>{mkBlock ? <span className="block text-[11px] text-slate-400">{mkBlock}</span> : null}</div>
+          <Btn small tone="gold" disabled={Boolean(mkBlock)} onClick={() => run({ t: "friend" })}>{p.age < 13 ? T("Make a friend", "Make friend") : T("Meet someone new", "Meet new person")}</Btn>
         </div>
-      </Card>
-      {npc && (
-        <Card className="border-blue-500">
-          <div className="flex items-center gap-3"><Face n={npc} p={p} size={64} /><div><div className="text-base font-bold">{npc.name}</div><div className="text-xs text-slate-500">{npc.occupation} · {T("age", "age")} {p.age + npc.ageDelta}</div></div></div>
-          <div className="mt-3 grid grid-cols-3 gap-2"><Bar label={T("Close", "Close")} value={npc.closeness} tone="gold" /><Bar label={T("Trust", "Trust")} value={npc.trust} tone="blue" /><Bar label={T("Generous", "Generous")} value={npc.generosity} /></div>
-          <p className="mt-2 text-[11px] text-slate-500">{npc.traits.join(" · ")}{capacityOf(p, npc) <= 0 ? T(" · struggling financially", " · money dey tight for am") : ""}</p>
-          {npc.memories.length > 0 && <p className="mt-1 text-[11px] text-slate-400">{T("Remembers", "E remember")}: {npc.memories[npc.memories.length - 1].text}</p>}
-          <H>{T("Ask for money", "Ask for money")}</H>
-          <div className="flex flex-wrap gap-1.5">
-            {kinds.map((k) => <Btn key={k} small tone={kind === k ? "gold" : "ghost"} onClick={() => { setKind(k); setAmt(defaultAmount(p, k)); }}>{SUPPORT_KINDS[k].label}</Btn>)}
-          </div>
-          {kind && (
+      )}
+      {group === "class" && !p.school && list.length === 0 && old.length === 0 && <p className="mb-3 rounded-2xl bg-white p-3 text-sm text-slate-500 ring-1 ring-slate-100">{T("You are not in school right now. When you start school you will meet your classmates here.", "You no dey school now. When you start school you go meet your classmates here.")}</p>}
+      {list.length === 0 && group !== "class" && <p className="mb-3 rounded-2xl bg-white p-3 text-sm text-slate-500 ring-1 ring-slate-100">{group === "friends" ? T("No friends yet. Tap 'Meet someone new'.", "No friend yet. Tap 'Meet new person'.") : T("No family members to show.", "No family member to show.")}</p>}
+      {list.length > 0 && (
+        <section className="mb-3">
+          {group === "class" && <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{list[0]?.school ?? T("Your class", "Your class")}</h2>}
+          <div className={box}>{list.map(row)}</div>
+        </section>
+      )}
+      {old.length > 0 && (
+        <section className="mb-3">
+          <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Old classmates", "Old classmates")}</h2>
+          <div className={box}>{old.map(row)}</div>
+        </section>
+      )}
+      {npc && <PersonSheet key={npc.id} p={p} npc={npc} run={run} onClose={() => setSel(null)} />}
+    </>
+  );
+}
+
+function PersonSheet({ p, npc, run, onClose }: { p: Player; npc: Npc; run: Run; onClose: () => void }) {
+  const [money, setMoney] = useState(false);
+  const [kind, setKind] = useState<SupportKind | null>(null);
+  const [amt, setAmt] = useState(0);
+  const kinds = supportKindsFor(p);
+  const acts = interactionsFor(p, npc);
+  const age = Math.max(0, p.age + npc.ageDelta);
+  const askable = p.age >= 6 && npc.role !== "classmate";
+  return (
+    <Sheet title={npc.name} onClose={onClose}>
+      <div className="flex items-center gap-3">
+        <Face n={npc} p={p} size={72} />
+        <div className="min-w-0 text-xs text-slate-500">
+          <div className="text-sm font-bold text-[#0b2a6b]">{roleWord(npc)} · {age}</div>
+          <div>{npc.occupation}{npc.school ? ` · ${npc.school}` : ""}</div>
+          <div className="mt-0.5">{npc.traits.join(" · ")}</div>
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2"><Bar label={T("Close", "Close")} value={npc.closeness} tone="gold" /><Bar label={T("Trust", "Trust")} value={npc.trust} tone="blue" /><Bar label={T("Kind", "Kind")} value={npc.generosity} tone="blue" /></div>
+      {npc.memories.length > 0 && <p className="mt-2 text-[11px] text-slate-500">{T("Remembers", "E remember")}: {npc.memories[npc.memories.length - 1].text}</p>}
+      <H>{T("Spend time together", "Spend time together")}</H>
+      <div className="grid grid-cols-2 gap-2">
+        {acts.map((i) => {
+          const b = interactBlock(p, npc, i);
+          return (
+            <button key={i.id} type="button" disabled={Boolean(b)} onClick={() => run({ t: "interact", npc: npc.id, id: i.id })} className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-left disabled:opacity-40">
+              <span className="block text-[13px] font-bold text-[#0b2a6b]">{i.emoji} {T(i.en, i.pcm)}</span>
+              <span className="block text-[10.5px] leading-snug text-slate-500">{b ?? (i.cost ? `${naira(I(p, i.cost))} · ` : "") + T(i.descEn, i.descPcm)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {askable && (
+        <div className="mt-3">
+          <Btn small tone="ghost" onClick={() => setMoney(!money)}>{money ? T("Hide money options", "Hide money options") : T("Money: ask, borrow, give", "Money: ask, borrow, give")}</Btn>
+          {money && (
             <div className="mt-2">
-              <div className="flex flex-wrap gap-1.5">
-                {[0.5, 1, 2].map((f) => <Btn key={f} small tone="ghost" onClick={() => setAmt(Math.round((defaultAmount(p, kind) * f) / 500) * 500)}>{naira(Math.round((defaultAmount(p, kind) * f) / 500) * 500)}</Btn>)}
+              <div className="flex flex-wrap gap-1.5">{kinds.map((k) => <Btn key={k} small tone={kind === k ? "gold" : "ghost"} onClick={() => { setKind(k); setAmt(defaultAmount(p, k)); }}>{SUPPORT_KINDS[k].label}</Btn>)}</div>
+              {kind && (
+                <div className="mt-2">
+                  <div className="flex flex-wrap gap-1.5">{[0.5, 1, 2].map((f) => <Btn key={f} small tone="ghost" onClick={() => setAmt(Math.round((defaultAmount(p, kind) * f) / 500) * 500)}>{naira(Math.round((defaultAmount(p, kind) * f) / 500) * 500)}</Btn>)}</div>
+                  <Btn className="mt-2 w-full" tone="gold" onClick={() => run({ t: "ask", npc: npc.id, kind, amount: amt })}>{T(`Ask ${npc.name.split(" ")[0]} for ${naira(amt)}`, `Ask ${npc.name.split(" ")[0]} for ${naira(amt)}`)}</Btn>
+                </div>
+              )}
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {p.age >= 16 && <Btn small tone="ghost" onClick={() => run({ t: "borrow", npc: npc.id, amount: Math.round(defaultAmount(p, "loan")) })}>{T("Borrow", "Borrow")} {naira(defaultAmount(p, "loan"))}</Btn>}
+                <Btn small tone="ghost" disabled={p.money < I(p, 50_000)} onClick={() => run({ t: "give", npc: npc.id, amount: I(p, 50_000), mode: "gift" })}>{T("Gift", "Gift")} {naira(I(p, 50_000))}</Btn>
+                <Btn small tone="ghost" disabled={p.money < I(p, 200_000)} onClick={() => run({ t: "give", npc: npc.id, amount: I(p, 200_000), mode: "loan" })}>{T("Lend", "Lend")} {naira(I(p, 200_000))}</Btn>
               </div>
-              <Btn className="mt-2 w-full" tone="gold" onClick={() => run({ t: "ask", npc: npc.id, kind, amount: amt })}>{T(`Ask ${npc.name.split(" ")[0]} for ${naira(amt)}`, `Ask ${npc.name.split(" ")[0]} for ${naira(amt)}`)}</Btn>
             </div>
           )}
-          <H>{T("Between you", "Between una")}</H>
-          <div className="flex flex-wrap gap-1.5">
-            {p.age >= 16 && <Btn small tone="ghost" onClick={() => run({ t: "borrow", npc: npc.id, amount: Math.round(defaultAmount(p, "loan")) })}>{T("Borrow", "Borrow")} {naira(defaultAmount(p, "loan"))}</Btn>}
-            <Btn small tone="ghost" disabled={p.money < I(p, 50_000)} onClick={() => run({ t: "give", npc: npc.id, amount: I(p, 50_000), mode: "gift" })}>{T("Gift", "Gift")} {naira(I(p, 50_000))}</Btn>
-            <Btn small tone="ghost" disabled={p.money < I(p, 200_000)} onClick={() => run({ t: "give", npc: npc.id, amount: I(p, 200_000), mode: "loan" })}>{T("Lend", "Lend")} {naira(I(p, 200_000))}</Btn>
-          </div>
-        </Card>
+        </div>
       )}
-      {activeOwedToMe(p).length > 0 && (
-        <Card>
-          <H>{T("People who owe you", "People wey owe you")}</H>
-          <ul className="space-y-1 text-sm">{activeOwedToMe(p).map((l) => <li key={l.id} className="flex justify-between"><span>{l.lenderName}</span><span>{naira(l.balance)}</span></li>)}</ul>
-        </Card>
-      )}
-    </>
+    </Sheet>
+  );
+}
+
+export function OwedCard({ p }: { p: Player }) {
+  if (activeOwedToMe(p).length === 0) return null;
+  return (
+    <Card>
+      <H>{T("People who owe you", "People wey owe you")}</H>
+      <ul className="space-y-1 text-sm">{activeOwedToMe(p).map((l) => <li key={l.id} className="flex justify-between"><span>{l.lenderName}</span><span>{naira(l.balance)}</span></li>)}</ul>
+    </Card>
   );
 }
 

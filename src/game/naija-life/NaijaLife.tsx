@@ -18,7 +18,7 @@ import { KidnapModal } from "./KidnapModal";
 import { BEARDS, GLASSES, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
-import { PortfolioCard, TravelSheet, RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, MarketNewsCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, PeopleCard, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
+import { PortfolioCard, TravelSheet, RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, MarketNewsCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, BackgroundCard, OwedCard, PeopleList, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { meritOf } from "./military";
 import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
@@ -779,7 +779,11 @@ function Person({ look, gender, age, label, sub, dim }: { look: Look; gender: Ge
 }
 
 function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [sub, setSub] = useState<"people" | "love" | "will" | "awards" | null>(null);
+  const [sub, setSub] = useState<"people" | "family" | "friends" | "class" | "love" | "will" | "awards" | null>(null);
+  const alivePeople = Object.values(p.npcs).filter((n) => n.alive);
+  const famCount = alivePeople.filter((n) => ["dad", "mom", "guardian", "sibling", "grandparent", "uncle", "aunt", "cousin"].includes(n.role)).length;
+  const friendCount = alivePeople.filter((n) => n.role === "friend").length;
+  const classCount = alivePeople.filter((n) => n.role === "classmate" && !n.former).length;
   const fam = STATE_BY_ID[p.family.state];
   const gifts = [100_000, 500_000, 2_000_000, 10_000_000];
   const luckWord = p.luck >= 65 ? T("Born under a lucky star", "Luck dey your side") : p.luck <= 35 ? T("Life no easy for you", "Life no easy for you") : T("Fortune is neutral", "Luck dey middle");
@@ -791,7 +795,10 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
             <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Family", "Family")}</h2>
             <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
               {[
-                { id: "people" as const, emoji: "👨‍👩‍👧", tile: "bg-sky-100", name: T("My people", "My people"), desc: T(`${p.kids.length} child${p.kids.length === 1 ? "" : "ren"} · family happiness ${Math.round(p.family.happy)}%`, `${p.kids.length} pikin · family happiness ${Math.round(p.family.happy)}%`) },
+                { id: "people" as const, emoji: "👨‍👩‍👧", tile: "bg-sky-100", name: T("My household", "My household"), desc: T(`${p.kids.length} child${p.kids.length === 1 ? "" : "ren"} · family happiness ${Math.round(p.family.happy)}%`, `${p.kids.length} pikin · family happiness ${Math.round(p.family.happy)}%`) },
+                { id: "family" as const, emoji: "🏠", tile: "bg-amber-100", name: T("Family members", "Family members"), desc: T(`${famCount} · parents, siblings, relatives`, `${famCount} · parents, siblings, relatives`) },
+                { id: "friends" as const, emoji: "🧑‍🤝‍🧑", tile: "bg-emerald-100", name: T("Friends", "Friends"), desc: T(`${friendCount} friend${friendCount === 1 ? "" : "s"} · hang out, make new ones`, `${friendCount} padi · hang out, make new ones`) },
+                { id: "class" as const, emoji: "🎒", tile: "bg-violet-100", name: T("Classmates", "Classmates"), desc: classCount ? T(`${classCount} in your class`, `${classCount} for your class`) : T("Primary, secondary, university", "Primary, secondary, university") },
                 { id: "love" as const, emoji: "❤️", tile: "bg-rose-100", name: T("Love life", "Love life"), desc: p.spouse ? T(`Married to ${p.spouse.name}`, `You marry ${p.spouse.name}`) : p.flags.dating ? T(`Dating ${String(p.flags.dating)}`, `You dey date ${String(p.flags.dating)}`) : T("Dating, marriage and children", "Dating, marriage and pikin") },
                 ...(p.age >= 18 ? [{ id: "will" as const, emoji: "📜", tile: "bg-amber-100", name: T("Will", "Will"), desc: T("Decide who gets what", "Decide who go get wetin") }] : []),
                 { id: "awards" as const, emoji: "🏆", tile: "bg-violet-100", name: T("Achievements", "Achievements"), desc: T(`${p.achievements.length} earned`, `${p.achievements.length} don win`) },
@@ -829,7 +836,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           ))}
         </div>
       </Card>
-      <PeopleCard p={p} run={run} />
+      <BackgroundCard p={p} /><OwedCard p={p} />
       </>)}
       {sub === "awards" && (<>
       <Card>
@@ -837,6 +844,9 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         {p.achievements.length === 0 ? <p className="text-sm text-slate-500">{T("None yet.", "Nothing yet.")}</p> : <div className="flex flex-wrap gap-1.5">{p.achievements.map((a) => <Badge key={a} tone="gold">{a}</Badge>)}</div>}
       </Card>
       </>)}
+      {sub === "family" && <PeopleList p={p} run={run} group="family" />}
+      {sub === "friends" && <PeopleList p={p} run={run} group="friends" />}
+      {sub === "class" && <PeopleList p={p} run={run} group="class" />}
       {sub === "will" && p.age >= 18 && <WillCard p={p} run={run} />}
       {sub === "love" && (<>
       <RelationshipsCard p={p} run={run} />
