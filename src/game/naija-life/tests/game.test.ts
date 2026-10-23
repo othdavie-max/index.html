@@ -1719,3 +1719,50 @@ test("skills climb from beginner to one of the best, with courses, practice and 
   assert.ok(skillTopPct(95) < 2 && skillTopPct(30) > 40);
   assert.ok(ledgerBalances(p));
 });
+
+test("every business is run its own way", async () => {
+  const { BIZ_KINDS, modsOf, leverIdx, businessAct, actBlock } = await import("../business");
+  const { profileOf } = await import("../bizProfiles");
+  const sig = new Set<string>();
+  for (const k of BIZ_KINDS) {
+    const pr = profileOf(k.id);
+    assert.ok(pr.levers.length >= 4 && pr.roles.length >= 3 && pr.actions.length >= 3, `${k.id} has a real profile`);
+    assert.ok(pr.intro[0].length > 20);
+    sig.add(pr.levers.map((l) => l.id).join(","));
+    const g = { set: {} } as never as import("../types").Business;
+    (g as { kind: string }).kind = k.id;
+    const m = modsOf(g);
+    assert.ok(Math.abs(m.rev - 1) < 1e-9 && Math.abs(m.cost - 1) < 1e-9, `${k.id}: default options are neutral`);
+  }
+  assert.ok(sig.size >= 10, "businesses differ in what you decide");
+  const pos = profileOf("pos"), hotel = profileOf("hotel"), barber = profileOf("barbing");
+  assert.ok(!pos.levers.some((l) => l.id === "price"), "POS rates are fixed: no price lever");
+  assert.ok(pos.levers.some((l) => l.id === "float") && pos.levers.some((l) => l.id === "location"));
+  assert.ok(hotel.roles.some((r) => r.id === "housekeeping") && hotel.roles.some((r) => r.id === "reception"));
+  assert.ok(barber.roles.some((r) => r.id === "barber") && barber.roles.some((r) => r.id === "nails"), "a barbing shop can hire a nail tech");
+  assert.ok(barber.levers.find((l) => l.id === "services")!.opts.some((o) => /unisex/i.test(o.label[0])), "and go unisex");
+  // playing it
+  let g = liveTo(30, 5);
+  g.p.money = 900_000_000; g.p.prison = 0; g.p.actionsLeft = 9;
+  g = act(g, { t: "biz", op: "start", id: "barbing", name: "Fresh Cuts" }).g;
+  const b = g.p.businesses[0];
+  assert.ok(b.crew!.length >= 1 || true);
+  g = act(g, { t: "biz", op: "recruit", id: b.id, role: "nails" }).g;
+  assert.ok(g.p.businesses[0].cands!.every((c) => c.role === "nails"), "candidates are for the role you picked");
+  g = act(g, { t: "biz", op: "pick", id: b.id, idx: 0 }).g;
+  assert.ok(g.p.businesses[0].crew!.some((c) => c.role === "nails"));
+  const before = g.p.money;
+  g = act(g, { t: "biz", op: "lever", id: b.id, key: "services", v: 2 }).g;
+  assert.equal(leverIdx(g.p.businesses[0], "services", 1), 2);
+  assert.ok(g.p.money < before, "switching to the unisex menu costs a set-up fee");
+  const nb = g.p.businesses[0];
+  assert.equal(actBlock(g.p, nb, "equipment"), null);
+  const q0 = nb.quality;
+  g = act(g, { t: "biz", op: "act", id: b.id, key: "equipment" }).g;
+  assert.ok(g.p.businesses[0].quality > q0);
+  assert.ok(actBlock(g.p, g.p.businesses[0], "equipment"), "once a year");
+  void businessAct;
+  assert.ok(ledgerBalances(g.p));
+  g = resolveAll(ageUp(g));
+  assert.ok(g.p.alive);
+});

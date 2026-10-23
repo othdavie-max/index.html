@@ -565,6 +565,12 @@ export interface Business {
   hist?: { age: number; rev: number; net: number }[];
   /** Buyers who have made offers after you listed the business for sale. */
   offers?: BizOffer[];
+  /** Chosen option for each lever in the business profile (see bizProfiles.ts). */
+  set?: Record<string, number>;
+  /** Age at which each one-off action was last used. */
+  acts?: Record<string, number>;
+  /** Permanent sales boost from capacity purchases, e.g. 0.12 for +12%. */
+  boost?: number;
 }
 
 export interface BizOffer {
@@ -588,6 +594,8 @@ export interface Worker {
   /** Pay multiplier against the going rate. */
   wage: number;
   since: number;
+  /** The job this person does in the business (see bizProfiles.ts). */
+  role?: string;
 }
 
 export interface BizReport {

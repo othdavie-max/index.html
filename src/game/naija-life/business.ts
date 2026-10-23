@@ -3,6 +3,7 @@ import { monthIndex, transact } from "./ledger";
 import { businessMultiplier } from "./news";
 import type { BizOffer, Business, EventDef, Player, Worker, BizReport } from "./types";
 import { EXTRA_BIZ } from "./bizKinds2";
+import { profileOf, type LeverOpt } from "./bizProfiles";
 import { T, chance, clamp, dual, naira, rand, uid } from "./util";
 import { I, bump, randomName, stateOf } from "./helpers";
 
@@ -68,10 +69,14 @@ export function startBusiness(p: Player, kindId: string, name: string): string {
   const cost = startCostFor(p, k);
   transact(p, { amount: -cost, reason: T(`Started ${k.label.toLowerCase()}: ${name || k.label}`, `Start ${k.label.toLowerCase()}: ${name || k.label}`), category: "business" });
   const b: Business = {
-    id: uid(), kind: k.id, name: name.trim() || `${p.surname} ${k.label}`, stateId: p.state, level: 1, quality: 55, staff: k.id === "techstart" ? 2 : k.startCost < 1_500_000 ? 0 : 1,
+    id: uid(), kind: k.id, name: name.trim() || `${p.surname} ${k.label}`, stateId: p.state, level: 1, quality: 55, staff: 0,
     invested: cost, manager: false, startedAt: monthIndex(p), profit: 0, lastMonthProfit: 0, status: "open", debt: 0, lossStreak: 0, price: 1, ads: 0, stock: 1, fame: 20, hist: [],
   };
-  b.crew = Array.from({ length: b.staff }, () => newWorker(p, 45));
+  const prof = profileOf(k.id);
+  b.set = {};
+  const startRoles = k.startCost >= 1_500_000 ? prof.start.slice(0, 2) : [];
+  b.crew = startRoles.map((r) => newWorker(p, 45, r));
+  b.staff = b.crew.length;
   p.businesses.push(b);
   return T(`${b.name} is open for business in ${STATE_BY_ID[b.stateId].name}.`, `${b.name} don open for ${STATE_BY_ID[b.stateId].name}. Business don start.`);
 }
@@ -92,35 +97,108 @@ export function upgradeBusiness(p: Player, id: string): string {
   return T(`${b.name} grows to level ${b.level}.`, `${b.name} don grow reach level ${b.level}.`);
 }
 
-const PRICE_MULT = [0.8, 1, 1.25] as const;
-const STOCK_COST = [0.78, 1, 1.3] as const;
 export const PRICE_LABEL = [() => T("Cheap", "Cheap"), () => T("Fair", "Fair"), () => T("Premium", "Premium")];
 export const STOCK_LABEL = [() => T("Cheap stock", "Cheap stock"), () => T("Standard stock", "Standard stock"), () => T("Premium stock", "Premium stock")];
 
-function newWorker(p: Player, skillBase: number): Worker {
+function newWorker(p: Player, skillBase: number, role?: string): Worker {
   const male = chance(0.5);
   const skill = Math.round(clamp(skillBase + rand(-22, 28), 10, 95));
-  return { id: uid(), name: randomName(p.tribe, male ? "male" : "female"), skill, loyalty: Math.round(rand(55, 80)), wage: Math.round((0.7 + skill / 100 * 0.8 + rand(-0.1, 0.15)) * 100) / 100, since: monthIndex(p) };
+  return { id: uid(), name: randomName(p.tribe, male ? "male" : "female"), skill, loyalty: Math.round(rand(55, 80)), wage: Math.round((0.7 + skill / 100 * 0.8 + rand(-0.1, 0.15)) * 100) / 100, since: monthIndex(p), role };
 }
 
 /** Old saves only knew a head-count. Give them real people. */
 export function ensureCrew(p: Player, b: Business) {
-  if (!b.crew) b.crew = Array.from({ length: b.staff }, () => newWorker(p, 45));
+  const prof = profileOf(b.kind);
+  if (!b.crew) b.crew = Array.from({ length: b.staff }, () => newWorker(p, 45, prof.roles[0].id));
+  for (const w of b.crew) w.role ??= prof.roles[0].id;
+  b.set ??= {};
   b.price ??= 1; b.ads ??= 0; b.stock ??= 1; b.fame ??= 30; b.hist ??= [];
 }
 const find = (p: Player, id: string) => p.businesses.find((x) => x.id === id && x.status === "open");
-export const workerPay = (p: Player, b: Business, w: Worker) => Math.round(sc(p, BIZ_BY_ID[b.kind].wage) * w.wage);
+export const roleOf = (b: Business, w: Worker) => profileOf(b.kind).roles.find((r) => r.id === w.role) ?? profileOf(b.kind).roles[0];
+export const workerPay = (p: Player, b: Business, w: Worker) => Math.round(sc(p, BIZ_BY_ID[b.kind].wage) * w.wage * roleOf(b, w).wage);
 
-export function recruit(p: Player, id: string): string {
+/** The sum of every lever's chosen option. The middle option of each lever is neutral. */
+export interface Mods { rev: number; cost: number; over: number; rent: number; fame: number; q: number; risk: number; pm: number; ads: number }
+export function leverIdx(b: Business, id: string, def: number): number {
+  const s = b.set?.[id];
+  if (s !== undefined) return s;
+  if (id === "price" && b.price !== undefined) return b.price;
+  if (id === "ads" && b.ads !== undefined) return b.ads;
+  if (id === "stock" && b.stock !== undefined) return b.stock;
+  return def;
+}
+export function modsOf(b: Business): Mods {
+  const m: Mods = { rev: 1, cost: 1, over: 0, rent: 1, fame: 0, q: 0, risk: 1, pm: 1, ads: 0 };
+  for (const l of profileOf(b.kind).levers) {
+    const o: LeverOpt = l.opts[Math.min(l.opts.length - 1, Math.max(0, leverIdx(b, l.id, l.def)))];
+    m.rev *= o.rev ?? 1; m.cost *= o.cost ?? 1; m.over += o.over ?? 0; m.rent *= o.rent ?? 1; m.fame += o.fame ?? 0; m.q += o.q ?? 0; m.risk *= o.risk ?? 1; m.pm *= o.pm ?? 1; m.ads = Math.max(m.ads, o.ads ?? 0);
+  }
+  return m;
+}
+
+export function setLever(p: Player, id: string, key: string, v: number): string {
   const b = find(p, id);
   if (!b) return "";
   ensureCrew(p, b);
+  const l = profileOf(b.kind).levers.find((x) => x.id === key);
+  const o = l?.opts[v];
+  if (!l || !o) return "";
+  const cur = leverIdx(b, key, l.def);
+  if (cur === v) return "";
+  const fee = o.fee ? Math.round(sc(p, BIZ_BY_ID[b.kind].startCost) * o.fee) : 0;
+  if (fee > p.money) return T(`Switching to "${o.label[0]}" costs ${naira(fee)}.`, `To switch to "${o.label[1]}" cost ${naira(fee)}.`);
+  if (fee > 0) transact(p, { amount: -fee, reason: T(`${b.name}: set up ${o.label[0].toLowerCase()}`, `${b.name}: set up ${o.label[1].toLowerCase()}`), category: "business" });
+  b.set![key] = v;
+  if (key === "price" || key === "ads" || key === "stock") (b as unknown as Record<string, number>)[key] = v;
+  return T(`${b.name}: ${l.label[0].toLowerCase()} set to ${o.label[0].toLowerCase()}.`, `${b.name}: ${l.label[1].toLowerCase()} don change to ${o.label[1].toLowerCase()}.`);
+}
+
+export function actCost(p: Player, b: Business, a: { cost: number }) { return Math.round(sc(p, BIZ_BY_ID[b.kind].startCost) * a.cost * (0.8 + b.level * 0.2)); }
+export function actBlock(p: Player, b: Business, actId: string): string | null {
+  const a = profileOf(b.kind).actions.find((x) => x.id === actId);
+  if (!a) return T("Unknown", "I no know am");
+  if (b.acts?.[actId] === p.age) return T("Already done this year", "You don do am this year");
+  if (a.minLevel && b.level < a.minLevel) return T(`Needs level ${a.minLevel}`, `E need level ${a.minLevel}`);
+  if (p.money < actCost(p, b, a)) return T(`Needs ${naira(actCost(p, b, a))}`, `E need ${naira(actCost(p, b, a))}`);
+  return null;
+}
+export function businessAct(p: Player, id: string, actId: string): string {
+  const b = find(p, id);
+  if (!b) return "";
+  ensureCrew(p, b);
+  const a = profileOf(b.kind).actions.find((x) => x.id === actId);
+  const block = actBlock(p, b, actId);
+  if (!a || block) return block ?? "";
+  const cost = actCost(p, b, a);
+  transact(p, { amount: -cost, reason: T(`${b.name}: ${a.label[0].toLowerCase()}`, `${b.name}: ${a.label[1].toLowerCase()}`), category: "business" });
+  (b.acts ??= {})[actId] = p.age;
+  if (a.q) b.quality = clamp(b.quality + a.q);
+  if (a.fame) b.fame = clamp((b.fame ?? 20) + a.fame);
+  if (a.loyalty) for (const w of b.crew ?? []) w.loyalty = clamp(w.loyalty + a.loyalty);
+  if (a.rev) b.boost = Math.min(0.4, (b.boost ?? 0) + a.rev);
+  let tail = "";
+  if (a.gamble) {
+    if (chance(a.gamble.p + (b.fame ?? 20) / 500)) { const back = Math.round(cost * a.gamble.back); transact(p, { amount: back, reason: T(`${b.name}: ${a.label[0].toLowerCase()} paid off`, `${b.name}: ${a.label[1].toLowerCase()} pay`), category: "business" }); tail = T(` It pays off: ${naira(back)} comes back.`, ` E pay: ${naira(back)} come back.`); }
+    else tail = T(" It does not work out this time.", " E no work this time.");
+  }
+  return T(`${b.name}: ${a.label[0]} done.${tail}`, `${b.name}: ${a.label[1]} done.${tail}`);
+}
+
+export function recruit(p: Player, id: string, roleId?: string): string {
+  const b = find(p, id);
+  if (!b) return "";
+  ensureCrew(p, b);
+  const prof = profileOf(b.kind);
+  const role = prof.roles.find((r) => r.id === roleId) ?? prof.roles.find((r) => r.need) ?? prof.roles[0];
   if (b.crew!.length >= b.level * 4 + 2) return T("You need to expand first to hold more staff.", "You must expand first before you fit carry more staff.");
+  if (b.crew!.filter((w) => w.role === role.id).length >= role.per * b.level + 1) return T(`You have enough ${role.label[0].toLowerCase()}s for this size. Expand first.`, `You don get enough ${role.label[1].toLowerCase()} for this size. Expand first.`);
   const c = Math.round(hireCost(p, b) * 0.4);
   if (p.money < c) return T(`Needs ${naira(c)} to advertise the job and interview.`, `E need ${naira(c)} to advertise the job and interview.`);
-  transact(p, { amount: -c, reason: T(`Recruitment for ${b.name}`, `Recruitment for ${b.name}`), category: "business" });
-  b.cands = [newWorker(p, 40 + b.level * 6), newWorker(p, 40 + b.level * 6), newWorker(p, 40 + b.level * 6)];
-  return T("Three people turn up for the interview. Pick one.", "Three people show for interview. Pick one.");
+  transact(p, { amount: -c, reason: T(`Recruiting a ${role.label[0].toLowerCase()} for ${b.name}`, `Recruiting ${role.label[1].toLowerCase()} for ${b.name}`), category: "business" });
+  const base = 40 + b.level * 6;
+  b.cands = [newWorker(p, base, role.id), newWorker(p, base, role.id), newWorker(p, base, role.id)];
+  return T(`Three ${role.label[0].toLowerCase()} candidates turn up for the interview. Pick one.`, `Three ${role.label[1].toLowerCase()} candidate show for interview. Pick one.`);
 }
 
 export function hirePick(p: Player, id: string, idx: number): string {
@@ -187,15 +265,7 @@ export function trainWorker(p: Player, id: string, workerId: string): string {
 }
 
 export function setPolicy(p: Player, id: string, key: "price" | "ads" | "stock", v: number): string {
-  const b = find(p, id);
-  if (!b) return "";
-  ensureCrew(p, b);
-  if (key === "price") b.price = v as 0 | 1 | 2;
-  if (key === "ads") b.ads = v as 0 | 1 | 2 | 3;
-  if (key === "stock") b.stock = v as 0 | 1 | 2;
-  return key === "price" ? T(`${b.name} now charges ${PRICE_LABEL[b.price!]().toLowerCase()} prices.`, `${b.name} now dey charge ${PRICE_LABEL[b.price!]().toLowerCase()} price.`)
-    : key === "ads" ? T(`${b.name} advertising level set to ${b.ads}.`, `${b.name} advert level na ${b.ads} now.`)
-    : T(`${b.name} now buys ${STOCK_LABEL[b.stock!]().toLowerCase()}.`, `${b.name} now dey buy ${STOCK_LABEL[b.stock!]().toLowerCase()}.`);
+  return setLever(p, id, key, v);
 }
 
 export function toggleManager(p: Player, id: string): string {
@@ -322,13 +392,23 @@ export function businessMonth(p: Player, lines: string[]) {
     const demand = 0.55 + st.opp / 9;
     const away = !b.manager && p.job && !jobIsSelf(p) ? 0.88 : 1; // a full-time job elsewhere leaves less time for the shop
     const mgmt = businessMultiplier(p) * (b.manager ? 0.88 : 1) * away * (p.prison > 0 && !b.manager ? 0.3 : 1);
-    const lift = 1 + 0.1 * crew.slice(0, b.level * 4).reduce((s, w) => s + 0.5 + w.skill / 100, 0);
-    const pm = PRICE_MULT[b.price ?? 1];
+    const mods = modsOf(b);
+    const prof = profileOf(b.kind);
+    // Each role lifts sales in its own way. A missing essential role hurts.
+    let lift = 1;
+    let missing: string | null = null;
+    for (const r of prof.roles) {
+      const mine = crew.filter((w) => (w.role ?? prof.roles[0].id) === r.id).sort((a, c) => c.skill - a.skill).slice(0, r.per * b.level);
+      lift += r.weight * mine.reduce((s, w) => s + 0.5 + w.skill / 100, 0);
+      if (r.need && prof.start.includes(r.id) && mine.length === 0 && (b.crew?.length ?? 0) + (b.staff ?? 0) > 0 && !missing) missing = T(r.label[0], r.label[1]);
+    }
+    const pm = mods.pm;
     const volume = Math.pow(pm, -1.3);
-    const ads = b.ads ?? 0;
+    const ads = mods.ads;
     const fameF = 0.7 + (b.fame ?? 20) / 160;
-    let rev = sc(p, k.baseRevenue) * Math.pow(b.level, 1.12) * demand * (b.quality / 60) * lift * season * rand(0.62, 1.38) * mgmt * 0.42 * volume * pm * (1 + 0.1 * ads) * fameF;
-    let stockMult = STOCK_COST[b.stock ?? 1];
+    let rev = sc(p, k.baseRevenue) * Math.pow(b.level, 1.12) * demand * (b.quality / 60) * lift * season * rand(0.62, 1.38) * mgmt * 0.42 * volume * pm * (1 + 0.1 * ads) * fameF * mods.rev * (1 + (b.boost ?? 0)) * (missing ? 0.8 : 1);
+    let stockMult = mods.cost;
+    if (missing) notes.push({ en: `You have no ${missing.toLowerCase()}. Sales are suffering.`, pcm: `You no get ${missing.toLowerCase()}. Sales dey suffer.` });
     let extra = 0;
     // Something happens most months.
     const r = rand(0, 1);
@@ -337,14 +417,14 @@ export function businessMonth(p: Player, lines: string[]) {
     else if (r < 0.14) { stockMult *= 1.18; notes.push({ en: "Suppliers raised prices.", pcm: "Suppliers raise price." }); }
     else if (r < 0.17) { b.fame = clamp((b.fame ?? 20) - 5); notes.push({ en: "A rival opened nearby and took some customers.", pcm: "Rival open near you and carry some customers." }); }
     else if (r < 0.2 && ads > 0) { b.fame = clamp((b.fame ?? 20) + 9); rev *= 1.15; notes.push({ en: "A post about you went viral.", pcm: "Post about you blow for social media." }); }
-    else if (r < 0.225 && !b.manager) { extra += rev * 0.18; notes.push({ en: "Thieves broke in at night.", pcm: "Thieves enter at night." }); }
+    else if (r < 0.2 + 0.025 * mods.risk && !b.manager) { extra += rev * 0.18; notes.push({ en: "Thieves broke in at night.", pcm: "Thieves enter at night." }); }
     const stock = (rev / pm) * k.stockPct * stockMult;
     const wages = crew.reduce((s, w) => s + workerPay(p, b, w), 0);
     const adSpend = ads * rev * 0.035;
-    const overheads = rev * 0.12;
+    const overheads = rev * Math.max(0.04, 0.12 + mods.over);
     const tax = rev * 0.01;
     let net = rev - stock - wages - overheads - tax - extra - adSpend;
-    if (p.month === 1) net -= (sc(p, k.rent) * st.cost) * Math.max(1, b.level * 0.8);
+    if (p.month === 1) net -= (sc(p, k.rent) * st.cost) * Math.max(1, b.level * 0.8) * mods.rent;
     if (b.manager) net -= Math.max(0, net) * 0.15;
     // People problems
     for (const w of crew) {
@@ -352,22 +432,22 @@ export function businessMonth(p: Player, lines: string[]) {
     }
     const quitter = crew.find((w) => w.loyalty < 22 && chance(0.18));
     if (quitter) { crew.splice(crew.indexOf(quitter), 1); b.staff = crew.length; b.quality = clamp(b.quality - 4); notes.push({ en: `${quitter.name} quit.`, pcm: `${quitter.name} don quit.` }); }
-    const thief = crew.find((w) => w.loyalty < 38 && chance(0.1));
+    const thief = crew.find((w) => w.loyalty < 38 && chance(0.1 * mods.risk));
     if (thief && !b.manager) { const lost = rev * 0.07; net -= lost; thief.loyalty = clamp(thief.loyalty - 5); notes.push({ en: `Stock is missing. ${thief.name} may be the cause.`, pcm: `Stock don miss. ${thief.name} fit be the cause.` }); }
     transact(p, { amount: net, reason: T(`${b.name}: ${net >= 0 ? "profit" : "loss"} for the month`, `${b.name}: ${net >= 0 ? "profit" : "loss"} for the month`), category: "business", recurring: b.id });
     b.profit += net;
     b.lastMonthProfit = net;
     b.lossStreak = net < 0 ? b.lossStreak + 1 : 0;
-    const drift = [-0.35, 0, 0.35][b.stock ?? 1];
+    const drift = mods.q - (missing ? 0.4 : 0);
     b.quality = clamp(b.quality + (b.manager ? -0.4 : -0.1) + (net > 0 ? 0.15 : -0.2) + drift);
     // Fame grows with quality and advertising, and fades.
-    let fame = (b.fame ?? 20) + (b.quality - 50) / 40 + ads * 0.6 - 0.35 + (b.price === 0 ? 0.5 : 0);
-    if (b.price === 2 && b.quality < 62) fame -= 1.2;
+    let fame = (b.fame ?? 20) + (b.quality - 50) / 40 + ads * 0.6 - 0.35 + (pm < 1 ? 0.5 : 0) + mods.fame;
+    if (pm > 1.1 && b.quality < 62) fame -= 1.2;
     b.fame = clamp(fame);
     // Report and a hint for next time
     let tip: BizReport["tip"] = null;
     if (b.quality < 48) tip = NEED_TIPS[0];
-    else if (b.price === 2 && b.quality < 62) tip = NEED_TIPS[5];
+    else if (pm > 1.1 && b.quality < 62) tip = NEED_TIPS[5];
     else if (b.lossStreak >= 3) tip = NEED_TIPS[4];
     else if (crew.some((w) => w.loyalty < 35)) tip = NEED_TIPS[3];
     else if ((b.fame ?? 0) > 55 && crew.length < b.level * 2) tip = NEED_TIPS[1];

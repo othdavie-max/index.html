@@ -100,3 +100,9 @@ Business revenue growth, margins and creator payouts were reduced in this pass b
 - Businesses: 50+ kinds, 20 owner events (strikes, NAFDAC, blackouts, price wars, tenders, partner disputes...), real staff with training and raises, and a sale flow where buyers (lowball, fair, keen, instalment) make offers you can haggle over.
 - Estate agents get clients who want to buy or rent, match them to properties and earn commission.
 - Skills run from beginner to Master (one of the best in Nigeria) through courses, practice and mentors, with gigs and national competitions along the way.
+
+## Every business has its own playbook
+- `bizProfiles.ts` defines, for each of the 50+ business kinds, the decisions you make (levers), the roles you hire and one-off actions. Default options are neutral, so an untouched business earns what it did before; the choices you change are the trade-offs.
+- Examples: POS has no price lever (rates are fixed) but spot, float size, bank coverage, hours and fee policy; a barbing shop has services (cuts only to unisex), booking style, loyalty, and hires barbers, stylists, nail techs, makeup artists and a receptionist; a hotel has star rating, who it targets, restaurant, security and power, and hires reception, housekeeping, kitchen, maintenance and guards; farms have stocking, inputs, vet care and where to sell; fleets have routes, how drivers are paid and maintenance.
+- A missing essential role (a pharmacist, doctor, baker, barber...) cuts sales and quality, and each role lifts sales in its own way.
+- Kind-specific owner events live in `scenariosF.ts` (network failures, fake alerts, poached stylists, VIP guests, tomato scarcity, flooded farms, fleet accidents, investors...).

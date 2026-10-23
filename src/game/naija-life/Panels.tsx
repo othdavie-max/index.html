@@ -5,7 +5,8 @@ import { useState } from "react";
 import { Avatar } from "./Avatar";
 import type { Action } from "./engine";
 import { BET_KINDS, betBlock, betProfit } from "./betting";
-import { BIZ_KINDS, BIZ_BY_ID, PRICE_LABEL, STOCK_LABEL, hireCost, startBlock, startCostFor, upgradeCost, valuation, workerPay } from "./business";
+import { profileOf } from "./bizProfiles";
+import { BIZ_KINDS, BIZ_BY_ID, actBlock, actCost, hireCost, leverIdx, startBlock, startCostFor, upgradeCost, valuation, workerPay } from "./business";
 import { CRIMES, crimeBlock } from "./crime";
 import { HOME_TIERS, HOUSE_KINDS, LUXURIES, STATE_BY_ID } from "./data";
 import { mortgageBalance, mortgageQuote } from "./mortgage";
@@ -933,7 +934,12 @@ export function BusinessCard({ p, run }: { p: Player; run: Run }) {
       })}
       {pick && (
         <ActionSheet emoji={pick.emoji ?? BIZ_EMOJI[pick.id] ?? "🏪"} tile="bg-amber-100" title={pick.label} sub={naira(startCostFor(p, pick))} onClose={() => setPick(null)}>
-          <p className="mb-3 text-sm text-slate-600">{pick.blurb}</p>
+          <p className="mb-2 text-sm text-slate-600">{pick.blurb}</p>
+          <div className="mb-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
+            <p className="mb-1 font-semibold text-slate-700">{T(profileOf(pick.id).intro[0], profileOf(pick.id).intro[1])}</p>
+            <p>{T("You decide:", "You go decide:")} {profileOf(pick.id).levers.map((l) => T(l.label[0], l.label[1]).toLowerCase()).join(", ")}.</p>
+            <p>{T("You hire:", "You go hire:")} {profileOf(pick.id).roles.map((r) => T(r.label[0], r.label[1]).toLowerCase()).join(", ")}.</p>
+          </div>
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={T("Business name (optional)", "Business name (optional)")} maxLength={30} className="mb-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" />
           <Btn disabled={Boolean(pb)} onClick={() => { run({ t: "biz", op: "start", id: pick.id, name }); setPick(null); setName(""); }}>{pb ?? T(`Start (${naira(startCostFor(p, pick))})`, `Start (${naira(startCostFor(p, pick))})`)}</Btn>
         </ActionSheet>
@@ -943,14 +949,17 @@ export function BusinessCard({ p, run }: { p: Player; run: Run }) {
   );
 }
 
-function Seg({ label, value, opts, onPick }: { label: string; value: number; opts: string[]; onPick: (i: number) => void }) {
+function Seg({ label, value, opts, onPick, hint }: { label: string; value: number; opts: string[]; onPick: (i: number) => void; hint?: string }) {
   return (
-    <div className="mb-2">
-      <div className="mb-1 text-xs text-slate-600">{label}</div>
-      <div className="grid grid-cols-4 gap-1">{opts.map((o, i) => <button key={o} type="button" onClick={() => onPick(i)} className={cx("rounded-lg border px-1 py-1.5 text-[11px] font-semibold", value === i ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")}>{o}</button>)}</div>
+    <div className="mb-3">
+      <div className="mb-1 text-xs font-bold text-slate-700">{label}</div>
+      {hint && <div className="mb-1 text-[11px] leading-snug text-slate-500">{hint}</div>}
+      <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${Math.min(opts.length, opts.length > 4 ? 2 : opts.length)}, minmax(0, 1fr))` }}>{opts.map((o, i) => <button key={o + i} type="button" onClick={() => onPick(i)} className={cx("rounded-lg border px-1.5 py-2 text-[11.5px] font-semibold leading-tight", value === i ? "border-blue-500 bg-blue-50 text-blue-600" : "border-slate-200 bg-slate-50 text-slate-600")}>{o}</button>)}</div>
     </div>
   );
 }
+
+const roleLabel = (b: Business, w: { role?: string }) => { const r = profileOf(b.kind).roles.find((x) => x.id === w.role) ?? profileOf(b.kind).roles[0]; return T(r.label[0], r.label[1]); };
 
 function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Run; onClose: () => void }) {
   const [workerId, setWorkerId] = useState<string | null>(null);
@@ -958,14 +967,17 @@ function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Ru
   const k = BIZ_BY_ID[b.kind];
   const crew = b.crew ?? [];
   const r = b.report;
-  const pick = (op: "price" | "ads" | "stock", v: number) => run({ t: "biz", op, id: b.id, v });
   const maxRev = Math.max(1, ...(b.hist ?? []).map((h) => Math.abs(h.net)));
   const w = crew.find((x) => x.id === workerId) ?? null;
+  const prof = profileOf(b.kind);
+  const [roleSheet, setRoleSheet] = useState(false);
+  const [actId, setActId] = useState<string | null>(null);
+  const act = prof.actions.find((x) => x.id === actId) ?? null;
   const offer = b.offers?.find((x) => x.id === offerId) ?? null;
   const BUYER_EMOJI = { lowball: "🦈", fair: "🤝", keen: "🤩", instalment: "⏳" } as const;
   const BUYER_LABEL = { lowball: () => T("Lowball offer", "Lowball offer"), fair: () => T("Fair offer", "Fair offer"), keen: () => T("Keen buyer", "Keen buyer"), instalment: () => T("Pays in two parts", "Pay for two parts") } as const;
   return (
-    <ActionSheet emoji={k?.emoji ?? BIZ_EMOJI[b.kind] ?? "🏪"} tile="bg-emerald-100" title={b.name} sub={`${k?.label} · ${STATE_BY_ID[b.stateId]?.name} · ${T("level", "level")} ${b.level}/5 · ${T("worth", "worth")} ${naira(valuation(p, b))}`} onClose={onClose}>
+    <ActionSheet emoji={k?.emoji ?? BIZ_EMOJI[b.kind] ?? "🏪"} tile="bg-emerald-100" title={b.name} sub={`${k?.label} · ${T(prof.levels[b.level - 1][0], prof.levels[b.level - 1][1])} · ${STATE_BY_ID[b.stateId]?.name} · ${T("worth", "worth")} ${naira(valuation(p, b))}`} onClose={onClose}>
       <div className="mb-3 grid grid-cols-2 gap-3"><Bar label={T("Quality", "Quality")} value={b.quality} tone="blue" /><Bar label={T("Fame", "Fame")} value={b.fame ?? 0} tone="blue" /></div>
       {b.offers && b.offers.length > 0 && (
         <ListGroup title={T("Buyers", "Buyers")} sub={T("Haggle if you like. Some buyers walk away, and some are not as rich as they say.", "Haggle if you like. Some buyer go waka go, and some no rich as dem talk.")}>
@@ -989,24 +1001,45 @@ function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Ru
           <div className="flex h-12 items-end gap-1">{b.hist!.map((h, i) => <div key={i} title={naira(h.net)} className={cx("flex-1 rounded-t", h.net >= 0 ? "bg-emerald-400" : "bg-red-400")} style={{ height: `${Math.max(6, (Math.abs(h.net) / maxRev) * 100)}%` }} />)}</div>
         </div>
       )}
-      <ListGroup title={T("How you run it", "How you run am")}>
-        <div className="px-3.5 py-3">
-          <Seg label={T("Prices", "Prices")} value={b.price ?? 1} opts={PRICE_LABEL.map((f) => f())} onPick={(i) => pick("price", i)} />
-          <Seg label={T("Advertising", "Advertising")} value={b.ads ?? 0} opts={[T("None", "None"), T("Small", "Small"), T("Medium", "Medium"), T("Heavy", "Heavy")]} onPick={(i) => pick("ads", i)} />
-          <Seg label={T("Stock quality", "Stock quality")} value={b.stock ?? 1} opts={STOCK_LABEL.map((f) => f())} onPick={(i) => pick("stock", i)} />
+      <ListGroup title={T("How you run it", "How you run am")} sub={T(prof.intro[0], prof.intro[1])}>
+        <div className="px-3.5 pt-3">
+          {prof.levers.map((l) => (
+            <Seg key={l.id} label={T(l.label[0], l.label[1])} hint={T(l.blurb[0], l.blurb[1])} value={leverIdx(b, l.id, l.def)} opts={l.opts.map((x) => T(x.label[0], x.label[1]))} onPick={(i) => run({ t: "biz", op: "lever", id: b.id, key: l.id, v: i })} />
+          ))}
         </div>
-        <ListRow emoji="⬆️" tile="bg-violet-100" name={T("Expand", "Expand")} desc={b.level >= 5 ? T("Top level", "Top level") : T(`Level ${b.level + 1}: more staff, bigger sales`, `Level ${b.level + 1}: more staff, bigger sales`)} right={b.level >= 5 ? undefined : naira(upgradeCost(p, b))} disabled={b.level >= 5} onClick={() => run({ t: "biz", op: "upgrade", id: b.id })} />
+        <ListRow emoji="⬆️" tile="bg-violet-100" name={b.level >= 5 ? T("Top level", "Top level") : T(`Expand to ${prof.levels[b.level][0]}`, `Expand to ${prof.levels[b.level][1]}`)} desc={b.level >= 5 ? undefined : T(`More ${(prof.unit ?? ["capacity", "capacity"])[0]}, more staff, bigger sales`, `More ${(prof.unit ?? ["capacity", "capacity"])[1]}, more staff, bigger sales`)} right={b.level >= 5 ? undefined : naira(upgradeCost(p, b))} disabled={b.level >= 5} onClick={() => run({ t: "biz", op: "upgrade", id: b.id })} />
         <ListRow emoji="🧑‍💼" tile="bg-sky-100" name={b.manager ? T("Sack the manager", "Sack manager") : T("Hire a manager", "Hire manager")} desc={b.manager ? T("They take 15% of profit", "E collect 15% of profit") : T("Own it without working in it", "Own am without working inside")} onClick={() => run({ t: "biz", op: "manager", id: b.id })} />
       </ListGroup>
+      <ListGroup title={T("Things you can do", "Wetin you fit do")} sub={T("Each can be done once a year.", "You fit do each one time for year.")}>
+        {prof.actions.map((a) => { const bl = actBlock(p, b, a.id); return <ListRow key={a.id} emoji={a.gamble ? "🎲" : a.once ? "🔧" : "✨"} tile="bg-amber-100" name={T(a.label[0], a.label[1])} desc={T(a.blurb[0], a.blurb[1])} wrap right={naira(actCost(p, b, a))} note={bl} disabled={Boolean(bl)} onClick={() => setActId(a.id)} />; })}
+      </ListGroup>
       <ListGroup title={`${T("Your team", "Your team")} (${crew.length}/${b.level * 4 + 2})`} sub={crew.length === 0 ? T("You run it alone. Staff lift sales but cost wages.", "You dey run am alone. Staff dey lift sales but dem dey cost salary.") : undefined}>
-        {b.cands && b.cands.map((c, i) => <ListRow key={c.id} emoji="📝" tile="bg-blue-100" name={c.name} desc={`${T("Interview", "Interview")} · ${T("skill", "skill")} ${c.skill}`} right={`${naira(Math.round(workerPay(p, b, c)))}/${T("mo", "mo")}`} onClick={() => run({ t: "biz", op: "pick", id: b.id, idx: i })} />)}
-        {crew.map((x) => <ListRow key={x.id} emoji={x.loyalty < 35 ? "😠" : x.skill > 70 ? "⭐" : "🧑"} tile={x.loyalty < 35 ? "bg-rose-100" : "bg-slate-100"} name={x.name} desc={`${T("skill", "skill")} ${x.skill} · ${T("loyalty", "loyalty")} ${Math.round(x.loyalty)}`} right={`${naira(workerPay(p, b, x))}/${T("mo", "mo")}`} onClick={() => setWorkerId(x.id)} />)}
-        <ListRow emoji="➕" tile="bg-emerald-100" name={T("Recruit someone", "Recruit person")} desc={T("Interview three candidates", "Interview three candidate")} right={naira(hireCost(p, b) * 0.4)} onClick={() => run({ t: "biz", op: "recruit", id: b.id })} />
+        {b.cands && b.cands.map((c, i) => <ListRow key={c.id} emoji="📝" tile="bg-blue-100" name={c.name} desc={`${T("Interview", "Interview")} · ${roleLabel(b, c)} · ${T("skill", "skill")} ${c.skill}`} right={`${naira(Math.round(workerPay(p, b, c)))}/${T("mo", "mo")}`} onClick={() => run({ t: "biz", op: "pick", id: b.id, idx: i })} />)}
+        {crew.map((x) => <ListRow key={x.id} emoji={x.loyalty < 35 ? "😠" : x.skill > 70 ? "⭐" : "🧑"} tile={x.loyalty < 35 ? "bg-rose-100" : "bg-slate-100"} name={x.name} desc={`${roleLabel(b, x)} · ${T("skill", "skill")} ${x.skill} · ${T("loyalty", "loyalty")} ${Math.round(x.loyalty)}`} right={`${naira(workerPay(p, b, x))}/${T("mo", "mo")}`} onClick={() => setWorkerId(x.id)} />)}
+        <ListRow emoji="➕" tile="bg-emerald-100" name={T("Recruit someone", "Recruit person")} desc={T("Pick a role, then interview three candidates", "Pick role, then interview three candidate")} right={naira(hireCost(p, b) * 0.4)} onClick={() => setRoleSheet(true)} />
       </ListGroup>
       <ListGroup title={T("The business", "The business")}>
         <ListRow emoji="🏷️" tile="bg-amber-100" name={T("Sell the business", "Sell the business")} desc={T("Find buyers. Offers vary, so haggle.", "Find buyers. Offer dey vary, so haggle.")} onClick={() => run({ t: "biz", op: "sell", id: b.id })} />
         <ListRow emoji="🔒" tile="bg-rose-100" name={T("Close it down", "Close am down")} desc={T("Sell the equipment and walk away", "Sell equipment and waka go")} onClick={() => { run({ t: "biz", op: "close", id: b.id }); onClose(); }} />
       </ListGroup>
+      {roleSheet && (
+        <ActionSheet emoji="➕" tile="bg-emerald-100" title={T("Who do you need?", "Who you need?")} sub={`${crew.length}/${b.level * 4 + 2}`} onClose={() => setRoleSheet(false)}>
+          <ListGroup>
+            {prof.roles.map((r) => {
+              const have = crew.filter((x) => x.role === r.id).length;
+              const full = have >= r.per * b.level + 1;
+              return <ListRow key={r.id} emoji={r.need ? "⭐" : "🧑"} tile={r.need ? "bg-amber-100" : "bg-slate-100"} name={T(r.label[0], r.label[1])} desc={T(r.blurb[0], r.blurb[1])} wrap right={`${have}/${r.per * b.level + 1}`} note={full ? T("Enough for this size", "Enough for this size") : undefined} disabled={full} onClick={() => { run({ t: "biz", op: "recruit", id: b.id, role: r.id }); setRoleSheet(false); }} />;
+            })}
+          </ListGroup>
+        </ActionSheet>
+      )}
+      {act && (
+        <ActionSheet emoji={act.gamble ? "🎲" : "🔧"} tile="bg-amber-100" title={T(act.label[0], act.label[1])} sub={naira(actCost(p, b, act))} onClose={() => setActId(null)}>
+          <p className="mb-3 text-sm text-slate-600">{T(act.blurb[0], act.blurb[1])}</p>
+          {act.gamble && <p className="mb-3 text-xs text-amber-700">{T("This is a gamble: it may not pay off.", "This one na gamble: e fit no pay.")}</p>}
+          <Btn tone="gold" disabled={Boolean(actBlock(p, b, act.id))} onClick={() => { run({ t: "biz", op: "act", id: b.id, key: act.id }); setActId(null); }}>{actBlock(p, b, act.id) ?? T("Do it", "Do am")}</Btn>
+        </ActionSheet>
+      )}
       {w && (
         <ActionSheet emoji="🧑" tile="bg-slate-100" title={w.name} sub={`${naira(workerPay(p, b, w))}/${T("mo", "mo")}`} onClose={() => setWorkerId(null)}>
           <div className="mb-3 grid grid-cols-2 gap-3"><Bar label={T("Skill", "Skill")} value={w.skill} tone="blue" /><Bar label={T("Loyalty", "Loyalty")} value={w.loyalty} tone={w.loyalty < 35 ? "red" : "blue"} /></div>

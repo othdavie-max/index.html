@@ -42,7 +42,7 @@ import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFam
 import { buyVehicle, takeDrivingTest, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
 import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
-import { acceptOffer, closeBusiness, declineOffers, dismiss, haggleOffer, ensureCrew, fireStaff, hirePick, hireStaff, raisePay, recruit, listForSale, setPolicy, startBusiness, toggleManager, trainWorker, upgradeBusiness } from "./business";
+import { acceptOffer, closeBusiness, declineOffers, dismiss, haggleOffer, ensureCrew, fireStaff, hirePick, hireStaff, raisePay, recruit, listForSale, setPolicy, setLever, businessAct, startBusiness, toggleManager, trainWorker, upgradeBusiness } from "./business";
 import { placeBet, type BetKind } from "./betting";
 import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
 import { setShare } from "./will";
@@ -786,7 +786,7 @@ export type Action =
   | { t: "treat"; cond: string; facility: string }
   | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
   | { t: "realtor"; op: "show" | "find"; client?: string; listing?: string }
-  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline"; id: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
+  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "act"; id: string; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
   | { t: "bet"; kind: BetKind; stake: number }
   | { t: "social"; op: "account" | "post" | "collab" | "gear"; platform?: Platform; content?: ContentKind }
   | { t: "crime"; id: string }
@@ -1222,7 +1222,9 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "upgrade": return out(upgradeBusiness(p, a.id));
             case "hire": return out(hireStaff(p, a.id));
             case "fire": return out(fireStaff(p, a.id));
-            case "recruit": return out(recruit(p, a.id));
+            case "recruit": return out(recruit(p, a.id, a.role));
+            case "lever": return out(setLever(p, a.id, a.key ?? "", a.v ?? 0));
+            case "act": return out(businessAct(p, a.id, a.key ?? ""));
             case "pick": return out(hirePick(p, a.id, a.idx ?? 0));
             case "dismiss": return out(dismiss(p, a.id, a.worker));
             case "raise": return out(raisePay(p, a.id, a.worker ?? ""));
