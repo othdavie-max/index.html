@@ -2,7 +2,7 @@
 
 import { TONE_STYLE, toneOf } from "./tone";
 import { EconStrip } from "./EconUI";
-import { QuestsCard } from "./LifeUI";
+import { DailyCard, QuestsCard } from "./LifeUI";
 import { useMemo, useState } from "react";
 import {
   Baby, Backpack, Brain, Briefcase, Flag as FlagIcon, GraduationCap, School, ChevronRight, Compass, Crown, Gavel, Heart, HeartPulse, Hourglass, Map as MapIcon, MapPin, Menu as MenuIcon,
@@ -283,6 +283,7 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
   return (
     <div className="space-y-2.5">
       <EconStrip p={p} />
+      <DailyCard p={p} run={run} />
       <QuestsCard p={p} />
       <section>
         <button type="button" onClick={() => setOpen(!open)} data-tour="activities" className="mb-1.5 flex w-full items-center justify-between px-1" aria-expanded={open}>

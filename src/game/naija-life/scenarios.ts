@@ -1,5 +1,6 @@
 import { I, bump } from "./helpers";
 import { GATES } from "./eligibility";
+import { seasonBoost } from "./calendar";
 import { transact } from "./ledger";
 import type { Choice, EventDef, Player } from "./types";
 import { T, chance, dual, naira, randInt } from "./util";
@@ -70,7 +71,7 @@ export function scenarioDef(s: Scn): EventDef {
   return {
     id: s.id,
     title: dual(s.title[0], s.title[1]),
-    weight: (p) => (!s.when || s.when(p) ? s.w * (s.rarity ?? RARITY) : 0),
+    weight: (p) => (!s.when || s.when(p) ? s.w * (s.rarity ?? RARITY) * seasonBoost(s.id) : 0),
     text: () => T(s.text[0], s.text[1]),
     choices: (p): Choice[] => {
       const list: Choice[] = s.choices.map((c) => ({

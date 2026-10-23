@@ -22,7 +22,9 @@ import { buyListing, completeProjects, developLand, houseYear, refreshListings, 
 import { defaultLocationFor, locationOf } from "./locations";
 import { EDU_EVENTS, enrollPostgrad, finishPostgrad } from "./education";
 import { yearlyNews } from "./news";
-import { MONEY_EVENTS, econYear } from "./economy";
+import { MONEY_EVENTS, POLICY_EVENTS, econYear } from "./economy";
+import { applyDaily } from "./daily";
+import { LEGACY_EVENTS, inheritLegacy, legacyYear } from "./legacy";
 import { RIVAL_EVENTS, callFavour, npcFortunes, rivalYear, type FavourKind } from "./rival";
 import { QUEST_EVENTS, milestonesYear, questsYear } from "./quests";
 import { INV2_EVENTS, buyPosition, inv2Year, sellPosition, type PosKind } from "./invest2";
@@ -68,7 +70,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...MONEY_EVENTS, ...INV2_EVENTS, ...RIVAL_EVENTS, ...QUEST_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...MONEY_EVENTS, ...POLICY_EVENTS, ...INV2_EVENTS, ...RIVAL_EVENTS, ...LEGACY_EVENTS, ...QUEST_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -434,6 +436,7 @@ export function startHeir(g0: Game, kidIndex: number): Game {
   }
   p.houses = p.houses.map((h) => ({ ...h, use: h.state === p.state ? "owner" : "empty" }));
   p.flags.dynasty = old.generation;
+  inheritLegacy(old, p);
   const inherit = Math.round((cash + bizValue(old)) * f);
   if (inherit > 0) transact(p, { amount: inherit, reason: T(`Inheritance from ${old.name} ${old.surname}${plan.hasWill ? " (as set out in the will)" : " (no will)"}`, `Inheritance from ${old.name} ${old.surname}${plan.hasWill ? " (as the will talk)" : " (no will)"}`), category: "inheritance" });
   if (nHouses > 0) transact(p, { amount: 0, memo: true, reason: T(`Inherited ${nHouses} propert${nHouses > 1 ? "ies" : "y"} from ${old.name}`, `You inherit ${nHouses} propert${nHouses > 1 ? "ies" : "y"} from ${old.name}`), category: "inheritance" });
@@ -595,7 +598,7 @@ export function ageUp(g0: Game): Game {
   yearlyCrime(p, lines, pending);
   yahooYear(p, lines, pending);
   bitYear(p, lines, pending);
-  if (p.alive && p.age >= 6) { rivalYear(p, lines, pending); npcFortunes(p, lines, pending); milestonesYear(p, pending); questsYear(p, lines); }
+  if (p.alive && p.age >= 6) { legacyYear(p, lines, pending); rivalYear(p, lines, pending); npcFortunes(p, lines, pending); milestonesYear(p, pending); questsYear(p, lines); }
   fugitiveYear(p, lines);
   yearlyGrowth(p);
   yearlySocial(p, lines, (id, data) => pending.push({ kind: "event", id, data: { month: randInt(1, 12), ...(data ?? {}) } }));
@@ -800,6 +803,7 @@ export type Action =
   | { t: "bl"; op: "pet" | "petcare" | "rehome" | "lotto" | "style" | "talent" | "practice" | "dna"; id?: string; care?: "play" | "feed" | "vet" }
   | { t: "inv2"; op: "buy" | "sell"; kind?: PosKind; id?: string; amount?: number }
   | { t: "favour"; npc: string; kind: FavourKind }
+  | { t: "daily"; id: string; day: string }
   | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "hookup" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
   | { t: "realtor"; op: "show" | "find"; client?: string; listing?: string }
   | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "levers" | "act"; id: string; sets?: Record<string, number>; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
@@ -919,6 +923,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "realtor": return { reason: T("Estate agency", "Estate agency"), category: "business" };
     case "bet": return { reason: T("Betting", "Betting"), category: "betting" };
     case "social": return { reason: T("Social media", "Social media"), category: "social" };
+    case "daily": return { reason: T("Daily pick", "Daily pick"), category: "personal" };
     case "favour": return { reason: T("Favour", "Favour"), category: "other" };
     case "inv2": return { reason: T("Investment", "Investment"), category: "investment" };
     case "bl": return { reason: T("Lifestyle", "Lifestyle"), category: "personal" };
@@ -1056,6 +1061,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       const fees = h.loc && h.value > 50_000_000 * p.index ? 0.94 : 1; // agent and legal fees on big sales
       const note = settleHouseLoan(p, h, Math.round(h.value * fees));
       p.houses.splice(i, 1);
+      if (h.compound) { p.family.happy = Math.max(0, p.family.happy - 15); p.flags.famName = Math.max(0, Number(p.flags.famName ?? 45) - 10); bump(p, "reputation", -3); }
       return out(T(`You sold your ${HOUSE_KINDS[h.kind].label.toLowerCase()} in ${locationOf(h.loc)?.name ?? STATE_BY_ID[h.state].name} for ${naira(h.value * fees)}.${note}`, `You sell your ${HOUSE_KINDS[h.kind].label.toLowerCase()} for ${STATE_BY_ID[h.state].name} for ${naira(h.value)}.${note}`));
     }
     case "use": {
@@ -1242,6 +1248,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           }
           return { g: g0, msg: "" };
         }
+        case "daily": return out(applyDaily(p, a.id, a.day));
         case "favour": return out(callFavour(p, a.npc, a.kind));
         case "inv2": return out(a.op === "buy" ? buyPosition(p, a.kind ?? "agric", Math.round(a.amount ?? 0)) : sellPosition(p, a.id ?? ""));
         case "bl": {

@@ -2027,3 +2027,54 @@ test("rival, fortunes, favours, quests and milestones", async () => {
     for (let i = 0; i < n; i++) { const q = structuredClone(p); q.money = 1e10; assert.ok(typeof e.choices(q, d)[i].run(q) === "string", `${e.id}[${i}]`); }
   }
 });
+
+test("legacy, calendar seasons, daily pick, score codes and policy choices", async () => {
+  const lg = await import("../legacy");
+  const cal = await import("../calendar");
+  const dl = await import("../daily");
+  const sc = await import("../scoreCode");
+  const eco = await import("../economy");
+  const g = aliveAt(40);
+  const p = structuredClone(g.p);
+  p.prison = 0; p.money = 1e10;
+  assert.ok(lg.famNameOf(p) >= 0);
+  // heir inherits name, heirlooms, compound
+  const heir = structuredClone(p);
+  heir.houses = [{ id: "h1", state: "lagos", kind: "duplex", value: 5e8, use: "owner" }, { id: "h2", state: "lagos", kind: "bungalow", value: 1e7, use: "empty" }];
+  heir.peakWorth = 2e9 * heir.index;
+  lg.inheritLegacy(heir, p);
+  p.houses = heir.houses;
+  lg.inheritLegacy(heir, p);
+  assert.ok(p.houses.find((h) => h.id === "h1")!.compound, "best house becomes the compound");
+  assert.ok(lg.heirloomsOf(p).length >= 1, "heirlooms handed down");
+  const pend: import("../types").Pending[] = [];
+  for (let i = 0; i < 40; i++) lg.legacyYear(p, [], pend);
+  assert.ok(pend.some((x) => x.kind === "event"), "legacy events fire");
+  for (const e of lg.LEGACY_EVENTS) { const n = e.choices(p, {}).length; for (let i = 0; i < n; i++) { const q = structuredClone(p); assert.ok(typeof e.choices(q, {})[i].run(q) === "string", `${e.id}[${i}]`); } }
+  // calendar
+  const dec = cal.seasonsFor(new Date("2026-12-15T12:00:00Z"));
+  assert.ok(dec.some((s) => s.id === "december"));
+  cal.setLiveSeason(new Date("2026-12-15T12:00:00Z"));
+  assert.equal(cal.seasonBoost("detty_december"), 4);
+  cal.setLiveSeason(null);
+  assert.equal(cal.seasonBoost("detty_december"), 1);
+  // daily pick
+  const picks = dl.dailyFor("2026-10-23");
+  assert.equal(picks.length, 3);
+  assert.deepEqual(picks.map((x) => x.id), dl.dailyFor("2026-10-23").map((x) => x.id), "same for everyone on a day");
+  const r1 = dl.applyDaily(p, picks[0].id, "2026-10-23");
+  assert.ok(r1.length > 0 && dl.dailyClaimed(p, "2026-10-23"));
+  assert.ok(/already|don take/i.test(dl.applyDaily(p, picks[1].id, "2026-10-23")), "one pick per day");
+  assert.equal(dl.applyDaily(p, "x", "garbage"), "");
+  // score codes
+  const code = sc.encodeScore(sc.scoreOf(p));
+  const back = sc.decodeScore(code);
+  assert.ok(back && back.n === `${p.name} ${p.surname}`.slice(0, 40));
+  assert.equal(sc.decodeScore("NL1.@@@"), null);
+  assert.equal(sc.decodeScore("hello"), null);
+  // policy
+  p.politics = { office: 5, yearsLeft: 3, terms: 1, godfather: false, highest: 5, machine: 50, umpire: 50, courts: 50, military: 50 } as never;
+  const pol = eco.POLICY_EVENTS[0];
+  assert.ok(pol.weight(p) > 0);
+  for (let i = 0; i < pol.choices(p, {}).length; i++) { const q = structuredClone(p); q.world = q.world ?? { until: {}, news: [] }; assert.ok(typeof pol.choices(q, {})[i].run(q) === "string"); }
+});

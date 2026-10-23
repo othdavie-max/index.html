@@ -23,7 +23,8 @@ import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, E
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Invest2Card } from "./Invest2UI";
-import { FavoursCard, MilestonesCard, RivalCard } from "./LifeUI";
+import { FavoursCard, FriendBoardCard, LegacyCard, MilestonesCard, RivalCard } from "./LifeUI";
+import { setLiveSeason } from "./calendar";
 import { ribbonTitle, ribbonsOf } from "./ribbons";
 import { DnaRow, LotteryCard, PetsCard, StyleCard, TalentCard } from "./BitlifeUI";
 import { petsOf } from "./bitlife";
@@ -102,6 +103,7 @@ export default function NaijaLife() {
   useGameSounds(game);
   const [result, setResult] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+  useEffect(() => { setLiveSeason(new Date()); }, []);
   const [chips, setChips] = useState<Chip[]>([]);
   const [menu, setMenu] = useState(false);
   const [cardImg, setCardImg] = useState<{ url: string; text: string } | null>(null);
@@ -740,7 +742,7 @@ function Person({ look, gender, age, label, sub, dim }: { look: Look; gender: Ge
 }
 
 function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [sub, setSub] = useState<"people" | "family" | "friends" | "class" | "love" | "will" | "awards" | "rival" | "favours" | null>(null);
+  const [sub, setSub] = useState<"people" | "family" | "friends" | "class" | "love" | "will" | "awards" | "rival" | "favours" | "legacy" | null>(null);
   const alivePeople = Object.values(p.npcs).filter((n) => n.alive);
   const famCount = alivePeople.filter((n) => ["dad", "mom", "guardian", "sibling", "grandparent", "uncle", "aunt", "cousin"].includes(n.role)).length;
   const friendCount = alivePeople.filter((n) => n.role === "friend").length;
@@ -762,6 +764,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
                 { id: "class" as const, emoji: "🎒", tile: "bg-violet-100", name: T("Classmates", "Classmates"), desc: classCount ? T(`${classCount} in your class`, `${classCount} for your class`) : T("Primary, secondary, university", "Primary, secondary, university") },
                 { id: "love" as const, emoji: "❤️", tile: "bg-rose-100", name: T("Love life", "Love life"), desc: p.spouse ? T(`Married to ${p.spouse.name}`, `You marry ${p.spouse.name}`) : p.flags.dating ? T(`Dating ${String(p.flags.dating)}`, `You dey date ${String(p.flags.dating)}`) : T("Dating, marriage and children", "Dating, marriage and pikin") },
                 ...(p.age >= 12 ? [{ id: "rival" as const, emoji: "🥊", tile: "bg-rose-100", name: T("My rival", "My rival"), desc: T("Your cousin, and your mother's favourite comparison", "Your cousin, and mama favourite comparison") }] : []),
+                { id: "legacy" as const, emoji: "🏛️", tile: "bg-violet-100", name: T("Family name and legacy", "Family name and legacy"), desc: T("Name, compound, heirlooms", "Name, compound, heirlooms") },
                 ...(p.age >= 18 ? [{ id: "favours" as const, emoji: "🤲🏾", tile: "bg-amber-100", name: T("Favours", "Favours"), desc: T("People who owe you, and what to ask", "People wey owe you, and wetin to ask") }] : []),
                 ...(p.age >= 18 ? [{ id: "will" as const, emoji: "📜", tile: "bg-amber-100", name: T("Will", "Will"), desc: T("Decide who gets what", "Decide who go get wetin") }] : []),
                 { id: "awards" as const, emoji: "🏆", tile: "bg-violet-100", name: T("Achievements", "Achievements"), desc: T(`${p.achievements.length} earned`, `${p.achievements.length} don win`) },
@@ -797,10 +800,12 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       </>)}
       {sub === "awards" && (<>
       <MilestonesCard p={p} />
+      <FriendBoardCard p={p} />
       <ListGroup title={T("Achievements", "Achievements")}>
         {p.achievements.length === 0 ? <ListRow emoji="🏆" tile="bg-slate-100" name={T("None yet", "Nothing yet")} /> : p.achievements.map((a) => <ListRow key={a} emoji="🏆" tile="bg-violet-100" name={a} />)}
       </ListGroup>
       </>)}
+      {sub === "legacy" && <LegacyCard p={p} />}
       {sub === "rival" && <RivalCard p={p} />}
       {sub === "favours" && <FavoursCard p={p} run={run} />}
       {sub === "family" && <PeopleList p={p} run={run} group="family" />}

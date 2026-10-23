@@ -139,10 +139,41 @@ export function blackTaxYear(p: Player, pending: import("./types").Pending[]) {
   pending.push({ kind: "event", id: "black_tax", data: { amount: amt, why: randInt(0, REASONS.length - 1), month: randInt(1, 12) } });
 }
 
+// ---------------------------------------------------------------------------
+// Politics feeds the economy: governors and presidents set the weather
+// ---------------------------------------------------------------------------
+export const POLICY_EVENTS: EventDef[] = [
+  {
+    id: "policy_choice", title: dual("A policy decision", "Policy decision"),
+    weight: (p) => ((p.politics?.office ?? -1) >= 4 ? 2.4 : 0),
+    text: (p) => T(`As ${(p.politics?.office ?? 0) >= 5 ? "President" : "Governor"}, your advisers lay out three options for the economy. Whatever you choose will be felt in every market, shop and pay packet, including yours.`, `As ${(p.politics?.office ?? 0) >= 5 ? "President" : "Governor"}, your advisers show you three options for the economy. Wetin you choose go reach every market, shop and pay, even yours.`),
+    choices: (p) => [
+      { label: T("Remove the fuel subsidy", "Remove fuel subsidy"), sub: T("Pain now, growth later", "Pain now, growth later"), run: (q) => { q.world ??= { until: {}, news: [] }; q.world.until.fuel = q.age + 2; bump(q, "reputation", -5); q.flags.reformBoom = q.age + 3; return T("Protests, queues and furious headlines. The treasury breathes.", "Protest, queue and angry headline. Treasury breathe."); } },
+      { label: T("Invest in power and roads", "Invest for power and roads"), sub: naira(I(p, 20_000_000)), disabled: p.money < I(p, 20_000_000) ? T("Not enough cash", "Cash no reach") : false, run: (q) => { q.world ??= { until: {}, news: [] }; transact(q, { amount: -Math.round(I(q, 20_000_000)), reason: T("Public investment", "Public investment"), category: "other" }); q.world.until.grid = -1; if (chance(0.65)) q.flags.reformBoom = q.age + 2; bump(q, "reputation", 4); return T("Better light, better roads, slowly better business.", "Better light, better road, slowly better business."); } },
+      { label: T("Print money and spend", "Print money and spend"), sub: T("A quick boom, an expensive hangover", "Quick boom, expensive hangover"), run: (q) => { q.world ??= { until: {}, news: [] }; q.world.until.boom = q.age + 1; q.index *= 1.03; if (chance(0.5)) q.flags.reformBust = q.age + 2; bump(q, "reputation", 1); return T("Salaries rise, prices rise faster. Everyone is happy for about a year.", "Salary go up, price go up faster. Everybody happy for like one year."); } },
+      { label: T("Do nothing", "Do nothing"), run: (q) => { bump(q, "reputation", -1); return T("Drift is also a decision.", "To drift na decision too."); } },
+    ],
+  },
+];
+
+/** Called once a year after inflation is known. */
+function policyAftermath(p: Player, lines: string[]) {
+  p.world ??= { until: {}, news: [] };
+  if (p.flags.reformBoom === p.age) { p.world.until.boom = p.age + 3; lines.push(T("The reforms start to pay off: the economy picks up.", "The reforms start to work: economy dey pick up.")); delete p.flags.reformBoom; }
+  if (p.flags.reformBust === p.age) { p.world.until.recession = p.age + 2; lines.push(T("The spending binge catches up with the economy: a recession begins.", "The spending binge catch up with economy: recession don start.")); delete p.flags.reformBust; }
+}
+function cityYear(p: Player) {
+  if (p.age < 20 || p.age > 62) return;
+  if (p.state === "abuja" && (p.job || p.politics)) bump(p, "connections", 1);
+  if (p.state === "lagos") bump(p, "stress", 1);
+}
+
 /** Called once a year after inflation is known. */
 export function econYear(p: Player, inflation: number, lines: string[], pending: import("./types").Pending[]) {
   yearlyEcon(p, inflation, lines);
   statusYear(p, lines);
   blackTaxYear(p, pending);
+  policyAftermath(p, lines);
+  cityYear(p);
   void luckBonus;
 }

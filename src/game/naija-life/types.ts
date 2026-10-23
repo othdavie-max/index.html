@@ -45,6 +45,8 @@ export interface House {
   loc?: string;
   /** A building project on this plot. */
   project?: { kind: HouseKind; readyAge: number; cost: number };
+  /** The family compound handed down through generations. */
+  compound?: boolean;
 }
 
 export type HoldingKind = "usd" | "stocks" | "crypto" | "oil" | "school" | "farm" | "bank" | "fund" | "savings" | "tbill" | "bond" | "penny" | "cryptofund" | "reit";
