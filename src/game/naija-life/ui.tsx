@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { T } from "./util";
 
@@ -80,7 +80,7 @@ export function Badge({ children, tone = "gray" }: { children: ReactNode; tone?:
 
 export function Sheet({ children, title, header, onClose }: { children: ReactNode; title?: string; header?: ReactNode; onClose?: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/30 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" onClick={(e) => { if (onClose && e.target === e.currentTarget) onClose(); }}>
       <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-slate-100 bg-white px-5 pb-5 pt-0 text-slate-800 shadow-2xl sm:rounded-3xl">
         {(title || header || onClose) && (
           <div className="sticky top-0 z-20 -mx-5 mb-3 flex items-center gap-3 border-b border-slate-100 bg-white/95 px-5 py-3 backdrop-blur">
@@ -164,7 +164,16 @@ export function HubList({ groups, onPick }: { groups: HubGroup[]; onPick: (r: Hu
   );
 }
 
+/** Lets a sub-screen's back button replace the top-level one, so only one pill shows. */
+export const SubNavContext = createContext<((open: boolean) => void) | null>(null);
+
 export function BackPill({ label, onClick }: { label: string; onClick: () => void }) {
+  const setSubOpen = useContext(SubNavContext);
+  useEffect(() => {
+    if (!setSubOpen || label === "Life story") return;
+    setSubOpen(true);
+    return () => setSubOpen(false);
+  }, [setSubOpen, label]);
   return <button type="button" onClick={onClick} className="mb-2 mr-2 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2.5 text-[15px] font-extrabold text-blue-700 shadow-sm ring-1 ring-slate-200 active:bg-slate-50"><span className="text-lg leading-none">‹</span>{label}</button>;
 }
 

@@ -292,7 +292,7 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
                 <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => run({ t: "activity", id: a.id })} className="flex flex-col items-center gap-0.5 rounded-2xl border border-slate-100 bg-white px-1 py-2 shadow-[0_6px_16px_-12px_rgba(30,64,175,0.4)] transition active:scale-[0.97] disabled:opacity-45">
                   <span className={cx("flex h-9 w-9 items-center justify-center rounded-xl text-[20px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
                   <span className="w-full truncate text-center text-[12px] font-extrabold leading-tight text-[#0b2a6b]">{ACT_SHORT[a.id]?.() ?? a.label}</span>
-                  <span className="w-full truncate text-center text-[10px] font-medium leading-tight text-slate-500">{block ? block : a.cost ? naira(a.cost * p.index) : ACT_HINT[a.id]?.() ?? ""}</span>
+                  <span className="w-full truncate text-center text-[10px] font-medium leading-tight text-slate-500">{block ? (a.cost && p.money < a.cost * p.index ? T("Needs ", "Need ") + naira(a.cost * p.index) : block) : a.cost ? naira(a.cost * p.index) : ACT_HINT[a.id]?.() ?? ""}</span>
                 </button>
               );
             })}

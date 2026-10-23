@@ -978,8 +978,16 @@ function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Ru
       ) : <p className="mb-3 text-xs text-slate-500">{T("The first report arrives at the end of the month.", "First report go land when month end.")}</p>}
       {(b.hist?.length ?? 0) > 0 && (
         <div className="mb-3">
-          <div className="mb-1 text-xs text-slate-600">{T("Profit by year", "Profit by year")}</div>
-          <div className="flex h-12 items-end gap-1">{b.hist!.map((h, i) => <div key={i} title={naira(h.net)} className={cx("flex-1 rounded-t", h.net >= 0 ? "bg-emerald-400" : "bg-red-400")} style={{ height: `${Math.max(6, (Math.abs(h.net) / maxRev) * 100)}%` }} />)}</div>
+          <div className="mb-1.5 text-xs font-semibold text-slate-600">{T("Profit by year", "Profit by year")}</div>
+          <div className="space-y-1 rounded-2xl bg-white p-3 ring-1 ring-slate-100">
+            {b.hist!.slice(-6).map((h, i) => (
+              <div key={i} className="flex items-center gap-2 text-[11.5px]">
+                <span className="w-9 shrink-0 text-slate-500">{T("Age", "Age")} {h.age}</span>
+                <span className="flex h-3 flex-1 items-center overflow-hidden rounded-full bg-slate-100"><span className={cx("block h-full rounded-full", h.net >= 0 ? "bg-emerald-400" : "bg-red-400")} style={{ width: `${Math.max(4, (Math.abs(h.net) / maxRev) * 100)}%` }} /></span>
+                <span className={cx("w-24 shrink-0 text-right font-semibold", h.net >= 0 ? "text-emerald-700" : "text-red-600")}>{naira(h.net)}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
       <ListGroup title={T("How you run it", "How you run am")} sub={T(prof.intro[0], prof.intro[1])}>

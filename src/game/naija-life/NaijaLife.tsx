@@ -24,7 +24,7 @@ import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { JobsView, NyscPanel, RealtorView, SchoolPanel } from "./WorkUI";
 import { isRealtor } from "./realtor";
-import { ActionSheet, BackPill, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
+import { ActionSheet, BackPill, SubNavContext, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
 import { notificationsFor } from "./notices";
 import { T, chance, naira, setDeflator, setLang } from "./util";
@@ -91,6 +91,7 @@ export default function NaijaLife() {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>("life");
+  const [subOpen, setSubOpen] = useState(false);
   useGameSounds(game);
   const [result, setResult] = useState<string | null>(null);
   const [toast, setToast] = useState("");
@@ -191,8 +192,9 @@ export default function NaijaLife() {
     <Shell>
       <GameHeader p={p} onMenu={() => setMenu(true)} onWallet={() => setTab("money")} alerts={notificationsFor(p).filter((n) => n.level !== "green").length} />
       <StatsCard p={p} />
+      <SubNavContext.Provider value={setSubOpen}>
       <main className="flex-1 space-y-3 px-4 pb-64 pt-2">
-        {tab !== "life" && <BackPill label={T("Life story", "Life story")} onClick={() => setTab("life")} />}
+        {tab !== "life" && !subOpen && <BackPill label={T("Life story", "Life story")} onClick={() => setTab("life")} />}
         {EXPLORE_TABS.includes(tab) && <ExploreChips tab={tab} setTab={setTab} />}
         {tab === "explore" && <ExploreHub setTab={setTab} />}
         {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}
@@ -212,6 +214,7 @@ export default function NaijaLife() {
         {tab === "power" && p.prison <= 0 && <PowerTab p={p} run={run} />}
         {tab === "legacy" && <LegacyTab g={game} />}
       </main>
+      </SubNavContext.Provider>
 
       {toast && (
         <div className="fixed inset-x-0 bottom-44 z-40 mx-auto w-[92%] max-w-md rounded-2xl bg-slate-800 px-4 py-2.5 text-center text-sm font-medium text-white shadow-xl">

@@ -33,7 +33,6 @@ const STEPS: Step[] = [
     title: () => T("Welcome to Naija Life", "Welcome to Naija Life"),
     body: () => [
       T("Live a whole Nigerian life, from birth to old age. You make the choices: study, hustle, fall in love, build wealth, face wahala, and leave a legacy your children inherit.", "Live full Naija life, from birth reach old age. Na you go choose: read book, hustle, fall in love, build money, face wahala, and leave legacy wey your pikin go inherit."),
-      T("This quick tour takes about a minute and shows you where everything is.", "This short tour go take like one minute, and e go show you where everything dey."),
     ],
   },
   {
