@@ -382,7 +382,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
         <div className="flex h-full"><div className="flex-1 bg-[#1f9d55]" /><div className="flex-1 bg-white" /><div className="flex-1 bg-[#1f9d55]" /></div>
       </div>
       <h1 className="mt-5 font-serif text-4xl font-black leading-[1.05] text-slate-900">Naija<br /><span className="text-blue-600">Life</span></h1>
-      <p className="mt-3 text-sm leading-relaxed text-slate-600">{T("Live a whole Nigerian life: from akara by the roadside to Aso Rock. Hustle, travel between states, build houses, survive NEPA, dodge kidnappers, and leave a legacy your children inherit.", "Live full Naija life: from akara for roadside reach Aso Rock. Hustle, travel between states, build house, survive NEPA, run from kidnappers, and leave legacy wey your pikin go inherit.")}</p>
+      <p className="mt-3 text-sm leading-relaxed text-slate-600">{T("Live a Nigerian life from birth to old age. Go to school, hustle, fall in love, build businesses and houses, survive NEPA and Lagos traffic, and leave a legacy your children inherit.", "Live full Naija life from birth reach old age. Go school, hustle, fall in love, build business and house, survive NEPA and Lagos traffic, and leave legacy wey your pikin go inherit.")}</p>
 
       <ChallengeBanner onPlay={(c) => onStart({ name, gender, stateId: c.stateId, tribe: null, religion: null, look: sanitizeLook(look, unlocked), lang, seed: c.seed, forceArchetype: c.force, challenge: c.id }, target)} />
 
