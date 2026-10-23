@@ -9,6 +9,7 @@ import { meritOf } from "./military";
 import { DegreeCard } from "./CampusUI";
 import { ActionSheet, Btn, ListGroup, ListRow } from "./ui";
 import { candidatesFor } from "./realtor";
+import { PPA_BY_ID } from "./nysc";
 import { HOUSE_KINDS } from "./data";
 import { LOCATION_BY_ID } from "./locations";
 import type { Player } from "./types";
@@ -160,5 +161,35 @@ export function RealtorView({ p, run }: { p: Player; run: Run }) {
         </ActionSheet>
       )}
     </>
+  );
+}
+
+/** What school looks like for a child, and what to do about it. */
+export function SchoolPanel({ p }: { p: Player }) {
+  const sc = p.school;
+  if (!sc) return null;
+  const type = String(p.flags.schoolType ?? "public");
+  return (
+    <ListGroup title={sc.stage === "primary" ? T("Primary school", "Primary school") : T("Secondary school", "Secondary school")} sub={T("Use the Study activity on the life screen to do better. Marks, friends and teachers shape how school goes.", "Use Study for life screen to do better. Marks, friends and teacher dey shape how school go.")}>
+      <ListRow emoji={sc.stage === "primary" ? "🎒" : "🏫"} tile="bg-sky-100" name={T(`${sc.yearsLeft} year${sc.yearsLeft === 1 ? "" : "s"} left`, `${sc.yearsLeft} year${sc.yearsLeft === 1 ? "" : "s"} remain`)} desc={type === "elite" ? T("International school", "International school") : type === "private" ? T("Private school", "Private school") : T("Public school", "Public school")} />
+      <ListRow emoji="🧠" tile="bg-violet-100" name={T("Smarts", "Smarts")} right={`${Math.round(p.stats.smarts)}%`} />
+      {p.flags.boarding ? <ListRow emoji="🛏️" tile="bg-amber-100" name={T("Boarding house", "Boarding house")} desc={T("You live at school", "You dey live for school")} /> : null}
+    </ListGroup>
+  );
+}
+
+/** The service year at a glance. */
+export function NyscPanel({ p }: { p: Player }) {
+  const ppa = PPA_BY_ID[String(p.flags.nyscPpa ?? "")];
+  const state = STATE_BY_ID[String(p.flags.nyscPosted ?? p.state)]?.name;
+  const camp = Number(p.flags.nyscCamp ?? -1);
+  return (
+    <ListGroup title={T("National Youth Service", "National Youth Service")} sub={T("One year. Do well at your PPA and they may keep you. Formal jobs open after pass-out.", "One year. Do well for your PPA and dem fit keep you. Formal job go open after pass-out.")}>
+      <ListRow emoji="📍" tile="bg-emerald-100" name={T("Posted to", "Posted to")} right={state} />
+      <ListRow emoji="⛺" tile="bg-amber-100" name={T("Orientation camp", "Orientation camp")} right={camp < 0 ? T("Skipped", "Skipped") : `${camp}/9`} />
+      <ListRow emoji={ppa?.emoji ?? "🏢"} tile="bg-sky-100" name={T("Place of primary assignment", "Place of primary assignment")} desc={ppa ? T(ppa.name[0], ppa.name[1]) : T("Not yet placed", "Never place you")} wrap />
+      <ListRow emoji="💵" tile="bg-emerald-100" name={T("Monthly allowance", "Monthly allowance")} right={naira(77_000 * p.index)} />
+      <ListRow emoji="⭐" tile="bg-violet-100" name={T("Your standing at the PPA", "Your standing for PPA")} right={`${Math.round(Number(p.flags.nyscPerf ?? 50))}/100`} />
+    </ListGroup>
   );
 }

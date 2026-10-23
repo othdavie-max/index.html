@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
-  Brain, Briefcase, ChevronRight, Compass, Crown, Gavel, Heart, HeartPulse, Hourglass, Map as MapIcon, MapPin, Menu as MenuIcon,
+  Baby, Backpack, Brain, Briefcase, Flag as FlagIcon, GraduationCap, School, ChevronRight, Compass, Crown, Gavel, Heart, HeartPulse, Hourglass, Map as MapIcon, MapPin, Menu as MenuIcon,
   ShieldCheck, Smartphone, Smile, Sparkles, Trophy, TrendingUp, User, Users, Wallet, Zap,
 } from "lucide-react";
 import { ACTIVITIES, activityBlock, type Action } from "./engine";
@@ -177,6 +177,30 @@ export function ExploreChips({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => vo
   );
 }
 
+/** What the first tab is called depends on where you are in life. */
+export type WorkStage = "infant" | "nursery" | "primary" | "secondary" | "admission" | "university" | "trade" | "nysc" | "work";
+export function workStage(p: Player): WorkStage {
+  if (p.flags.nyscServing === true) return "nysc";
+  const sc = p.school;
+  if (sc?.stage === "primary") return "primary";
+  if (sc?.stage === "secondary") return "secondary";
+  if (sc?.stage === "tertiary") return sc.type === "university" || sc.type === "postgrad" || sc.type === "polytechnic" ? "university" : "trade";
+  if (p.flags.admOpen) return "admission";
+  if (p.age < 3) return "infant";
+  if (p.age < 6) return "nursery";
+  return "work";
+}
+const STAGE_TAB: Record<WorkStage, { label: () => string; icon: typeof Hourglass }> = {
+  infant: { label: () => T("Infant", "Infant"), icon: Baby },
+  nursery: { label: () => T("Nursery", "Nursery"), icon: Baby },
+  primary: { label: () => T("Primary", "Primary"), icon: Backpack },
+  secondary: { label: () => T("Secondary", "Secondary"), icon: School },
+  admission: { label: () => T("University", "University"), icon: GraduationCap },
+  university: { label: () => T("University", "University"), icon: GraduationCap },
+  trade: { label: () => T("Training", "Training"), icon: GraduationCap },
+  nysc: { label: () => T("NYSC", "NYSC"), icon: FlagIcon },
+  work: { label: () => T("Work", "Work"), icon: Briefcase },
+};
 const NAV: { id: Tab; label: () => string; icon: typeof Hourglass }[] = [
   { id: "work", label: () => T("Work", "Work"), icon: Briefcase },
   { id: "money", label: () => T("Money", "Money"), icon: Wallet },
@@ -202,7 +226,8 @@ export function BottomBar({ tab, setTab, p, busy, onGrow }: { tab: Tab; setTab: 
         <ChevronRight size={18} strokeWidth={2.8} />
       </button>
       <nav data-tour="nav" className="mt-1.5 flex items-start justify-around pb-2" aria-label="Game sections">
-        {NAV.map((t) => {
+        {NAV.map((t0) => {
+          const t = t0.id === "work" ? { ...t0, ...STAGE_TAB[workStage(p)] } : t0;
           const Icon = t.icon;
           const on = group === t.id;
           return (
@@ -242,6 +267,10 @@ const ACT_SHORT: Record<string, () => string> = {
   study: () => T("Study", "Read"), gym: () => T("Exercise", "Exercise"), worship: () => T("Worship", "Worship"), hawk: () => T("Hawk", "Hawk"),
   network: () => T("Network", "Network"), gig: () => T("Side gig", "Side gig"), date: () => T("Love", "Love"), godfather: () => T("Godfather", "Godfather"),
 };
+const ACT_HINT: Record<string, () => string> = {
+  study: () => T("Better grades", "Better grade"), gym: () => T("Get fit", "Get fit"), worship: () => T("Peace of mind", "Peace of mind"), hawk: () => T("Small money", "Small money"),
+  network: () => T("Meet people", "Meet people"), gig: () => T("Quick cash", "Quick cash"), date: () => T("Find love", "Find love"), godfather: () => T("Powerful backer", "Powerful backer"),
+};
 const ACT_TILE: Record<string, string> = { study: "bg-violet-100", gym: "bg-emerald-100", worship: "bg-amber-100", hawk: "bg-orange-100", network: "bg-pink-100", gig: "bg-green-100", date: "bg-rose-100", godfather: "bg-sky-100" };
 
 export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
@@ -256,14 +285,14 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
           <span className="flex items-center gap-1 text-[11.5px] font-semibold text-slate-500">{T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`)}<ChevronRight size={15} className={cx("transition-transform", open && "rotate-90")} /></span>
         </button>
         {open && (
-          <div className="grid grid-cols-8 gap-1">
+          <div className="grid grid-cols-4 gap-1.5">
             {ACTIVITIES.filter((a) => p.age >= a.minAge - 2).map((a) => {
               const block = activityBlock(p, a);
               return (
-                <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => run({ t: "activity", id: a.id })} className="flex aspect-square flex-col items-center justify-center gap-0.5 rounded-xl border border-slate-100 bg-white p-0.5 text-center shadow-[0_4px_12px_-10px_rgba(30,64,175,0.4)] transition active:scale-95 disabled:opacity-40">
-                  <span className={cx("flex h-6 w-6 items-center justify-center rounded-lg text-[14px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
-                  <span className="w-full truncate text-[8.5px] font-bold leading-none text-[#0b2a6b]">{ACT_SHORT[a.id]?.() ?? a.label}</span>
-                  {a.cost ? <span className="w-full truncate text-[7.5px] font-semibold leading-none text-slate-500">{naira(a.cost * p.index)}</span> : null}
+                <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => run({ t: "activity", id: a.id })} className="flex flex-col items-center gap-0.5 rounded-2xl border border-slate-100 bg-white px-1 py-2 shadow-[0_6px_16px_-12px_rgba(30,64,175,0.4)] transition active:scale-[0.97] disabled:opacity-45">
+                  <span className={cx("flex h-9 w-9 items-center justify-center rounded-xl text-[20px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
+                  <span className="w-full truncate text-center text-[12px] font-extrabold leading-tight text-[#0b2a6b]">{ACT_SHORT[a.id]?.() ?? a.label}</span>
+                  <span className="w-full truncate text-center text-[10px] font-medium leading-tight text-slate-500">{block ? block : a.cost ? naira(a.cost * p.index) : ACT_HINT[a.id]?.() ?? ""}</span>
                 </button>
               );
             })}

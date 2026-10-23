@@ -51,7 +51,7 @@ async function play(browser, lang) {
   if (shown < 10) errors.push(`[${lang}] tutorial had only ${shown} steps`);
   await tour.waitFor({ state: "detached", timeout: 5000 });
   await page.getByRole("button", { name: /^Grow Up/ }).first().waitFor({ timeout: 60000 });
-  const tabs = ["Work", "Money", "Family", "Explore", "Phone", "Health", "Law", "Map", "Power", "Legacy"];
+  const tabs = ["(?:Work|Infant|Nursery|Primary|Secondary|University|NYSC|Training)", "Money", "Family", "Explore", "Phone", "Health", "Law", "Map", "Power", "Legacy"];
   for (let year = 0; year < 30; year++) {
     // answer any event or sheet that is open
     for (let k = 0; k < 8; k++) {

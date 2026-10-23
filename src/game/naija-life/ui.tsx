@@ -165,7 +165,7 @@ export function HubList({ groups, onPick }: { groups: HubGroup[]; onPick: (r: Hu
 }
 
 export function BackPill({ label, onClick }: { label: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="mb-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm ring-1 ring-slate-200">‹ {label}</button>;
+  return <button type="button" onClick={onClick} className="mb-2 mr-2 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2.5 text-[15px] font-extrabold text-blue-700 shadow-sm ring-1 ring-slate-200 active:bg-slate-50"><span className="text-lg leading-none">‹</span>{label}</button>;
 }
 
 /** A list of sections; tapping one opens its content with a back button. */

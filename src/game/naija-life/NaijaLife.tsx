@@ -20,10 +20,10 @@ import { luxuryBlock, luxuryCost } from "./lifestyle";
 import { GOV_ACTIONS, POWER_MOVES, canContest, canJoinPolitics, canPlotCoup, currentZone, officeTitle, playerZone, powerMoveBlock, powerMoveCost } from "./politics";
 import { PortfolioCard, TravelSheet, RelationshipsCard, HeadlinesCard, PostgradCard, PropertyMarketCard, PrisonCard, MortgageCard, TradeCard, MarketNewsCard, BusinessCard, GarageCard, HealthTab, HousingCard, LawTab, LedgerCard, NetWorthCard, BackgroundCard, OwedCard, PeopleList, PhoneTab, SkillsCard, SubsCard, WillCard } from "./Panels";
 import { Tutorial, hasSeenTutorial } from "./Tutorial";
-import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, type Tab } from "./Shell";
+import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, workStage, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
-import { JobsView, RealtorView } from "./WorkUI";
+import { JobsView, NyscPanel, RealtorView, SchoolPanel } from "./WorkUI";
 import { isRealtor } from "./realtor";
 import { ActionSheet, BackPill, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
@@ -197,7 +197,11 @@ export default function NaijaLife() {
         {EXPLORE_TABS.includes(tab) && <ExploreChips tab={tab} setTab={setTab} />}
         {tab === "explore" && <ExploreHub setTab={setTab} />}
         {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}
-        {tab === "life" && <><PrisonCard p={p} run={run} /><AdmissionCard p={p} run={run} /><CampusCard p={p} run={run} /><HeadlinesCard p={p} /><LifeFeed g={game} run={run} /></>}
+        {tab === "life" && <>
+          {p.prison > 0 && <button type="button" onClick={() => setTab("work")} className="flex w-full items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-left"><span className="text-xl">⛓️</span><span className="min-w-0 flex-1 text-[13px] font-bold text-red-700">{T(`In prison · ${p.prison} yr left. Prison options are in the Work tab.`, `For prison · ${p.prison} yr remain. Prison options dey Work tab.`)}</span><span className="text-lg font-black text-red-500">›</span></button>}
+          {p.flags.admOpen && !p.school && p.prison <= 0 && <button type="button" onClick={() => setTab("work")} className="flex w-full items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-3.5 py-2.5 text-left"><span className="text-xl">🎓</span><span className="min-w-0 flex-1 text-[13px] font-bold text-blue-700">{T("Admissions are open. Pick your university in the University tab.", "Admission don open. Pick your university for University tab.")}</span><span className="text-lg font-black text-blue-500">›</span></button>}
+          <HeadlinesCard p={p} /><LifeFeed g={game} run={run} />
+        </>}
         {tab === "phone" && p.prison <= 0 && <PhoneTab p={p} run={run} />}
         {tab === "health" && <HealthTab p={p} run={run} />}
         {tab === "law" && <LawTab p={p} run={run} />}
@@ -511,32 +515,53 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 // ---------------------------------------------------------------------------
 // Work tab
 // ---------------------------------------------------------------------------
+type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | null;
+
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [sub, setSub] = useState<"jobs" | "biz" | "learn" | "agent" | null>(null);
+  const [sub, setSub] = useState<WorkSub>(null);
   const cur = jobDef(p);
+  const stage = workStage(p);
+  const grown = p.age >= 14;
+  const canApply = p.edu === "secondary" && !p.school && !p.flags.admOpen && p.age >= 16 && p.age <= 40;
+  const rows = [
+    ...(stage === "nysc" ? [{ id: "nysc", emoji: "🇳🇬", tile: "bg-emerald-100", name: T("NYSC service year", "NYSC service year"), desc: T("Posting, PPA and allowance", "Posting, PPA and allowance") }] : []),
+    ...(stage === "primary" || stage === "secondary" ? [{ id: "school", emoji: stage === "primary" ? "🎒" : "🏫", tile: "bg-sky-100", name: stage === "primary" ? T("My primary school", "My primary school") : T("My secondary school", "My secondary school"), desc: p.school ? T(`${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} left`, `${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} remain`) : "" }] : []),
+    ...(stage === "admission" ? [{ id: "admission", emoji: "🎓", tile: "bg-violet-100", name: T("Choose your university", "Choose your university"), desc: T(`JAMB score ${Number(p.flags.admScore ?? 0)}. Pick a school and a course`, `JAMB score ${Number(p.flags.admScore ?? 0)}. Pick school and course`) }] : []),
+    ...(stage === "university" && p.campus && !p.campus.graduated ? [{ id: "campus", emoji: "🏛️", tile: "bg-violet-100", name: T("Campus life", "Campus life"), desc: `${T("Year", "Year")} ${p.campus.year} · CGPA ${p.campus.gpas.length ? p.campus.cgpa.toFixed(2) : "–"}` }] : []),
+    ...(canApply ? [{ id: "admission", emoji: "📝", tile: "bg-violet-100", name: T("Apply to university", "Apply to university"), desc: T("Write JAMB, pick a school and a course", "Write JAMB, pick school and course") }] : []),
+    ...(grown && stage !== "infant" && stage !== "nursery" ? [{ id: "jobs", emoji: "💼", tile: "bg-amber-100", name: stage === "work" ? T("Jobs and hustles", "Jobs and hustles") : T("Side hustles and jobs", "Side hustle and jobs"), desc: cur ? cur.ladder[Math.min(p.job?.rank ?? 0, cur.ladder.length - 1)].title : T("Find work or start a hustle", "Find work or start hustle") }] : []),
+    ...(p.age >= 18 ? [{ id: "biz", emoji: "🏪", tile: "bg-emerald-100", name: T("My businesses", "My businesses"), desc: p.businesses.length ? T(`${p.businesses.length} running`, `${p.businesses.length} dey run`) : T("Akara stand to hotel", "Akara stand to hotel") }] : []),
+    ...(isRealtor(p) ? [{ id: "agent", emoji: "🏠", tile: "bg-sky-100", name: T("Property clients", "Property clients"), desc: T(`${(p.clients ?? []).length} looking for a home`, `${(p.clients ?? []).length} dey find house`) }] : []),
+    ...(p.age >= 10 ? [{ id: "learn", emoji: "🎓", tile: "bg-violet-100", name: T("Learn", "Learn"), desc: T("Skills, trades and further study", "Skills, trade and further study") }] : []),
+  ];
+  const sel = sub && rows.some((r) => r.id === sub) ? sub : null;
   return (
     <>
-      {sub === null ? (
-        <HubList onPick={(r) => setSub(r.id as "jobs" | "biz" | "learn" | "agent")} groups={[{ rows: [
-          { id: "jobs", emoji: "💼", tile: "bg-amber-100", name: T("Jobs and hustles", "Jobs and hustles"), desc: cur ? cur.ladder[Math.min(p.job?.rank ?? 0, cur.ladder.length - 1)].title : T("Find work or start a hustle", "Find work or start hustle") },
-          { id: "biz", emoji: "🏪", tile: "bg-emerald-100", name: T("My businesses", "My businesses"), desc: p.businesses.length ? T(`${p.businesses.length} running`, `${p.businesses.length} dey run`) : T("Akara stand to hotel", "Akara stand to hotel") },
-          ...(isRealtor(p) ? [{ id: "agent", emoji: "🏠", tile: "bg-sky-100", name: T("Property clients", "Property clients"), desc: T(`${(p.clients ?? []).length} looking for a home`, `${(p.clients ?? []).length} dey find house`) }] : []),
-          { id: "learn", emoji: "🎓", tile: "bg-violet-100", name: T("Learn", "Learn"), desc: p.school ? T("In school now", "You dey school now") : T("School, trades, skills", "School, trade, skills") },
-        ] }]} />
-      ) : <BackPill label={T("Work", "Work")} onClick={() => setSub(null)} />}
-      {sub === "biz" && (p.age >= 14 ? <BusinessCard p={p} run={run} /> : <Card><p className="text-sm text-slate-500">{T("Businesses start at 18.", "Business start for 18.")}</p></Card>)}
-      {sub === "learn" && (
+      {sel === null ? (
+        rows.length ? <HubList onPick={(r) => setSub(r.id as WorkSub)} groups={[{ rows }]} /> : (
+          <ListGroup title={stage === "infant" ? T("Infant", "Infant") : T("Nursery", "Nursery")} sub={T("Nothing to manage yet. Enjoy being small, school starts at 6.", "Nothing to manage yet. Enjoy being small, school start for 6.")}>
+            <ListRow emoji="👶" tile="bg-sky-100" name={T("Growing up", "Dey grow")} desc={T("Your family looks after you", "Your family dey look after you")} />
+          </ListGroup>
+        )
+      ) : <BackPill label={T("Back", "Back")} onClick={() => setSub(null)} />}
+      {sel === "school" && <SchoolPanel p={p} />}
+      {sel === "nysc" && <NyscPanel p={p} />}
+      {sel === "admission" && (<><AdmissionCard p={p} run={run} /><DegreeCard p={p} run={run} /></>)}
+      {sel === "campus" && <CampusCard p={p} run={run} />}
+      {sel === "biz" && <BusinessCard p={p} run={run} />}
+      {sel === "learn" && (
         <>
           <ListGroup title={T("Education", "Education")}>
             <ListRow emoji="🎓" tile="bg-violet-100" name={p.school ? T("In school", "You dey school") : p.edu === "none" ? T("No schooling yet", "You never go school yet") : T("Highest level", "Highest level")}
               desc={p.school ? T(`${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} left`, `${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} remain`) : p.edu === "none" ? undefined : `${p.edu}${p.course ? ` (${p.course})` : ""}`} />
           </ListGroup>
           <div className="-mt-2 mb-3 px-1"><DegreeCard p={p} run={run} /></div>
-          {p.age >= 14 && (<><TradeCard p={p} run={run} /><PostgradCard p={p} run={run} /><SkillsCard p={p} run={run} /></>)}
+          {p.age >= 14 && (<><TradeCard p={p} run={run} /><PostgradCard p={p} run={run} /></>)}
+          <SkillsCard p={p} run={run} />
         </>
       )}
-      {sub === "jobs" && <JobsView p={p} run={run} />}
-      {sub === "agent" && <RealtorView p={p} run={run} />}
+      {sel === "jobs" && <JobsView p={p} run={run} />}
+      {sel === "agent" && <RealtorView p={p} run={run} />}
     </>
   );
 }
