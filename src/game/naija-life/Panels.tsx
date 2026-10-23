@@ -691,7 +691,7 @@ export function PeopleList({ p, run, group }: { p: Player; run: Run; group: "fam
     <>
       {group !== "family" && (
         <div className="mb-3 flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-100">
-          <div className="min-w-0 text-[12px] text-slate-600">{group === "class" && p.school ? T("Your class", "Your class") : T("Your circle", "Your circle")}: <b>{list.length}</b>{mkBlock ? <span className="block text-[11px] text-slate-400">{mkBlock}</span> : null}</div>
+          <div className="min-w-0 text-[12px] text-slate-600">{group === "class" && (p.school || p.flags.nyscServing) ? (p.flags.nyscServing && !p.school ? T("Your platoon", "Your platoon") : T("Your class", "Your class")) : T("Your circle", "Your circle")}: <b>{list.length}</b>{mkBlock ? <span className="block text-[11px] text-slate-400">{mkBlock}</span> : null}</div>
           <Btn small tone="gold" disabled={Boolean(mkBlock)} onClick={() => run({ t: "friend" })}>{p.age < 13 ? T("Make a friend", "Make friend") : T("Meet someone new", "Meet new person")}</Btn>
         </div>
       )}

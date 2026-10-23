@@ -520,7 +520,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 // ---------------------------------------------------------------------------
 // Work tab
 // ---------------------------------------------------------------------------
-type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | null;
+type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | "classmates" | null;
 
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const [sub, setSub] = useState<WorkSub>(null);
@@ -533,6 +533,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     ...(stage === "primary" || stage === "secondary" ? [{ id: "school", emoji: stage === "primary" ? "🎒" : "🏫", tile: "bg-sky-100", name: stage === "primary" ? T("My primary school", "My primary school") : T("My secondary school", "My secondary school"), desc: p.school ? T(`${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} left`, `${p.school.yearsLeft} year${p.school.yearsLeft === 1 ? "" : "s"} remain`) : "" }] : []),
     ...(stage === "admission" ? [{ id: "admission", emoji: "🎓", tile: "bg-violet-100", name: T("Choose your university", "Choose your university"), desc: T(`JAMB score ${Number(p.flags.admScore ?? 0)}. Pick a school and a course`, `JAMB score ${Number(p.flags.admScore ?? 0)}. Pick school and course`) }] : []),
     ...(stage === "university" && p.campus && !p.campus.graduated ? [{ id: "campus", emoji: "🏛️", tile: "bg-violet-100", name: T("Campus life", "Campus life"), desc: `${T("Year", "Year")} ${p.campus.year} · CGPA ${p.campus.gpas.length ? p.campus.cgpa.toFixed(2) : "–"}` }] : []),
+    ...(["primary", "secondary", "university", "nysc"].includes(stage) ? [{ id: "classmates", emoji: "🧑‍🤝‍🧑", tile: "bg-rose-100", name: stage === "nysc" ? T("Corps mates", "Corps mates") : T("Classmates", "Classmates"), desc: T(`${Object.values(p.npcs).filter((n) => n.role === "classmate" && !n.former && n.alive).length} around you · make friends`, `${Object.values(p.npcs).filter((n) => n.role === "classmate" && !n.former && n.alive).length} around you · make friends`) }] : []),
     ...(canApply ? [{ id: "admission", emoji: "📝", tile: "bg-violet-100", name: T("Apply to university", "Apply to university"), desc: T("Write JAMB, pick a school and a course", "Write JAMB, pick school and course") }] : []),
     ...(grown && stage !== "infant" && stage !== "nursery" ? [{ id: "jobs", emoji: "💼", tile: "bg-amber-100", name: stage === "work" ? T("Jobs and hustles", "Jobs and hustles") : T("Side hustles and jobs", "Side hustle and jobs"), desc: cur ? cur.ladder[Math.min(p.job?.rank ?? 0, cur.ladder.length - 1)].title : T("Find work or start a hustle", "Find work or start hustle") }] : []),
     ...(p.age >= 18 ? [{ id: "biz", emoji: "🏪", tile: "bg-emerald-100", name: T("My businesses", "My businesses"), desc: p.businesses.length ? T(`${p.businesses.length} running`, `${p.businesses.length} dey run`) : T("Akara stand to hotel", "Akara stand to hotel") }] : []),
@@ -549,6 +550,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           </ListGroup>
         )
       ) : <BackPill label={T("Back", "Back")} onClick={() => setSub(null)} />}
+      {sel === "classmates" && <PeopleList p={p} run={run} group="class" />}
       {sel === "school" && <SchoolPanel p={p} />}
       {sel === "nysc" && <NyscPanel p={p} />}
       {sel === "admission" && (<><AdmissionCard p={p} run={run} /><DegreeCard p={p} run={run} /></>)}

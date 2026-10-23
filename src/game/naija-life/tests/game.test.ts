@@ -1810,3 +1810,23 @@ test("rich parents leave an inheritance when the last one dies; leaving the spou
   willReactions(p, lines);
   assert.ok((p.kids[0].closeness ?? 80) < 80);
 });
+
+test("classmates exist in every stage, including NYSC, and can be turned into friends", async () => {
+  const { fillClassmates, interact } = await import("../people");
+  const g = aliveAt(20);
+  const p = structuredClone(g.p);
+  p.school = { stage: "tertiary", yearsLeft: 3, type: "university" };
+  fillClassmates(p);
+  let mates = Object.values(p.npcs).filter((n) => n.role === "classmate" && n.stage === "university" && !n.former);
+  assert.ok(mates.length >= 6, "university classmates");
+  p.school = null;
+  p.flags.nyscServing = true;
+  fillClassmates(p);
+  mates = Object.values(p.npcs).filter((n) => n.role === "classmate" && n.stage === "nysc" && !n.former);
+  assert.ok(mates.length >= 6, "corps mates");
+  assert.ok(Object.values(p.npcs).filter((n) => n.stage === "university").every((n) => n.former), "uni mates become old classmates");
+  const m = mates[0];
+  m.closeness = 60; p.prison = 0;
+  interact(p, m.id, "befriend");
+  assert.equal(p.npcs[m.id].role, "friend");
+});

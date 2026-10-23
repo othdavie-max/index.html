@@ -314,7 +314,7 @@ export interface Npc {
   adultJob?: string;
   /** Where you know them from, for classmates. */
   school?: string;
-  stage?: "primary" | "secondary" | "university";
+  stage?: "primary" | "secondary" | "university" | "nysc";
   /** You have left that school, so they are an old classmate. */
   former?: boolean;
   /** Times you spent time together this year. */

@@ -23,16 +23,16 @@ export function refreshOccupation(p: Player, n: Npc) {
 
 const CLASS_TRAITS = ["funny", "brainy", "lazy", "class prefect", "sports star", "gist master", "teacher's pet", "shy", "stylish", "generous"];
 
-type Stage = "primary" | "secondary" | "university";
+type Stage = "primary" | "secondary" | "university" | "nysc";
 export const currentStage = (p: Player): Stage | null =>
-  !p.school ? null : p.school.stage === "tertiary" ? (p.school.type === "university" ? "university" : null) : p.school.stage;
+  !p.school ? (p.flags.nyscServing === true ? "nysc" : null) : p.school.stage === "tertiary" ? (p.school.type === "university" ? "university" : null) : p.school.stage;
 
 const schoolLabel = (p: Player, stage: Stage): string =>
-  stage === "primary" ? T("Primary school", "Primary school") : stage === "secondary" ? T("Secondary school", "Secondary school") : `${p.campus?.uni ? p.campus.uni.toUpperCase() : T("University", "University")}`;
+  stage === "nysc" ? T("NYSC platoon", "NYSC platoon") : stage === "primary" ? T("Primary school", "Primary school") : stage === "secondary" ? T("Secondary school", "Secondary school") : `${p.campus?.uni ? p.campus.uni.toUpperCase() : T("University", "University")}`;
 
 export function addClassmate(p: Player, stage: Stage): Npc {
   const gender = chance(0.5) ? "male" : "female";
-  const spread = stage === "university" ? randInt(-1, 4) : randInt(-1, 1);
+  const spread = stage === "university" || stage === "nysc" ? randInt(-1, 4) : randInt(-1, 1);
   const st = STATE_BY_ID[p.state];
   const n = makeNpc({
     role: "classmate", gender, ageDelta: spread, tribe: chance(0.6) ? p.tribe : pick(ALL_TRIBES), stateId: p.state,
@@ -45,6 +45,7 @@ export function addClassmate(p: Player, stage: Stage): Npc {
   n.adultJob = pick(jobsForArchetype(p.fam.archetype));
   refreshOccupation(p, n);
   if (stage === "university") n.occupation = T("Student", "Student");
+  if (stage === "nysc") n.occupation = T("Corps member", "Corps member");
   p.npcs[n.id] = n;
   return n;
 }
@@ -52,6 +53,7 @@ export function addClassmate(p: Player, stage: Stage): Npc {
 /** Make sure your current school has a class around you. */
 export function fillClassmates(p: Player) {
   const stage = currentStage(p);
+  for (const n of Object.values(p.npcs)) if (n.role === "classmate" && n.stage && n.stage !== stage && !n.former) n.former = true;
   if (!stage) return;
   const mates = Object.values(p.npcs).filter((n) => n.role === "classmate" && n.stage === stage && !n.former && n.alive);
   const target = stage === "university" ? 8 : 6;
@@ -134,6 +136,12 @@ export const INTERACTIONS: Interaction[] = [
   { id: "chat", emoji: "💬", en: "Have a chat", pcm: "Yarn small", descEn: "Catch up. Always welcome.", descPcm: "Catch up. Always good.", roles: "all", run: (p, n) => { bump(p, "happiness", 2); fond(p, n, randInt(3, 7), "We had a good chat."); return T(`You and ${first(n)} talk for a long time about everything and nothing.`, `You and ${first(n)} yarn for long about everything and nothing.`); } },
   { id: "play", emoji: "⚽", en: "Play together", pcm: "Play together", descEn: "Football, suwe, ten-ten and hide-and-seek.", descPcm: "Football, suwe, ten-ten and hide-and-seek.", roles: PEERS, you: [3, 14], them: [3, 16], run: (p, n) => { bump(p, "happiness", 4); bump(p, "fitness", 1); fond(p, n, randInt(6, 10), "We played together."); return pick([T(`You and ${first(n)} play football until the sun goes down. Your knee is scratched and you are happy.`, `You and ${first(n)} play football till sun go down. Your knee scratch but you happy.`), T(`${first(n)} wins at ten-ten and will not stop bragging. You laugh anyway.`, `${first(n)} win ten-ten and no wan stop to dey form. You laugh anyway.`)]); } },
   { id: "lunch", emoji: "🍱", en: "Share your lunch", pcm: "Share your food", descEn: "A small kindness goes far.", descPcm: "Small kindness dey go far.", roles: ["friend", "classmate", "sibling"], you: [4, 17], cost: 300, run: (p, n) => { transact(p, { amount: -I(p, 300), reason: T("Shared snacks and lunch", "Share snacks and food"), category: "personal" }); bump(p, "reputation", 1); fond(p, n, randInt(7, 11), "You shared your lunch with me."); return T(`You give ${first(n)} half of your food. They remember it.`, `You give ${first(n)} half of your food. E go remember.`); } },
+  { id: "befriend", emoji: "🤝", en: "Ask to be friends", pcm: "Ask make una be friends", descEn: "Turn a classmate into a real friend.", descPcm: "Turn classmate to correct friend.", roles: ["classmate"], you: [4, 120], run: (p, n) => {
+    const friends = Object.values(p.npcs).filter((x) => x.role === "friend" && x.alive).length;
+    if (friends >= 12) return T("Your circle is already full.", "Your circle don full.");
+    if (n.closeness >= 40 || chance(0.35 + n.closeness / 200)) { n.role = "friend"; close(n, 12); remember(p, n, "We became friends.", "good"); return T(`${first(n)} grins: "Of course, we are friends now."`, `${first(n)} smile: "Of course, we don be friends now."`); }
+    close(n, randInt(6, 10)); return T(`${first(n)} says "Let's see how it goes." You are getting there.`, `${first(n)} talk say "Make we see how e go." You dey get there.`);
+  } },
   { id: "homework", emoji: "📚", en: "Do homework together", pcm: "Do assignment together", descEn: "Two heads are better than one.", descPcm: "Two head better pass one.", roles: ["friend", "classmate", "sibling", "cousin"], you: [6, 18], them: [6, 20], run: (p, n) => { bump(p, "smarts", 1); fond(p, n, randInt(4, 8), "We did our homework together."); return T(`You and ${first(n)} finish the assignment, then spend an hour on nonsense.`, `You and ${first(n)} finish the assignment, then waste one hour for nonsense.`); } },
   { id: "hangout", emoji: "🍹", en: "Hang out", pcm: "Hang out", descEn: "Food, drinks and gist.", descPcm: "Food, drinks and gist.", roles: ["friend", "classmate", "cousin", "sibling"], you: [13, 120], them: [12, 120], cost: 8000, run: (p, n) => { transact(p, { amount: -I(p, 8000), reason: T(`Hanging out with ${first(n)}`, `Hang out with ${first(n)}`), category: "personal" }); bump(p, "happiness", 5); bump(p, "connections", 1); fond(p, n, randInt(6, 10), "We hung out."); return T(`Suya, cold drinks and three hours of gist with ${first(n)}.`, `Suya, cold drink and three hours of gist with ${first(n)}.`); } },
   { id: "party", emoji: "🎉", en: "Go to a party", pcm: "Go party", descEn: "Big fun. Sometimes big wahala.", descPcm: "Big fun. Sometimes big wahala.", roles: ["friend", "classmate"], you: [16, 120], them: [16, 120], cost: 25000, run: (p, n) => { transact(p, { amount: -I(p, 25000), reason: T(`Party with ${first(n)}`, `Party with ${first(n)}`), category: "personal" }); bump(p, "happiness", 6); bump(p, "connections", 2); fond(p, n, randInt(8, 12), "We partied."); if (chance(0.15)) { bump(p, "stress", 5); transact(p, { amount: -I(p, 20000), reason: T("Phone stolen at a party", "Dem thief phone for party"), category: "personal" }); return T(`Great night with ${first(n)}, until somebody picks your pocket.`, `Sweet night with ${first(n)}, till person thief your pocket.`); } return T(`You and ${first(n)} dance until the DJ gives up. Legends.`, `You and ${first(n)} dance till DJ give up. Legends.`); } },
