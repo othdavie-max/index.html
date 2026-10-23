@@ -222,7 +222,7 @@ export default function NaijaLife() {
         </div>
       )}
 
-      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { setGame(ageUp(game)); setTab("life"); }} />
+      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { const next = ageUp(game); setGame(next); setTab("life"); const d = changeSummary(game.p, next.p); if (d) setToast(d); try { navigator.vibrate?.(next.p.alive ? 12 : [40, 60, 40]); } catch { /* no haptics */ } }} />
 
       {result !== null && (
         <Sheet>
@@ -524,6 +524,20 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 // Work tab
 // ---------------------------------------------------------------------------
 type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | "classmates" | "yahoo" | null;
+
+/** "Health -6 · Happiness +4 · Cash +₦120k" after each birthday, so the effect of a year is visible. */
+function changeSummary(a: Player, b: Player): string {
+  if (!b.alive || b.age === a.age && a.alive === b.alive) return "";
+  const names: [keyof Player["stats"], string, string][] = [["health", "Health", "Health"], ["happiness", "Happiness", "Happiness"], ["smarts", "Smarts", "Smarts"], ["looks", "Looks", "Looks"], ["stress", "Stress", "Stress"], ["reputation", "Rep", "Rep"]];
+  const parts: string[] = [];
+  for (const [k, en, pcm] of names) {
+    const d = Math.round(b.stats[k] - a.stats[k]);
+    if (Math.abs(d) >= 3) parts.push(`${T(en, pcm)} ${d > 0 ? "+" : "−"}${Math.abs(d)}`);
+  }
+  const m = b.money - a.money;
+  if (Math.abs(m) >= 50_000 * b.index) parts.push(`${T("Cash", "Cash")} ${m > 0 ? "+" : "−"}${naira(Math.abs(m))}`);
+  return parts.slice(0, 4).join(" · ");
+}
 
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const [sub, setSub] = useState<WorkSub>(null);
