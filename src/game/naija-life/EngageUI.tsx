@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { GOAL_BY_ID, UNLOCK_GOAL, challengeFor, gistFor, weekId, type Challenge } from "./engage";
-import { shareCard, type CardFormat } from "./share";
+import { drawFuneralCard, shareBlob, shareCard, type CardFormat } from "./share";
 import { avatarSvg } from "./avatarSvg";
 import { Avatar } from "./Avatar";
 import { buildObituary } from "./obituary";
@@ -175,25 +175,26 @@ export function useObituary(p: Player): Obituary {
 
 export async function shareObituary(p: Player, o: Obituary, format: CardFormat = "post"): Promise<"shared" | "downloaded"> {
   const L = (b: { en: string; pcm: string }) => (p.lang === "en" ? b.en : b.pcm);
-  const lines = [L(o.headline), L(o.tagline), o.guests[0] ? L(o.guests[0]) : "", L(o.epitaph)].filter(Boolean);
-  return shareCard(
+  const blob = await drawFuneralCard(
     {
-      kicker: T("Funeral report", "Funeral report"),
+      name: `${p.name} ${p.surname}`,
+      age: p.age,
+      tag: p.lang === "en" ? o.tag.en : o.tag.pcm,
       emoji: o.tag.emoji,
-      title: `${p.name} ${p.surname}`,
-      subtitle: p.lang === "en" ? o.tag.en : o.tag.pcm,
       avatarSvg: avatarSvg(p.look, p.gender, p.age),
+      did: o.highlights.slice(1, 6).map(L),
       stats: [
         { label: T("Lived", "Lived"), value: T(`${p.age} years`, `${p.age} years`) },
         { label: T("Turnout", "Turnout"), value: `${o.turnout.came}` },
         { label: T("Life rating", "Life rating"), value: `${o.rating}/100` },
       ],
-      lines,
-      footer: "#NaijaLife",
+      lines: [L(o.headline), o.guests[0] ? L(o.guests[0]) : ""].filter(Boolean),
+      epitaph: L(o.epitaph),
+      labels: { rip: T("R.I.P.", "R.I.P."), did: T("What they did", "Wetin dem do"), age: T("Aged", "Age"), cta: T("Live your own Naija life", "Live your own Naija life") },
     },
-    `${o.tag.emoji} ${p.name} ${p.surname}: ${p.lang === "en" ? o.tag.en : o.tag.pcm}. ${L(o.tagline)} #NaijaLife`,
     format,
   );
+  return shareBlob(blob, `${o.tag.emoji} ${p.name} ${p.surname}: ${p.lang === "en" ? o.tag.en : o.tag.pcm}. ${L(o.tagline)} #NaijaLife`);
 }
 
 function MournerRow({ m, lang, gone }: { m: Mourner; lang: "en" | "pcm"; gone?: boolean }) {
@@ -261,9 +262,12 @@ export function ObituaryView({ p, o }: { p: Player; o: Obituary }) {
           <ul className="space-y-1.5 rounded-2xl bg-white p-3 text-[12.5px] italic leading-snug text-slate-600 ring-1 ring-slate-100">{o.gossip.map((x, j) => <li key={j}>🤫 {L(x)}</li>)}</ul>
         </section>
       )}
-      <div className="rounded-2xl bg-slate-800 p-4 text-center text-slate-100">
-        <div className="text-2xl">🪦</div>
-        <div className="mt-1 font-serif text-[15px] leading-snug">{L(o.epitaph)}</div>
+      <div className="mx-auto w-56 rounded-t-[7rem] rounded-b-md border-2 border-slate-300 bg-gradient-to-b from-slate-100 to-slate-300 px-4 pb-4 pt-8 text-center shadow-md">
+        <div className="font-serif text-lg font-black tracking-widest text-slate-500">{T("R.I.P.", "R.I.P.")}</div>
+        <div className="mx-auto my-2 w-20"><Avatar look={p.look} gender={p.gender} age={p.age} size={80} round /></div>
+        <div className="font-serif text-[15px] font-black leading-tight text-slate-700">{p.name} {p.surname}</div>
+        <div className="mt-1 text-[11px] text-slate-500">{T("Aged", "Age")} {p.age}</div>
+        <div className="mt-2 font-serif text-[12px] italic leading-snug text-slate-600">{L(o.epitaph)}</div>
       </div>
     </div>
   );

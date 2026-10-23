@@ -229,6 +229,217 @@ export async function drawShareCard(input: ShareCardInput, format: CardFormat = 
   return await new Promise<Blob>((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error(T("Could not create the image", "Image no gree create")))), "image/png"));
 }
 
+export interface FuneralCardInput {
+  name: string;
+  age: number;
+  tag: string;
+  emoji: string;
+  avatarSvg?: string;
+  /** What they did, short lines for the top right. */
+  did: string[];
+  stats: { label: string; value: string }[];
+  lines: string[];
+  epitaph: string;
+  labels: { rip: string; did: string; age: string; cta: string };
+}
+
+/** A white funeral card: the portrait on a tombstone, what they did at the top right. */
+export async function drawFuneralCard(input: FuneralCardInput, format: CardFormat = "post"): Promise<Blob> {
+  const [W, H] = CARD_SIZE[format];
+  const story = format === "story";
+  const c = document.createElement("canvas");
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext("2d");
+  if (!ctx) throw new Error(T("Canvas not supported", "Canvas no dey supported"));
+  const img = input.avatarSvg ? await loadSvg(input.avatarSvg) : null;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#1faa59"; ctx.fillRect(0, 0, W / 3, 14);
+  ctx.fillStyle = "#e9ecef"; ctx.fillRect(W / 3, 0, W / 3, 14);
+  ctx.fillStyle = "#1faa59"; ctx.fillRect((W * 2) / 3, 0, W / 3, 14);
+  ctx.textBaseline = "top";
+  const pad = 64;
+
+  // Header
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#0b2a6b";
+  ctx.font = `800 30px ${SANS}`;
+  ctx.fillText("🇳🇬  NAIJA LIFE", pad, 44);
+
+  // Tombstone (left)
+  const tw = story ? 470 : 430;
+  const th = story ? 700 : 590;
+  const tx = pad;
+  const ty = story ? 130 : 100;
+  ctx.fillStyle = "rgba(0,0,0,0.12)";
+  ctx.beginPath(); ctx.ellipse(tx + tw / 2, ty + th + 6, tw / 2 + 24, 22, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#bfc5cc";
+  ctx.beginPath(); ctx.moveTo(tx - 8, ty + th); ctx.lineTo(tx - 8, ty + tw / 2); ctx.arc(tx + tw / 2, ty + tw / 2, tw / 2 + 8, Math.PI, 0); ctx.lineTo(tx + tw + 8, ty + th); ctx.closePath(); ctx.fill();
+  const stone = ctx.createLinearGradient(tx, ty, tx + tw, ty + th);
+  stone.addColorStop(0, "#e7eaee"); stone.addColorStop(1, "#cfd4da");
+  ctx.fillStyle = stone;
+  ctx.beginPath(); ctx.moveTo(tx, ty + th); ctx.lineTo(tx, ty + tw / 2); ctx.arc(tx + tw / 2, ty + tw / 2, tw / 2, Math.PI, 0); ctx.lineTo(tx + tw, ty + th); ctx.closePath(); ctx.fill();
+  ctx.textAlign = "center";
+  const cx = tx + tw / 2;
+  let y = ty + 56;
+  ctx.fillStyle = "#6b7480";
+  ctx.font = `800 34px ${SERIF}`;
+  ctx.fillText(input.labels.rip, cx, y);
+  y += 56;
+  const av = story ? 270 : 220;
+  if (img) {
+    const cy = y + av / 2;
+    ctx.fillStyle = "#9aa3ad"; ctx.beginPath(); ctx.arc(cx, cy, av / 2 + 8, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, av / 2, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(img, cx - av / 2, cy - av / 2, av, av); ctx.restore();
+    y += av + 28;
+  }
+  const nm = fit(ctx, input.name, tw - 60, 46, 26, 2, "800", SERIF);
+  ctx.fillStyle = "#2d3640";
+  ctx.font = `800 ${nm.size}px ${SERIF}`;
+  for (const l of nm.lines) { ctx.fillText(l, cx, y); y += nm.size * 1.12; }
+  ctx.fillStyle = "#6b7480";
+  ctx.font = `600 28px ${SANS}`;
+  ctx.fillText(`${input.labels.age} ${input.age}  ·  ${input.emoji}`, cx, y + 6);
+  y += 52;
+  const epRoom = ty + th - 34 - y;
+  if (epRoom > 40) {
+    let es = 26;
+    let el: string[] = [];
+    for (; es >= 18; es -= 2) { ctx.font = `italic 600 ${es}px ${SERIF}`; el = wrap(ctx, input.epitaph, tw - 70); if (el.length * es * 1.25 <= epRoom) break; }
+    ctx.fillStyle = "#56606b";
+    ctx.font = `italic 600 ${es}px ${SERIF}`;
+    for (const l of el) { if (y + es * 1.25 > ty + th - 30) break; ctx.fillText(l, cx, y); y += es * 1.25; }
+  }
+  // grass and flowers
+  ctx.fillStyle = "#6fbf73";
+  ctx.beginPath(); ctx.ellipse(cx, ty + th + 2, tw / 2 + 40, 34, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.font = `40px ${SANS}`;
+  ctx.fillText("🌼", tx - 10, ty + th - 22);
+  ctx.fillText("🕯️", tx + tw - 20, ty + th - 22);
+
+  // What they did (top right)
+  const bx = tx + tw + 56;
+  const bw = W - pad - bx;
+  const by = ty + 4;
+  const bh = th - 8;
+  ctx.fillStyle = "#f6f4ec";
+  roundRect(ctx, bx, by, bw, bh, 28);
+  ctx.fill();
+  ctx.strokeStyle = "#e0b43a";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#b8860b";
+  ctx.font = `800 26px ${SANS}`;
+  ctx.fillText(input.labels.did.toUpperCase(), bx + 28, by + 24);
+  let ly = by + 74;
+  const room = bh - 74 - 24;
+  let size = 30;
+  let blocks: string[][] = [];
+  for (; size >= 20; size -= 2) {
+    ctx.font = `600 ${size}px ${SANS}`;
+    blocks = input.did.map((d) => wrap(ctx, d, bw - 76));
+    if (blocks.reduce((sum, b) => sum + b.length * size * 1.3 + 14, 0) <= room) break;
+  }
+  ctx.fillStyle = "#2d3640";
+  ctx.font = `600 ${size}px ${SANS}`;
+  for (const b of blocks) {
+    if (ly + b.length * size * 1.3 > by + bh - 16) break;
+    ctx.fillStyle = "#e0b43a"; ctx.fillText("•", bx + 28, ly);
+    ctx.fillStyle = "#2d3640";
+    for (const l of b) { ctx.fillText(l, bx + 56, ly); ly += size * 1.3; }
+    ly += 14;
+  }
+
+  // Verdict
+  y = ty + th + 70;
+  ctx.textAlign = "center";
+  const vt = fit(ctx, input.tag, W - pad * 2 - 80, 50, 30, 1, "800", SANS);
+  const vw = Math.min(W - pad * 2, ctx.measureText(vt.lines[0]).width + 90);
+  ctx.fillStyle = "#f5b82e";
+  roundRect(ctx, W / 2 - vw / 2, y, vw, vt.size * 1.2 + 28, 40);
+  ctx.fill();
+  ctx.fillStyle = "#0b2a14";
+  ctx.font = `800 ${vt.size}px ${SANS}`;
+  ctx.fillText(`${input.emoji} ${vt.lines[0]}`, W / 2, y + 14);
+  y += vt.size * 1.2 + 28 + 28;
+
+  // Stats
+  const stats = input.stats.slice(0, 3);
+  const gap = 20;
+  const cw = (W - pad * 2 - gap * (stats.length - 1)) / stats.length;
+  const chh = 130;
+  stats.forEach((st, i) => {
+    const x = pad + i * (cw + gap);
+    ctx.fillStyle = "#f1f4f8";
+    roundRect(ctx, x, y, cw, chh, 24);
+    ctx.fill();
+    ctx.fillStyle = "#6b7480";
+    ctx.font = `700 22px ${SANS}`;
+    ctx.fillText(st.label.toUpperCase(), x + cw / 2, y + 18);
+    const v = fit(ctx, st.value, cw - 24, 40, 22, 1, "800", SANS);
+    ctx.fillStyle = "#0b2a6b";
+    ctx.font = `800 ${v.size}px ${SANS}`;
+    ctx.fillText(v.lines[0], x + cw / 2, y + 62);
+  });
+  y += chh + 28;
+
+  // Funny lines
+  const footerTop = H - (story ? 250 : 190);
+  const quotes = input.lines.filter(Boolean);
+  const roomQ = footerTop - y - 8;
+  let qs = story ? 36 : 32;
+  let qb: string[][] = [];
+  for (; qs >= 22; qs -= 2) {
+    ctx.font = `600 ${qs}px ${SANS}`;
+    qb = quotes.map((q) => wrap(ctx, q, W - pad * 2 - 80));
+    if (qb.reduce((sum, b) => sum + b.length * qs * 1.3 + 36 + 14, 0) <= roomQ) break;
+  }
+  ctx.textAlign = "left";
+  for (const b of qb) {
+    const h = b.length * qs * 1.3 + 36;
+    if (y + h > footerTop) break;
+    ctx.fillStyle = "#f6f4ec";
+    roundRect(ctx, pad, y, W - pad * 2, h, 22);
+    ctx.fill();
+    ctx.fillStyle = "#e0b43a";
+    roundRect(ctx, pad, y + 12, 9, h - 24, 4);
+    ctx.fill();
+    ctx.fillStyle = "#2d3640";
+    ctx.font = `600 ${qs}px ${SANS}`;
+    let qy = y + 18;
+    for (const l of b) { ctx.fillText(l, pad + 36, qy); qy += qs * 1.3; }
+    y += h + 14;
+  }
+
+  // Footer
+  ctx.textAlign = "center";
+  const fy = H - (story ? 220 : 150);
+  ctx.fillStyle = "#1faa59";
+  roundRect(ctx, W / 2 - 330, fy, 660, 78, 39);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `800 34px ${SANS}`;
+  ctx.fillText(input.labels.cta, W / 2, fy + 20);
+  ctx.fillStyle = "#6b7480";
+  ctx.font = `600 26px ${SANS}`;
+  ctx.fillText("#NaijaLife", W / 2, fy + 96);
+  return await new Promise<Blob>((resolve, reject) => c.toBlob((bl) => (bl ? resolve(bl) : reject(new Error(T("Could not create the image", "Image no gree create")))), "image/png"));
+}
+
+/** Share or download any finished card blob. */
+export async function shareBlob(blob: Blob, text: string): Promise<"shared" | "downloaded"> {
+  const file = new File([blob], "naija-life.png", { type: "image/png" });
+  const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+  if (nav.share && nav.canShare?.({ files: [file] })) {
+    try { await nav.share({ files: [file], text }); return "shared"; } catch { /* cancelled */ }
+  }
+  const url = URL.createObjectURL(blob);
+  window.dispatchEvent(new CustomEvent("naija-share-image", { detail: { url, text } }));
+  return "downloaded";
+}
+
 /** Share the image via the native share sheet when possible, otherwise download it. */
 export async function shareCard(input: ShareCardInput, text: string, format: CardFormat = "post"): Promise<"shared" | "downloaded"> {
   const blob = await drawShareCard(input, format);
