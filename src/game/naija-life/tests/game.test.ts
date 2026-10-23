@@ -1665,3 +1665,57 @@ test("estate agents get clients, show properties and earn commission", async () 
   assert.ok(ledgerBalances(g.p));
   assert.ok((g.p.dealsClosed ?? 0) >= 1);
 });
+
+test("jobs follow what you studied", async () => {
+  const { qualifyBlock } = await import("../helpers");
+  const { JOB_BY_ID } = await import("../data");
+  const g = liveTo(26, 8);
+  const mk = (major: string, field: string) => {
+    const p = structuredClone(g.p);
+    p.edu = "tertiary"; p.course = field; p.age = 28; p.flags.postgrad = undefined;
+    p.campus = { uni: "unilag", major, year: 4, payer: "self", aid: 0, effort: 0, used: [], gpas: [3], cgpa: 3, network: 10, lead: 0, clubs: [], sug: "none", siwes: false, offer: false, project: true, trouble: 0, strikes: 0, graduated: true, cls: "Second Class Upper" } as never;
+    return p;
+  };
+  const edu = mk("edu", "Education"), med = mk("mbbs", "Medicine"), pharm = mk("pharm", "Nursing"), law = mk("law", "Law"), cs = mk("cs", "Computer Science");
+  assert.ok(qualifyBlock(edu, JOB_BY_ID.doctor), "an education graduate cannot be a doctor");
+  assert.ok(qualifyBlock(edu, JOB_BY_ID.lawyer));
+  assert.ok(qualifyBlock(edu, JOB_BY_ID.banker), "education does not lead to banking");
+  assert.equal(qualifyBlock(edu, JOB_BY_ID.teacher), null);
+  assert.equal(qualifyBlock(med, JOB_BY_ID.doctor), null);
+  assert.ok(qualifyBlock(med, JOB_BY_ID.lawyer));
+  assert.equal(qualifyBlock(pharm, JOB_BY_ID.pharmacist), null);
+  assert.ok(qualifyBlock(pharm, JOB_BY_ID.nurse), "a pharmacist is not a nurse");
+  assert.equal(qualifyBlock(law, JOB_BY_ID.lawyer), null);
+  assert.equal(qualifyBlock(cs, JOB_BY_ID.dev), null);
+  assert.ok(qualifyBlock(cs, JOB_BY_ID.architect));
+  assert.ok(qualifyBlock(cs, JOB_BY_ID.lecturer), "lecturers need a postgraduate degree");
+  cs.flags.postgrad = "Masters" as never;
+  assert.equal(qualifyBlock(cs, JOB_BY_ID.lecturer), null);
+  assert.ok(qualifyBlock(structuredClone(g.p), JOB_BY_ID.graphic) !== undefined);
+  const noSkill = structuredClone(g.p); noSkill.age = 20; noSkill.edu = "secondary"; noSkill.skills = {};
+  assert.ok(qualifyBlock(noSkill, JOB_BY_ID.photographer), "photography needs the skill");
+  noSkill.skills.photo = 15;
+  assert.equal(qualifyBlock(noSkill, JOB_BY_ID.photographer), null);
+  assert.ok(Object.keys(JOB_BY_ID).length >= 100, "a big job market");
+});
+
+test("skills climb from beginner to one of the best, with courses, practice and mentors", async () => {
+  const { SKILLS, learnSkill, learnBlock, skillTier, skillTopPct } = await import("../life");
+  assert.ok(SKILLS.length >= 14);
+  const g = liveTo(22, 9);
+  const p = g.p;
+  p.prison = 0; p.money = 500_000_000; p.stats.connections = 80; p.skills = {};
+  const s = SKILLS.find((x) => x.id === "coding")!;
+  p.actionsLeft = 99;
+  assert.equal(skillTier(0).id, "beginner");
+  for (let i = 0; i < 12 && (p.skills.coding ?? 0) < 78; i++) learnSkill(p, "coding", "course");
+  assert.ok((p.skills.coding ?? 0) >= 40, "courses build skill");
+  p.skills.coding = 82;
+  assert.ok(learnBlock(p, s, "course"), "courses stop helping past 80");
+  for (let i = 0; i < 20 && p.skills.coding < 95; i++) learnSkill(p, "coding", "mentor");
+  assert.ok(p.skills.coding >= 95, "mentors take you to mastery");
+  assert.equal(skillTier(p.skills.coding).id, "master");
+  assert.ok(p.achievements.includes("Master of Coding") || p.achievements.some((a) => a.startsWith("Master of")));
+  assert.ok(skillTopPct(95) < 2 && skillTopPct(30) > 40);
+  assert.ok(ledgerBalances(p));
+});

@@ -13,6 +13,7 @@ export interface SkillDef {
   label: string;
   cost: number;
   blurb: string;
+  emoji?: string;
 }
 export const SKILLS: SkillDef[] = [
   { id: "coding", get label() { return T("Coding", "Coding"); }, cost: 120_000, get blurb() { return T("Build software. Opens tech jobs even without a degree.", "Build software. E dey open tech work even if you no get degree."); } },
@@ -23,6 +24,16 @@ export const SKILLS: SkillDef[] = [
   { id: "music", get label() { return T("Music and performance", "Music and performance"); }, cost: 70_000, get blurb() { return T("Instruments, vocals and stagecraft.", "Instruments, singing and how to hold stage."); } },
   { id: "welding", get label() { return T("Welding and fabrication", "Welding and fabrication"); }, cost: 150_000, get blurb() { return T("A solid trade that pays well in building and repairs.", "Solid trade wey dey pay well for building and repair work."); } },
 ];
+const SK = (id: string, emoji: string, en: string, pcm: string, cost: number, bEn: string, bPcm: string): SkillDef => ({ id, emoji, get label() { return T(en, pcm); }, cost, get blurb() { return T(bEn, bPcm); } });
+SKILLS.push(
+  SK("design", "🎨", "Graphic design", "Graphic design", 90_000, "Logos, flyers and brand work. Clients pay for taste.", "Logo, flyer and brand work. Client dey pay for taste."),
+  SK("photo", "📷", "Photography and video", "Photography and video", 110_000, "Weddings, brands and films. A good eye is rare.", "Wedding, brand and film. Good eye rare."),
+  SK("makeup", "💄", "Makeup artistry", "Makeup artistry", 70_000, "Brides, shoots and celebrity faces.", "Bride, shoot and celebrity face."),
+  SK("electrical", "💡", "Electrical and solar", "Electrical and solar", 100_000, "Wiring, inverters and solar panels.", "Wiring, inverter and solar panel."),
+  SK("speaking", "🎤", "Public speaking and hosting", "Public speaking and hosting", 40_000, "MC, pastor, politician or salesman: voice is power.", "MC, pastor, politician or salesman: voice na power."),
+  SK("football", "⚽", "Football", "Football", 60_000, "Academy training, trials and the dream of the Super Eagles.", "Academy training, trial and the Super Eagles dream."),
+  SK("farming", "🌱", "Modern farming", "Modern farming", 80_000, "Crops, livestock and the numbers behind them.", "Crop, livestock and the number behind them."),
+);
 export interface TradeDef { id: string; label: string; skill: string; years: number; blurb: string }
 export const TRADES: TradeDef[] = [
   { id: "tailoring", get label() { return T("Fashion and tailoring", "Fashion and tailoring"); }, skill: "tailoring", years: 2, get blurb() { return T("Apprentice under a master tailor and learn pattern making.", "Learn under master tailor and sabi how to cut pattern."); } },
@@ -72,37 +83,80 @@ export function finishTrade(p: Player): string {
 
 export const skillLevel = (p: Player, id: string) => p.skills[id] ?? 0;
 
-export function learnBlock(p: Player, s: SkillDef): string | null {
+export const SKILL_TIERS: { min: number; id: string; en: string; pcm: string }[] = [
+  { min: 95, id: "master", en: "Master: one of the best in Nigeria", pcm: "Master: one of the best for Nigeria" },
+  { min: 80, id: "expert", en: "Expert", pcm: "Expert" },
+  { min: 60, id: "pro", en: "Professional", pcm: "Professional" },
+  { min: 40, id: "skilled", en: "Skilled", pcm: "Skilled" },
+  { min: 20, id: "learner", en: "Learner", pcm: "Learner" },
+  { min: 0, id: "beginner", en: "Beginner", pcm: "Beginner" },
+];
+export const skillTier = (level: number) => SKILL_TIERS.find((t) => level >= t.min)!;
+/** A rough idea of where you stand among everyone in the country. */
+export const skillTopPct = (level: number) => Math.max(0.1, Math.round(100 * Math.pow(1 - Math.min(99.9, level) / 100, 1.5) * 10) / 10);
+
+export type LearnMode = "course" | "practice" | "mentor";
+
+export function learnCost(p: Player, s: SkillDef, mode: LearnMode = "course"): number {
+  if (mode === "practice") return 0;
+  const lv = skillLevel(p, s.id);
+  const base = s.cost * (1 + lv / 40) * (mode === "mentor" ? 5 : 1);
+  return Math.round(base * Math.pow(p.index, 0.92));
+}
+
+export function learnBlock(p: Player, s: SkillDef, mode: LearnMode = "course"): string | null {
   if (p.age < 10) return T("Too young", "You too small");
   if (p.prison > 0) return T("Not from prison", "No fit from prison");
   if (p.actionsLeft <= 0) return T("No actions left this year", "No action remain for this year");
-  const c = Math.round(s.cost * Math.pow(p.index, 0.92));
+  const lv = skillLevel(p, s.id);
+  if (mode === "mentor" && lv < 55) return T("Needs level 55 first", "You need level 55 first");
+  if (mode === "mentor" && p.stats.connections < 30) return T("A mentor needs a good network (30+)", "Mentor need better network (30+)");
+  if (mode === "course" && lv >= 80) return T("Courses cannot teach you more. Practise or find a mentor", "Course no fit teach you again. Practise or find mentor");
+  if (lv >= 99.5) return T("Nothing left to learn", "Nothing remain to learn");
+  const c = learnCost(p, s, mode);
   if (p.money < c) return T(`Needs ${naira(c)}`, `E need ${naira(c)}`);
   return null;
 }
 
-export function learnSkill(p: Player, id: string): string {
+export function learnSkill(p: Player, id: string, mode: LearnMode = "course"): string {
   const s = SKILLS.find((x) => x.id === id);
   if (!s) return "";
-  const block = learnBlock(p, s);
+  const block = learnBlock(p, s, mode);
   if (block) return block;
   p.actionsLeft -= 1;
-  const cost = Math.round(s.cost * Math.pow(p.index, 0.92));
-  transact(p, { amount: -cost, reason: T(`Course: ${s.label}`, `Course: ${s.label}`), category: "education" });
-  const gain = Math.round(10 + p.stats.smarts / 10 + rand(0, 8));
-  p.skills[id] = clamp((p.skills[id] ?? 0) + gain);
-  bump(p, "smarts", 1);
-  return T(
-    `You finish a ${s.label.toLowerCase()} course. Skill level: ${Math.round(p.skills[id])}.`,
-    `You don finish ${s.label.toLowerCase()} course. Skill level: ${Math.round(p.skills[id])}.`,
-  );
+  const cost = learnCost(p, s, mode);
+  if (cost > 0) transact(p, { amount: -cost, reason: mode === "mentor" ? T(`Mentor: ${s.label}`, `Mentor: ${s.label}`) : T(`Course: ${s.label}`, `Course: ${s.label}`), category: "education" });
+  const before = skillLevel(p, id);
+  const room = 1 - before / 110;
+  const raw = mode === "practice" ? rand(1.2, 3.2) + (p.job && skillPayBonus(p, p.job.id) > 0 ? 1.5 : 0) : mode === "mentor" ? rand(6, 10) : 10 + p.stats.smarts / 10 + rand(0, 8);
+  const gain = Math.max(1, Math.round(raw * (mode === "course" ? room : 1)));
+  p.skills[id] = clamp(before + gain);
+  bump(p, "smarts", mode === "practice" ? 0 : 1);
+  const after = p.skills[id];
+  const t0 = skillTier(before), t1 = skillTier(after);
+  let tail = "";
+  if (t1.id !== t0.id) {
+    tail = T(` You are now ${t1.en.toLowerCase()} in ${s.label.toLowerCase()}.`, ` You don reach ${t1.pcm.toLowerCase()} for ${s.label.toLowerCase()}.`);
+    if (t1.id === "master") {
+      const ach = `Master of ${s.label}`;
+      if (!p.achievements.includes(ach)) p.achievements.push(ach);
+      bump(p, "reputation", 8);
+      bump(p, "happiness", 10);
+      tail += T(" People now call you one of the best in Nigeria.", " People don dey call you one of the best for Nigeria.");
+    }
+  }
+  const verb = mode === "practice" ? T("You put in the practice hours", "You put the practice hours") : mode === "mentor" ? T("A mentor takes you under their wing", "Mentor take you under him wing") : T(`You finish a ${s.label.toLowerCase()} course`, `You don finish ${s.label.toLowerCase()} course`);
+  return T(`${verb}. ${s.label}: level ${Math.round(after)}.${tail}`, `${verb}. ${s.label}: level ${Math.round(after)}.${tail}`);
 }
 
 /** Fraction added to pay for relevant skills. */
 export function skillPayBonus(p: Player, jobId: string): number {
-  const map: Record<string, string> = { dev: "coding", tailor: "tailoring", salon: "tailoring", journalist: "writing", singer: "music", mechanic: "welding", akara: "cooking", suya: "cooking", banker: "sales" };
+  const map: Record<string, string> = { dev: "coding", tailor: "tailoring", salon: "tailoring", journalist: "writing", singer: "music", mechanic: "welding", akara: "cooking", suya: "cooking", banker: "sales", graphic: "design", photographer: "photo", makeup: "makeup", electrician: "electrical", solar: "electrical", mc: "speaking", dj: "music", chef: "cooking", salesrep: "sales", footballer: "football", realtor: "sales", marketing: "sales", designer: "design", pr: "speaking", analyst: "coding" };
   const k = map[jobId];
-  return k ? skillLevel(p, k) / 250 : 0;
+  if (!k) return 0;
+  const lv = skillLevel(p, k);
+  // Mastery pays: a Master earns far more than a beginner in the same trade.
+  return lv / 250 + (lv >= 95 ? 0.6 : lv >= 80 ? 0.3 : lv >= 60 ? 0.12 : 0);
 }
 
 // ---------------------------------------------------------------------------

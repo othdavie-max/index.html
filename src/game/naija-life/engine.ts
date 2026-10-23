@@ -11,6 +11,7 @@ import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
 import { buildObituary } from "./obituary";
 import { ENGAGE_EVENTS, assignGoals, engageYear } from "./engage";
+import { SKILL_EVENTS } from "./skills2";
 import { findClients, realtorYear, showProperty } from "./realtor";
 import { SCENARIO_EVENTS } from "./scenariosAll";
 import { NYSC_EVENTS, NYSC_MAX_AGE, nyscRelease, nyscYear, serving } from "./nysc";
@@ -41,7 +42,7 @@ import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFam
 import { buyVehicle, takeDrivingTest, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
 import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
-import { acceptOffer, closeBusiness, declineOffers, dismiss, haggleOffer, ensureCrew, fireStaff, hirePick, hireStaff, raisePay, recruit, listForSale, sellBusiness, setPolicy, startBusiness, toggleManager, trainWorker, upgradeBusiness } from "./business";
+import { acceptOffer, closeBusiness, declineOffers, dismiss, haggleOffer, ensureCrew, fireStaff, hirePick, hireStaff, raisePay, recruit, listForSale, setPolicy, startBusiness, toggleManager, trainWorker, upgradeBusiness } from "./business";
 import { placeBet, type BetKind } from "./betting";
 import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
 import { setShare } from "./will";
@@ -59,7 +60,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -790,7 +791,7 @@ export type Action =
   | { t: "social"; op: "account" | "post" | "collab" | "gear"; platform?: Platform; content?: ContentKind }
   | { t: "crime"; id: string }
   | { t: "will"; id: string; pct: number }
-  | { t: "learn"; id: string }
+  | { t: "learn"; id: string; mode?: "course" | "practice" | "mentor" }
   | { t: "growth"; id: string }
   | { t: "gym" }
   | { t: "prison"; op: "work" | "study" | "appeal" | "escape" }
@@ -939,7 +940,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         p.job = { id: j.id, rank: 0, years: 0 };
         return out(T(`You started your own business: ${j.title}. ${j.ladder[0].title}.`, `You start your own business: ${j.title}. ${j.ladder[0].title}.`));
       }
-      let pr = j.group === "creative" ? 0.4 : j.group === "crime" ? 0.9 : 0.35 + p.stats.smarts / 250 + p.stats.connections / 150 + st.opp * 0.02 + campusHire(p) - (p.flags.nyscSkipped && j.group === "formal" ? 0.12 : 0);
+      let pr = j.group === "creative" ? 0.4 + Math.max(0, ...(j.skillAny ?? []).map(([sk]) => (p.skills[sk] ?? 0) / 250)) : j.group === "crime" ? 0.9 : 0.35 + p.stats.smarts / 250 + p.stats.connections / 150 + st.opp * 0.02 + campusHire(p) - (p.flags.nyscSkipped && j.group === "formal" ? 0.12 : 0);
       if (j.group === "petty") pr = Math.max(pr, 0.75);
       if (a.bribe) {
         const fee = I(p, 300_000);
@@ -1267,7 +1268,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       if (a.item === "laptop") p.possessions.laptop = true;
       return out(T(`You bought a ${a.item === "phone" ? "basic phone" : a.item}.`, `You buy ${a.item === "phone" ? "basic phone" : a.item}.`));
     }
-    case "learn": return out(learnSkill(p, a.id));
+    case "learn": return out(learnSkill(p, a.id, a.mode ?? "course"));
         case "growth": return out(doGrowth(p, a.id));
         case "gym": return out(toggleGym(p));
         case "enlist": { const res = enlist(p, a.branch); g.queue.unshift(...res.spawn); return out(res.text); }

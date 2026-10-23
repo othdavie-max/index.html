@@ -92,3 +92,11 @@ Business revenue growth, margins and creator payouts were reduced in this pass b
 - Removed: Japa (action, map entry, achievements, gist), the protest event trigger and the abroad story. Politics exile still moves a character abroad.
 - ASUU strikes now use a per-university factor: private universities never strike, UNILORIN and LASU rarely, others normally. Carryover repeats a year when GPA is poor. Poor students in primary and secondary school can repeat a class, and some children from poor homes start school at 7 or 8.
 - NYSC mobilises only graduates under 30. Older graduates get an exemption with no penalty, including students who spilled over past 30.
+
+## Work section rebuild
+- The footer is now Work, Money, Family, Explore. The life story is the home screen; tapping the open section (or Grow Up) returns to it.
+- 100+ jobs. Degree careers check the actual course (`campus.major`) via `qualifyBlock`, so a medicine graduate cannot be a lawyer and an education graduate cannot be a doctor or banker. Skill jobs (graphic designer, photographer, makeup, electrician, MC, chef, DJ, footballer...) need the matching skill. Lecturers need a master's degree.
+- Hustles are grouped (food, transport, trades, beauty/events, money/property). Everything is a row with a sheet.
+- Businesses: 50+ kinds, 20 owner events (strikes, NAFDAC, blackouts, price wars, tenders, partner disputes...), real staff with training and raises, and a sale flow where buyers (lowball, fair, keen, instalment) make offers you can haggle over.
+- Estate agents get clients who want to buy or rent, match them to properties and earn commission.
+- Skills run from beginner to Master (one of the best in Nigeria) through courses, practice and mentors, with gigs and national competitions along the way.

@@ -11,7 +11,7 @@ import { HOME_TIERS, HOUSE_KINDS, LUXURIES, STATE_BY_ID } from "./data";
 import { mortgageBalance, mortgageQuote } from "./mortgage";
 import { SUPPORT_KINDS, defaultAmount, supportKindsFor, type SupportKind } from "./family";
 import { FACILITIES, facilitiesFor, treatmentCost } from "./health";
-import { GROWTH_ACTIVITIES, SKILLS, TRADES, tradeBlock, enlistBlock, gymBlock, growthBlock, learnBlock, skillLevel } from "./life";
+import { GROWTH_ACTIVITIES, SKILLS, TRADES, tradeBlock, enlistBlock, gymBlock, growthBlock, learnBlock, learnCost, skillLevel, skillTier, skillTopPct, type LearnMode } from "./life";
 import { activeOwed, activeOwedToMe, lenderOffers, loanBlock, previewLoan, receivables, totalDebt } from "./loans";
 import { summaries } from "./ledger";
 import { monthlySummary, upcomingPayments } from "./notices";
@@ -848,13 +848,16 @@ const GROWTH_EMOJI: Record<string, string> = { read: "📖", run: "🏃", weight
 export function SkillsCard({ p, run }: { p: Player; run: Run }) {
   const [skill, setSkill] = useState<(typeof SKILLS)[number] | null>(null);
   if (p.age < 10) return null;
-  const sb = skill ? learnBlock(p, skill) : null;
+  const lv = skill ? skillLevel(p, skill.id) : 0;
+  const mode = (m: LearnMode) => (skill ? learnBlock(p, skill, m) : null);
+  const go = (m: LearnMode) => { if (skill) run({ t: "learn", id: skill.id, mode: m }); };
   return (
     <>
-      <ListGroup title={T("Learn a skill", "Learn skill")} sub={T(`${p.actionsLeft} actions left this year`, `${p.actionsLeft} actions remain this year`)}>
+      <ListGroup title={T("Learn a skill", "Learn skill")} sub={T(`${p.actionsLeft} actions left this year. Courses, practice and mentors take you from beginner to one of the best in Nigeria.`, `${p.actionsLeft} actions remain this year. Course, practice and mentor go take you from beginner reach one of the best for Nigeria.`)}>
         {SKILLS.map((s) => {
-          const lv = skillLevel(p, s.id);
-          return <ListRow key={s.id} emoji={SKILL_EMOJI[s.id] ?? "📘"} tile="bg-violet-100" name={s.label} desc={s.blurb} right={lv > 0 ? <Badge tone="green">{T("level", "level")} {lv}</Badge> : naira(I(p, s.cost))} onClick={() => setSkill(s)} />;
+          const l = skillLevel(p, s.id);
+          const t = skillTier(l);
+          return <ListRow key={s.id} emoji={s.emoji ?? SKILL_EMOJI[s.id] ?? "📘"} tile={l >= 80 ? "bg-amber-100" : "bg-violet-100"} name={s.label} desc={l > 0 ? `${T(t.en, t.pcm)} · ${T("top", "top")} ${skillTopPct(l)}%` : s.blurb} right={l > 0 ? <Badge tone={l >= 80 ? "gold" : "green"}>{T("level", "level")} {Math.round(l)}</Badge> : naira(learnCost(p, s))} onClick={() => setSkill(s)} />;
         })}
       </ListGroup>
       <ListGroup title={T("Self-improvement", "Self-improvement")}>
@@ -870,9 +873,14 @@ export function SkillsCard({ p, run }: { p: Player; run: Run }) {
         ); })()}
       </ListGroup>
       {skill && (
-        <ActionSheet emoji={SKILL_EMOJI[skill.id] ?? "📘"} tile="bg-violet-100" title={skill.label} sub={`${T("Level", "Level")} ${skillLevel(p, skill.id)}`} onClose={() => setSkill(null)}>
+        <ActionSheet emoji={skill.emoji ?? SKILL_EMOJI[skill.id] ?? "📘"} tile="bg-violet-100" title={skill.label} sub={lv > 0 ? `${T("Level", "Level")} ${Math.round(lv)} · ${T(skillTier(lv).en, skillTier(lv).pcm)} · ${T("top", "top")} ${skillTopPct(lv)}%` : T("Not started", "No start")} onClose={() => setSkill(null)}>
           <p className="mb-3 text-sm text-slate-600">{skill.blurb}</p>
-          <Btn disabled={Boolean(sb)} onClick={() => { run({ t: "learn", id: skill.id }); setSkill(null); }}>{sb ?? T(`Learn (${naira(I(p, skill.cost))})`, `Learn (${naira(I(p, skill.cost))})`)}</Btn>
+          <div className="mb-3"><Bar label={T("Mastery", "Mastery")} value={lv} tone={lv >= 80 ? "gold" : "blue"} /></div>
+          <ListGroup>
+            <ListRow emoji="📘" tile="bg-violet-100" name={T("Take a course", "Take course")} desc={T("Fast progress for beginners. Stops helping at level 80.", "Fast progress for beginner. E stop to help for level 80.")} wrap right={naira(learnCost(p, skill, "course"))} note={mode("course")} disabled={Boolean(mode("course"))} onClick={() => go("course")} />
+            <ListRow emoji="🛠️" tile="bg-emerald-100" name={T("Practise on your own", "Practise by yourself")} desc={T("Free. Small gains, faster if your job uses it.", "Free. Small gain, faster if your job dey use am.")} wrap note={mode("practice")} disabled={Boolean(mode("practice"))} onClick={() => go("practice")} />
+            <ListRow emoji="🏅" tile="bg-amber-100" name={T("Find a mentor", "Find mentor")} desc={T("From level 55. A top person in the field teaches you. Needs a good network.", "From level 55. Top person for the field go teach you. You need better network.")} wrap right={naira(learnCost(p, skill, "mentor"))} note={mode("mentor")} disabled={Boolean(mode("mentor"))} onClick={() => go("mentor")} />
+          </ListGroup>
         </ActionSheet>
       )}
     </>

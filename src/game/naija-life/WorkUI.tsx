@@ -104,9 +104,10 @@ export function JobsView({ p, run }: { p: Player; run: Run }) {
       <div className="-mt-2 mb-3 px-1"><DegreeCard p={p} run={run} /></div>
       {p.age >= 14 && (
         <>
+          {p.edu === "tertiary" && section(T("Careers for your degree", "Careers for your degree"), T("Your degree decides which of these you can apply for.", "Your degree go decide which of these you fit apply for."), eligible.filter((j) => j.group === "formal" && j.edu === "tertiary"))}
           {HUSTLE_CATS.map((c) => section(c.title(), c.sub(), eligible.filter((j) => j.selfEmployed && catOf(j.id) === c.id)))}
           {section(T("Everyday jobs", "Everyday jobs"), T("Apply and get hired. Promotions come with time and connections.", "Apply and get hired. Promotion dey come with time and connections."), eligible.filter((j) => !j.selfEmployed && j.group === "petty"))}
-          {section(T("Professional careers", "Professional careers"), T("Your degree decides which of these you can apply for.", "Your degree go decide which of these you fit apply for."), eligible.filter((j) => j.group === "formal" && j.edu === "tertiary"))}
+          {p.edu !== "tertiary" && section(T("Professional careers", "Professional careers"), T("Your degree decides which of these you can apply for.", "Your degree go decide which of these you fit apply for."), eligible.filter((j) => j.group === "formal" && j.edu === "tertiary"))}
           {section(T("Government and uniformed services", "Government and uniform work"), T("Steady work, pension and long ladders.", "Steady work, pension and long ladder."), eligible.filter((j) => j.group === "formal" && j.edu !== "tertiary"))}
           {section(T("Creative careers", "Creative work"), T("Slow start, huge upside.", "Start slow, but the gain big."), eligible.filter((j) => j.group === "creative"))}
           {section(T("Risky paths", "Risky road"), T("Fast money. Heavy consequences.", "Fast money. Heavy wahala."), eligible.filter((j) => j.group === "crime"))}
