@@ -132,6 +132,16 @@ const CHALLENGES: Omit<Challenge, "id" | "seed">[] = [
   { stateId: "enugu", force: "lapo", title: "Born poor in Enugu", goal: "Richest by 40" },
   { stateId: "abuja", force: "nepo", title: "Born into Abuja money", goal: "Richest by 40 (do not waste it)" },
   { stateId: "rivers", force: "fallenRich", title: "Fallen rich in Port Harcourt", goal: "Rebuild by 40" },
+  { stateId: "oyo", force: "struggling", title: "Born poor in Ibadan", goal: "Richest by 40" },
+  { stateId: "kaduna", force: "middle", title: "Middle-class in Kaduna", goal: "Richest by 40" },
+  { stateId: "lagos", force: "nepo", title: "Nepo baby in Lagos: do not waste it", goal: "Richest by 40 (do not waste it)" },
+  { stateId: "anambra", force: "lapo", title: "Born poor in Onitsha", goal: "Richest by 40" },
+  { stateId: "kano", force: "newlyRich", title: "Newly rich in Kano", goal: "Keep the money and grow it by 40" },
+  { stateId: "abuja", force: "struggling", title: "Born poor in Abuja suburbs", goal: "Richest by 40" },
+  { stateId: "enugu", force: "upperMiddle", title: "Comfortable in Enugu", goal: "Richest by 40" },
+  { stateId: "borno", force: "middle", title: "Middle-class in Maiduguri", goal: "Richest by 40" },
+  { stateId: "rivers", force: "struggling", title: "Born poor in Port Harcourt", goal: "Richest by 40" },
+  { stateId: "lagos", force: "fallenRich", title: "Fallen rich in Lagos", goal: "Rebuild by 40" },
 ];
 export const weekId = (d: Date): string => {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));

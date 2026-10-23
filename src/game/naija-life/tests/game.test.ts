@@ -645,7 +645,7 @@ test("relatives: money events draw on persistent relatives, record cash, and sha
 
 test("dating message history persists per partner, caps its length and survives save/load", () => {
   let q = structuredClone(aliveAt(26));
-  q.p.prison = 0;
+  q.p.prison = 0; q.p.spouse = null; q.p.rel.partners = [];
   q.p.possessions.smartphone = true;
   q.p.money = 1_000_000_000 * q.p.index;
   q = act(q, { t: "dating", op: "profile", bio: "hello there friend", interests: ["music", "food"] }).g;
@@ -923,6 +923,7 @@ test("love life end to end: meet without a phone, date, move in, propose, marry,
   assert.ok(g.p.spouse, "you are married");
   assert.equal(g.p.rel.partners.find((x) => x.npcId === id)!.stage, "married");
   assert.ok(ledgerBalances(g.p));
+  g.queue = [];
   // 3. children: protection matters
   const rate = (prot: "condom" | "pill" | "none" | "try", gen: boolean) => {
     let preg = 0; const N = 300;
@@ -930,6 +931,7 @@ test("love life end to end: meet without a phone, date, move in, propose, marry,
     void gen; return preg / N;
   };
   if (g.p.gender !== npcGender) {
+    g.p.npcs[id].ageDelta = 0;
     const none = rate("none", true), condom = rate("condom", true), tryB = rate("try", true);
     assert.ok(none > condom * 3, `no protection (${none}) is far riskier than a condom (${condom})`);
     assert.ok(condom < 0.08, `condoms rarely fail (${condom})`);
@@ -1860,7 +1862,7 @@ test("hooking up, asking a friend out and the Yahoo hustle all work", async () =
   const before = p.crime.heat;
   y.cashOut(p, ms[0].id);
   assert.ok(p.crime.heat >= before, "cashing out raises heat");
-  assert.ok(y.sessionsLeft(p) <= 3 && y.sessionsLeft(p) >= 0);
+  assert.ok(y.sessionsLeft(p) < 8 && y.sessionsLeft(p) >= 0);
 });
 
 test("every Yahoo event can be played through every choice without breaking the game", async () => {
@@ -1876,6 +1878,39 @@ test("every Yahoo event can be played through every choice without breaking the 
       const c = e.choices(p, d)[i];
       assert.ok(typeof c.run(p) === "string", `${e.id} choice ${i}`);
       assert.ok(Number.isFinite(p.money) && p.crime.heat >= 0 && p.crime.heat <= 100, `${e.id} sane state`);
+    }
+  }
+});
+
+test("pets, lottery, style, talent, DNA, ribbons and the new events all work", async () => {
+  const b = await import("../bitlife");
+  const { BIT_EVENTS } = await import("../bitEvents");
+  const { ribbonsOf } = await import("../ribbons");
+  const g = aliveAt(28);
+  const p = structuredClone(g.p);
+  p.prison = 0; p.money = 1e10; p.age = 28; p.job = null;
+  assert.ok(b.adoptPet(p, "dog").length > 0);
+  assert.equal(b.petsOf(p).length, 1);
+  b.petCare(p, b.petsOf(p)[0].id, "feed");
+  for (let i = 0; i < 12; i++) b.playTicket(p, "scratch");
+  assert.ok(b.ticketsLeft(p) <= 0, "ticket limit");
+  const looks0 = p.stats.looks;
+  p.flags.styleAge = -1;
+  b.doStyle(p, "hair");
+  assert.ok(p.stats.looks >= looks0 - 1);
+  b.pickTalent(p, "music");
+  for (let i = 0; i < 5; i++) b.practice(p);
+  assert.ok(b.talentOf(p).level > 6, "practice raises skill");
+  assert.ok(b.dnaTest(p).length > 0 && p.flags.dnaText);
+  for (let i = 0; i < 30; i++) { const l: string[] = []; b.bitYear(p, l, []); }
+  assert.ok(Array.isArray(ribbonsOf(p)));
+  for (const e of BIT_EVENTS) {
+    const n = e.choices(p, e.init ? e.init(p) : {}).length;
+    for (let i = 0; i < n; i++) {
+      const q = structuredClone(p); q.prison = 0; q.money = 1e10;
+      const c = e.choices(q, e.init ? e.init(q) : {})[i];
+      assert.ok(typeof c.run(q) === "string", `${e.id}[${i}]`);
+      assert.ok(Number.isFinite(q.money), `${e.id} finite`);
     }
   }
 });

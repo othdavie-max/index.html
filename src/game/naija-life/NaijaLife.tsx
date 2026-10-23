@@ -22,8 +22,12 @@ import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, workStage, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
+import { ribbonTitle, ribbonsOf } from "./ribbons";
+import { DnaRow, LotteryCard, PetsCard, StyleCard, TalentCard } from "./BitlifeUI";
+import { petsOf } from "./bitlife";
 import { JobsView, NyscPanel, RealtorView, SchoolPanel, YahooPanel } from "./WorkUI";
 import { isRealtor } from "./realtor";
+import { eventEmoji } from "./tone";
 import { ActionSheet, BackPill, SubNavContext, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
 import { notificationsFor } from "./notices";
@@ -233,6 +237,7 @@ export default function NaijaLife() {
 
       {view && p.alive && (
         <Sheet title={view.title}>
+          {!evLook && <div className="mb-3 flex justify-center"><span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-[44px] shadow-inner ring-1 ring-blue-100" aria-hidden>{eventEmoji(String(evHead?.kind === "event" ? evHead.id : ""), view.title)}</span></div>}
           {evLook && (
             <div className="mb-3 flex justify-center">
               <Avatar look={evLook} gender={p.gender === "male" ? "female" : "male"} age={26} mood={75} size={110} />
@@ -523,7 +528,7 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 // ---------------------------------------------------------------------------
 // Work tab
 // ---------------------------------------------------------------------------
-type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | "classmates" | "yahoo" | null;
+type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | "classmates" | "yahoo" | "talent" | null;
 
 /** "Health -6 · Happiness +4 · Cash +₦120k" after each birthday, so the effect of a year is visible. */
 function changeSummary(a: Player, b: Player): string {
@@ -552,6 +557,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     ...(stage === "university" && p.campus && !p.campus.graduated ? [{ id: "campus", emoji: "🏛️", tile: "bg-violet-100", name: T("Campus life", "Campus life"), desc: `${T("Year", "Year")} ${p.campus.year} · CGPA ${p.campus.gpas.length ? p.campus.cgpa.toFixed(2) : "–"}` }] : []),
     ...(["primary", "secondary", "university", "nysc"].includes(stage) ? [{ id: "classmates", emoji: "🧑‍🤝‍🧑", tile: "bg-rose-100", name: stage === "nysc" ? T("Corps mates", "Corps mates") : T("Classmates", "Classmates"), desc: T(`${Object.values(p.npcs).filter((n) => n.role === "classmate" && !n.former && n.alive).length} around you · make friends`, `${Object.values(p.npcs).filter((n) => n.role === "classmate" && !n.former && n.alive).length} around you · make friends`) }] : []),
     ...(p.job?.id === "yahoo" ? [{ id: "yahoo", emoji: "💻", tile: "bg-violet-100", name: T("Online hustle", "Online hustle"), desc: T(`EFCC attention ${Math.round(p.crime.heat)}%`, `EFCC attention ${Math.round(p.crime.heat)}%`) }] : []),
+    ...(p.age >= 6 ? [{ id: "talent", emoji: "🎤", tile: "bg-violet-100", name: T("Talent", "Talent"), desc: p.flags.talentKind ? T("Train, audition, chase your big break", "Train, audition, chase big break") : T("Music, Nollywood, football, comedy, dance", "Music, Nollywood, football, comedy, dance") }] : []),
     ...(canApply ? [{ id: "admission", emoji: "📝", tile: "bg-violet-100", name: T("Apply to university", "Apply to university"), desc: T("Write JAMB, pick a school and a course", "Write JAMB, pick school and course") }] : []),
     ...(grown && stage !== "infant" && stage !== "nursery" ? [{ id: "jobs", emoji: "💼", tile: "bg-amber-100", name: stage === "work" ? T("Jobs and hustles", "Jobs and hustles") : T("Side hustles and jobs", "Side hustle and jobs"), desc: cur ? cur.ladder[Math.min(p.job?.rank ?? 0, cur.ladder.length - 1)].title : T("Find work or start a hustle", "Find work or start hustle") }] : []),
     ...(p.age >= 18 ? [{ id: "biz", emoji: "🏪", tile: "bg-emerald-100", name: T("My businesses", "My businesses"), desc: p.businesses.length ? T(`${p.businesses.length} running`, `${p.businesses.length} dey run`) : T("Akara stand to hotel", "Akara stand to hotel") }] : []),
@@ -570,6 +576,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       ) : <BackPill label={T("Back", "Back")} onClick={() => setSub(null)} />}
       {sel === "classmates" && <PeopleList p={p} run={run} group="class" />}
       {sel === "yahoo" && <YahooPanel p={p} run={run} />}
+      {sel === "talent" && <TalentCard p={p} run={run} />}
       {sel === "school" && <SchoolPanel p={p} />}
       {sel === "nysc" && <NyscPanel p={p} />}
       {sel === "admission" && (<><AdmissionCard p={p} run={run} /><DegreeCard p={p} run={run} /></>)}
@@ -597,7 +604,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
 // ---------------------------------------------------------------------------
 const INVEST_EMOJI: Record<string, string> = { savings: "🐖", bank: "🏦", tbill: "📜", bond: "📑", stocks: "📈", penny: "🪙", fund: "🧺", reit: "🏢", usd: "💵", crypto: "₿", cryptofund: "🧺", farm: "🌾", school: "🏫", oil: "🛢️" };
 const LUX_EMOJI: Record<string, string> = { borehole: "🚰", owambe: "🎉", praise: "🎶", bodyguards: "🕶️", title: "👑", foundation: "🤲", schools: "🏫", convoy: "🚙", mansion: "🏰", dubai: "🏙️", london: "🇬🇧", jet: "🛩️", club: "⚽", university: "🎓", hajj: "🕋", godfather: "🕴️" };
-type MoneySub = "wallet" | "home" | "property" | "garage" | "invest" | "spend";
+type MoneySub = "wallet" | "home" | "property" | "garage" | "invest" | "spend" | "pets" | "lottery" | "style";
 function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const [sub, setSub] = useState<MoneySub | null>(null);
   const [invPick, setInv] = useState<string | null>(null);
@@ -621,12 +628,15 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
             { title: T("Money", "Money"), rows: [
               { id: "wallet" as const, emoji: "👛", tile: "bg-sky-100", name: T("Wallet", "Wallet"), desc: T(`Net worth ${naira(net)} · ledger, bills`, `Net worth ${naira(net)} · ledger, bills`) },
               { id: "invest" as const, emoji: "📈", tile: "bg-emerald-100", name: T("Invest", "Invest"), desc: T(`${p.holdings.length} holding${p.holdings.length === 1 ? "" : "s"} · stocks, bonds, crypto, adviser`, `${p.holdings.length} holding${p.holdings.length === 1 ? "" : "s"} · stocks, bonds, crypto, adviser`) },
+              { id: "lottery" as const, emoji: "🎰", tile: "bg-orange-100", name: T("Lottery and scratch cards", "Lottery and scratch cards"), desc: T("Baba Ijebu, scratch cards, jackpots", "Baba Ijebu, scratch card, jackpot") },
+              { id: "style" as const, emoji: "💇🏾", tile: "bg-rose-100", name: T("Style and body", "Style and body"), desc: T("Hair, tattoos, teeth, surgery", "Hair, tattoo, teeth, surgery") },
               { id: "spend" as const, emoji: "💎", tile: "bg-violet-100", name: T("Spend", "Spend"), desc: T("Owambe, titles, security, foundations", "Owambe, titles, security, foundations") },
             ] },
             { title: T("Things you own", "Things you own"), rows: [
               { id: "home" as const, emoji: "🏠", tile: "bg-amber-100", name: T("Where I live", "Where I dey"), desc: T("Rent, build a house, mortgage", "Rent, build house, mortgage") },
               { id: "property" as const, emoji: "🏢", tile: "bg-orange-100", name: T("Property", "Property"), desc: T(`${p.houses.length} owned · buy across Nigeria`, `${p.houses.length} owned · buy across Nigeria`) },
               { id: "garage" as const, emoji: "🚗", tile: "bg-rose-100", name: T("Garage and fleet", "Garage and fleet"), desc: T(`${p.vehicles.length} vehicle${p.vehicles.length === 1 ? "" : "s"} · cars, jets, boats`, `${p.vehicles.length} vehicle${p.vehicles.length === 1 ? "" : "s"} · cars, jets, boats`) },
+              { id: "pets" as const, emoji: "🐕", tile: "bg-amber-100", name: T("Pets", "Pets"), desc: T(`${petsOf(p).length} at home · dogs, cats, goats`, `${petsOf(p).length} for house · dogs, cats, goats`) },
             ] },
           ]).map((g) => (
             <section key={g.title}>
@@ -648,6 +658,9 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
 
       {sub === "wallet" && (<><NetWorthCard p={p} /><SubsCard p={p} /><LedgerCard p={p} /></>)}
       {sub === "garage" && <GarageCard p={p} run={run} />}
+      {sub === "pets" && <PetsCard p={p} run={run} />}
+      {sub === "lottery" && <LotteryCard p={p} run={run} />}
+      {sub === "style" && <StyleCard p={p} run={run} />}
       {sub === "home" && (<>
       <HousingCard p={p} run={run} onBuy={() => setSub("property")} />
 
@@ -779,6 +792,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
         </div>
         </div>
         <ListRow emoji="📍" tile="bg-emerald-100" name={`${T("Family lives in", "Your family dey live for")} ${fam.name}`} desc={fam.opp <= 3 ? T("Opportunities there are limited. They would love to move somewhere better.", "Opportunity there small. Dem go like move go better place.") : T("They are doing alright there.", "Dem dey do well there.")} wrap />
+        <DnaRow p={p} run={run} />
         <ListRow emoji="💞" tile="bg-rose-100" name={T("Family happiness", "Family happiness")} desc={luckWord} right={`${Math.round(p.family.happy)}%`} />
         {p.houses.length > 0 && <ListRow emoji="💡" tile="bg-blue-100" name={T("Tip", "Tip")} desc={T("Use a house as \"Family\" in the Money tab to bring them to your state.", "Set one house as \"Family\" for Money tab to bring dem come your state.")} wrap />}
         {gifts.map((a) => <ListRow key={a} emoji="💸" tile="bg-amber-100" name={`${T("Send", "Send")} ${naira(a * p.index)}`} desc={T("to your family", "to your family")} disabled={p.money < a * p.index} onClick={() => run({ t: "send", amount: a * p.index })} />)}
@@ -1046,6 +1060,19 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
       <div className="mb-2 flex justify-center"><Avatar look={p.look} gender={p.gender} age={p.age} size={96} dim /></div>
       <p className="font-serif text-2xl font-bold">{p.name} {p.surname}</p>
       <p className="text-sm text-slate-600">{T(`Died at ${p.age}`, `E die at ${p.age}`)} · {p.cause}</p>
+      {ribbonsOf(p).length > 0 && (
+        <div className="my-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-100">
+          <div className="mb-2 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Ribbons earned", "Ribbons wey you earn")}</div>
+          <div className="grid grid-cols-2 gap-2">
+            {ribbonsOf(p).map((r) => (
+              <div key={r.id} className="flex items-center gap-2 rounded-xl bg-amber-50 px-2.5 py-2 ring-1 ring-amber-100">
+                <span className="text-2xl" aria-hidden>{r.emoji}</span>
+                <span className="min-w-0"><span className="block truncate text-[13px] font-extrabold text-[#0b2a6b]">{ribbonTitle(r)}</span><span className="block text-[10.5px] leading-tight text-slate-500">{T(r.blurb[0], r.blurb[1])}</span></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="my-3"><ObituaryView p={p} o={obit} /></div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <Card className="p-3"><div className="text-[11px] text-slate-500">{T("Net worth at death", "Worth wen e die")}</div><div className="font-bold text-blue-600">{naira(entry?.worth ?? 0)}</div></Card>

@@ -1,5 +1,6 @@
 "use client";
 
+import { TONE_STYLE, toneOf } from "./tone";
 import { useMemo, useState } from "react";
 import {
   Baby, Backpack, Brain, Briefcase, Flag as FlagIcon, GraduationCap, School, ChevronRight, Compass, Crown, Gavel, Heart, HeartPulse, Hourglass, Map as MapIcon, MapPin, Menu as MenuIcon,
@@ -317,7 +318,12 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
                       <span className={cx("shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold", c.chip)}>{stageOf(e.age)}</span>
                     </div>
                     <ul className="mt-1 space-y-1">
-                      {e.lines.map((l, i) => <li key={i} className="text-[12px] leading-snug text-slate-600">{l}</li>)}
+                      {e.lines.map((l, i) => { const tn = TONE_STYLE[toneOf(l)]; return (
+                        <li key={i} className={cx("flex gap-1.5 rounded-lg py-0.5 pr-1 text-[12px] leading-snug", tn.text, tn.bg)}>
+                          <span className={cx("my-0.5 w-1 shrink-0 rounded-full", tn.bar)} aria-hidden />
+                          <span className="min-w-0 flex-1">{l}</span>
+                        </li>
+                      ); })}
                     </ul>
                   </div>
                 </li>

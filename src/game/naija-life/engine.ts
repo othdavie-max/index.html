@@ -39,6 +39,8 @@ import { auditBalance, coverShortfall, reconcile, snapshot, transact } from "./l
 import { lenderOffers, loanBlock, repayLoan, takeLoan, totalDebt, borrowFrom, giftTo, lendTo } from "./loans";
 import { planEstate } from "./will";
 import { PARENT_EVENTS, willWarning } from "./inherit";
+import { BIT_EVENTS } from "./bitEvents";
+import { adoptPet, bitYear, dnaTest, doStyle, pickTalent, petCare, playTicket, practice, rehomePet, type Ticket } from "./bitlife";
 import { YAHOO_EVENTS, cashOut, dropMark, hunt, launder, layLow, quitYahoo, settleContact, upgradeKit, work as yahooWork, yahooYear, type Approach } from "./yahoo";
 import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
 import { buyVehicle, takeDrivingTest, insureVehicle, setService, repairVehicle, sellVehicle, setRole } from "./vehicles";
@@ -62,7 +64,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -586,6 +588,7 @@ export function ageUp(g0: Game): Game {
   yearlyRelationships(p, lines, pending);
   yearlyCrime(p, lines, pending);
   yahooYear(p, lines, pending);
+  bitYear(p, lines, pending);
   fugitiveYear(p, lines);
   yearlyGrowth(p);
   yearlySocial(p, lines, (id, data) => pending.push({ kind: "event", id, data: { month: randInt(1, 12), ...(data ?? {}) } }));
@@ -787,6 +790,7 @@ export type Action =
   | { t: "checkup" }
   | { t: "treat"; cond: string; facility: string }
   | { t: "yahoo"; op: "hunt" | "work" | "cash" | "drop" | "kit" | "low" | "launder" | "settle" | "quit"; id?: string; how?: Approach }
+  | { t: "bl"; op: "pet" | "petcare" | "rehome" | "lotto" | "style" | "talent" | "practice" | "dna"; id?: string; care?: "play" | "feed" | "vet" }
   | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "hookup" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
   | { t: "realtor"; op: "show" | "find"; client?: string; listing?: string }
   | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "levers" | "act"; id: string; sets?: Record<string, number>; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
@@ -906,6 +910,7 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "realtor": return { reason: T("Estate agency", "Estate agency"), category: "business" };
     case "bet": return { reason: T("Betting", "Betting"), category: "betting" };
     case "social": return { reason: T("Social media", "Social media"), category: "social" };
+    case "bl": return { reason: T("Lifestyle", "Lifestyle"), category: "personal" };
     case "crime": case "yahoo": return { reason: T("Crime", "Crime"), category: "crime" };
     case "will": case "gym": return { reason: T("Personal", "Personal"), category: "personal" };
     case "learn": return { reason: T("Learning", "Learning"), category: "education" };
@@ -1214,9 +1219,23 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           p.flags.datingNpc = n.id;
           const def = EVENT_DEFS.proposal;
           g.queue.unshift({ kind: "event", id: "proposal", data: { ...(def.init?.(p) ?? {}), month: randInt(1, 12) } });
+          if (p.money > 20_000_000 * p.index && !p.flags.prenup && chance(0.6)) g.queue.push({ kind: "event", id: "prenup", data: { month: randInt(1, 12) } });
           return dm(T(`${n.name.split(" ")[0]} says yes. Now the families need to meet.`, `${n.name.split(" ")[0]} say yes. Now the families must meet.`));
         }
         case "marry": { const r = partnerOf(p, a.npc ?? ""); if (!r || r.stage !== "engaged") return { g: g0, msg: T("You need to be engaged first.", "You must engage first.") }; marry(p, a.npc ?? ""); return dm(T("You are married!", "You don marry!")); }
+          }
+          return { g: g0, msg: "" };
+        }
+        case "bl": {
+          switch (a.op) {
+            case "pet": return out(adoptPet(p, a.id ?? ""));
+            case "petcare": return out(petCare(p, a.id ?? "", a.care ?? "play"));
+            case "rehome": return out(rehomePet(p, a.id ?? ""));
+            case "lotto": return out(playTicket(p, (a.id ?? "scratch") as Ticket));
+            case "style": return out(doStyle(p, a.id ?? ""));
+            case "talent": return out(pickTalent(p, a.id ?? ""));
+            case "practice": return out(practice(p));
+            case "dna": return out(dnaTest(p));
           }
           return { g: g0, msg: "" };
         }

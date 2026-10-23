@@ -69,6 +69,18 @@ export const GATES: Record<string, Gate> = {
   friend_help: { minAge: 18 },
   parent_estate: { minAge: 0 },
   efcc_raid: { minAge: 16 },
+  talent_discovered: { minAge: 7 },
+  talent_audition: { minAge: 14 },
+  school_talent_show: { minAge: 8 },
+  jackpot_relatives: { minAge: 18 },
+  areaboys_invite: { minAge: 15 },
+  cult_invite: { minAge: 16 },
+  thugs_invite: { minAge: 18 },
+  group_quit: { minAge: 14 },
+  prison_fight: { minAge: 14 },
+  prison_riot: { minAge: 14 },
+  prison_escape: { minAge: 14 },
+  prenup: { minAge: 18 },
   yahoo_owambe: { minAge: 16 },
   yahoo_mugu_fights_back: { minAge: 16 },
   yahoo_mama_asks: { minAge: 16 },
@@ -120,7 +132,7 @@ const has = (p: Player, n: Need): boolean => {
 
 /** True when the event may be offered to this character right now. */
 /** While locked up, only events that can happen inside a prison fire. */
-const PRISON_EVENTS_OK = new Set(["jail_inside", "prison_bribe", "prison_visit", "medical_care", "emergency_response", "follow_up", "court_trial", "bail_decision", "loan_due", "funeral", "parent_estate"]);
+const PRISON_EVENTS_OK = new Set(["jail_inside", "prison_bribe", "prison_visit", "medical_care", "emergency_response", "follow_up", "court_trial", "bail_decision", "loan_due", "funeral", "parent_estate", "prison_fight", "prison_riot", "prison_escape", "jackpot_relatives"]);
 
 export function eligible(p: Player, id: string): boolean {
   if (p.prison > 0) return PRISON_EVENTS_OK.has(id);
