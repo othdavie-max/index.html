@@ -1,0 +1,18 @@
+{
+  "name": "Naija Life",
+  "short_name": "Naija Life",
+  "description": "Live a Nigerian life from birth to old age: school, hustle, love, business and legacy.",
+  "id": "/naija-life",
+  "start_url": "/naija-life",
+  "scope": "/naija-life",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f8ff",
+  "theme_color": "#008751",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "/naija-life/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/naija-life/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/naija-life/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
