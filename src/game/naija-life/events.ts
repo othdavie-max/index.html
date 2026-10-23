@@ -1,6 +1,6 @@
 import { livingKin } from "./family";
-import { COURSES, STATE_BY_ID, TRAVEL_STATES } from "./data";
-import { I, bump, eligibleJobs, luckBonus, enterPrison, jobDef, moveTo, randomName, stateOf } from "./helpers";
+import { COURSES, STATE_BY_ID } from "./data";
+import { I, bump, eligibleJobs, luckBonus, enterPrison, jobDef, randomName, stateOf } from "./helpers";
 import type { AutoDef, Choice, EventDef, Pending, Player } from "./types";
 import { T, chance, clamp, dual, naira, pick, rand, randInt } from "./util";
 import { kidLook, lookToStr, randomLook, strToLook } from "./look";
@@ -140,18 +140,6 @@ export const EVENTS: EventDef[] = [
         return parentsHappy ? T(`You chose ${c}. Your parents are already telling the neighbours.`, `You choose ${c}. Your parents don start to tell the neighbours.`) : T(`You chose ${c}. Your mother is disappointed but supportive.`, `You choose ${c}. Your mama no happy, but she dey support you.`);
       },
     })),
-  },
-  {
-    id: "nysc",
-    title: dual("NYSC posting", "NYSC posting"),
-    weight: () => 0,
-    init: () => ({ posted: pick(TRAVEL_STATES.filter((s) => s.id !== "abuja" && s.id !== "lagos")).id }),
-    text: (_p, d) => T(`You are a graduate! NYSC has posted you to ${STATE_BY_ID[String(d.posted)].name} State for national service.`, `You don graduate! NYSC don post you go ${STATE_BY_ID[String(d.posted)].name} State for national service.`),
-    choices: (p, d) => [
-      { label: T("Go and serve", "Go serve"), run: (q) => { const note = moveTo(q, String(d.posted)); bump(q, "connections", 6); bump(q, "smarts", 2); q.flags.nysc = true; q.money += I(q, 77_000); return T(`Camp, khaki, 'Ever Ready', and a year in ${STATE_BY_ID[String(d.posted)].name}. You made friends.${note}`, `Camp, khaki, 'Ever Ready', and one year for ${STATE_BY_ID[String(d.posted)].name}. You make friends.${note}`); } },
-      { label: T("Work your posting to Abuja", "Work your posting go Abuja"), sub: naira(I(p, 150_000)), disabled: p.money < I(p, 150_000) ? T("Not enough cash", "Cash no reach") : false, run: (q) => { q.money -= I(q, 150_000); q.flags.nysc = true; const note = moveTo(q, "abuja"); bump(q, "connections", 10); return T(`A 'contact' at the NYSC secretariat arranged it. You now serve in Abuja.${note}`, `One 'contact' for NYSC secretariat arrange am. You don dey serve for Abuja.${note}`); } },
-      { label: T("Skip it entirely", "Skip am totally"), run: (q) => { q.flags.nysc = true; bump(q, "reputation", -8); return T("No certificate for you, but you saved a year.", "You no go get certificate, but you save one year."); } },
-    ],
   },
   {
     id: "fees_trouble",

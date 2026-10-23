@@ -1,4 +1,5 @@
 import { HOME_TIERS, PAY_SCALE, SCHOOL_FEES, STATE_BY_ID, payMult, type SchoolType } from "./data";
+import { nyscAllowance } from "./nysc";
 import { capacityOf, primaryProvider } from "./family";
 import { jobDef, stateOf } from "./helpers";
 import { coverShortfall, monthIndex, transact } from "./ledger";
@@ -147,6 +148,11 @@ function monthTick(p: Player, ctx: MonthCtx) {
     const amt = (ctx.yearPay / 12) * noise * incomeFactor(p);
     transact(p, { amount: amt, reason: j?.selfEmployed ? T(`Business income: ${j.title}`, `Business income: ${j.title}`) : T(`Salary: ${j?.title ?? "work"}`, `Salary: ${j?.title ?? "work"}`), category: j?.selfEmployed ? "business" : "salary", recurring: "income" });
     incomeThisMonth += amt;
+  }
+  const corp = nyscAllowance(p);
+  if (corp > 0) {
+    transact(p, { amount: corp, reason: T("NYSC allowance", "NYSC allowance"), category: "salary", recurring: "income" });
+    incomeThisMonth += corp;
   }
   for (const h of p.houses) {
     if (h.use === "rent" && chance(0.9)) {

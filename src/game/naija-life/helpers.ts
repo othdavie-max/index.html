@@ -19,6 +19,7 @@ export function jobDef(p: Player): JobDef | null {
 export function jobTitle(p: Player): string {
   const j = jobDef(p);
   if (p.politics && p.politics.office >= 0) return T("Politician", "Politician");
+  if (!p.job && p.flags.nyscServing === true) return T("Corps member (NYSC)", "Corper (NYSC)");
   if (!j || !p.job) return p.school ? T("Student", "Student") : p.age < 6 ? T("Child", "Pikin") : T("Unemployed", "No job");
   return j.ladder[Math.min(p.job.rank, j.ladder.length - 1)].title;
 }

@@ -75,3 +75,9 @@ Business revenue growth, margins and creator payouts were reduced in this pass b
 - Bucket list: 3 goals per life; finishing one unlocks a cosmetic (kept on the device) for every future character.
 - Naija Gist: generated gossip feed plus your own moments. A real-player feed needs a server and is not built.
 - New events: stranger who returns years later, Detty December, Ramadan and Sallah, aso-ebi levy, NYSC camp, first winter abroad.
+
+## NYSC as a one-year mini-game
+- `nysc.ts`: posting (serve / pay to work posting to Abuja / skip), a skippable one-month camp with three quick rounds (parade, mammy market, talent show) scored 0-9, then a PPA search across ten placement types in three prestige tiers.
+- Placement and retention odds use connections, smarts, degree class (`campusHire`), camp score, Abuja/Lagos posting and family wealth: poor graduates face a steep penalty for oil, bank and tech PPAs, rich graduates get a boost. A "pull a string" payment improves a top-tier slot.
+- Service year: ₦77,000/month (inflation-adjusted) for 12 months, title "Corps member (NYSC)", formal job applications blocked, side hustles allowed, two corper events (supervisor, CDS or side hustle or late allowance). CDS is a single in-year event, not a yearly cycle.
+- Pass-out: discharge certificate; the PPA either retains you (job set, career continues) or you are unemployed and job hunting. Skipping NYSC entirely gives no certificate, a reputation hit and a formal-hiring penalty.

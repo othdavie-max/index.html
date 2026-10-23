@@ -250,7 +250,7 @@ export const ENGAGE_EVENTS: EventDef[] = [
   {
     id: "nysc_story",
     title: dual("NYSC camp stories", "NYSC camp gist"),
-    weight: (p) => (p.edu === "tertiary" && p.age >= 21 && p.age <= 28 && p.flags.nyscStory === undefined ? 2.5 : 0),
+    weight: () => 0,
     text: () => T("Orientation camp: 5am parades, mammy market and a platoon full of strangers from every tribe. What is your camp life like?", "Orientation camp: 5am parade, mammy market and platoon full of strangers from every tribe. How your camp life be?"),
     choices: () => [
       { label: T("Join the camp talent show", "Join camp talent show"), run: (q) => { q.flags.nyscStory = 1; bump(q, "happiness", 6); bump(q, "connections", 4); return T("You become 'the guy from platoon 7'. You make friends for life.", "You turn 'the guy from platoon 7'. You make friends for life."); } },

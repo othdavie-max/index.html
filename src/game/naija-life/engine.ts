@@ -11,6 +11,7 @@ import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
 import { buildObituary } from "./obituary";
 import { ENGAGE_EVENTS, assignGoals, engageYear } from "./engage";
+import { NYSC_EVENTS, nyscYear, serving } from "./nysc";
 import { fillClassmates, interact, makeFriend, refreshOccupation, refreshPeople } from "./people";
 import { campusDo, campusHire, campusYearEnd, enrol, graduateCampus, writeJamb } from "./campus";
 import { transportOptions, type TransportMode } from "./travel";
@@ -55,7 +56,7 @@ import { kidLook, lookToStr, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -635,6 +636,7 @@ export function ageUp(g0: Game): Game {
     p.cause = p.age >= 66 ? T("Old age", "Old age") : pick(causes());
   }
 
+  nyscYear(p, lines, pending);
   refreshPeople(p);
   engageYear(p, lines);
   p.traveled = false;
@@ -818,6 +820,7 @@ export function applyBlock(p: Player, jobId: string): string | null {
   if (!j) return T("Unknown job", "Job no dey");
   if (p.prison > 0) return T("In prison", "You dey prison");
   if (p.actionsLeft <= 0) return T("No actions left this year", "No action remain this year");
+  if (serving(p) && j.group === "formal") return T("Finish your NYSC year first", "Finish your NYSC year first");
   if (j.selfEmployed && p.money < j.startCost * Math.pow(p.index, 0.9)) return T(`Needs ${naira(j.startCost * Math.pow(p.index, 0.9))} to start`, `You need ${naira(j.startCost * Math.pow(p.index, 0.9))} to start`);
   return null;
 }
@@ -909,7 +912,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         p.job = { id: j.id, rank: 0, years: 0 };
         return out(T(`You started your own business: ${j.title}. ${j.ladder[0].title}.`, `You start your own business: ${j.title}. ${j.ladder[0].title}.`));
       }
-      let pr = j.group === "creative" ? 0.4 : j.group === "crime" ? 0.9 : 0.35 + p.stats.smarts / 250 + p.stats.connections / 150 + st.opp * 0.02 + campusHire(p);
+      let pr = j.group === "creative" ? 0.4 : j.group === "crime" ? 0.9 : 0.35 + p.stats.smarts / 250 + p.stats.connections / 150 + st.opp * 0.02 + campusHire(p) - (p.flags.nyscSkipped && j.group === "formal" ? 0.12 : 0);
       if (j.group === "petty") pr = Math.max(pr, 0.75);
       if (a.bribe) {
         const fee = I(p, 300_000);

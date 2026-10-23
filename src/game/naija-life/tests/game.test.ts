@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DEFAULT_FAMILY_CONFIG, applySupport, defaultAmount, evaluateSupport, generateFamily, newInformalLoan } from "../family";
-import { ACTIVITIES, ackKidnap, act, ageUp, choose, describePending, kidnapAction, migrate, newGame, startHeir, type Action } from "../engine";
+import { ACTIVITIES, ackKidnap, act, ageUp, applyBlock, choose, describePending, kidnapAction, migrate, newGame, startHeir, type Action } from "../engine";
 import { ledgerBalances } from "../ledger";
 import { borrowFrom, lenderOffers, previewLoan, repayLoan, takeLoan, totalDebt } from "../loans";
 import { eligible } from "../eligibility";
@@ -27,6 +27,7 @@ import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
 import { getSound, setSound, sfx, unlockAudio } from "../sound";
+import { jobTitle as jobTitleOf } from "../helpers";
 import { occupationFor } from "../occupation";
 import { buildObituary } from "../obituary";
 import { INTERACTIONS, interact, interactBlock, interactionsFor, makeFriend, refreshOccupation, refreshPeople } from "../people";
@@ -38,6 +39,7 @@ import { transportOptions, tripRisk } from "../travel";
 import { makeKidnap } from "../kidnap";
 import { UNIS, MAJORS, UNI_BY_ID, MAJOR_BY_ID, offers, cutoffFor } from "../universities";
 import { enrolBlock, uniFee, openAdmission, familyCanPay, campusPay } from "../campus";
+import { PPA_BY_ID, placeOdds, keepOdds } from "../nysc";
 import { beneficiaries, setShare, planEstate } from "../will";
 import { randomLook } from "../look";
 import { STATE_BY_ID } from "../data";
@@ -1432,4 +1434,66 @@ test("children only get child-sized events: no adult money or grown-up choices u
     }
   }
   assert.ok(checked > 20);
+});
+
+function graduate(seed: number) {
+  const g = liveTo(22, seed);
+  g.p.edu = "tertiary"; g.p.course = "Engineering"; g.p.school = null; g.p.job = null; g.p.money = 5_000_000;
+  g.queue = [{ kind: "event", id: "nysc", data: { posted: "kano" } }];
+  return g;
+}
+const pickLabel = (g: Game, re: RegExp) => {
+  const v = describePending(g)!;
+  const i = v.choices.findIndex((c) => re.test(c.label));
+  assert.ok(i >= 0, `no choice matching ${re} in ${v.choices.map((c) => c.label).join(" | ")}`);
+  return choose(g, i).g;
+};
+
+test("NYSC is a single year: camp game, PPA, allowance, then pass-out", () => {
+  let g = graduate(7);
+  g = pickLabel(g, /Go and serve/);
+  assert.equal(g.p.flags.nyscServing, true);
+  g = pickLabel(g, /Go to camp/);
+  for (let r = 0; r < 3; r++) g = choose(g, 0).g;
+  assert.ok(Number(g.p.flags.nyscCamp) >= 0, "camp score recorded");
+  g = pickLabel(g, /Small NGO/);
+  assert.equal(g.p.flags.nyscPpa, "ngo");
+  assert.match(jobTitleOf(g.p), /Corps|Corper/);
+  assert.ok(applyBlock(g.p, "banker"), "formal job blocked while serving");
+  g.p.money = 1_000_000;
+  g = ageUp(g);
+  const allowance = g.p.ledger.filter((t) => /NYSC allowance/.test(t.reason));
+  assert.equal(allowance.length, 12, "twelve monthly allowances");
+  g = resolveAll(g);
+  assert.equal(g.p.flags.nyscServing, false);
+  assert.equal(g.p.flags.nysc, true);
+  assert.ok(g.p.achievements.includes("Completed NYSC"));
+  const yearAfter = g.p.age;
+  g = resolveAll(ageUp(g));
+  assert.equal(g.p.flags.nyscServing, false, "no second service year");
+  assert.ok(g.p.age === yearAfter + 1);
+});
+
+test("NYSC camp can be skipped", () => {
+  let g = graduate(8);
+  g = pickLabel(g, /Go and serve/);
+  g = pickLabel(g, /Skip camp/);
+  assert.equal(g.p.flags.nyscCamp, -1);
+  assert.equal(describePending(g)?.title, "Find your PPA");
+});
+
+test("NYSC placement is far harder for poor graduates aiming at oil", () => {
+  const mk = (cls: "struggling" | "rich") => { const g = graduate(9); g.p.classAtBirth = cls; g.p.stats.connections = 30; g.p.flags.nyscCamp = 5; return g.p; };
+  const oil = PPA_BY_ID.oil;
+  assert.ok(placeOdds(mk("struggling"), oil) < 0.25);
+  assert.ok(placeOdds(mk("rich"), oil) > placeOdds(mk("struggling"), oil) + 0.3);
+  assert.ok(placeOdds(mk("struggling"), PPA_BY_ID.school) > 0.8);
+  assert.ok(keepOdds(mk("rich"), oil) > keepOdds(mk("struggling"), oil));
+});
+
+test("skipping NYSC leaves no certificate and a hiring penalty", () => {
+  let g = graduate(10);
+  g = pickLabel(g, /Skip NYSC/);
+  assert.equal(g.p.flags.nyscSkipped, true);
+  assert.equal(g.p.flags.nyscServing, undefined);
 });
