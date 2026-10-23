@@ -2,7 +2,7 @@ import { I, bump } from "./helpers";
 import { GATES } from "./eligibility";
 import { transact } from "./ledger";
 import type { Choice, EventDef, Player } from "./types";
-import { T, chance, dual, naira } from "./util";
+import { T, chance, dual, naira, randInt } from "./util";
 
 /**
  * Everyday Nigerian situations. They are deliberately rare (each shows up in only a small share of lives)
@@ -13,13 +13,16 @@ type Need = "phone" | "smartphone" | "laptop" | "job" | "noJob" | "spouse" | "ho
 
 /** Effects. `m` is money in today's naira; the rest are stat changes. */
 export interface Fx { m?: number; h?: number; s?: number; hp?: number; r?: number; c?: number; sm?: number; f?: number; fam?: number }
+/** Effects on one of the player's open businesses. */
+export interface BizFx { q?: number; fame?: number; loyalty?: number; loseStaff?: boolean; profit?: number }
 export interface Ch {
   label: L;
+  biz?: BizFx;
   text: L;
   fx?: Fx;
   /** Shown on the button and required in cash. */
   cost?: number;
-  bad?: { p: number; text: L; fx?: Fx };
+  bad?: { p: number; text: L; fx?: Fx; biz?: BizFx };
 }
 export interface Scn {
   id: string;
@@ -28,6 +31,8 @@ export interface Scn {
   ages: [number, number];
   /** Rarity: roughly 0.3 to 1. Typical events in the game sit between 2 and 8. */
   w: number;
+  /** Overrides the global rarity scale (business events use 1). */
+  rarity?: number;
   needs?: Need[];
   when?: (p: Player) => boolean;
   choices: Ch[];
@@ -49,12 +54,23 @@ function apply(q: Player, fx: Fx | undefined, why: L) {
 /** Scales every scenario weight down so any one of them is met in only a small share of lives. */
 const RARITY = 0.28;
 
+function applyBiz(q: Player, fx: BizFx | undefined) {
+  if (!fx) return;
+  const b = q.businesses.find((x) => x.status === "open");
+  if (!b) return;
+  if (fx.q) b.quality = Math.max(0, Math.min(100, b.quality + fx.q));
+  if (fx.fame) b.fame = Math.max(0, Math.min(100, (b.fame ?? 20) + fx.fame));
+  if (fx.loyalty) for (const w of b.crew ?? []) w.loyalty = Math.max(0, Math.min(100, w.loyalty + fx.loyalty));
+  if (fx.loseStaff && b.crew?.length) { b.crew.splice(randInt(0, b.crew.length - 1), 1); b.staff = b.crew.length; }
+  if (fx.profit) transact(q, { amount: I(q, fx.profit), reason: T(`${b.name}: unexpected ${fx.profit > 0 ? "gain" : "cost"}`, `${b.name}: unexpected ${fx.profit > 0 ? "gain" : "cost"}`), category: "business" });
+}
+
 export function scenarioDef(s: Scn): EventDef {
   GATES[s.id] = { minAge: s.ages[0], maxAge: s.ages[1], needs: s.needs };
   return {
     id: s.id,
     title: dual(s.title[0], s.title[1]),
-    weight: (p) => (!s.when || s.when(p) ? s.w * RARITY : 0),
+    weight: (p) => (!s.when || s.when(p) ? s.w * (s.rarity ?? RARITY) : 0),
     text: () => T(s.text[0], s.text[1]),
     choices: (p): Choice[] => {
       const list: Choice[] = s.choices.map((c) => ({
@@ -63,9 +79,11 @@ export function scenarioDef(s: Scn): EventDef {
       disabled: c.cost && p.money < I(p, c.cost) ? T("Not enough cash", "Cash no reach") : false,
       run: (q: Player) => {
         apply(q, c.cost ? { ...c.fx, m: (c.fx?.m ?? 0) - c.cost } : c.fx, s.title);
+        applyBiz(q, c.biz);
         let out = T(c.text[0], c.text[1]);
         if (c.bad && chance(c.bad.p)) {
           apply(q, c.bad.fx, s.title);
+          applyBiz(q, c.bad.biz);
           out += ` ${T(c.bad.text[0], c.bad.text[1])}`;
         }
         return out;

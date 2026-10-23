@@ -1607,3 +1607,37 @@ test("every everyday scenario is rare, gated and can always be answered", async 
     assert.ok(ev.text(g.p, {}).length > 20);
   }
 });
+
+test("businesses: many Nigerian kinds, interactive sale with haggling and instalments", async () => {
+  const { BIZ_KINDS, valuation, saleMonth } = await import("../business");
+  assert.ok(BIZ_KINDS.length >= 45, "plenty of business kinds");
+  assert.equal(new Set(BIZ_KINDS.map((k) => k.id)).size, BIZ_KINDS.length, "unique ids");
+  let g = liveTo(30, 5);
+  g.p.money = 800_000_000; g.p.prison = 0;
+  g = act(g, { t: "biz", op: "start", id: "bukka", name: "Mama Ngozi Kitchen" }).g;
+  const b = g.p.businesses[0];
+  assert.equal(b.name, "Mama Ngozi Kitchen");
+  g = act(g, { t: "biz", op: "recruit", id: b.id }).g;
+  g = act(g, { t: "biz", op: "pick", id: b.id, idx: 0 }).g;
+  assert.ok(g.p.businesses[0].crew!.length >= 1, "hired staff");
+  g = act(g, { t: "biz", op: "train", id: b.id, worker: g.p.businesses[0].crew![0].id }).g;
+  g = act(g, { t: "biz", op: "sell", id: b.id }).g;
+  const offers = g.p.businesses[0].offers!;
+  assert.ok(offers.length >= 3, "several buyers show up");
+  assert.ok(new Set(offers.map((o) => o.type)).size >= 2, "different kinds of buyers");
+  const lowball = offers.find((o) => o.type === "lowball")!;
+  const fair = offers.find((o) => o.type === "fair")!;
+  assert.ok(lowball.amount < valuation(g.p, g.p.businesses[0]) * 0.9 * 1.3);
+  const before = g.p.money;
+  g = act(g, { t: "biz", op: "accept", id: b.id, offer: fair.id }).g;
+  assert.equal(g.p.businesses.length, 0, "business sold");
+  assert.ok(g.p.money > before, "paid");
+  assert.ok(ledgerBalances(g.p));
+  // instalment: the second half arrives later
+  const q = structuredClone(g.p);
+  q.pendingSale = { amount: 1_000_000, months: 1, from: "Test Buyer" };
+  const money = q.money;
+  saleMonth(q, []);
+  assert.equal(q.pendingSale, undefined);
+  assert.ok(q.money > money);
+});

@@ -217,6 +217,8 @@ export interface Player {
   kidnaps: number;
   flags: Record<string, boolean | number | string>;
   achievements: string[];
+  /** The unpaid half of an instalment business sale. */
+  pendingSale?: { amount: number; months: number; from: string };
   peakWorth: number;
   log: LogEntry[];
 }
@@ -545,6 +547,19 @@ export interface Business {
   /** Year totals so far and recent years. */
   yr?: { rev: number; net: number };
   hist?: { age: number; rev: number; net: number }[];
+  /** Buyers who have made offers after you listed the business for sale. */
+  offers?: BizOffer[];
+}
+
+export interface BizOffer {
+  id: string;
+  buyer: string;
+  /** What kind of buyer: decides how they behave. */
+  type: "lowball" | "fair" | "keen" | "instalment";
+  amount: number;
+  /** Haggles left before they walk away. */
+  patience: number;
+  note: { en: string; pcm: string };
 }
 
 export interface Worker {

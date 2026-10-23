@@ -1,7 +1,8 @@
 import { JOB_BY_ID, STATE_BY_ID } from "./data";
 import { monthIndex, transact } from "./ledger";
 import { businessMultiplier } from "./news";
-import type { Business, EventDef, Player, Worker, BizReport } from "./types";
+import type { BizOffer, Business, EventDef, Player, Worker, BizReport } from "./types";
+import { EXTRA_BIZ } from "./bizKinds2";
 import { T, chance, clamp, dual, naira, rand, uid } from "./util";
 import { I, bump, randomName, stateOf } from "./helpers";
 
@@ -16,6 +17,7 @@ export interface BizKind {
   wage: number;
   minOpp: number;
   seasonal?: boolean;
+  emoji?: string;
 }
 
 export const BIZ_KINDS: BizKind[] = [
@@ -38,6 +40,7 @@ export const BIZ_KINDS: BizKind[] = [
   { id: "supermarket", get label() { return T("Supermarket", "Supermarket"); }, get blurb() { return T("Big volumes, tiny margins.", "Plenty goods dey move, but profit small."); }, startCost: 14_000_000, baseRevenue: 9_000_000, stockPct: 0.8, rent: 4_000_000, wage: 70_000, minOpp: 5 },
   { id: "hotel", get label() { return T("Hotel", "Hotel"); }, get blurb() { return T("Weddings, travellers and constant maintenance.", "Wedding, travellers, and repair no dey end."); }, startCost: 40_000_000, baseRevenue: 14_000_000, stockPct: 0.34, rent: 6_000_000, wage: 75_000, minOpp: 5 },
 ];
+BIZ_KINDS.push(...EXTRA_BIZ);
 export const BIZ_BY_ID = Object.fromEntries(BIZ_KINDS.map((b) => [b.id, b])) as Record<string, BizKind>;
 
 const sc = (p: Player, n: number) => n * Math.pow(p.index, 0.92);
@@ -207,15 +210,84 @@ export function valuation(p: Player, b: Business): number {
   return Math.round(Math.max(sc(p, k.startCost) * 0.25 * b.level, b.lastMonthProfit * 12 * 2.2));
 }
 
-export function sellBusiness(p: Player, id: string): string {
+const BUYER_NOTES = {
+  lowball: [{ en: "'Business is slow these days. This is my best.'", pcm: "'Business slow these days. Na my best be this.'" }, { en: "'I will take it off your hands today. Cash.'", pcm: "'I go carry am today. Cash.'" }],
+  fair: [{ en: "'I have looked at your books. This is a fair price.'", pcm: "'I don check your book. Na fair price be this.'" }, { en: "'My accountant says this is reasonable.'", pcm: "'My accountant talk say e reasonable.'" }],
+  keen: [{ en: "'I love the location and the name. I am prepared to pay well.'", pcm: "'I love the location and the name. I fit pay well.'" }, { en: "'A friend told me about you. I want it.'", pcm: "'Friend tell me about you. I want am.'" }],
+  instalment: [{ en: "'Half now, half in six months. I am good for it.'", pcm: "'Half now, half after six months. I go pay.'" }, { en: "'My uncle is sending money from abroad. Give me time.'", pcm: "'My uncle dey send money from abroad. Give me time.'" }],
+} as const;
+
+/** Look for buyers. What they offer depends on profit, fame and quality, and not every buyer is honest. */
+export function listForSale(p: Player, id: string): string {
+  const b = find(p, id);
+  if (!b) return "";
+  if (b.offers?.length) return T("Buyers are already waiting. Look at their offers.", "Buyers don dey wait. Look their offer.");
+  const fee = Math.round(valuation(p, b) * 0.01);
+  if (p.money < fee) return T(`A broker's fee of ${naira(fee)} is due first.`, `Broker fee ${naira(fee)} must enter first.`);
+  transact(p, { amount: -fee, reason: T(`Broker fee for selling ${b.name}`, `Broker fee for selling ${b.name}`), category: "business" });
+  const v = valuation(p, b);
+  const appeal = 0.85 + b.quality / 300 + (b.fame ?? 20) / 400 + (b.lastMonthProfit > 0 ? 0.08 : -0.08);
+  const types: BizOffer["type"][] = ["lowball", "fair", chance(0.5 + (b.fame ?? 20) / 200) ? "keen" : "instalment"];
+  if (chance(0.35)) types.push("lowball");
+  b.offers = types.map((type) => {
+    const mult = type === "lowball" ? rand(0.45, 0.72) : type === "fair" ? rand(0.82, 1.02) : type === "keen" ? rand(1.02, 1.32) : rand(0.95, 1.2);
+    const notes = BUYER_NOTES[type];
+    return { id: uid(), buyer: randomName(p.tribe, chance(0.5) ? "male" : "female"), type, amount: Math.round(v * mult * appeal), patience: type === "keen" ? 1 : 2, note: notes[Math.floor(rand(0, notes.length))] };
+  });
+  return T("Word gets around. Buyers come to look at the business.", "Word don waka. Buyers come look the business.");
+}
+
+export function haggleOffer(p: Player, id: string, offerId: string): string {
+  const b = find(p, id);
+  const o = b?.offers?.find((x) => x.id === offerId);
+  if (!b || !o) return "";
+  if (o.patience <= 0 || chance(0.22)) {
+    b.offers = b.offers!.filter((x) => x.id !== offerId);
+    return T(`${o.buyer} walks away: 'I do not have time for this.'`, `${o.buyer} waka comot: 'I no get time for this one.'`);
+  }
+  o.patience -= 1;
+  if (chance(o.type === "keen" ? 0.75 : 0.55)) { o.amount = Math.round(o.amount * rand(1.06, 1.16)); return T(`${o.buyer} raises the offer to ${naira(o.amount)}.`, `${o.buyer} raise offer reach ${naira(o.amount)}.`); }
+  return T(`${o.buyer} will not move: 'That is my price.'`, `${o.buyer} no move: 'Na my price be that.'`);
+}
+
+export function acceptOffer(p: Player, id: string, offerId: string): string {
   const i = p.businesses.findIndex((x) => x.id === id && x.status === "open");
   if (i < 0) return "";
   const b = p.businesses[i];
-  const v = valuation(p, b);
-  transact(p, { amount: v, reason: T(`Sold ${b.name}`, `Sell ${b.name}`), category: "business" });
+  const o = b.offers?.find((x) => x.id === offerId);
+  if (!o) return "";
+  let paid = o.amount;
+  let extra = "";
+  if (o.type === "instalment") {
+    paid = Math.round(o.amount * 0.5);
+    if (chance(0.7)) { p.pendingSale = { amount: o.amount - paid, months: 6, from: o.buyer }; extra = T(` The rest (${naira(o.amount - paid)}) is due in six months.`, ` The rest (${naira(o.amount - paid)}) go land after six months.`); }
+    else extra = T(" The second half never arrives. You have lost it.", " The second half no come. E don loss.");
+  }
+  transact(p, { amount: paid, reason: T(`Sold ${b.name} to ${o.buyer}`, `Sell ${b.name} to ${o.buyer}`), category: "business" });
   p.businesses.splice(i, 1);
-  p.prestige += 0;
-  return T(`You sold ${b.name} for ${naira(v)}.`, `You sell ${b.name} for ${naira(v)}.`);
+  return T(`You sell ${b.name} to ${o.buyer} for ${naira(paid)} up front.${extra}`, `You sell ${b.name} to ${o.buyer} for ${naira(paid)} first.${extra}`);
+}
+
+export function declineOffers(p: Player, id: string): string {
+  const b = find(p, id);
+  if (!b) return "";
+  b.offers = undefined;
+  return T("You turn the buyers away.", "You send the buyers go.");
+}
+
+/** Pays the second half of an instalment sale. Called once a month. */
+export function saleMonth(p: Player, lines: string[]) {
+  const s = p.pendingSale;
+  if (!s) return;
+  s.months -= 1;
+  if (s.months > 0) return;
+  transact(p, { amount: s.amount, reason: T(`Balance of the sale from ${s.from}`, `Balance of sale from ${s.from}`), category: "business" });
+  lines.push(T(`${s.from} pays the balance: ${naira(s.amount)}.`, `${s.from} pay the balance: ${naira(s.amount)}.`));
+  p.pendingSale = undefined;
+}
+
+export function sellBusiness(p: Player, id: string): string {
+  return listForSale(p, id);
 }
 
 export function closeBusiness(p: Player, id: string): string {

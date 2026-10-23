@@ -4,7 +4,7 @@ import { capacityOf, primaryProvider } from "./family";
 import { jobDef, stateOf } from "./helpers";
 import { coverShortfall, monthIndex, transact } from "./ledger";
 import { adjustCredit, processLoansMonth, totalDebt } from "./loans";
-import { businessMonth } from "./business";
+import { businessMonth, saleMonth } from "./business";
 import { growthMonth, skillPayBonus } from "./life";
 import { healthMonth, incomeFactor } from "./health";
 import { spouseMonth } from "./relationships";
@@ -126,6 +126,7 @@ function prisonMonth(p: Player, ctx: MonthCtx) {
   for (const s of p.subs) transact(p, { amount: -s.monthly * Math.pow(p.index, 0.9), reason: s.label, category: s.category, recurring: s.id });
   marketMonth(p, ctx.lines);
   businessMonth(p, ctx.lines);
+  saleMonth(p, ctx.lines);
   vehicleMonth(p, ctx.lines);
   healthMonth(p, ctx.lines, ctx.pending);
   processLoansMonth(p, ctx.lines, ctx.pending);
@@ -224,6 +225,7 @@ function monthTick(p: Player, ctx: MonthCtx) {
   marketMonth(p, ctx.lines);
   socialMonth(p, ctx.lines);
   businessMonth(p, ctx.lines);
+  saleMonth(p, ctx.lines);
   vehicleMonth(p, ctx.lines);
   healthMonth(p, ctx.lines, ctx.pending);
   processLoansMonth(p, ctx.lines, ctx.pending);
