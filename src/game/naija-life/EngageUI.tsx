@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { GOAL_BY_ID, UNLOCK_GOAL, challengeFor, gistFor, weekId, type Challenge } from "./engage";
-import { shareCard } from "./share";
+import { shareCard, type CardFormat } from "./share";
+import { avatarSvg } from "./avatarSvg";
 import { Avatar } from "./Avatar";
 import { buildObituary } from "./obituary";
 import type { Mourner, Obituary } from "./types";
@@ -62,9 +63,9 @@ export function sanitizeLook(l: Look, unlocked: Set<string>): Look {
 export function MomentsPanel({ p }: { p: Player }) {
   const [msg, setMsg] = useState("");
   const moments = [...(p.moments ?? [])].reverse();
-  const share = async (m: NonNullable<Player["moments"]>[number]) => {
+  const share = async (m: NonNullable<Player["moments"]>[number], story = false) => {
     const caption = p.lang === "en" ? m.en : m.pcm;
-    const r = await shareCard({ kicker: "Naija Life", title: `${m.emoji} ${m.title}`, stats: [{ label: T("Age", "Age"), value: String(m.age) }, { label: T("Net worth", "Net worth"), value: naira(p.peakWorth || p.money) }], lines: [caption, `${p.name} ${p.surname}`], footer: T("Play Naija Life", "Play Naija Life") }, `${caption} #NaijaLife`);
+    const r = await shareCard({ kicker: T("A moment from my life", "Moment from my life"), emoji: m.emoji, title: m.title, subtitle: `${p.name} ${p.surname}`, avatarSvg: avatarSvg(p.look, p.gender, m.age), stats: [{ label: T("Age", "Age"), value: String(m.age) }, { label: T("Net worth", "Net worth"), value: naira(p.peakWorth || p.money) }], lines: [caption], footer: "#NaijaLife" }, `${caption} #NaijaLife`, story ? "story" : "post");
     setMsg(r === "shared" ? T("Shared!", "Shared!") : T("Card ready. Save it or screenshot it!", "Card don ready. Save am or take screenshot!"));
   };
   return (
@@ -76,7 +77,7 @@ export function MomentsPanel({ p }: { p: Player }) {
           <div key={m.id} className="rounded-xl bg-slate-50 p-3">
             <div className="flex items-center justify-between"><span className="text-sm font-extrabold text-[#0b2a6b]">{m.emoji} {m.title}</span><Badge>{T("Age", "Age")} {m.age}</Badge></div>
             <p className="mt-1 text-[13px] leading-snug text-slate-700">{p.lang === "en" ? m.en : m.pcm}</p>
-            <Btn small tone="gold" className="mt-2" onClick={() => share(m)}>{T("Share", "Share")}</Btn>
+            <div className="mt-2 flex gap-1.5"><Btn small tone="gold" onClick={() => share(m)}>{T("Share post", "Share post")}</Btn><Btn small tone="ghost" onClick={() => share(m, true)}>{T("Story size", "Story size")}</Btn></div>
           </div>
         ))}
       </div>
@@ -172,22 +173,26 @@ export function useObituary(p: Player): Obituary {
   return o;
 }
 
-export async function shareObituary(p: Player, o: Obituary): Promise<"shared" | "downloaded"> {
+export async function shareObituary(p: Player, o: Obituary, format: CardFormat = "post"): Promise<"shared" | "downloaded"> {
   const L = (b: { en: string; pcm: string }) => (p.lang === "en" ? b.en : b.pcm);
   const lines = [L(o.headline), L(o.tagline), o.guests[0] ? L(o.guests[0]) : "", L(o.epitaph)].filter(Boolean);
   return shareCard(
     {
-      kicker: T("Naija Life · Funeral report", "Naija Life · Funeral report"),
-      title: `${o.tag.emoji} ${p.name} ${p.surname}`,
+      kicker: T("Funeral report", "Funeral report"),
+      emoji: o.tag.emoji,
+      title: `${p.name} ${p.surname}`,
+      subtitle: p.lang === "en" ? o.tag.en : o.tag.pcm,
+      avatarSvg: avatarSvg(p.look, p.gender, p.age),
       stats: [
-        { label: T("Verdict", "Verdict"), value: p.lang === "en" ? o.tag.en : o.tag.pcm },
-        { label: T("Turnout", "Turnout"), value: T(`${o.turnout.came} of ${o.turnout.expected} came`, `${o.turnout.came} of ${o.turnout.expected} come`) },
+        { label: T("Lived", "Lived"), value: T(`${p.age} years`, `${p.age} years`) },
+        { label: T("Turnout", "Turnout"), value: `${o.turnout.came}` },
         { label: T("Life rating", "Life rating"), value: `${o.rating}/100` },
       ],
       lines,
-      footer: "Naija Life",
+      footer: "#NaijaLife",
     },
     `${o.tag.emoji} ${p.name} ${p.surname}: ${p.lang === "en" ? o.tag.en : o.tag.pcm}. ${L(o.tagline)} #NaijaLife`,
+    format,
   );
 }
 

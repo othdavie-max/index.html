@@ -1136,7 +1136,7 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
   const [msg, setMsg] = useState("");
   const obit = useObituary(p);
   const share = async () => {
-    const r2 = await shareObituary(p, obit);
+    const r2 = await shareObituary(p, obit, "post");
     setMsg(r2 === "shared" ? T("Shared!", "Shared!") : T("Card ready. Save it or screenshot it!", "Card don ready. Save am or take screenshot!"));
   };
   const shareLegacy = async () => {
@@ -1180,6 +1180,7 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
           </>
         )}
         <Btn tone="gold" className="w-full" onClick={share}>{T("Share the funeral report", "Share the funeral report")}</Btn>
+        <Btn tone="ghost" className="w-full" onClick={async () => { const r3 = await shareObituary(p, obit, "story"); setMsg(r3 === "shared" ? T("Shared!", "Shared!") : T("Card ready. Save it or screenshot it!", "Card don ready. Save am or take screenshot!")); }}>{T("Share as a story (9:16)", "Share as story (9:16)")}</Btn>
         <Btn tone="ghost" className="w-full" onClick={shareLegacy}>{T("Share the legacy card", "Share the legacy card")}</Btn>
         {msg && <p className="text-center text-xs text-emerald-600">{msg}</p>}
       </div>
