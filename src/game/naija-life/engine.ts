@@ -56,6 +56,7 @@ import { kidLook, lookToStr, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
+const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
 export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
@@ -458,6 +459,7 @@ function deathChance(p: Player): number {
 const causes = () => [T("Heart attack", "Heart attack"), T("Stroke", "Stroke"), T("Complications of malaria", "Malaria complications"), T("A short illness", "Short sickness"), T("Kidney failure", "Kidney failure"), T("Typhoid complications", "Typhoid complications"), T("Hypertension", "High blood pressure")];
 
 function schoolTick(p: Player, lines: string[], pending: Pending[]) {
+  if (p.prison > 0) return;
   if (!p.school && p.age === 6 && p.edu === "none") {
     p.school = { stage: "primary", yearsLeft: 6, type: "school" };
     assignSchoolType(p);
@@ -509,6 +511,7 @@ export function ageUp(g0: Game): Game {
   const p = g.p;
   setLang(p.lang);
   if (!p.alive || g.queue.length > 0) return g;
+  const wasInside = p.prison > 0;
   p.age += 1;
   p.actionsLeft = 3 + (p.politics && p.politics.office >= 2 ? 1 : 0);
   const lines: string[] = [];
@@ -599,15 +602,16 @@ export function ageUp(g0: Game): Game {
   // Random life events
   const used = new Set<string>(pending.flatMap((x) => (x.kind === "event" ? [x.id] : [])));
   if (p.age >= 6 && p.prison >= 0) {
-    const tries = p.prison > 0 ? 1 : chance(p.age < 13 ? 0.28 : 0.7) ? 1 : 0;
+    const inside = p.prison > 0;
+    const tries = inside ? 1 : chance(p.age < 13 ? 0.28 : 0.7) ? 1 : 0;
     for (let i = 0; i < tries; i++) {
-      const ev = weightedPick(ALL_EVENTS.filter((e) => !used.has(e.id) && eligible(p, e.id)).map((e) => ({ item: e, w: e.weight(p) })));
+      const ev = weightedPick(ALL_EVENTS.filter((e) => !used.has(e.id) && eligible(p, e.id) && (!inside || PRISON_EVENT_IDS.has(e.id))).map((e) => ({ item: e, w: e.weight(p) })));
       if (ev) {
         used.add(ev.id);
         pending.push({ kind: "event", id: ev.id, data: { ...(ev.init ? ev.init(p) : {}), month: randInt(1, 12) } });
       }
     }
-    const autos = chance(0.55) ? 2 : 1;
+    const autos = inside ? 0 : chance(0.55) ? 2 : 1;
     const taken = new Set<string>();
     for (let i = 0; i < autos; i++) {
       const au = weightedPick(ALL_AUTOS.filter((a) => !taken.has(a.id) && eligible(p, a.id)).map((a) => ({ item: a, w: a.weight(p) })));
@@ -636,7 +640,13 @@ export function ageUp(g0: Game): Game {
     p.cause = p.age >= 66 ? T("Old age", "Old age") : pick(causes());
   }
 
-  nyscYear(p, lines, pending);
+  if (p.prison > 0) {
+    for (let i = pending.length - 1; i >= 0; i--) {
+      const x = pending[i];
+      if (x.kind === "event" && !PRISON_EVENT_IDS.has(x.id)) pending.splice(i, 1);
+    }
+  }
+  nyscYear(p, lines, pending, wasInside);
   refreshPeople(p);
   engageYear(p, lines);
   p.traveled = false;
@@ -656,6 +666,7 @@ export function ageUp(g0: Game): Game {
 function prune(g: Game) {
   g.queue = g.queue.filter((pe) => {
     if (pe.kind !== "event") return true;
+    if (g.p.prison > 0 && !PRISON_EVENT_IDS.has(pe.id)) return false;
     const def = EVENT_DEFS[pe.id];
     return Boolean(def) && (!def.valid || def.valid(g.p));
   });

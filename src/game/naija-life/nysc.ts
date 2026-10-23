@@ -272,11 +272,11 @@ function passOut(q: Player): string {
 }
 
 /** Called each ageUp: queues the year's stories and the pass-out, or cancels service if the year was lost. */
-export function nyscYear(p: Player, lines: string[], pending: Pending[]) {
+export function nyscYear(p: Player, lines: string[], pending: Pending[], wasInside = false) {
   if (!serving(p)) return;
-  if (p.prison > 0) {
-    p.flags.nyscServing = false;
-    lines.push(T("Your service year is cut short.", "Your service year don cut short."));
+  if (wasInside || p.prison > 0) {
+    // Service is paused while locked up and resumes after release.
+    p.flags.nyscStart = Number(p.flags.nyscStart ?? p.age) + 1;
     return;
   }
   if (p.age <= Number(p.flags.nyscStart ?? p.age)) return;

@@ -39,6 +39,7 @@ import { transportOptions, tripRisk } from "../travel";
 import { makeKidnap } from "../kidnap";
 import { UNIS, MAJORS, UNI_BY_ID, MAJOR_BY_ID, offers, cutoffFor } from "../universities";
 import { enrolBlock, uniFee, openAdmission, familyCanPay, campusPay } from "../campus";
+import { PRISON_EVENTS } from "../prison";
 import { PPA_BY_ID, placeOdds, keepOdds } from "../nysc";
 import { beneficiaries, setShare, planEstate } from "../will";
 import { randomLook } from "../look";
@@ -1496,4 +1497,41 @@ test("skipping NYSC leaves no certificate and a hiring penalty", () => {
   g = pickLabel(g, /Skip NYSC/);
   assert.equal(g.p.flags.nyscSkipped, true);
   assert.equal(g.p.flags.nyscServing, undefined);
+});
+
+test("prison freezes life: no school, NYSC or ordinary events, then resumes on release", () => {
+  const g0 = graduate(11);
+  let g = pickLabel(g0, /Go and serve/);
+  g = pickLabel(g, /Skip camp/);
+  g = pickLabel(g, /Small NGO/);
+  g.p.prison = 3;
+  g.p.job = null;
+  const start = Number(g.p.flags.nyscStart);
+  const allowed = new Set(PRISON_EVENTS.map((e) => e.id));
+  for (let i = 0; i < 3; i++) {
+    g = ageUp(g);
+    assert.ok(g.p.prison === 0 || g.queue.every((x) => x.kind === "event" && allowed.has(x.id)), `non-prison event queued: ${JSON.stringify(g.queue.map((x) => x.kind === "event" && x.id))}`);
+    g = resolveAll(g);
+    if (g.p.prison > 0) assert.equal(g.p.flags.nyscServing, true);
+  }
+  assert.ok(Number(g.p.flags.nyscStart) > start, "service clock paused");
+});
+
+test("prison freezes NYSC and queued events; service resumes after release", () => {
+  let g = graduate(11);
+  g.p.prison = 2;
+  g.queue.push({ kind: "event", id: "nysc_camp", data: {} });
+  g = choose(g, 0).g;
+  assert.equal(g.queue.length, 0, "no outside events while locked up");
+
+  g = graduate(12);
+  g = pickLabel(g, /Go and serve/);
+  g = pickLabel(g, /Skip camp/);
+  g = pickLabel(g, /Small NGO/);
+  const start = Number(g.p.flags.nyscStart);
+  g.p.prison = 1;
+  g = resolveAll(ageUp(g));
+  assert.equal(g.p.flags.nyscServing, true, "service paused, not finished");
+  assert.ok(Number(g.p.flags.nyscStart) > start);
+  assert.ok(!g.queue.some((x) => x.kind === "event" && x.id.startsWith("nysc")));
 });
