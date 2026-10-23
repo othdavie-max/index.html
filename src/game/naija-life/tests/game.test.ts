@@ -1862,3 +1862,20 @@ test("hooking up, asking a friend out and the Yahoo hustle all work", async () =
   assert.ok(p.crime.heat >= before, "cashing out raises heat");
   assert.ok(y.sessionsLeft(p) <= 3 && y.sessionsLeft(p) >= 0);
 });
+
+test("every Yahoo event can be played through every choice without breaking the game", async () => {
+  const { YAHOO_EVENTS } = await import("../yahoo");
+  const g = aliveAt(25);
+  assert.ok(YAHOO_EVENTS.length >= 12);
+  for (const e of YAHOO_EVENTS) {
+    const n = e.choices({ ...g.p, job: { id: "yahoo", rank: 0, years: 0 }, money: 1e9 } as Player, e.init ? e.init(g.p) : {}).length;
+    for (let i = 0; i < n; i++) {
+      const p = structuredClone(g.p);
+      p.job = { id: "yahoo", rank: 0, years: 0 }; p.money = 1e9; p.prison = 0;
+      const d = e.init ? e.init(p) : {};
+      const c = e.choices(p, d)[i];
+      assert.ok(typeof c.run(p) === "string", `${e.id} choice ${i}`);
+      assert.ok(Number.isFinite(p.money) && p.crime.heat >= 0 && p.crime.heat <= 100, `${e.id} sane state`);
+    }
+  }
+});

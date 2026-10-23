@@ -192,7 +192,7 @@ export function yahooYear(p: Player, lines: string[], pending: import("./types")
   }
 }
 
-export const YAHOO_EVENTS: EventDef[] = [
+const BASE_YAHOO_EVENTS: EventDef[] = [
   {
     id: "efcc_raid",
     title: dual("EFCC at the door", "EFCC for door"),
@@ -220,3 +220,101 @@ export const YAHOO_EVENTS: EventDef[] = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Random moments in the life
+// ---------------------------------------------------------------------------
+const pay = (q: Player, amt: number, why: string) => { const a = Math.min(Math.max(0, q.money), Math.round(amt)); if (a > 0) transact(q, { amount: -a, reason: why, category: "crime" }); return a; };
+const earn = (q: Player, amt: number, why: string) => { const a = Math.round(amt); transact(q, { amount: a, reason: why, category: "crime" }); q.loot += a; q.flags.yahooEarned = Number(q.flags.yahooEarned ?? 0) + a; return a; };
+const cool = (q: Player, n: number) => { q.crime.heat = clamp(q.crime.heat - n); };
+const cantAfford = (p: Player, amt: number) => (p.money < amt ? T("Not enough cash", "Cash no reach") : false);
+const yev = (id: string, title: [string, string], weight: number, text: [string, string], choices: EventDef["choices"], extraValid?: (p: Player) => boolean): EventDef => ({
+  id, title: dual(title[0], title[1]), weight: (p) => (isYahoo(p) && (!extraValid || extraValid(p)) ? weight : 0), valid: isYahoo, text: () => T(text[0], text[1]), choices,
+});
+
+export const YAHOO_EXTRA: EventDef[] = [
+  yev("yahoo_owambe", ["Owambe season", "Owambe season"], 3,
+    ["A big owambe is coming and the boys are planning to spray naira like confetti. Everyone will see who is 'doing well'.", "Big owambe dey come and the boys wan spray naira like confetti. Everybody go see who dey 'do well'."],
+    (p) => [
+      { label: T("Spray big", "Spray big"), sub: naira(I(p, 1_500_000)), disabled: cantAfford(p, I(p, 1_500_000)), run: (q) => { pay(q, I(q, 1_500_000), T("Spraying at the owambe", "Spray for owambe")); bump(q, "reputation", 3); bump(q, "happiness", 6); q.crime.heat = clamp(q.crime.heat + 12); return T("You are the star of the night. Phones are out and every aunty has your name. So will EFCC.", "You be star of the night. Phones out and every aunty sabi your name. EFCC too go sabi."); } },
+      { label: T("Spray small and watch", "Spray small and watch"), sub: naira(I(p, 100_000)), run: (q) => { pay(q, I(q, 100_000), T("Spraying at the owambe", "Spray for owambe")); bump(q, "happiness", 2); return T("You show face without showing off. Wise.", "You show face without too show off. Wise."); } },
+      { label: T("Skip it", "Skip am"), run: (q) => { cool(q, 3); return T("You stay home. Nobody knows your business.", "You stay house. Nobody know your business."); } },
+    ]),
+  yev("yahoo_mugu_fights_back", ["The client is also a scammer", "Client na scammer too"], 2.5,
+    ["Your best client suddenly asks you to 'invest' in his own deal. He is running a scam of his own. Mugu of the year.", "Your best client suddenly say make you 'invest' for him own deal. E dey run him own scam. Mugu of the year."],
+    (p) => [
+      { label: T("Send some money anyway", "Send some money"), sub: naira(I(p, 2_000_000)), disabled: cantAfford(p, I(p, 2_000_000)), run: (q) => { pay(q, I(q, 2_000_000), T("Sent to a fake investor", "Send to fake investor")); bump(q, "stress", 5); return T("The 'investment' vanishes. You just got scammed by a scammer. Your boys will never let you forget it.", "The 'investment' vanish. Scammer scam you. Your boys no go let you forget."); } },
+      { label: T("Block him", "Block am"), run: (q) => { q.flags.yahooSkill = Math.min(100, skillOf(q) + 1); return T("Respect the hustle. You block him and learn something.", "Respect the hustle. You block am and learn something."); } },
+      { label: T("Report him to the platform", "Report am to the platform"), run: (q) => { q.crime.heat = clamp(q.crime.heat + 5); return T("It feels righteous, until you remember what you do for a living.", "E feel righteous, till you remember wetin you dey do."); } },
+    ], (p) => marksOf(p).length > 0),
+  yev("yahoo_mama_asks", ["Mama asks questions", "Mama dey ask question"], 3,
+    ["Your mother puts down her wrapper and looks at you. \"Which work is this? Where is all this money coming from?\" Your phone buzzes on the table.", "Your mama drop wrapper and look you. \"Which work be this? Where all this money dey come from?\" Your phone dey buzz for table."],
+    (p) => [
+      { label: T("\"IT consulting, Mama\"", "\"IT consulting, Mama\""), run: (q) => { bump(q, "stress", 3); q.family.happy = clamp(q.family.happy - 2); return T("She does not believe you but she stops asking. For now.", "She no believe but she stop to ask. For now."); } },
+      { label: T("Give her money for church", "Give her money for church"), sub: naira(I(p, 300_000)), disabled: cantAfford(p, I(p, 300_000)), run: (q) => { pay(q, I(q, 300_000), T("Gift to Mama", "Gift for Mama")); q.family.happy = clamp(q.family.happy + 4); cool(q, 3); return T("Mama prays over you for ten minutes. Questions forgotten.", "Mama pray over you for ten minutes. She forget the question."); } },
+      { label: T("Come clean", "Tell am the truth"), run: (q) => { q.family.happy = clamp(q.family.happy - 12); bump(q, "reputation", 1); bump(q, "stress", 8); return T("She cries, then prays, then asks you to stop. She means it.", "She cry, pray, then beg you to stop. She mean am."); } },
+    ]),
+  yev("yahoo_church_tithe", ["The prophet's blessing", "Prophet blessing"], 2,
+    ["The prophet has noticed your big offerings. \"The Lord has blessed you, my son. A seed of ₦1,500,000 will close every door against your enemies.\"", "Prophet don notice your big offering. \"God don bless you, my son. Seed of ₦1,500,000 go close every door for your enemies.\""],
+    (p) => [
+      { label: T("Sow the seed", "Sow the seed"), sub: naira(I(p, 1_500_000)), disabled: cantAfford(p, I(p, 1_500_000)), run: (q) => { pay(q, I(q, 1_500_000), T("Seed to the prophet", "Seed for prophet")); cool(q, 15); bump(q, "reputation", 3); return T("The church is your cover now. Nobody asks where a generous man's money comes from.", "Church don be your cover. Nobody dey ask where generous man money dey come from."); } },
+      { label: T("Give a small offering", "Give small offering"), sub: naira(I(p, 100_000)), run: (q) => { pay(q, I(q, 100_000), T("Offering", "Offering")); bump(q, "reputation", 1); return T("The prophet smiles politely. His eyes say 'not enough'.", "Prophet smile politely. Him eye talk 'e no reach'."); } },
+      { label: T("Walk away", "Waka go"), run: () => T("You leave with your money and your sins.", "You leave with your money and your sins.") },
+    ]),
+  yev("yahoo_account_frozen", ["Account restricted", "Account restricted"], 2.5,
+    ["Your bank sends an alert: your account has been restricted pending 'source of funds' documents. Your POS float is stuck too.", "Your bank send alert: dem restrict your account for 'source of funds' document. Your POS float don stuck too."],
+    (p) => [
+      { label: T("Pay an insider to release it", "Pay insider to release am"), sub: naira(I(p, 1_200_000)), disabled: cantAfford(p, I(p, 1_200_000)), run: (q) => { pay(q, I(q, 1_200_000), T("Settling a bank insider", "Settle bank insider")); cool(q, 6); return T("Your account is back in an hour. Your insider now knows too much.", "Your account return after one hour. The insider don sabi too much."); } },
+      { label: T("Use another account", "Use another account"), run: (q) => { q.crime.heat = clamp(q.crime.heat + 8); const l = pay(q, q.money * 0.1, T("Fees on the cousin's account", "Fees for cousin account")); return T(`You route things through a cousin's account. ${naira(l)} in 'fees', and one more person in trouble if this goes wrong.`, `You route am through cousin account. ${naira(l)} for 'fees', and one more person wey fit enter trouble.`); } },
+      { label: T("Wait it out", "Wait am out"), run: (q) => { bump(q, "stress", 5); q.crime.heat = clamp(q.crime.heat + 4); return T("Three weeks of begging the bank. They keep your name on a list.", "Three weeks of begging bank. Dem don put your name for list."); } },
+    ]),
+  yev("yahoo_apprentice", ["A small boy wants to learn", "Small boy wan learn"], 2,
+    ["A younger guy from the street keeps following you. \"Oga, teach me the work. I will do anything.\"", "Small guy from street dey follow you. \"Oga, teach me the work. I go do anything.\""],
+    (p) => [
+      { label: T("Train him", "Train am"), sub: T("He pays a cut, but he talks too much", "E go pay cut, but e dey talk too much"), run: (q) => { const a = earn(q, I(q, rand(300_000, 900_000)), T("Cut from your apprentice", "Cut from your apprentice")); q.crime.heat = clamp(q.crime.heat + 7); return chance(0.2) ? T(`He pays ${naira(a)}, then brags about you at a bar. The heat is up.`, `He pay ${naira(a)}, then e brag about you for bar. Heat don rise.`) : T(`He brings in ${naira(a)} in his first month.`, `E bring ${naira(a)} for first month.`); } },
+      { label: T("Send him away", "Send am go"), run: (q) => { bump(q, "reputation", 1); return T("Not your wahala. He finds someone else.", "No be your wahala. E go find another person."); } },
+      { label: T("Tell him to go to school", "Tell am go school"), run: (q) => { bump(q, "happiness", 3); bump(q, "reputation", 2); return T("He looks at you like you are mad. Then he goes. Years later he thanks you.", "E look you like say you mad. Then e go. Years later e thank you."); } },
+    ]),
+  yev("yahoo_whale", ["The big client", "The big client"], 1.8,
+    ["A 'client' abroad has real money, lots of it, and wants to move fast. This is the kind of thing that changes your life, or ends it.", "One 'client' abroad get real money, plenty, and wan move fast. This kind thing fit change your life, or end am."],
+    (p) => [
+      { label: T("Go all in", "Go all in"), sub: T("Huge payout, huge heat", "Huge money, huge heat"), run: (q) => { if (chance(0.5 + skillOf(q) / 300 + kitLevel(q) * 0.04)) { const a = earn(q, I(q, rand(15_000_000, 70_000_000)), T("Fraud proceeds", "Fraud proceeds")); q.crime.heat = clamp(q.crime.heat + 25); bump(q, "stress", 6); return T(`It works: ${naira(a)}. You will need to disappear for a while.`, `E work: ${naira(a)}. You go need disappear for small time.`); } q.crime.heat = clamp(q.crime.heat + 30); return T("It collapses. The client was a decoy. Your name is somewhere it should not be.", "E collapse. The client na decoy. Your name dey where e no suppose dey."); } },
+      { label: T("Take a smaller slice", "Take small slice"), run: (q) => { const a = earn(q, I(q, rand(2_000_000, 8_000_000)), T("Fraud proceeds", "Fraud proceeds")); q.crime.heat = clamp(q.crime.heat + 10); return T(`You settle for ${naira(a)} and keep your head down.`, `You take ${naira(a)} and keep your head down.`); } },
+      { label: T("Pass", "Pass"), run: (q) => { cool(q, 4); return T("Too good to be true usually is. Even in this business.", "Too good to be true no dey true. Even for this business."); } },
+    ], (p) => skillOf(p) >= 25),
+  yev("yahoo_boys_crew", ["The crew", "The crew"], 2,
+    ["A group of boys runs a 'big setup' in a rented flat: shared laptops, shared clients, shared risk. They want you in.", "Some boys dey run 'big setup' for rented flat: shared laptop, shared client, shared risk. Dem wan carry you join."],
+    (p) => [
+      { label: T("Join the crew", "Join the crew"), sub: T("More income, more heat", "More money, more heat"), run: (q) => { const a = earn(q, I(q, rand(1_000_000, 4_000_000)), T("Crew share", "Crew share")); q.crime.heat = clamp(q.crime.heat + 12); q.flags.yahooSkill = Math.min(100, skillOf(q) + 3); return T(`The first month pays ${naira(a)}. You also learn faster. But if one of them is caught, you are all in the same boat.`, `First month pay ${naira(a)}. You learn faster too. But if one catch, una dey the same boat.`); } },
+      { label: T("Stay solo", "Stay solo"), run: () => T("Fewer mouths, fewer leaks.", "Fewer mouth, fewer leak.") },
+    ]),
+  yev("yahoo_friend_arrested", ["A friend is picked up", "Your friend don enter wahala"], 2,
+    ["News reaches you: one of your boys was picked up at a hotel. His girlfriend is calling you, crying. \"Please, help him.\"", "Gist reach you: one of your boys dem pick for hotel. Him girlfriend dey call you, dey cry. \"Abeg, help am.\""],
+    (p) => [
+      { label: T("Pay for his bail", "Pay him bail"), sub: naira(I(p, 1_000_000)), disabled: cantAfford(p, I(p, 1_000_000)), run: (q) => { pay(q, I(q, 1_000_000), T("Bail for a friend", "Bail for friend")); bump(q, "reputation", 2); q.crime.heat = clamp(q.crime.heat + 4); return T("He walks free and swears loyalty. You hope he means it.", "E waka comot and swear loyalty. You hope e mean am."); } },
+      { label: T("Delete his number", "Delete him number"), run: (q) => { cool(q, 5); bump(q, "reputation", -3); bump(q, "stress", 4); return T("You wipe the chats and change your SIM. He will remember that.", "You wipe chat and change SIM. E go remember that one."); } },
+      { label: T("Do nothing", "Do nothing"), run: (q) => { q.crime.heat = clamp(q.crime.heat + 5); return T("You wait. Nobody calls. Which is its own kind of scary.", "You wait. Nobody call. That one too dey scary."); } },
+    ]),
+  yev("yahoo_spiritualist", ["The spiritualist", "The spiritualist"], 1.5,
+    ["Someone swears by a 'spiritual man' in Ibadan who sells charms to 'blind EFCC's eyes'. It costs a lot and nobody has any proof.", "Person swear for one 'spiritual man' for Ibadan wey dey sell charm to 'blind EFCC eye'. E cost well and nobody get proof."],
+    (p) => [
+      { label: T("Pay for the charm", "Pay for the charm"), sub: naira(I(p, 800_000)), disabled: cantAfford(p, I(p, 800_000)), run: (q) => { pay(q, I(q, 800_000), T("A 'protective' charm", "'Protection' charm")); bump(q, "stress", -5); return chance(0.15) ? T("Somehow a whole month passes with no problems. You tell everyone it works.", "A whole month pass with no wahala. You tell everybody say e work.") : T("You feel protected. That is all you got for the money.", "You feel protected. Na only that you get for the money."); } },
+      { label: T("Laugh and leave", "Laugh and leave"), run: (q) => { q.flags.yahooSkill = Math.min(100, skillOf(q) + 0.5); return T("You keep your money and your focus.", "You keep your money and your focus."); } },
+    ]),
+  yev("yahoo_neighbours", ["Nosy neighbours", "Nosy neighbours"], 2.5,
+    ["The woman downstairs asks again where you work. You have a new generator, three phones and a car that does not belong to anyone who 'works at a bank'.", "Woman for downstairs ask again where you dey work. You get new generator, three phones and motor wey no be bank staff own."],
+    (p) => [
+      { label: T("Give her a gift", "Give her gift"), sub: naira(I(p, 200_000)), disabled: cantAfford(p, I(p, 200_000)), run: (q) => { pay(q, I(q, 200_000), T("A gift for the neighbour", "Gift for neighbour")); cool(q, 3); return T("She becomes your biggest supporter. 'He is a good boy', she tells everyone.", "She turn your biggest supporter. 'Na good boy', she dey tell everybody."); } },
+      { label: T("Move to a new area", "Move go new area"), sub: naira(I(p, 600_000)), disabled: cantAfford(p, I(p, 600_000)), run: (q) => { pay(q, I(q, 600_000), T("Moving costs", "Moving cost")); cool(q, 10); return T("A new flat, a new story. Nobody here knows you.", "New flat, new story. Nobody here know you."); } },
+      { label: T("Ignore her", "Ignore her"), run: (q) => { q.crime.heat = clamp(q.crime.heat + 5); return T("Her questions turn into rumours.", "Her questions turn rumour."); } },
+    ]),
+  yev("yahoo_police_checkpoint", ["Checkpoint", "Checkpoint"], 2.5,
+    ["Officers wave you down at a checkpoint at night. \"Open your phone. Show us your chats.\" Your screen is full of 'work' messages.", "Police wave you down for checkpoint for night. \"Open your phone. Show us your chat.\" Your screen full of 'work' message."],
+    (p) => [
+      { label: T("Settle them", "Settle them"), sub: naira(I(p, 150_000)), disabled: cantAfford(p, I(p, 150_000)), run: (q) => { pay(q, I(q, 150_000), T("Settling at a checkpoint", "Settle for checkpoint")); return T("They pocket the money and let you pass: 'Next time, be careful'.", "Dem collect money and let you pass: 'Next time, take care'."); } },
+      { label: T("Refuse and argue", "Refuse and argue"), run: (q) => { if (chance(0.4)) { q.crime.cases.push({ id: uid(), charge: T("Online fraud and scams", "Online fraud and scam"), severity: 2, stage: "arrested", openedAge: q.age, evidence: 50, lawyer: "none", loot: Number(q.flags.yahooEarned ?? 0), remand: false, confessed: false, trialAge: q.age + 1 }); return T("They take you to the station and examine the phone. A case is opened.", "Dem carry you go station and check the phone. Dem open case."); } bump(q, "stress", 5); return T("They get tired of you and let you go, with a threat.", "Dem tire for you and let you go, with threat."); } },
+      { label: T("Wipe the phone before they take it", "Wipe the phone before dem collect am"), run: (q) => { if (chance(0.5)) { cool(q, 6); return T("Clean as a whistle. They find nothing and are annoyed about it.", "Clean pass whistle. Dem no see anything and dem vex."); } q.crime.heat = clamp(q.crime.heat + 10); return T("They see you deleting. That is worse.", "Dem see you dey delete. That one worse."); } },
+    ]),
+];
+
+export const YAHOO_EVENTS: EventDef[] = [...BASE_YAHOO_EVENTS, ...YAHOO_EXTRA];
