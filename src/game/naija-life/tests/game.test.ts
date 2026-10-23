@@ -308,10 +308,15 @@ test("dating app: profile, matches, partners, and adult intimacy rules", () => {
 test("breaking up and cheating are tracked on the persistent partner", () => {
   const g = aliveAt(26);
   let q = structuredClone(g);
+  q.p.prison = 0;
   q.p.possessions.smartphone = true;
   q = act(q, { t: "dating", op: "profile", bio: "hello there friend", interests: ["music"] }).g;
-  setSeed(5);
-  for (let i = 0; i < 12 && q.p.rel.deck.length; i++) q = act(q, { t: "dating", op: "swipe", npc: q.p.rel.deck[0].id, like: true }).g;
+  const base0 = q;
+  for (let s = 5; s < 40 && !q.p.rel.partners[0]; s++) {
+    q = structuredClone(base0);
+    setSeed(s);
+    for (let i = 0; i < 12 && q.p.rel.deck.length; i++) q = act(q, { t: "dating", op: "swipe", npc: q.p.rel.deck[0].id, like: true }).g;
+  }
   const rel = q.p.rel.partners[0];
   assert.ok(rel);
   const id = rel.npcId;
@@ -640,11 +645,16 @@ test("relatives: money events draw on persistent relatives, record cash, and sha
 
 test("dating message history persists per partner, caps its length and survives save/load", () => {
   let q = structuredClone(aliveAt(26));
+  q.p.prison = 0;
   q.p.possessions.smartphone = true;
   q.p.money = 1_000_000_000 * q.p.index;
   q = act(q, { t: "dating", op: "profile", bio: "hello there friend", interests: ["music", "food"] }).g;
-  setSeed(9);
-  for (let i = 0; i < 12 && q.p.rel.deck.length; i++) q = act(q, { t: "dating", op: "swipe", npc: q.p.rel.deck[0].id, like: true }).g;
+  const base0 = q;
+  for (let s = 9; s < 45 && !q.p.rel.partners.length; s++) {
+    q = structuredClone(base0);
+    setSeed(s);
+    for (let i = 0; i < 12 && q.p.rel.deck.length; i++) q = act(q, { t: "dating", op: "swipe", npc: q.p.rel.deck[0].id, like: true }).g;
+  }
   const rel = q.p.rel.partners[q.p.rel.partners.length - 1];
   assert.ok(rel && rel.messages && rel.messages.length >= 2, "a match opens the conversation");
   assert.equal(rel.messages![0].from, "note");

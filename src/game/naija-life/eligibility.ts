@@ -66,7 +66,7 @@ export const GATES: Record<string, Gate> = {
   deployment: { minAge: 18, needs: ["job"] },
   retire_option: { minAge: 38, needs: ["job"] },
   friend_request: { minAge: 14 },
-  friend_help: { minAge: 14 },
+  friend_help: { minAge: 18 },
   sibling_ask: { minAge: 14 },
   unexpected_inheritance: { minAge: 22 },
   boarding_incident: { minAge: 10, maxAge: 18, needs: ["school"] },

@@ -6,7 +6,7 @@ import { Avatar } from "./Avatar";
 import type { Action } from "./engine";
 import { BET_KINDS, betBlock, betProfit } from "./betting";
 import { profileOf } from "./bizProfiles";
-import { BIZ_KINDS, BIZ_BY_ID, actBlock, actCost, hireCost, leverIdx, startBlock, startCostFor, upgradeCost, valuation, workerPay } from "./business";
+import { BIZ_KINDS, BIZ_BY_ID, actBlock, actCost, hireCost, leverFees, leverIdx, scaleCost, startBlock, startCostFor, upgradeCost, valuation, workerPay } from "./business";
 import { CRIMES, crimeBlock } from "./crime";
 import { HOME_TIERS, HOUSE_KINDS, LUXURIES, STATE_BY_ID } from "./data";
 import { mortgageBalance, mortgageQuote } from "./mortgage";
@@ -21,7 +21,7 @@ import { developBlock, developCost, developOptions, listingBlock, planQuote } fr
 import { TIER_LABEL, locationOf, marketMid } from "./locations";
 import { STAGE_LABEL, activePartners, adoptBlock, dateCost, datingAllowed, divorceBlock, fertilityBlock, intimacyBlock, relHint } from "./relationships";
 import { CONTENT, PLATFORMS, postBlock, socialBlock, totalFollowers } from "./social";
-import { VEHICLE_MODELS, licenseBlock, licenseCost, modelOf, needsLicense, priceOf, repairCost, isInsured } from "./vehicles";
+import { VEHICLE_MODELS, licenseBlock, licenseCost, modelOf, needsLicense, priceOf, repairCost, isInsured, servicePlan, conditionLabel } from "./vehicles";
 import { VehicleArt } from "./VehicleArt";
 import { UNI_BY_ID } from "./universities";
 import { beneficiaries, currentShares, totalPct } from "./will";
@@ -482,7 +482,7 @@ export function NetWorthCard({ p }: { p: Player }) {
   );
 }
 
-export function HousingCard({ p, run }: { p: Player; run: Run }) {
+export function HousingCard({ p, run, onBuy }: { p: Player; run: Run; onBuy?: () => void }) {
   const h = p.housing;
   const st = STATE_BY_ID[p.state];
   return (
@@ -493,6 +493,11 @@ export function HousingCard({ p, run }: { p: Player; run: Run }) {
           desc={h.type === "family" || h.type === "owned" ? undefined : T(`${naira(h.annualRent)}/yr`, `${naira(h.annualRent)}/yr`)}
           note={h.arrears > 0 ? T(`Rent arrears: ${naira(h.arrears)}. You could be evicted.`, `Rent arrears: ${naira(h.arrears)}. Dem fit throw you out.`) : undefined} />
       </ListGroup>
+      {p.age >= 18 && !st.abroad && onBuy && (
+        <ListGroup title={T("Own a home", "Get your own house")}>
+          <ListRow emoji="🏡" tile="bg-orange-100" name={T("Buy a house or plot", "Buy house or plot")} desc={T("Starter shacks and plots from a few million, mortgages for bigger homes", "Starter shack and plot from small million, mortgage for bigger house")} onClick={onBuy} />
+        </ListGroup>
+      )}
       {p.age >= 18 && !st.abroad && (
         <ListGroup title={T("Rent a place", "Rent place")}>
           {HOME_TIERS.map((t) => <ListRow key={t.id} emoji="🏠" tile="bg-sky-100" name={t.label} desc={t.blurb} right={`${naira(I(p, t.rent) * st.cost)}/yr`} onClick={() => run({ t: "rent", tier: t.id })} />)}
@@ -563,7 +568,7 @@ export function GarageCard({ p, run }: { p: Player; run: Run }) {
                 <div className="w-14 shrink-0"><VehicleArt art={m?.art ?? "sedan"} color={m?.color ?? "#64748b"} size={56} /></div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[14px] font-extrabold text-[#0b2a6b]">{v.name} <span className="font-medium text-slate-500">({m ? CAT_ONE[m.cat]() : ""})</span></div>
-                  <div className="text-[12px] text-slate-600">{naira(v.value)} · {v.condition}% · {v.role === "personal" ? T("personal", "personal") : v.role === "rental" ? T("for hire", "for hire") : v.role}</div>
+                  <div className="text-[12px] text-slate-600">{naira(v.value)} · {conditionLabel(v.condition)} · {v.role === "personal" ? T("personal", "personal") : v.role === "rental" ? T("for hire", "for hire") : v.role}</div>
                 </div>
                 <button type="button" aria-label={T("Options", "Options")} onClick={() => setOpenV(v.id)} className="shrink-0 px-2 text-xl font-black text-blue-700">⋯</button>
               </div>
@@ -605,7 +610,18 @@ export function GarageCard({ p, run }: { p: Player; run: Run }) {
       {openVeh && (
         <Sheet title={openVeh.name} onClose={() => setOpenV(null)}>
           <div className="flex justify-center"><VehicleArt art={openM?.art ?? "sedan"} color={openM?.color ?? "#64748b"} size={150} /></div>
-          <p className="mt-1 text-center text-xs text-slate-500">{naira(openVeh.value)} · {T("Condition", "Condition")} {openVeh.condition}% · {isInsured(p, openVeh) ? T("insured", "insured") : T("uninsured", "no insurance")}{openVeh.loanId ? T(" · on finance", " · dem still dey owe") : ""}</p>
+          <p className="mt-1 text-center text-xs text-slate-500">{naira(openVeh.value)} · {conditionLabel(openVeh.condition)} ({Math.round(openVeh.condition)}%) · {isInsured(p, openVeh) ? T("insured", "insured") : T("uninsured", "no insurance")}{openVeh.loanId ? T(" · on finance", " · dem still dey owe") : ""}</p>
+          <div className="mt-3">
+            <div className="mb-1 text-xs font-semibold text-slate-500">{T("Servicing plan", "Service plan")}</div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {([0, 1, 2] as const).map((lv) => (
+                <button key={lv} onClick={() => run({ t: "car", op: `service${lv}` as "service0", id: openVeh.id })} className={`rounded-xl border px-2 py-1.5 text-xs font-semibold ${servicePlan(openVeh) === lv ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600"}`}>
+                  {lv === 0 ? T("None", "None") : lv === 1 ? T("Basic", "Basic") : T("Full", "Full")}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[11px] text-slate-400">{T("No servicing is free but it wears out fast and breaks down. Full costs more and lasts longest.", "No service no cost but e go spoil fast. Full service cost pass but e go last.")}</p>
+          </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
             <Btn small tone="ghost" onClick={() => run({ t: "car", op: "repair", id: openVeh.id })}>{T("Repair", "Repair")} ({naira(repairCost(p, openVeh))})</Btn>
             <Btn small tone="ghost" onClick={() => run({ t: "car", op: "insure", id: openVeh.id })}>{T("Insure", "Insure")}</Btn>
@@ -708,16 +724,8 @@ function PersonSheet({ p, npc, run, onClose }: { p: Player; npc: Npc; run: Run; 
   const askable = p.age >= 6 && npc.role !== "classmate";
   const first = npc.name.split(" ")[0];
   return (
-    <Sheet onClose={onClose}>
-      <div className="mb-3 flex items-center gap-3">
-        <Face n={npc} p={p} size={64} />
-        <div className="min-w-0 flex-1">
-          <div className="text-[17px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{npc.name}</div>
-          <div className="text-xs font-semibold text-slate-600">{roleWord(npc)} · {age}</div>
-          <div className="truncate text-[11px] text-slate-500">{npc.occupation}{npc.school ? ` · ${npc.school}` : ""}{npc.traits.length ? ` · ${npc.traits.join(", ")}` : ""}</div>
-        </div>
-        <button type="button" onClick={onClose} aria-label={T("Close", "Close")} className="rounded-full bg-slate-100 px-2.5 py-1 text-sm text-slate-500">✕</button>
-      </div>
+    <Sheet onClose={onClose} header={<div className="flex items-center gap-2.5"><Face n={npc} p={p} size={40} /><div className="min-w-0"><div className="truncate text-[16px] font-extrabold leading-tight text-[#0b2a6b]">{npc.name}</div><div className="truncate text-[11px] font-semibold text-slate-500">{roleWord(npc)} · {age}</div></div></div>}>
+      <p className="mb-3 text-xs text-slate-500">{npc.occupation}{npc.school ? ` · ${npc.school}` : ""}{npc.traits.length ? ` · ${npc.traits.join(", ")}` : ""}</p>
       <div className="mb-3 grid grid-cols-3 gap-3"><Bar label={T("Close", "Close")} value={npc.closeness} tone="gold" /><Bar label={T("Trust", "Trust")} value={npc.trust} tone="blue" /><Bar label={T("Kind", "Kind")} value={npc.generosity} tone="green" /></div>
       <ListGroup title={T("Spend time together", "Spend time together")} sub={npc.memories.length > 0 ? `${T("Remembers", "E remember")}: ${npc.memories[npc.memories.length - 1].text}` : undefined}>
         {acts.map((i) => {
@@ -929,6 +937,7 @@ function Seg({ label, value, opts, onPick, hint }: { label: string; value: numbe
   );
 }
 
+const sc0 = (p: Player, b: Business) => scaleCost(p, BIZ_BY_ID[b.kind].startCost);
 const roleLabel = (b: Business, w: { role?: string }) => { const r = profileOf(b.kind).roles.find((x) => x.id === w.role) ?? profileOf(b.kind).roles[0]; return T(r.label[0], r.label[1]); };
 
 function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Run; onClose: () => void }) {
@@ -941,6 +950,8 @@ function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Ru
   const w = crew.find((x) => x.id === workerId) ?? null;
   const prof = profileOf(b.kind);
   const [roleSheet, setRoleSheet] = useState(false);
+  const [draft, setDraft] = useState<Record<string, number>>({});
+  const fees = leverFees(p, b, draft);
   const [actId, setActId] = useState<string | null>(null);
   const act = prof.actions.find((x) => x.id === actId) ?? null;
   const offer = b.offers?.find((x) => x.id === offerId) ?? null;
@@ -974,9 +985,20 @@ function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Ru
       <ListGroup title={T("How you run it", "How you run am")} sub={T(prof.intro[0], prof.intro[1])}>
         <div className="px-3.5 pt-3">
           {prof.levers.map((l) => (
-            <Seg key={l.id} label={T(l.label[0], l.label[1])} hint={T(l.blurb[0], l.blurb[1])} value={leverIdx(b, l.id, l.def)} opts={l.opts.map((x) => T(x.label[0], x.label[1]))} onPick={(i) => run({ t: "biz", op: "lever", id: b.id, key: l.id, v: i })} />
+            <Seg key={l.id} label={T(l.label[0], l.label[1])} hint={T(l.blurb[0], l.blurb[1])} value={draft[l.id] ?? leverIdx(b, l.id, l.def)}
+              opts={l.opts.map((x, i) => `${T(x.label[0], x.label[1])}${x.fee && i !== leverIdx(b, l.id, l.def) ? ` (${naira(Math.round(sc0(p, b) * x.fee))})` : ""}`)}
+              onPick={(i) => setDraft((d) => { const nd = { ...d }; if (i === leverIdx(b, l.id, l.def)) delete nd[l.id]; else nd[l.id] = i; return nd; })} />
           ))}
         </div>
+        {Object.keys(draft).length > 0 && (
+          <div className="border-t border-slate-100 bg-blue-50/60 px-3.5 py-3">
+            <div className="mb-2 text-xs font-semibold text-blue-800">{T("You have unsaved changes. Nothing is charged until you confirm.", "You get changes wey you never save. Dem no go collect money till you confirm.")}</div>
+            <div className="flex gap-2">
+              <Btn tone="gold" onClick={() => { run({ t: "biz", op: "levers", id: b.id, sets: draft }); setDraft({}); }}>{fees > 0 ? T(`Confirm changes (${naira(fees)})`, `Confirm changes (${naira(fees)})`) : T("Confirm changes", "Confirm changes")}</Btn>
+              <Btn tone="ghost" onClick={() => setDraft({})}>{T("Discard", "Discard")}</Btn>
+            </div>
+          </div>
+        )}
         <ListRow emoji="⬆️" tile="bg-violet-100" name={b.level >= 5 ? T("Top level", "Top level") : T(`Expand to ${prof.levels[b.level][0]}`, `Expand to ${prof.levels[b.level][1]}`)} desc={b.level >= 5 ? undefined : T(`More ${(prof.unit ?? ["capacity", "capacity"])[0]}, more staff, bigger sales`, `More ${(prof.unit ?? ["capacity", "capacity"])[1]}, more staff, bigger sales`)} right={b.level >= 5 ? undefined : naira(upgradeCost(p, b))} disabled={b.level >= 5} onClick={() => run({ t: "biz", op: "upgrade", id: b.id })} />
         <ListRow emoji="🧑‍💼" tile="bg-sky-100" name={b.manager ? T("Sack the manager", "Sack manager") : T("Hire a manager", "Hire manager")} desc={b.manager ? T("They take 15% of profit", "E collect 15% of profit") : T("Own it without working in it", "Own am without working inside")} onClick={() => run({ t: "biz", op: "manager", id: b.id })} />
       </ListGroup>

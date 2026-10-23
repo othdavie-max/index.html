@@ -331,6 +331,7 @@ export function payMult(job: JobDef, st: StateInfo): number {
 // ---------------------------------------------------------------------------
 export const HOUSE_KINDS: Record<HouseKind, { label: string; build: number; rent: number }> = {
   land: { get label() { return T("Plot of land", "Plot of land"); }, build: 4_000_000, rent: 0 },
+  shack: { get label() { return T("Room-and-parlour", "Room-and-parlour"); }, build: 2_500_000, rent: 260_000 },
   apartment: { get label() { return T("Apartment", "Apartment"); }, build: 22_000_000, rent: 2_200_000 },
   bungalow: { get label() { return T("Bungalow", "Bungalow"); }, build: 10_000_000, rent: 1_100_000 },
   duplex: { get label() { return T("Duplex", "Duplex"); }, build: 35_000_000, rent: 3_500_000 },

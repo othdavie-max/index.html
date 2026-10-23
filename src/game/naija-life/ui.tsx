@@ -78,16 +78,16 @@ export function Badge({ children, tone = "gray" }: { children: ReactNode; tone?:
   return <span className={cx("inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold", t[tone])}>{children}</span>;
 }
 
-export function Sheet({ children, title, onClose }: { children: ReactNode; title?: string; onClose?: () => void }) {
+export function Sheet({ children, title, header, onClose }: { children: ReactNode; title?: string; header?: ReactNode; onClose?: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
-      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-slate-100 bg-white p-5 text-slate-800 shadow-2xl sm:rounded-3xl">
-        {title && (
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-[17px] font-extrabold tracking-tight text-[#0b2a6b]">{title}</h2>
+      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-slate-100 bg-white px-5 pb-5 pt-0 text-slate-800 shadow-2xl sm:rounded-3xl">
+        {(title || header || onClose) && (
+          <div className="sticky top-0 z-20 -mx-5 mb-3 flex items-center gap-3 border-b border-slate-100 bg-white/95 px-5 py-3 backdrop-blur">
+            <div className="min-w-0 flex-1">{header ?? (title && <h2 className="truncate text-[17px] font-extrabold tracking-tight text-[#0b2a6b]">{title}</h2>)}</div>
             {onClose && (
-              <button type="button" onClick={onClose} aria-label={T("Close", "Close")} className="rounded-full bg-slate-100 px-2.5 py-1 text-sm text-slate-500">
-                ✕
+              <button type="button" onClick={onClose} aria-label={T("Close", "Close")} className="shrink-0 rounded-full bg-slate-100 px-4 py-2 text-sm font-extrabold text-slate-700 active:bg-slate-200">
+                ✕ {T("Close", "Close")}
               </button>
             )}
           </div>
@@ -210,12 +210,11 @@ export function ListRow({ emoji, tile = "bg-slate-100", name, desc, right, onCli
 /** A bottom sheet with an emoji header, for the details and buttons behind a row. */
 export function ActionSheet({ emoji, tile = "bg-slate-100", title, sub, onClose, children }: { emoji: string; tile?: string; title: string; sub?: ReactNode; onClose: () => void; children: ReactNode }) {
   return (
-    <Sheet onClose={onClose}>
-      <div className="mb-3 flex items-center gap-3">
-        <span className={cx("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-[28px]", tile)}>{emoji}</span>
-        <div className="min-w-0 flex-1"><div className="text-[17px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{title}</div>{sub && <div className="text-xs text-slate-500">{sub}</div>}</div>
-        <button type="button" onClick={onClose} aria-label={T("Close", "Close")} className="rounded-full bg-slate-100 px-2.5 py-1 text-sm text-slate-500">✕</button>
-      </div>
+    <Sheet
+      onClose={onClose}
+      header={<div className="flex items-center gap-2.5"><span className={cx("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[20px]", tile)}>{emoji}</span><div className="min-w-0 truncate text-[16px] font-extrabold leading-tight tracking-tight text-[#0b2a6b]">{title}</div></div>}
+    >
+      {sub && <div className="mb-3 -mt-1 text-xs text-slate-500">{sub}</div>}
       {children}
     </Sheet>
   );

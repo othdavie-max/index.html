@@ -29,6 +29,15 @@ export function refreshListings(p: Player) {
       list.push({ id: uid(), loc: loc.id, stateId: loc.state, kind, condition, price: Math.round(market * factor), value: Math.round(market * worth) });
     }
   }
+  // Always keep a few starter homes and plots a young earner can reach.
+  const cheap = LOCATIONS.filter((l) => l.tier <= 2 && (l.kinds.shack || l.kinds.land));
+  for (let i = 0; i < 3 && cheap.length; i++) {
+    const loc = pick(cheap);
+    const kind: HouseKind = loc.kinds.shack && (i < 2 || !loc.kinds.land) ? "shack" : "land";
+    const range = loc.kinds[kind]!;
+    const price = priceIn(p, range);
+    list.push({ id: uid(), loc: loc.id, stateId: loc.state, kind, condition: i === 0 ? "rundown" : "fair", price: Math.round(price * (i === 0 ? 0.7 : 0.92)), value: Math.round(price * 0.88) });
+  }
   p.listings = list;
 }
 

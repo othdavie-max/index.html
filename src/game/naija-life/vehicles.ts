@@ -155,6 +155,24 @@ export function repairVehicle(p: Player, id: string): string {
   return T(`Your ${v.name} is back in shape.`, `Your ${v.name} don come back to shape.`);
 }
 
+export const servicePlan = (v: Vehicle): 0 | 1 | 2 => v.service ?? 1;
+
+export function setService(p: Player, id: string, level: 0 | 1 | 2): string {
+  const v = p.vehicles.find((x) => x.id === id);
+  if (!v) return "";
+  v.service = level;
+  return level === 0
+    ? T(`No servicing for your ${v.name}. It will wear out faster.`, `No service for your ${v.name}. E go spoil fast.`)
+    : level === 1
+      ? T(`Basic servicing for your ${v.name}.`, `Basic service for your ${v.name}.`)
+      : T(`Full servicing for your ${v.name}: costlier, but it lasts.`, `Full service for your ${v.name}: e cost more, but e go last.`);
+}
+
+/** Condition label shown in the garage. */
+export function conditionLabel(c: number): string {
+  return c >= 85 ? T("Like new", "Like new") : c >= 65 ? T("Good", "Good") : c >= 40 ? T("Worn", "E don tire") : c >= 20 ? T("Poor", "E don bad") : T("Wreck", "E don scatter");
+}
+
 export function insureVehicle(p: Player, id: string): string {
   const v = p.vehicles.find((x) => x.id === id);
   if (!v) return "";
@@ -221,8 +239,9 @@ export function vehicleMonth(p: Player, lines: string[]) {
     if (v.role === "personal") {
       const fuel = (v.luxury ? 120_000 : 45_000) * idx * (0.8 + st.cost / 4) * (model && !needsLicense(model) ? 0 : 1);
       if (fuel > 0) transact(p, { amount: -fuel, reason: T(`Fuel for your ${v.name}`, `Fuel for your ${v.name}`), category: "vehicle", recurring: v.id });
-      const maint = (v.luxury ? 60_000 : 18_000) * idx * (model && !needsLicense(model) ? 0 : 1) + v.value * upkeepPct;
-      transact(p, { amount: -maint, reason: isAircraft(model) ? T(`Crew, hangar and servicing for your ${v.name}`, `Crew, hangar and servicing for your ${v.name}`) : T(`Maintenance on your ${v.name}`, `Maintenance for your ${v.name}`), category: "vehicle", recurring: v.id });
+      const plan = servicePlan(v);
+      const maint = ((v.luxury ? 60_000 : 18_000) * idx * (model && !needsLicense(model) ? 0 : 1) + v.value * upkeepPct) * (plan === 0 ? 0 : plan === 2 ? 1.8 : 1);
+      if (maint > 0) transact(p, { amount: -maint, reason: isAircraft(model) ? T(`Crew, hangar and servicing for your ${v.name}`, `Crew, hangar and servicing for your ${v.name}`) : T(`Maintenance on your ${v.name}`, `Maintenance for your ${v.name}`), category: "vehicle", recurring: v.id });
       if (model && needsLicense(model) && !p.possessions.license) {
         transact(p, { amount: -I(p, 120_000), reason: T(`Chauffeur for your ${v.name}`, `Driver for your ${v.name}`), category: "vehicle", recurring: v.id });
       }
@@ -244,13 +263,25 @@ export function vehicleMonth(p: Player, lines: string[]) {
       transact(p, { amount: base * share, reason: T(`${v.role === "ridehail" ? "Ride-hailing" : "Taxi"} income from your ${v.name}`, `${v.role === "ridehail" ? "Ride-hailing" : "Taxi"} money from your ${v.name}`), category: "business", recurring: v.id });
       transact(p, { amount: -base * 0.32, reason: T(`Fuel and servicing for your ${v.name}`, `Fuel and servicing for your ${v.name}`), category: "vehicle", recurring: v.id });
     }
+    // Wear and tear: servicing slows it, a hard-working vehicle ages faster.
+    const plan = servicePlan(v);
+    if (plan === 2 && v.role !== "personal") {
+      transact(p, { amount: -(v.value * (upkeepPct + 0.002)), reason: T(`Full servicing for your ${v.name}`, `Full service for your ${v.name}`), category: "vehicle", recurring: v.id });
+    }
+    const hard = v.role === "personal" ? 1 : 1.5;
+    v.condition = clamp(v.condition - (plan === 0 ? rand(0.9, 2.2) : plan === 1 ? rand(0.2, 0.7) : rand(0, 0.2)) * hard, 0, 100);
     if (p.month === 1) {
       v.value = Math.round(v.value * (model?.holds ?? (v.kind === "new" ? 0.86 : 0.9)));
-      v.condition = clamp(v.condition - Math.round(rand(4, 12)), 0, 100);
     }
-    if (v.condition < 25 && chance(0.12)) {
-      lines.push(T(`Your ${v.name} is in bad shape and keeps breaking down.`, `Your ${v.name} don spoil well and e dey break down anyhow.`));
-      v.condition = clamp(v.condition - 4);
+    if (v.condition < 40 && chance(v.condition < 20 ? 0.3 : 0.12)) {
+      const fix = Math.round(v.value * 0.03 * rand(0.5, 1.5));
+      lines.push(T(`Your ${v.name} broke down on the road. Towing and quick fix: ${naira(fix)}.`, `Your ${v.name} break down for road. Tow and quick fix cost ${naira(fix)}.`));
+      transact(p, { amount: -Math.min(fix, Math.max(0, p.money)), reason: T(`Breakdown on your ${v.name}`, `Breakdown for your ${v.name}`), category: "vehicle" });
+      v.condition = clamp(v.condition - 3, 0, 100);
+      if (v.condition < 20 && v.role === "personal" && chance(0.08)) {
+        bump(p, "health", -6);
+        lines.push(T(`A brake failure in your ${v.name} landed you in hospital.`, `Brake fail for your ${v.name} carry you go hospital.`));
+      }
     }
   }
 }

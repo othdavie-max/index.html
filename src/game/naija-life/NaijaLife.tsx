@@ -628,7 +628,7 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       {sub === "wallet" && (<><NetWorthCard p={p} /><SubsCard p={p} /><LedgerCard p={p} /></>)}
       {sub === "garage" && <GarageCard p={p} run={run} />}
       {sub === "home" && (<>
-      <HousingCard p={p} run={run} />
+      <HousingCard p={p} run={run} onBuy={() => setSub("property")} />
 
       <ListGroup title={T("Build a house", "Build a house")} sub={T(`Build in ${st.name}. Land is ${st.cost >= 1.4 ? "very expensive" : st.cost >= 0.9 ? "pricey" : "cheap"} here. Travel to build elsewhere.`, `Build for ${st.name}. Land ${st.cost >= 1.4 ? "cost too much" : st.cost >= 0.9 ? "cost small" : "cheap"} here. Travel go build for another place.`)}>
         {(Object.keys(HOUSE_KINDS) as (keyof typeof HOUSE_KINDS)[]).map((k) => {

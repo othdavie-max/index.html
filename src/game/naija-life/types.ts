@@ -31,7 +31,7 @@ export interface Stats {
   fitness: number;
 }
 
-export type HouseKind = "land" | "apartment" | "bungalow" | "duplex" | "flats" | "mansion" | "plaza";
+export type HouseKind = "land" | "shack" | "apartment" | "bungalow" | "duplex" | "flats" | "mansion" | "plaza";
 export type HouseUse = "owner" | "family" | "rent" | "empty";
 export interface House {
   id: string;
@@ -411,6 +411,8 @@ export interface Vehicle {
   bought: number;
   luxury: boolean;
   loanId?: string;
+  /** Servicing plan: 0 none (it wears fast), 1 basic, 2 full. Old saves read as basic. */
+  service?: 0 | 1 | 2;
 }
 
 export interface Possessions {

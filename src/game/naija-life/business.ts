@@ -45,6 +45,7 @@ BIZ_KINDS.push(...EXTRA_BIZ);
 export const BIZ_BY_ID = Object.fromEntries(BIZ_KINDS.map((b) => [b.id, b])) as Record<string, BizKind>;
 
 const sc = (p: Player, n: number) => n * Math.pow(p.index, 0.92);
+export const scaleCost = sc;
 
 export function startCostFor(p: Player, kind: BizKind) {
   return Math.round(sc(p, kind.startCost) * (0.7 + stateOf(p).cost * 0.3));
@@ -152,6 +153,36 @@ export function setLever(p: Player, id: string, key: string, v: number): string 
   b.set![key] = v;
   if (key === "price" || key === "ads" || key === "stock") (b as unknown as Record<string, number>)[key] = v;
   return T(`${b.name}: ${l.label[0].toLowerCase()} set to ${o.label[0].toLowerCase()}.`, `${b.name}: ${l.label[1].toLowerCase()} don change to ${o.label[1].toLowerCase()}.`);
+}
+
+/** The set-up cost of a batch of changes. Options you already have cost nothing. */
+export function leverFees(p: Player, b: Business, sets: Record<string, number>): number {
+  let fee = 0;
+  for (const l of profileOf(b.kind).levers) {
+    const v = sets[l.id];
+    if (v === undefined || v === leverIdx(b, l.id, l.def)) continue;
+    const o = l.opts[v];
+    if (o?.fee) fee += Math.round(sc(p, BIZ_BY_ID[b.kind].startCost) * o.fee);
+  }
+  return fee;
+}
+
+/** Apply several changes together, charging the set-up fees once, only when you confirm. */
+export function setLevers(p: Player, id: string, sets: Record<string, number>): string {
+  const b = find(p, id);
+  if (!b) return "";
+  ensureCrew(p, b);
+  const prof = profileOf(b.kind);
+  const changes = prof.levers.filter((l) => sets[l.id] !== undefined && sets[l.id] !== leverIdx(b, l.id, l.def) && l.opts[sets[l.id]]);
+  if (!changes.length) return "";
+  const fee = leverFees(p, b, sets);
+  if (fee > p.money) return T(`You need ${naira(fee)} to make these changes.`, `You need ${naira(fee)} to make these change.`);
+  if (fee > 0) transact(p, { amount: -fee, reason: T(`${b.name}: changes to how it runs`, `${b.name}: changes to how e dey run`), category: "business" });
+  for (const l of changes) {
+    b.set![l.id] = sets[l.id];
+    if (l.id === "price" || l.id === "ads" || l.id === "stock") (b as unknown as Record<string, number>)[l.id] = sets[l.id];
+  }
+  return T(`${b.name}: ${changes.map((l) => `${l.label[0].toLowerCase()} → ${l.opts[sets[l.id]].label[0].toLowerCase()}`).join(", ")}${fee ? ` (${naira(fee)})` : ""}.`, `${b.name}: ${changes.map((l) => `${l.label[1].toLowerCase()} → ${l.opts[sets[l.id]].label[1].toLowerCase()}`).join(", ")}${fee ? ` (${naira(fee)})` : ""}.`);
 }
 
 export function actCost(p: Player, b: Business, a: { cost: number }) { return Math.round(sc(p, BIZ_BY_ID[b.kind].startCost) * a.cost * (0.8 + b.level * 0.2)); }

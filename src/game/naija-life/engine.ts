@@ -39,10 +39,10 @@ import { auditBalance, coverShortfall, reconcile, snapshot, transact } from "./l
 import { lenderOffers, loanBlock, repayLoan, takeLoan, totalDebt, borrowFrom, giftTo, lendTo } from "./loans";
 import { planEstate } from "./will";
 import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
-import { buyVehicle, takeDrivingTest, insureVehicle, repairVehicle, sellVehicle, setRole } from "./vehicles";
+import { buyVehicle, takeDrivingTest, insureVehicle, setService, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
 import { adoptChild, askOnDate, breakUp, chat, divorce, emergencyPill, fertilityTreatment, logMsg, meetSomeone, moveIn, createProfile, makeOfficial, marry, partnerOf, refreshDeck, spendTheNight, spendTime, swipe, type ChatTone, type DatePlan, type Protection } from "./relationships";
-import { acceptOffer, closeBusiness, declineOffers, dismiss, haggleOffer, ensureCrew, fireStaff, hirePick, hireStaff, raisePay, recruit, listForSale, setPolicy, setLever, businessAct, startBusiness, toggleManager, trainWorker, upgradeBusiness } from "./business";
+import { acceptOffer, closeBusiness, declineOffers, dismiss, haggleOffer, ensureCrew, fireStaff, hirePick, hireStaff, raisePay, recruit, listForSale, setPolicy, setLever, setLevers, businessAct, startBusiness, toggleManager, trainWorker, upgradeBusiness } from "./business";
 import { placeBet, type BetKind } from "./betting";
 import { buyGear, collab, createAccount, post, type ContentKind } from "./social";
 import { setShare } from "./will";
@@ -780,13 +780,13 @@ export type Action =
   | { t: "give"; npc: string; amount: number; mode: "gift" | "loan" }
   | { t: "rent"; tier: string }
   | { t: "moveHome" }
-  | { t: "car"; op: "buy" | "buyLoan" | "sell" | "repair" | "insure" | "taxi" | "ridehail" | "personal" | "rental"; id: string }
+  | { t: "car"; op: "service0" | "service1" | "service2" | "buy" | "buyLoan" | "sell" | "repair" | "insure" | "taxi" | "ridehail" | "personal" | "rental"; id: string }
   | { t: "insure"; plan: "none" | "basic" | "premium" }
   | { t: "checkup" }
   | { t: "treat"; cond: string; facility: string }
   | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
   | { t: "realtor"; op: "show" | "find"; client?: string; listing?: string }
-  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "act"; id: string; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
+  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "levers" | "act"; id: string; sets?: Record<string, number>; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
   | { t: "bet"; kind: BetKind; stake: number }
   | { t: "social"; op: "account" | "post" | "collab" | "gear"; platform?: Platform; content?: ContentKind }
   | { t: "crime"; id: string }
@@ -1162,6 +1162,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           if (a.op === "sell") return out(sellVehicle(p, a.id));
           if (a.op === "repair") return out(repairVehicle(p, a.id));
           if (a.op === "insure") return out(insureVehicle(p, a.id));
+          if (a.op === "service0" || a.op === "service1" || a.op === "service2") return out(setService(p, a.id, Number(a.op.slice(7)) as 0 | 1 | 2));
           return out(setRole(p, a.id, a.op === "taxi" ? "taxi" : a.op === "ridehail" ? "ridehail" : a.op === "rental" ? "rental" : "personal"));
         }
         case "insure": return out(setInsurance(p, a.plan));
@@ -1224,6 +1225,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "fire": return out(fireStaff(p, a.id));
             case "recruit": return out(recruit(p, a.id, a.role));
             case "lever": return out(setLever(p, a.id, a.key ?? "", a.v ?? 0));
+            case "levers": return out(setLevers(p, a.id, a.sets ?? {}));
             case "act": return out(businessAct(p, a.id, a.key ?? ""));
             case "pick": return out(hirePick(p, a.id, a.idx ?? 0));
             case "dismiss": return out(dismiss(p, a.id, a.worker));
