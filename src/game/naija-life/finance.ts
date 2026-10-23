@@ -5,6 +5,7 @@ import { jobDef, stateOf } from "./helpers";
 import { coverShortfall, monthIndex, transact } from "./ledger";
 import { adjustCredit, processLoansMonth, totalDebt } from "./loans";
 import { businessMonth, saleMonth } from "./business";
+import { inv2Month, totalInv2 } from "./invest2";
 import { growthMonth, skillPayBonus } from "./life";
 import { healthMonth, incomeFactor } from "./health";
 import { spouseMonth } from "./relationships";
@@ -32,7 +33,7 @@ const pe = (id: string, month: number, extra: Record<string, string | number | b
 export const netWorthReal = (p: Player) => {
   const houses = p.houses.reduce((s, h) => s + h.value, 0);
   const hold = p.holdings.reduce((s, h) => s + h.value, 0);
-  return (p.money + houses + hold - totalDebt(p)) / p.index;
+  return (p.money + houses + hold + totalInv2(p) - totalDebt(p)) / p.index;
 };
 
 /** Monthly living cost bands. Costs rise with the price index and with how well you live. */
@@ -128,6 +129,7 @@ function prisonMonth(p: Player, ctx: MonthCtx) {
   businessMonth(p, ctx.lines);
   saleMonth(p, ctx.lines);
   vehicleMonth(p, ctx.lines);
+  inv2Month(p, ctx.lines);
   healthMonth(p, ctx.lines, ctx.pending);
   processLoansMonth(p, ctx.lines, ctx.pending);
   const gap = coverShortfall(p, T("Cash ran short while you were locked up: borrowed to cover bills", "Cash short as you dey inside: you borrow to cover bills"));

@@ -22,6 +22,7 @@ import { Tutorial, hasSeenTutorial } from "./Tutorial";
 import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, EXPLORE_TABS, workStage, type Tab } from "./Shell";
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
+import { Invest2Card } from "./Invest2UI";
 import { ribbonTitle, ribbonsOf } from "./ribbons";
 import { DnaRow, LotteryCard, PetsCard, StyleCard, TalentCard } from "./BitlifeUI";
 import { petsOf } from "./bitlife";
@@ -667,6 +668,7 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       {sub === "property" && (<><PortfolioCard p={p} run={run} /><PropertyMarketCard p={p} run={run} /></>)}
       {sub === "invest" && (<>
       <MarketNewsCard p={p} run={run} />
+      <Invest2Card p={p} run={run} />
 
       <ListGroup title={T("Invest", "Invest")} sub={T("Returns are not guaranteed.", "Profit no certain.")}>
         {INVESTMENTS.map((o) => <ListRow key={o.kind} emoji={INVEST_EMOJI[o.kind] ?? "💹"} tile="bg-emerald-100" name={o.label} desc={o.desc} right={`${T("min", "min")} ${naira(o.min * p.index)}`} onClick={() => setInv(o.kind)} />)}

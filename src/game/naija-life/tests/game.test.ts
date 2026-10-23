@@ -1968,3 +1968,23 @@ test("you can propose straight from dating, and a partner who is not ready says 
   assert.equal(r.g.p.rel.partners[0].stage, "engaged", "engaged after a proposal from dating");
   assert.ok(r.g.queue.some((e) => e.kind === "event" && e.id === "proposal"), "the wedding choices open");
 });
+
+test("local investments: agric, land, off-plan, ponzi and ajo pay, stall or collapse", async () => {
+  const v = await import("../invest2");
+  const g = aliveAt(30);
+  const p = structuredClone(g.p);
+  p.prison = 0; p.money = 1e13; p.age = 30;
+  for (const k of ["agric", "land", "offplan", "ponzi", "ajo"] as const) assert.ok(v.buyPosition(p, k, Math.round(1e9)).length > 0, k);
+  assert.equal(v.positions(p).length, 5);
+  const m0 = p.money;
+  for (let y = 0; y < 8; y++) { for (let m = 0; m < 12; m++) v.inv2Month(p, []); v.inv2Year(p, 0.1, [], []); }
+  assert.ok(Number.isFinite(p.money));
+  assert.ok(v.positions(p).filter((x) => x.kind === "ajo").every((x) => Boolean(x.dead) || Boolean(x.meta)), "ajo state sane");
+  assert.ok(p.money !== m0, "money moved");
+  const pz = v.positions(p).find((x) => x.kind === "ponzi");
+  if (pz) assert.ok(pz.value >= 0);
+  assert.ok(Boolean(v.invBlock(p, "agric", 1)), "minimum enforced");
+  const ev = v.INV2_EVENTS.find((e) => e.id === "ponzi_referral")!;
+  v.buyPosition(p, "ponzi", 1e9);
+  for (let i = 0; i < 3; i++) { const q = structuredClone(p); assert.ok(typeof ev.choices(q, {})[i].run(q) === "string"); }
+});
