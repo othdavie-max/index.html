@@ -13,7 +13,7 @@ import {
 import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
 import { Avatar } from "./Avatar";
 import { AdmissionCard, CampusCard, DegreeCard } from "./CampusUI";
-import { ChallengeBanner, ChallengePanel, GistPanel, GoalsPanel, MomentsPanel, isLocked, lockHint, sanitizeLook, saveChallengeScore, saveUnlocksFrom, useUnlocks } from "./EngageUI";
+import { ChallengeBanner, ChallengePanel, GistPanel, GoalsPanel, MomentsPanel, ObituaryView, shareObituary, useObituary, isLocked, lockHint, sanitizeLook, saveChallengeScore, saveUnlocksFrom, useUnlocks } from "./EngageUI";
 import { KidnapModal } from "./KidnapModal";
 import { BEARDS, GLASSES, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
@@ -1134,7 +1134,12 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
   const p = g.p;
   const entry = g.dynasty.lineage[g.dynasty.lineage.length - 1];
   const [msg, setMsg] = useState("");
+  const obit = useObituary(p);
   const share = async () => {
+    const r2 = await shareObituary(p, obit);
+    setMsg(r2 === "shared" ? T("Shared!", "Shared!") : T("Card ready. Save it or screenshot it!", "Card don ready. Save am or take screenshot!"));
+  };
+  const shareLegacy = async () => {
     const r = await shareCard(
       {
         kicker: T(`Naija Life · Generation ${p.generation}`, `Naija Life · Generation ${p.generation}`),
@@ -1155,6 +1160,7 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
       <div className="mb-2 flex justify-center"><Avatar look={p.look} gender={p.gender} age={p.age} size={96} dim /></div>
       <p className="font-serif text-2xl font-bold">{p.name} {p.surname}</p>
       <p className="text-sm text-slate-600">{T(`Died at ${p.age}`, `E die at ${p.age}`)} · {p.cause}</p>
+      <div className="my-3"><ObituaryView p={p} o={obit} /></div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <Card className="p-3"><div className="text-[11px] text-slate-500">{T("Net worth at death", "Worth wen e die")}</div><div className="font-bold text-blue-600">{naira(entry?.worth ?? 0)}</div></Card>
         <Card className="p-3"><div className="text-[11px] text-slate-500">{T("Remembered as", "Dem go remember am as")}</div><div className="font-bold">{entry?.epitaph}</div></Card>
@@ -1173,7 +1179,8 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
             <Btn className="w-full" onClick={() => onNew({ name: "", gender: chance(0.5) ? "male" : "female", stateId: null, tribe: null, religion: null })}>{T("Start a brand-new family", "Start new family")}</Btn>
           </>
         )}
-        <Btn tone="gold" className="w-full" onClick={share}>{T("Share this life", "Share this life")}</Btn>
+        <Btn tone="gold" className="w-full" onClick={share}>{T("Share the funeral report", "Share the funeral report")}</Btn>
+        <Btn tone="ghost" className="w-full" onClick={shareLegacy}>{T("Share the legacy card", "Share the legacy card")}</Btn>
         {msg && <p className="text-center text-xs text-emerald-600">{msg}</p>}
       </div>
     </Sheet>

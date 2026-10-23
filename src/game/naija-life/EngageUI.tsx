@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { GOAL_BY_ID, UNLOCK_GOAL, challengeFor, gistFor, weekId, type Challenge } from "./engage";
 import { shareCard } from "./share";
+import { Avatar } from "./Avatar";
+import { buildObituary } from "./obituary";
+import type { Mourner, Obituary } from "./types";
 import type { Player } from "./types";
 import type { Look } from "./look";
 import { Badge, Btn, Card, H, Sheet, cx } from "./ui";
@@ -158,5 +161,87 @@ export function ChallengeBanner({ onPlay }: { onPlay: (c: Challenge) => void }) 
       </span>
       <span className="shrink-0 text-sm font-bold text-blue-600">{T("Play ›", "Play ›")}</span>
     </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The funeral report shown when a life ends
+// ---------------------------------------------------------------------------
+export function useObituary(p: Player): Obituary {
+  const [o] = useState<Obituary>(() => p.obit ?? buildObituary(p));
+  return o;
+}
+
+export async function shareObituary(p: Player, o: Obituary): Promise<"shared" | "downloaded"> {
+  const L = (b: { en: string; pcm: string }) => (p.lang === "en" ? b.en : b.pcm);
+  const lines = [L(o.tagline), ...o.highlights.slice(1, 3).map(L), o.guests[0] ? L(o.guests[0]) : ""].filter(Boolean);
+  return shareCard(
+    {
+      kicker: T("Naija Life · Funeral report", "Naija Life · Funeral report"),
+      title: `${o.tag.emoji} ${p.name} ${p.surname}`,
+      stats: [
+        { label: T("Verdict", "Verdict"), value: p.lang === "en" ? o.tag.en : o.tag.pcm },
+        { label: T("Turnout", "Turnout"), value: T(`${o.turnout.came} of ${o.turnout.expected} came`, `${o.turnout.came} of ${o.turnout.expected} come`) },
+        { label: T("Life rating", "Life rating"), value: `${o.rating}/100` },
+      ],
+      lines,
+      footer: "Naija Life",
+    },
+    `${o.tag.emoji} ${p.name} ${p.surname}: ${p.lang === "en" ? o.tag.en : o.tag.pcm}. ${L(o.tagline)} #NaijaLife`,
+  );
+}
+
+function MournerRow({ m, lang, gone }: { m: Mourner; lang: "en" | "pcm"; gone?: boolean }) {
+  return (
+    <div className="flex items-start gap-2.5 px-3 py-2">
+      <Avatar look={m.look} gender={m.gender} age={m.age} size={38} dim={gone} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-extrabold leading-tight text-[#0b2a6b]">{m.name} <span className="font-medium text-slate-500">· {lang === "en" ? m.role.en : m.role.pcm}</span></div>
+        <div className="text-[12px] leading-snug text-slate-600">{lang === "en" ? m.line.en : m.line.pcm}</div>
+      </div>
+    </div>
+  );
+}
+
+export function ObituaryView({ p, o }: { p: Player; o: Obituary }) {
+  const L = (b: { en: string; pcm: string }) => (p.lang === "en" ? b.en : b.pcm);
+  const pct = Math.round((o.turnout.came / Math.max(1, o.turnout.expected)) * 100);
+  const box = "divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white";
+  return (
+    <div className="space-y-3 text-left">
+      <div className="rounded-2xl bg-gradient-to-br from-[#0b2a6b] to-blue-600 p-4 text-white">
+        <div className="text-3xl">{o.tag.emoji}</div>
+        <div className="mt-1 text-[11px] font-bold uppercase tracking-wide text-blue-100">{T("Final verdict", "Final verdict")}</div>
+        <div className="text-xl font-extrabold leading-tight">{p.lang === "en" ? o.tag.en : o.tag.pcm}</div>
+        <p className="mt-1 text-[13px] leading-snug text-blue-50">{L(o.tagline)}</p>
+        <div className="mt-3 flex items-center gap-2"><div className="h-2 flex-1 overflow-hidden rounded-full bg-white/25"><div className="h-full rounded-full bg-amber-300" style={{ width: `${o.rating}%` }} /></div><span className="text-xs font-bold">{o.rating}/100</span></div>
+        <p className="mt-1 text-[11.5px] text-blue-100">{L(o.verdict)}</p>
+      </div>
+      {o.cause && <p className="rounded-xl bg-slate-50 px-3 py-2 text-[12.5px] italic text-slate-600">{L(o.cause)}</p>}
+      <section>
+        <h3 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("What they did", "Wetin dem do")}</h3>
+        <ul className="space-y-1.5 rounded-2xl bg-white p-3 text-[13px] leading-snug text-slate-700 ring-1 ring-slate-100">{o.highlights.map((h, i) => <li key={i}>• {L(h)}</li>)}</ul>
+      </section>
+      <section>
+        <h3 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("The funeral", "The burial")}</h3>
+        <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-100">
+          <div className="flex items-center justify-between text-[12px] text-slate-600"><span>{T(`${o.turnout.came} of ${o.turnout.expected} people came`, `${o.turnout.came} of ${o.turnout.expected} people come`)}</span><span className="font-bold text-blue-700">{pct}%</span></div>
+          <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
+          {o.guests.length > 0 && <ul className="mt-2 space-y-1.5 text-[12.5px] leading-snug text-slate-700">{o.guests.map((x, i) => <li key={i}>🎤 {L(x)}</li>)}</ul>}
+        </div>
+      </section>
+      {o.came.length > 0 && (
+        <section>
+          <h3 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-emerald-700">{T("Who came", "Who come")}</h3>
+          <div className={box}>{o.came.map((m, i) => <MournerRow key={i} m={m} lang={p.lang} />)}</div>
+        </section>
+      )}
+      {o.absent.length > 0 && (
+        <section>
+          <h3 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-red-600">{T("Who did not come, and why", "Who no come, and why")}</h3>
+          <div className={box}>{o.absent.map((m, i) => <MournerRow key={i} m={m} lang={p.lang} gone />)}</div>
+        </section>
+      )}
+    </div>
   );
 }

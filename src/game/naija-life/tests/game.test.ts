@@ -27,6 +27,7 @@ import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
 import { occupationFor } from "../occupation";
+import { buildObituary } from "../obituary";
 import { INTERACTIONS, interact, interactBlock, interactionsFor, makeFriend, refreshOccupation, refreshPeople } from "../people";
 import { addFriend } from "../family";
 import { ENGAGE_EVENTS, GOAL_DEFS, MOMENT_DEFS, challengeFor, engageYear, gistFor, weekId } from "../engage";
@@ -1310,7 +1311,7 @@ test("people: classmates at every school stage and things to do together", () =>
   // primary school
   let g = liveTo(8, 3);
   assert.ok(g.p.school?.stage === "primary");
-  let mates = Object.values(g.p.npcs).filter((n) => n.role === "classmate" && n.stage === "primary" && !n.former);
+  const mates = Object.values(g.p.npcs).filter((n) => n.role === "classmate" && n.stage === "primary" && !n.former);
   assert.ok(mates.length >= 4, `primary classmates: ${mates.length}`);
   assert.ok(mates.every((n) => /^(Pupil|Student|Baby|Toddler)/.test(n.occupation)));
   const c = mates[0];
@@ -1350,4 +1351,39 @@ test("people: classmates at every school stage and things to do together", () =>
   assert.ok(interactionsFor(g.p, fam).some((i) => i.id === "family_time"));
   assert.ok(ledgerBalances(r.g.p) && ledgerBalances(st.g.p));
   void refreshPeople; void interact; void makeFriend;
+});
+
+test("funeral report: verdict tag, attendance by closeness, special guests", () => {
+  const base = aliveAt(60);
+  const mk = (closeness: number) => {
+    const p = structuredClone(base.p);
+    p.stats.reputation = 50; p.crime.record = []; p.kidnaps = 0; p.loot = 0;
+    for (const n of Object.values(p.npcs)) { n.alive = true; n.closeness = closeness; n.memories = []; }
+    for (const k of p.kids) k.closeness = closeness;
+    return p;
+  };
+  let loveCame = 0, coldCame = 0;
+  for (let s = 1; s <= 40; s++) { setSeed(s); loveCame += buildObituary(mk(95)).came.length; setSeed(s); coldCame += buildObituary(mk(5)).came.length; }
+  assert.ok(loveCame > coldCame * 1.5, `close people come (${loveCame} vs ${coldCame})`);
+  setSeed(3);
+  const cold = buildObituary(mk(5));
+  assert.ok(cold.absent.length > 0 && cold.absent.every((m) => m.line.en.length > 10 && m.line.pcm.length > 10), "every absence has a reason");
+  assert.ok(cold.absent.some((m) => /called|Saved|Do not pick|Christmases|Traffic|traffic|flight|spirit|owambe|WhatsApp/.test(m.line.en)));
+  // tags
+  const pres = mk(70); pres.achievements.push("Became President"); pres.politics = { office: 5, yearsLeft: 0, terms: 2, godfather: false, highest: 5, machine: 0, umpire: 0, courts: 0, military: 0, kingmaker: 0 } as never;
+  const op = buildObituary(pres);
+  assert.match(op.tag.en, /legendary/i);
+  assert.ok(op.guests.some((x) => /public holiday/i.test(x.en)));
+  const doc = mk(70); doc.job = { id: "doctor", rank: 1, years: 5 };
+  assert.ok(buildObituary(doc).guests.some((x) => /doctor in the house/i.test(x.en)));
+  const crook = mk(40); crook.job = { id: "kidnapper", rank: 0, years: 2 }; crook.loot = 5e9; crook.crime.record = [{ age: 30, crime: "x" } as never, { age: 31, crime: "y" } as never, { age: 33, crime: "z" } as never];
+  const oc = buildObituary(crook);
+  assert.match(oc.tag.en, /looter|shady|crazy/i);
+  assert.ok(oc.turnout.came < op.turnout.came, "a villain draws a smaller crowd");
+  const waste = mk(50); waste.achievements = []; waste.kids = []; waste.peakWorth = 100_000; waste.money = 0; waste.houses = []; waste.holdings = []; waste.vehicles = []; waste.businesses = [];
+  assert.match(buildObituary(waste).tag.en, /wasted|peaceful|cut short/i);
+  // everything is bilingual and the report is saved when a life ends
+  for (const o of [op, oc, cold]) { assert.ok(o.highlights.length >= 4 && o.rating >= 3 && o.rating <= 99); assert.ok(o.highlights.every((h) => h.en && h.pcm)); }
+  const dead = act(structuredClone(aliveAt(40)), { t: "surrender" });
+  assert.ok(dead.g.p.obit && dead.g.p.obit.tag.en, "report saved on death");
 });

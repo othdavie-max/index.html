@@ -163,6 +163,8 @@ export interface Player {
   goals?: Goal[];
   /** The weekly challenge this life was started for. */
   challenge?: { id: string; score?: number };
+  /** The funeral report, written when this life ends. */
+  obit?: Obituary;
   school: { stage: "primary" | "secondary" | "tertiary"; yearsLeft: number; type: string } | null;
   job: JobState | null;
   houses: House[];
@@ -768,3 +770,20 @@ export interface Campus {
 
 export interface Moment { id: string; age: number; emoji: string; title: string; en: string; pcm: string }
 export interface Goal { id: string; done: boolean; doneAge?: number }
+
+export interface Bi { en: string; pcm: string }
+export interface Mourner { name: string; role: Bi; look: Look; gender: Gender; age: number; line: Bi }
+export interface Obituary {
+  tag: { emoji: string; en: string; pcm: string };
+  tagline: Bi;
+  /** 0-100. */
+  rating: number;
+  highlights: Bi[];
+  came: Mourner[];
+  absent: Mourner[];
+  /** How many people came, and how many were expected. */
+  turnout: { came: number; expected: number };
+  guests: Bi[];
+  cause: Bi | null;
+  verdict: Bi;
+}

@@ -9,6 +9,7 @@ import { EVENTS5, graduationData } from "./events5";
 import { EVENTS6 } from "./events6";
 import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
+import { buildObituary } from "./obituary";
 import { ENGAGE_EVENTS, assignGoals, engageYear } from "./engage";
 import { fillClassmates, interact, makeFriend, refreshOccupation, refreshPeople } from "./people";
 import { campusDo, campusHire, campusYearEnd, enrol, graduateCampus, writeJamb } from "./campus";
@@ -250,6 +251,7 @@ function ensureRecorded(g: Game) {
   if (p.alive || p.flags.recorded) return;
   p.flags.recorded = true;
   if (p.challenge && p.challenge.score === undefined) p.challenge.score = Math.round(netWorth(p) / p.index);
+  p.obit = buildObituary(p);
   g.queue = [];
   const high = p.politics?.highest ?? -1;
   const entry: LineageEntry = {
