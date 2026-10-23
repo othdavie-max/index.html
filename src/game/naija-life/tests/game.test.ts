@@ -1672,7 +1672,7 @@ test("jobs follow what you studied", async () => {
   const g = liveTo(26, 8);
   const mk = (major: string, field: string) => {
     const p = structuredClone(g.p);
-    p.edu = "tertiary"; p.course = field; p.age = 28; p.flags.postgrad = undefined;
+    p.edu = "tertiary"; p.course = field; p.age = 28; delete p.flags.postgrad;
     p.campus = { uni: "unilag", major, year: 4, payer: "self", aid: 0, effort: 0, used: [], gpas: [3], cgpa: 3, network: 10, lead: 0, clubs: [], sug: "none", siwes: false, offer: false, project: true, trouble: 0, strikes: 0, graduated: true, cls: "Second Class Upper" } as never;
     return p;
   };
