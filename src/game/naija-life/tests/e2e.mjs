@@ -51,7 +51,7 @@ async function play(browser, lang) {
   if (shown < 10) errors.push(`[${lang}] tutorial had only ${shown} steps`);
   await tour.waitFor({ state: "detached", timeout: 5000 });
   await page.getByRole("button", { name: /^Grow Up/ }).first().waitFor({ timeout: 60000 });
-  const tabs = ["Life", "Money", "Family", "Explore", "Phone", "Work", "Health", "Law", "Map", "Power", "Legacy"];
+  const tabs = ["Work", "Money", "Family", "Explore", "Phone", "Health", "Law", "Map", "Power", "Legacy"];
   for (let year = 0; year < 30; year++) {
     // answer any event or sheet that is open
     for (let k = 0; k < 8; k++) {
@@ -67,7 +67,6 @@ async function play(browser, lang) {
         const btn = page.locator("nav button, [role=tablist] button", { hasText: new RegExp(`^${t}$`) });
         if (await btn.count()) { await btn.first().click({ timeout: 2000 }).catch(() => {}); await page.waitForTimeout(40); steps++; }
       }
-      await clickIf(page, page.locator("nav button", { hasText: /^Life$/ }));
     }
     const up = page.getByRole("button", { name: /^Grow Up/ });
     if (!(await up.count()) || (await up.first().isDisabled())) continue;

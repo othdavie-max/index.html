@@ -1,4 +1,5 @@
 import type { Edu, HoldingKind, HouseKind, Region, StateInfo } from "./types";
+import { EXTRA_JOBS } from "./jobs2";
 import { rng, T } from "./util";
 
 // ---------------------------------------------------------------------------
@@ -149,6 +150,13 @@ export interface JobDef {
   minAge: number;
   edu: Edu;
   courses?: string[];
+  /** Specific degree courses (see universities.ts) that qualify. Overrides `courses` when present. */
+  majors?: string[];
+  /** Needs a master's degree or higher. */
+  postgrad?: boolean;
+  /** Any one of these skills at the given level (or a matching trade certificate) qualifies you. */
+  skillAny?: [string, number][];
+  emoji?: string;
   minOpp: number;
   ladder: Rung[];
   blurb: string;
@@ -222,31 +230,31 @@ export const JOBS: JobDef[] = [
   { id: "teacher", title: "Teacher", group: "formal", selfEmployed: false, startCost: 0, minAge: 21, edu: "tertiary", minOpp: 1,
     get blurb() { return T("Shaping minds on a salary that arrives 'soon'.", "Shaping young minds on salary wey dey always come 'soon'."); }, courses: ["Education", "Arts", "Mass Communication", "Science", "Social Sciences"],
     ladder: fixed([["Teacher", 1_200_000], ["Senior teacher", 2_200_000], ["Vice principal", 4_000_000], ["Principal", 7_000_000]]) },
-  { id: "nurse", title: "Nurse", group: "formal", selfEmployed: false, startCost: 0, minAge: 21, edu: "tertiary", courses: ["Nursing", "Medicine"], minOpp: 2,
+  { id: "nurse", title: "Nurse", group: "formal", selfEmployed: false, startCost: 0, minAge: 21, edu: "tertiary", majors: ["nurs"], courses: ["Nursing", "Medicine"], minOpp: 2,
     get blurb() { return T("Overworked, underpaid, and already planning Japa.", "Work plenty, pay small, and your mind don dey Japa."); },
     ladder: fixed([["Staff nurse", 2_000_000], ["Senior nurse", 3_500_000], ["Matron", 6_500_000]]) },
-  { id: "doctor", title: "Doctor", group: "formal", selfEmployed: false, startCost: 0, minAge: 24, edu: "tertiary", courses: ["Medicine"], minOpp: 3,
+  { id: "doctor", title: "Doctor", group: "formal", selfEmployed: false, startCost: 0, minAge: 24, edu: "tertiary", majors: ["mbbs"], courses: ["Medicine"], minOpp: 3,
     get blurb() { return T("Everyone's mother's favourite job.", "The work wey every mama wan see her pikin do."); },
     ladder: fixed([["House officer", 3_000_000], ["Medical officer", 6_500_000], ["Consultant", 16_000_000], ["Chief medical director", 30_000_000]]) },
-  { id: "lawyer", title: "Lawyer", group: "formal", selfEmployed: false, startCost: 0, minAge: 24, edu: "tertiary", courses: ["Law"], minOpp: 3,
+  { id: "lawyer", title: "Lawyer", group: "formal", selfEmployed: false, startCost: 0, minAge: 24, edu: "tertiary", majors: ["law"], courses: ["Law"], minOpp: 3,
     get blurb() { return T("'My Lord, I humbly submit.' Adjournment is your best friend.", "'My Lord, I humbly submit.' Adjournment na your best friend."); },
     ladder: fixed([["Junior associate", 2_500_000], ["Associate", 5_500_000], ["Senior counsel", 14_000_000], ["SAN", 35_000_000]]) },
-  { id: "engineer", title: "Engineer", group: "formal", selfEmployed: false, startCost: 0, minAge: 23, edu: "tertiary", courses: ["Engineering"], minOpp: 3,
+  { id: "engineer", title: "Engineer", group: "formal", selfEmployed: false, startCost: 0, minAge: 23, edu: "tertiary", majors: ["civ", "elec", "mech", "chem", "petr"], courses: ["Engineering"], minOpp: 3,
     get blurb() { return T("Fix generators, roads, and everything in between.", "Fix generator, road, and everything wey spoil."); },
     ladder: fixed([["Graduate engineer", 3_000_000], ["Project engineer", 6_500_000], ["Senior engineer", 13_000_000], ["Engineering director", 28_000_000]]) },
-  { id: "dev", title: "Software Developer", group: "formal", selfEmployed: false, startCost: 0, minAge: 21, edu: "tertiary", courses: ["Computer Science", "Engineering"], minOpp: 5,
+  { id: "dev", title: "Software Developer", group: "formal", selfEmployed: false, startCost: 0, minAge: 21, edu: "tertiary", majors: ["cs", "swe", "is"], courses: ["Computer Science"], minOpp: 5,
     get blurb() { return T("Remote dollars, Lagos traffic, and no light.", "Remote dollars, Lagos traffic, and no light."); },
     ladder: fixed([["Junior developer", 3_500_000], ["Developer", 9_000_000], ["Senior developer", 22_000_000], ["Engineering lead", 45_000_000]]) },
-  { id: "banker", title: "Banker", group: "formal", selfEmployed: false, startCost: 0, minAge: 22, edu: "tertiary", courses: ["Accounting", "Law", "Arts", "Mass Communication", "Engineering", "Computer Science", "Education", "Business", "Social Sciences"], minOpp: 4,
+  { id: "banker", title: "Banker", group: "formal", selfEmployed: false, startCost: 0, minAge: 22, edu: "tertiary", majors: ["acc", "bank", "ba", "econ", "mkt", "stat", "math", "cs", "is"], courses: ["Accounting", "Business"], minOpp: 4,
     get blurb() { return T("Targets, targets, targets. Bring in deposits or bring your CV.", "Targets, targets, targets. Bring deposits or bring your CV."); },
     ladder: fixed([["Customer service rep", 2_200_000], ["Relationship manager", 5_000_000], ["Branch manager", 11_000_000], ["Executive director", 40_000_000]]) },
-  { id: "accountant", title: "Accountant", group: "formal", selfEmployed: false, startCost: 0, minAge: 22, edu: "tertiary", courses: ["Accounting"], minOpp: 3,
+  { id: "accountant", title: "Accountant", group: "formal", selfEmployed: false, startCost: 0, minAge: 22, edu: "tertiary", majors: ["acc", "bank"], courses: ["Accounting"], minOpp: 3,
     get blurb() { return T("Balancing books while the boss balances friends.", "You dey balance books while oga dey balance im friends."); },
     ladder: fixed([["Junior accountant", 2_200_000], ["Accountant", 4_800_000], ["Finance manager", 10_000_000], ["CFO", 30_000_000]]) },
   { id: "civil", title: "Civil Servant", group: "formal", selfEmployed: false, startCost: 0, minAge: 20, edu: "secondary", minOpp: 2,
     get blurb() { return T("Pension, stability, and files that move only with 'something small'.", "Pension, steady work, and files wey no dey move without 'something small'."); },
     ladder: fixed([["Clerk", 1_300_000], ["Executive officer", 2_400_000], ["Director", 5_500_000], ["Permanent secretary", 12_000_000]]) },
-  { id: "oil", title: "Oil & Gas Worker", group: "formal", selfEmployed: false, startCost: 0, minAge: 23, edu: "tertiary", courses: ["Engineering", "Accounting", "Computer Science", "Science"], minOpp: 6,
+  { id: "oil", title: "Oil & Gas Worker", group: "formal", selfEmployed: false, startCost: 0, minAge: 23, edu: "tertiary", majors: ["petr", "chem", "geo", "mech", "elec", "civ", "acc", "econ"], courses: ["Engineering", "Accounting", "Science"], minOpp: 6,
     get blurb() { return T("Dollar allowances and fat paychecks, if you know someone.", "Dollar allowance and fat pay, if you sabi person."); },
     ladder: fixed([["Graduate trainee", 6_000_000], ["Process engineer", 15_000_000], ["Operations manager", 35_000_000], ["General manager", 80_000_000]]) },
   { id: "police", title: "Police Officer", group: "formal", selfEmployed: false, startCost: 0, minAge: 20, edu: "secondary", minOpp: 1,
@@ -303,6 +311,7 @@ export const JOBS: JobDef[] = [
     get blurb() { return T("Dangerous, violent, and very likely to end badly.", "Dangerous, violent, and e dey very likely to end bad."); },
     ladder: fixed([["Lookout", 1_800_000], ["Gang member", 7_000_000], ["Commander", 25_000_000]]) },
 ];
+JOBS.push(...EXTRA_JOBS);
 export const JOB_BY_ID: Record<string, JobDef> = Object.fromEntries(JOBS.map((j) => [j.id, j]));
 
 /** Real-world wages are lower than first guessed; formal jobs pay more steadily than hustles. */

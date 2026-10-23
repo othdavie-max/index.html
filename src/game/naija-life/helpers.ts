@@ -1,3 +1,4 @@
+import { MAJOR_BY_ID } from "./universities";
 import { JOBS, JOB_BY_ID, STATE_BY_ID, poolFor, type JobDef } from "./data";
 import type { Gender, Player, Stats } from "./types";
 import { T, clamp, pick } from "./util";
@@ -32,12 +33,31 @@ const EDU_ORDER = { none: 0, primary: 1, secondary: 2, tertiary: 3 } as const;
 export const eduAtLeast = (p: Player, need: keyof typeof EDU_ORDER) => EDU_ORDER[p.edu] >= EDU_ORDER[need];
 
 /** Jobs this person could realistically apply for right now. */
+/** Why this person cannot take the job, or null when they qualify. */
+export function qualifyBlock(p: Player, j: JobDef): string | null {
+  if (p.age < j.minAge) return T(`Age ${j.minAge}+`, `Age ${j.minAge}+`);
+  if (!eduAtLeast(p, j.edu)) return j.edu === "tertiary" ? T("Needs a degree", "You need degree") : T(`Needs ${j.edu} school`, `You need ${j.edu} school`);
+  if (j.postgrad && !p.flags.postgrad) return T("Needs a master's degree", "You need master's degree");
+  if (j.majors) {
+    const major = p.campus?.graduated ? p.campus.major : undefined;
+    const ok = major ? j.majors.includes(major) : false;
+    const legacy = !major && p.course && j.courses?.includes(p.course);
+    if (!ok && !legacy && !(j.postgrad && p.flags.postgrad)) {
+      const names = j.majors.slice(0, 3).map((m) => MAJOR_BY_ID[m]?.label ?? m).join(" / ");
+      return T(`Needs a degree in ${names}`, `You need degree for ${names}`);
+    }
+  } else if (j.courses && (!p.course || !j.courses.includes(p.course))) return T(`Needs ${j.courses.slice(0, 2).join(" / ")} degree`, `You need ${j.courses.slice(0, 2).join(" / ")} degree`);
+  if (j.skillAny) {
+    const ok = j.skillAny.some(([s, min]) => (p.skills[s] ?? 0) >= min || p.flags.trade === s);
+    if (!ok) return T(`Needs the ${j.skillAny.map(([s]) => s).join(" or ")} skill. Learn it in Work`, `You need ${j.skillAny.map(([s]) => s).join(" or ")} skill. Learn am for Work`);
+  }
+  return null;
+}
+
 export function eligibleJobs(p: Player): JobDef[] {
   const st = stateOf(p);
   return JOBS.filter((j) => {
-    if (p.age < j.minAge) return false;
-    if (!eduAtLeast(p, j.edu)) return false;
-    if (j.courses && (!p.course || !j.courses.includes(p.course))) return false;
+    if (qualifyBlock(p, j)) return false;
     if (st.opp < j.minOpp) return false;
     if (j.id === "kidnapper") return false;
     if (j.group === "formal" && !["police", "soldier", "navy", "airforce"].includes(j.id) && (p.crime?.record ?? []).some((r) => r.severity >= 3 && r.outcome === "convicted")) return false;

@@ -595,7 +595,7 @@ test("military promotion board: merit, godfather and bribe routes, exposure risk
   g.p.job = { id: "soldier", rank: 0, years: 0 }; g.p.flags.training = undefined as never; g.p.prison = 0;
   setSeed(3);
   let sawBoard = false;
-  for (let i = 0; i < 4 && g.p.alive; i++) { g = ageUp(g); if (g.queue.some((q) => q.kind === "event" && q.id === "promotion_board")) sawBoard = true; assert.ok(g.p.job?.rank === 0 || sawBoard, "no promotion without the board"); g = resolveAll(g, "first"); if (!g.p.job || g.p.job.id !== "soldier") break; }
+  for (let i = 0; i < 4 && g.p.alive; i++) { g = ageUp(g); if (g.queue.some((q) => q.kind === "event" && q.id === "promotion_board")) sawBoard = true; assert.ok(g.p.job?.id !== "soldier" || g.p.job.rank === 0 || sawBoard, "no promotion without the board"); g = resolveAll(g, "first"); if (!g.p.job || g.p.job.id !== "soldier") break; }
   assert.ok(sawBoard || !g.p.job, "the board convenes for serving soldiers");
 });
 
@@ -1270,6 +1270,7 @@ test("engagement: moments, bucket list, weekly challenge and chain events", () =
   assert.ok(["stranger_help", "stranger_returns", "detty_december", "ramadan_sallah", "aso_ebi_levy", "nysc_story", "abroad_first_winter"].every((i) => ids.includes(i)));
   const sh = ENGAGE_EVENTS.find((e) => e.id === "stranger_help")!, sr = ENGAGE_EVENTS.find((e) => e.id === "stranger_returns")!;
   const q = structuredClone(g.p); q.age = 25; q.money = 1_000_000_000;
+  delete q.flags.stranger; delete q.flags.strangerDone; delete q.flags.strangerHelped;
   assert.equal(sr.weight(q), 0, "he cannot return before he arrives");
   sh.choices(q, {})[0].run(q);
   assert.equal(sr.weight(q), 0, "he returns only years later");
@@ -1561,8 +1562,8 @@ test("prison expels students, ends NYSC and makes reapplying harder", () => {
 });
 
 test("NYSC stops at 30 and graduates over 30 get an exemption", () => {
-  const g = graduate(31);
-  g.p.age = 31;
+  const g = graduate(16);
+  g.p.age = 31; g.p.prison = 0; g.p.stats.health = 100; g.p.flags.nysc = false;
   g.queue = [];
   g.p.school = { stage: "tertiary", yearsLeft: 1, type: "university" };
   const r = ageUp(g);

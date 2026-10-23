@@ -47,7 +47,7 @@ import { setShare } from "./will";
 import { settleHouseLoan, takeMortgage } from "./mortgage";
 import { doGrowth, enlist, enrollTrade, finishTrade, learnSkill, toggleGym } from "./life";
 import type { Platform } from "./types";
-import { I, bump, expandCostFor, jobDef, jobTitle, luckBonus, moveTo, randomName, stateOf } from "./helpers";
+import { I, bump, expandCostFor, jobDef, jobTitle, luckBonus, moveTo, qualifyBlock, randomName, stateOf } from "./helpers";
 import { kidnapRisk, kidnapStep, makeKidnap, netWorth, type KidnapAction } from "./kidnap";
 import { buyLuxury, divest, invest, investBlock, luxuryBlock, yearlyHoldings } from "./lifestyle";
 import { POLITICS_EVENTS, canContest, canJoinPolitics, canPlotCoup, contestPending, freshNation, joinPolitics, migratePolitics, plotCoup, politicalRelease, powerMoveBlock, runGov, runPowerMove, yearlyPolitics, GOV_ACTIONS } from "./politics";
@@ -839,6 +839,8 @@ export function activityBlock(p: Player, a: ActivityDef): string | null {
 export function applyBlock(p: Player, jobId: string): string | null {
   const j = JOB_BY_ID[jobId];
   if (!j) return T("Unknown job", "Job no dey");
+  const need = qualifyBlock(p, j);
+  if (need) return need;
   if (p.prison > 0) return T("In prison", "You dey prison");
   if (p.actionsLeft <= 0) return T("No actions left this year", "No action remain this year");
   if (serving(p) && j.group === "formal") return T("Finish your NYSC year first", "Finish your NYSC year first");

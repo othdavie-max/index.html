@@ -16,11 +16,11 @@ import { cx } from "./ui";
 import { T, naira } from "./util";
 
 export type Tab = "life" | "phone" | "work" | "money" | "family" | "health" | "law" | "map" | "power" | "legacy" | "explore";
-export const EXPLORE_TABS: Tab[] = ["phone", "work", "health", "law", "map", "power", "legacy"];
+export const EXPLORE_TABS: Tab[] = ["phone", "health", "law", "map", "power", "legacy"];
 
 const SECTION: Record<string, { label: () => string; blurb: () => string; icon: typeof Hourglass; tint: string; ink: string }> = {
   phone: { label: () => T("Phone", "Phone"), blurb: () => T("Wallet, dating, social, betting", "Wallet, dating, social, betting"), icon: Smartphone, tint: "bg-sky-100", ink: "text-sky-600" },
-  work: { label: () => T("Work", "Work"), blurb: () => T("Jobs, school, business, skills", "Job, school, business, skills"), icon: Briefcase, tint: "bg-indigo-100", ink: "text-indigo-600" },
+  work: { label: () => T("Work", "Work"), blurb: () => T("Jobs, businesses, school, skills", "Job, business, school, skills"), icon: Briefcase, tint: "bg-indigo-100", ink: "text-indigo-600" },
   health: { label: () => T("Health", "Health"), blurb: () => T("Doctors, insurance, fitness", "Doctor, insurance, fitness"), icon: HeartPulse, tint: "bg-rose-100", ink: "text-rose-500" },
   law: { label: () => T("Law", "Law"), blurb: () => T("Police, courts, your record", "Police, court, your record"), icon: Gavel, tint: "bg-amber-100", ink: "text-amber-600" },
   map: { label: () => T("Map", "Map"), blurb: () => T("Travel and move states", "Travel and change state"), icon: MapIcon, tint: "bg-emerald-100", ink: "text-emerald-600" },
@@ -133,7 +133,7 @@ export function StatsCard({ p }: { p: Player }) {
 /** The sections that are not on the bottom bar. */
 const EXPLORE_EMOJI: Partial<Record<Tab, string>> = { phone: "📱", work: "💼", health: "🏥", law: "⚖️", map: "🗺️", power: "🏛️", legacy: "🕯️" };
 const EXPLORE_GROUPS: { title: () => string; ids: Tab[] }[] = [
-  { title: () => T("Everyday", "Everyday"), ids: ["phone", "work", "health"] },
+  { title: () => T("Everyday", "Everyday"), ids: ["phone", "health"] },
   { title: () => T("Big moves", "Big moves"), ids: ["law", "map", "power", "legacy"] },
 ];
 const EXPLORE_TILE: Partial<Record<Tab, string>> = { phone: "bg-sky-100", work: "bg-amber-100", health: "bg-rose-100", law: "bg-indigo-100", map: "bg-emerald-100", power: "bg-yellow-100", legacy: "bg-violet-100" };
@@ -178,7 +178,7 @@ export function ExploreChips({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => vo
 }
 
 const NAV: { id: Tab; label: () => string; icon: typeof Hourglass }[] = [
-  { id: "life", label: () => T("Life", "Life"), icon: Hourglass },
+  { id: "work", label: () => T("Work", "Work"), icon: Briefcase },
   { id: "money", label: () => T("Money", "Money"), icon: Wallet },
   { id: "family", label: () => T("Family", "Family"), icon: Users },
   { id: "explore", label: () => T("Explore", "Explore"), icon: Compass },
@@ -186,6 +186,8 @@ const NAV: { id: Tab; label: () => string; icon: typeof Hourglass }[] = [
 
 export function BottomBar({ tab, setTab, p, busy, onGrow }: { tab: Tab; setTab: (t: Tab) => void; p: Player; busy: boolean; onGrow: () => void }) {
   const group = EXPLORE_TABS.includes(tab) || tab === "explore" ? "explore" : tab;
+  // The life story is the home screen: tapping the open section closes it.
+  const toggle = (id: Tab) => setTab(id === "explore" ? (tab === "explore" ? "life" : "explore") : tab === id ? "life" : id);
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-[24px] border-t border-slate-100 bg-white/95 px-4 pt-2.5 shadow-[0_-12px_30px_-14px_rgba(30,64,175,0.3)] backdrop-blur">
       <button
@@ -204,7 +206,7 @@ export function BottomBar({ tab, setTab, p, busy, onGrow }: { tab: Tab; setTab: 
           const Icon = t.icon;
           const on = group === t.id;
           return (
-            <button key={t.id} data-sfx="page" data-tour={`tab-${t.id}`} type="button" onClick={() => setTab(t.id)} className="flex flex-col items-center gap-0.5 outline-none" aria-current={on ? "page" : undefined}>
+            <button key={t.id} data-sfx="page" data-tour={`tab-${t.id}`} type="button" onClick={() => toggle(t.id)} className="flex flex-col items-center gap-0.5 outline-none" aria-current={on ? "page" : undefined}>
               <span className={cx("flex min-w-[64px] flex-col items-center gap-0.5 rounded-2xl px-3 py-1 text-[11px] font-bold transition", on ? "bg-blue-50 text-blue-600" : "text-slate-400")}>
                 <Icon size={19} strokeWidth={on ? 2.5 : 2} />
                 {t.label()}

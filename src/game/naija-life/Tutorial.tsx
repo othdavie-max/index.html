@@ -85,11 +85,11 @@ const STEPS: Step[] = [
     ],
   },
   {
-    target: "tab-life",
+    target: "tab-work",
     tab: "life",
     title: () => T("The bottom tabs", "The bottom tabs"),
     body: () => [
-      T("Life shows your story. Money holds your wallet, assets, loans and history. Family is for your parents, partner, children, relationships and will.", "Life dey show your story. Money get your wallet, assets, loans and history. Family na for your parents, partner, pikin, relationships and will."),
+      T("Your life story stays on the main screen. Work holds your jobs, businesses and skills. Money holds your wallet, assets, loans and history. Family is for your parents, partner, children, relationships and will.", "Life dey show your story. Money get your wallet, assets, loans and history. Family na for your parents, partner, pikin, relationships and will."),
       T("You can ask your parents for help when you are young, and date, marry and have children when you are older.", "You fit ask your parents for help when you small, and date, marry and born pikin when you don grow."),
     ],
   },
@@ -97,7 +97,7 @@ const STEPS: Step[] = [
     target: "tab-explore",
     tab: "explore",
     title: () => T("Explore", "Explore"),
-    body: () => [T("Everything else lives here: Phone (loans, dating, social media, betting), Work (jobs, school, businesses, skills), Health, Law, Map (travel), Power (politics) and Legacy (your family line).", "Everything remain dey here: Phone (loans, dating, social media, betting), Work (job, school, business, skills), Health, Law, Map (travel), Power (politics) and Legacy (your family line).")],
+    body: () => [T("Everything else lives here: Phone (loans, dating, social media, betting), Health, Law, Map (travel), Power (politics) and Legacy (your family line).", "Everything remain dey here: Phone (loans, dating, social media, betting), Work (job, school, business, skills), Health, Law, Map (travel), Power (politics) and Legacy (your family line).")],
   },
   {
     tab: "life",

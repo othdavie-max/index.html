@@ -1,5 +1,5 @@
 import { STATE_BY_ID, TRAVEL_STATES, JOB_BY_ID } from "./data";
-import { I, bump, moveTo } from "./helpers";
+import { I, bump, moveTo, qualifyBlock } from "./helpers";
 import { transact } from "./ledger";
 import { campusHire } from "./campus";
 import { addFriend } from "./family";
@@ -45,7 +45,8 @@ export const PPA_BY_ID = Object.fromEntries(PPAS.map((x) => [x.id, x]));
 const offered = (p: Player, x: Ppa) => {
   if (!x.job) return true;
   const j = JOB_BY_ID[x.job];
-  return !!j && (!j.courses || (!!p.course && j.courses.includes(p.course)));
+  // A corps member is under 30 here, so only the degree and skill checks matter.
+  return !!j && !qualifyBlock({ ...p, age: Math.max(p.age, j.minAge) }, j);
 };
 
 const poor = (p: Player) => p.classAtBirth === "struggling";

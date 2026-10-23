@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { JOBS, STATE_BY_ID, payMult, type JobDef } from "./data";
 import { applyBlock, expandCost, type Action } from "./engine";
-import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
+import { eligibleJobs, jobDef, qualifyBlock } from "./helpers";
 import { officeTitle } from "./politics";
 import { meritOf } from "./military";
 import { DegreeCard } from "./CampusUI";
@@ -20,10 +20,25 @@ const JOB_EMOJI: Record<string, string> = {
 };
 const GROUP_TILE: Record<string, string> = { petty: "bg-amber-100", formal: "bg-sky-100", creative: "bg-violet-100", crime: "bg-rose-100" };
 
+const HUSTLE_CATS: { id: string; title: () => string; sub: () => string }[] = [
+  { id: "food", title: () => T("Food and market hustles", "Food and market hustle"), sub: () => T("Start small, sell daily, grow into a brand.", "Start small, sell daily, grow am reach brand.") },
+  { id: "move", title: () => T("Transport and delivery", "Transport and delivery"), sub: () => T("Bikes, buses and parcels.", "Bike, bus and parcel.") },
+  { id: "trade", title: () => T("Skilled trades", "Skilled trades"), sub: () => T("Work with your hands. Contracts follow reputation.", "Work with your hand. Contract dey follow name.") },
+  { id: "style", title: () => T("Beauty, fashion and events", "Beauty, fashion and events"), sub: () => T("Owambe season is your season.", "Owambe season na your season.") },
+  { id: "money", title: () => T("Money, property and trading", "Money, property and trading"), sub: () => T("POS, agents, dealers and brokers.", "POS, agent, dealer and broker.") },
+];
+const CAT_OF: Record<string, string> = {
+  akara: "food", corn: "food", purewater: "food", suya: "food", bole: "food", marketwoman: "food", fishseller: "food", breadseller: "food", provisions: "food", scrap: "food",
+  keke: "move", okada: "move", dispatch: "move",
+  mechanic: "trade", mason: "trade", plumber: "trade", electrician: "trade", carpenter: "trade", tiler: "trade", generator: "trade", solar: "trade", phone: "trade", gasretail: "trade", cobbler: "trade", laundry: "trade",
+  barber: "style", tailor: "style", salon: "style", makeup: "style", photographer: "style", decor: "style", dj: "style", mc: "style", graphic: "style", thrift: "style", tutor: "style",
+  pos: "money", bdc: "money", recharge: "money", realtor: "money", cement: "money",
+};
+const catOf = (id: string) => CAT_OF[id] ?? "money";
+
 export function lockReason(p: Player, j: JobDef): string | null {
-  if (p.age < j.minAge) return T(`Age ${j.minAge}+`, `Age ${j.minAge}+`);
-  if (!eduAtLeast(p, j.edu)) return j.edu === "tertiary" ? T("Needs a degree", "You need degree") : T(`Needs ${j.edu} school`, `You need ${j.edu} school`);
-  if (j.courses && (!p.course || !j.courses.includes(p.course))) return T(`Needs ${j.courses.slice(0, 2).join(" / ")} degree`, `You need ${j.courses.slice(0, 2).join(" / ")} degree`);
+  const q = qualifyBlock(p, j);
+  if (q) return q;
   const st = STATE_BY_ID[p.state];
   if (st.opp < j.minOpp) return T(`Needs a bigger market (opportunity ${j.minOpp}+)`, `E need bigger market (opportunity ${j.minOpp}+)`);
   return null;
@@ -35,7 +50,7 @@ function JobSheet({ p, j, run, onClose }: { p: Player; j: JobDef; run: Run; onCl
   const pay = naira(j.ladder[0].pay * payMult(j, st) * Math.pow(p.index, 0.92));
   const go = (a: Action) => { run(a); onClose(); };
   return (
-    <ActionSheet emoji={JOB_EMOJI[j.id] ?? "💼"} tile={GROUP_TILE[j.group]} title={j.title} sub={`~${pay}${T("/yr to start", "/yr to start")}`} onClose={onClose}>
+    <ActionSheet emoji={j.emoji ?? JOB_EMOJI[j.id] ?? "💼"} tile={GROUP_TILE[j.group]} title={j.title} sub={`~${pay}${T("/yr to start", "/yr to start")}`} onClose={onClose}>
       <p className="mb-3 text-sm text-slate-600">{j.blurb}</p>
       <div className="mb-3 flex flex-wrap gap-1.5 text-[11px] text-slate-500">
         {j.ladder.slice(0, 4).map((r, i) => <span key={i} className="rounded-full bg-slate-100 px-2 py-0.5">{r.title}</span>)}
@@ -58,6 +73,7 @@ function JobSheet({ p, j, run, onClose }: { p: Player; j: JobDef; run: Run; onCl
 export function JobsView({ p, run }: { p: Player; run: Run }) {
   const [pick, setPick] = useState<JobDef | null>(null);
   const [mine, setMine] = useState(false);
+  const [showLocked, setShowLocked] = useState(false);
   const st = STATE_BY_ID[p.state];
   const cur = jobDef(p);
   const eligible = eligibleJobs(p);
@@ -65,14 +81,14 @@ export function JobsView({ p, run }: { p: Player; run: Run }) {
   const locked = JOBS.filter((j) => j.id !== "kidnapper" && !eligible.includes(j));
   const pay = (j: JobDef) => `~${naira(j.ladder[0].pay * payMult(j, st) * Math.pow(p.index, 0.92))}${T("/yr", "/yr")}`;
   const rows = (jobs: JobDef[]) => jobs.map((j) => (
-    <ListRow key={j.id} emoji={JOB_EMOJI[j.id] ?? "💼"} tile={GROUP_TILE[j.group]} name={j.title} desc={j.blurb} right={pay(j)} onClick={() => setPick(j)} />
+    <ListRow key={j.id} emoji={j.emoji ?? JOB_EMOJI[j.id] ?? "💼"} tile={GROUP_TILE[j.group]} name={j.title} desc={j.blurb} right={pay(j)} onClick={() => setPick(j)} />
   ));
   const section = (title: string, sub: string, jobs: JobDef[]) => jobs.length > 0 && <ListGroup title={title} sub={sub}>{rows(jobs)}</ListGroup>;
   return (
     <>
       <ListGroup title={T("You", "You")}>
         <ListRow
-          emoji={cur ? JOB_EMOJI[cur.id] ?? "💼" : "🧑"} tile="bg-blue-100"
+          emoji={cur ? cur.emoji ?? JOB_EMOJI[cur.id] ?? "💼" : "🧑"} tile="bg-blue-100"
           name={p.job && cur ? cur.ladder[Math.min(p.job.rank, cur.ladder.length - 1)].title : p.politics && p.politics.office >= 0 ? officeTitle(p) : T("Not working", "No dey work")}
           desc={p.job && cur ? `${cur.title} · ${T(`${p.job.years} yr in this role`, `${p.job.years} yr for this role`)}${["soldier", "navy", "airforce", "police"].includes(cur.id) ? ` · ${T("service record", "service record")} ${meritOf(p)}/100` : ""}` : T("Pick something below or hustle", "Pick one thing below or go hustle")}
           onClick={p.job && cur ? () => setMine(true) : undefined}
@@ -85,20 +101,23 @@ export function JobsView({ p, run }: { p: Player; run: Run }) {
       <div className="-mt-2 mb-3 px-1"><DegreeCard p={p} run={run} /></div>
       {p.age >= 14 && (
         <>
-          {section(T("Start a hustle", "Start hustle"), T("Self-employed. You can grow these into empires.", "Work for yourself. You fit grow am reach empire."), eligible.filter((j) => j.selfEmployed))}
-          {section(T("Jobs", "Jobs"), T("Salaried work. Promotions come with time and connections.", "Salary work. Promotion dey come with time and connections."), eligible.filter((j) => !j.selfEmployed && (j.group === "petty" || j.group === "formal")))}
+          {HUSTLE_CATS.map((c) => section(c.title(), c.sub(), eligible.filter((j) => j.selfEmployed && catOf(j.id) === c.id)))}
+          {section(T("Everyday jobs", "Everyday jobs"), T("Apply and get hired. Promotions come with time and connections.", "Apply and get hired. Promotion dey come with time and connections."), eligible.filter((j) => !j.selfEmployed && j.group === "petty"))}
+          {section(T("Professional careers", "Professional careers"), T("Your degree decides which of these you can apply for.", "Your degree go decide which of these you fit apply for."), eligible.filter((j) => j.group === "formal" && j.edu === "tertiary"))}
+          {section(T("Government and uniformed services", "Government and uniform work"), T("Steady work, pension and long ladders.", "Steady work, pension and long ladder."), eligible.filter((j) => j.group === "formal" && j.edu !== "tertiary"))}
           {section(T("Creative careers", "Creative work"), T("Slow start, huge upside.", "Start slow, but the gain big."), eligible.filter((j) => j.group === "creative"))}
           {section(T("Risky paths", "Risky road"), T("Fast money. Heavy consequences.", "Fast money. Heavy wahala."), eligible.filter((j) => j.group === "crime"))}
           {locked.length > 0 && (
-            <ListGroup title={T(`Locked careers (${locked.length})`, `Locked work (${locked.length})`)}>
-              {locked.map((j) => <ListRow key={j.id} emoji="🔒" tile="bg-slate-100" name={j.title} desc={lockReason(p, j) ?? ""} />)}
+            <ListGroup title={T(`Not yet (${locked.length})`, `Not yet (${locked.length})`)} sub={T("School, a degree course or a skill unlocks these.", "School, degree course or skill go unlock these.")}>
+              {(showLocked ? locked : locked.slice(0, 6)).map((j) => <ListRow key={j.id} emoji="🔒" tile="bg-slate-100" name={j.title} desc={lockReason(p, j) ?? ""} wrap />)}
+              {locked.length > 6 && <ListRow emoji={showLocked ? "▴" : "▾"} tile="bg-slate-100" name={showLocked ? T("Show fewer", "Show less") : T(`Show all ${locked.length}`, `Show all ${locked.length}`)} onClick={() => setShowLocked(!showLocked)} />}
             </ListGroup>
           )}
         </>
       )}
       {pick && <JobSheet p={p} j={pick} run={run} onClose={() => setPick(null)} />}
       {mine && cur && p.job && (
-        <ActionSheet emoji={JOB_EMOJI[cur.id] ?? "💼"} tile={GROUP_TILE[cur.group]} title={cur.ladder[Math.min(p.job.rank, cur.ladder.length - 1)].title} sub={cur.title} onClose={() => setMine(false)}>
+        <ActionSheet emoji={cur.emoji ?? JOB_EMOJI[cur.id] ?? "💼"} tile={GROUP_TILE[cur.group]} title={cur.ladder[Math.min(p.job.rank, cur.ladder.length - 1)].title} sub={cur.title} onClose={() => setMine(false)}>
           <div className="flex flex-wrap gap-2">
             {cost !== null && <Btn tone="gold" disabled={p.money < cost} onClick={() => { run({ t: "expand" }); setMine(false); }}>{T(`Expand business (${naira(cost)})`, `Expand business (${naira(cost)})`)}</Btn>}
             <Btn tone="ghost" onClick={() => { run({ t: "quit" }); setMine(false); }}>{T("Quit", "Quit")}</Btn>
