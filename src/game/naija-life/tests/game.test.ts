@@ -1776,3 +1776,37 @@ test("every business is run its own way", async () => {
   g = resolveAll(ageUp(g));
   assert.ok(g.p.alive);
 });
+
+test("unserviced vehicles wear out faster than serviced ones and eventually break down", async () => {
+  const { addVehicle, vehicleMonth, VEHICLE_MODELS } = await import("../vehicles");
+  const g = aliveAt(30);
+  const p = structuredClone(g.p);
+  p.money = 1e12;
+  const m = VEHICLE_MODELS.find((x) => x.cat === "car")!;
+  const a = addVehicle(p, m); const b = addVehicle(p, m);
+  a.service = 0; b.service = 2; a.condition = 90; b.condition = 90;
+  const lines: string[] = [];
+  for (let i = 0; i < 48; i++) { p.month = (i % 12) + 1; vehicleMonth(p, lines); }
+  assert.ok(a.condition < b.condition - 15, `neglected ${a.condition} vs full ${b.condition}`);
+  assert.ok(lines.some((l) => /broke|break/i.test(l)), "the neglected car breaks down");
+});
+
+test("rich parents leave an inheritance when the last one dies; leaving the spouse out upsets them", async () => {
+  const { parentEstate, willReactions } = await import("../inherit");
+  const g = aliveAt(30, "nepo");
+  const p = structuredClone(g.p);
+  for (const n of Object.values(p.npcs)) if (n.role === "dad" || n.role === "mom") n.alive = false;
+  const dead = Object.values(p.npcs).find((n) => n.role === "dad")!;
+  const pending: import("../types").Pending[] = [];
+  parentEstate(p, dead, [], pending);
+  assert.ok(pending.some((x) => x.kind === "event" && x.id === "parent_estate"), "the will is read");
+  p.spouse = { name: "Ada", happy: 80 };
+  p.kids = [{ name: "Chi", age: 5, gender: "female", closeness: 80 }];
+  p.will = { shares: [{ id: "kid:0", pct: 100 }], updatedAge: 30 };
+  const lines: string[] = [];
+  willReactions(p, lines);
+  assert.ok(p.spouse.happy < 80 && lines.length > 0);
+  p.spouse.happy = 80; p.will = { shares: [{ id: "spouse", pct: 100 }], updatedAge: 30 };
+  willReactions(p, lines);
+  assert.ok((p.kids[0].closeness ?? 80) < 80);
+});

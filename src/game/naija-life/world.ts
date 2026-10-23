@@ -5,6 +5,7 @@ import { allowanceCutoffAge, allowanceMonthly } from "./finance";
 import { stateOf } from "./helpers";
 import { monthIndex, transact } from "./ledger";
 import type { FamilyArchetype, Housing, Npc, Pending, Player, StateInfo } from "./types";
+import { parentEstate, willReactions } from "./inherit";
 import { T, chance, clamp, naira, randInt } from "./util";
 
 export function familyHousing(stateId: string): Housing {
@@ -115,6 +116,7 @@ function deathHazard(age: number): number {
 }
 
 export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
+  willReactions(p, lines);
   const month = () => randInt(1, 12);
   // 1. Family fortunes
   const trendFactor = p.fam.trend === "rising" ? 1.06 : p.fam.trend === "falling" ? 0.9 : 1.0;
@@ -144,6 +146,7 @@ export function yearlyWorld(p: Player, lines: string[], pending: Pending[]) {
         lines.push(T(`Your ${n.role === "dad" ? "father" : n.role === "mom" ? "mother" : "guardian"}, ${n.name.split(" ")[0]}, has died.`, `Your ${n.role === "dad" ? "papa" : n.role === "mom" ? "mama" : "guardian"}, ${n.name.split(" ")[0]}, don die.`));
         p.stats.happiness = clamp(p.stats.happiness - 15);
         pending.push({ kind: "event", id: "funeral", data: { who: n.name, month: month(), role: n.role } });
+        if (n.role === "dad" || n.role === "mom") parentEstate(p, n, lines, pending);
         p.fam.providers = p.fam.providers.filter((id) => id !== n.id);
         p.fam.income = Math.round(p.fam.income * 0.6);
         if (p.fam.providers.length === 0 && p.age < 18) {

@@ -67,6 +67,7 @@ export const GATES: Record<string, Gate> = {
   retire_option: { minAge: 38, needs: ["job"] },
   friend_request: { minAge: 14 },
   friend_help: { minAge: 18 },
+  parent_estate: { minAge: 0 },
   sibling_ask: { minAge: 14 },
   unexpected_inheritance: { minAge: 22 },
   boarding_incident: { minAge: 10, maxAge: 18, needs: ["school"] },
@@ -106,7 +107,7 @@ const has = (p: Player, n: Need): boolean => {
 
 /** True when the event may be offered to this character right now. */
 /** While locked up, only events that can happen inside a prison fire. */
-const PRISON_EVENTS_OK = new Set(["jail_inside", "prison_bribe", "prison_visit", "medical_care", "emergency_response", "follow_up", "court_trial", "bail_decision", "loan_due", "funeral"]);
+const PRISON_EVENTS_OK = new Set(["jail_inside", "prison_bribe", "prison_visit", "medical_care", "emergency_response", "follow_up", "court_trial", "bail_decision", "loan_due", "funeral", "parent_estate"]);
 
 export function eligible(p: Player, id: string): boolean {
   if (p.prison > 0) return PRISON_EVENTS_OK.has(id);

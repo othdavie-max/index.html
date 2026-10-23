@@ -38,6 +38,7 @@ import { SUPPORT_KINDS, addFriend, applySupport, classOf, evaluateSupport, makeN
 import { auditBalance, coverShortfall, reconcile, snapshot, transact } from "./ledger";
 import { lenderOffers, loanBlock, repayLoan, takeLoan, totalDebt, borrowFrom, giftTo, lendTo } from "./loans";
 import { planEstate } from "./will";
+import { PARENT_EVENTS, willWarning } from "./inherit";
 import { assignSchoolType, familyHousing, initWorld, migrateWorld, moveHomeToFamily, rentPlace, schoolHousing, yearlyWorld } from "./world";
 import { buyVehicle, takeDrivingTest, insureVehicle, setService, repairVehicle, sellVehicle, setRole } from "./vehicles";
 import { FACILITY_BY_ID, applyTreatment, payForTreatment, setInsurance, treatmentCost } from "./health";
@@ -60,7 +61,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -1260,7 +1261,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
           g.queue.unshift(...res.spawn);
           return out(res.text);
         }
-        case "will": setShare(p, a.id, a.pct); return out(T("Your will has been updated.", "Dem don update your will."));
+        case "will": { setShare(p, a.id, a.pct); const w = willWarning(p); return out(w ?? T("Your will has been updated.", "Dem don update your will.")); }
         case "buy": {
       const price = Math.round(I(p, a.item === "phone" ? 25_000 : a.item === "smartphone" ? 180_000 : 450_000));
       if (p.age < 10) return { g: g0, msg: T("Ask your family.", "Ask your family abeg.") };
