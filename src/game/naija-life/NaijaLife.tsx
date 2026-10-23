@@ -13,7 +13,7 @@ import {
 import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
 import { Avatar } from "./Avatar";
 import { AdmissionCard, CampusCard, DegreeCard } from "./CampusUI";
-import { ChallengeBanner, ChallengePanel, DailyBanner, GistPanel, GoalsPanel, MomentsPanel, isLocked, lockHint, sanitizeLook, saveChallengeScore, saveUnlocksFrom, useUnlocks } from "./EngageUI";
+import { ChallengeBanner, ChallengePanel, GistPanel, GoalsPanel, MomentsPanel, isLocked, lockHint, sanitizeLook, saveChallengeScore, saveUnlocksFrom, useUnlocks } from "./EngageUI";
 import { KidnapModal } from "./KidnapModal";
 import { BEARDS, GLASSES, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
 import { luxuryBlock, luxuryCost } from "./lifestyle";
@@ -194,7 +194,7 @@ export default function NaijaLife() {
         {EXPLORE_TABS.includes(tab) && <ExploreChips tab={tab} setTab={setTab} />}
         {tab === "explore" && <ExploreHub setTab={setTab} />}
         {p.prison > 0 && (tab === "phone" || tab === "map" || tab === "power") && <PrisonCard p={p} run={run} full />}
-        {tab === "life" && <><PrisonCard p={p} run={run} /><AdmissionCard p={p} run={run} /><CampusCard p={p} run={run} /><HeadlinesCard p={p} /><DailyBanner p={p} run={run} /><LifeFeed g={game} run={run} /></>}
+        {tab === "life" && <><PrisonCard p={p} run={run} /><AdmissionCard p={p} run={run} /><CampusCard p={p} run={run} /><HeadlinesCard p={p} /><LifeFeed g={game} run={run} /></>}
         {tab === "phone" && p.prison <= 0 && <PhoneTab p={p} run={run} />}
         {tab === "health" && <HealthTab p={p} run={run} />}
         {tab === "law" && <LawTab p={p} run={run} />}

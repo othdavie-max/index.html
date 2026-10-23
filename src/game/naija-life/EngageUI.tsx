@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Action } from "./engine";
-import { GOAL_BY_ID, UNLOCK_GOAL, challengeFor, dailyBlock, dailyFor, dailyRewardText, gistFor, weekId, type Challenge } from "./engage";
+import { GOAL_BY_ID, UNLOCK_GOAL, challengeFor, gistFor, weekId, type Challenge } from "./engage";
 import { shareCard } from "./share";
 import type { Player } from "./types";
 import type { Look } from "./look";
@@ -13,7 +12,6 @@ import { T, naira } from "./util";
 // Small browser storage helpers. Everything works without them.
 // ---------------------------------------------------------------------------
 const UNLOCK_KEY = "naija-life-unlocks-v1";
-const DAILY_KEY = "naija-life-daily-v1";
 const CHALLENGE_KEY = "naija-life-challenge-v1";
 function read<TV>(key: string, fallback: TV): TV {
   try { const raw = localStorage.getItem(key); return raw ? (JSON.parse(raw) as TV) : fallback; } catch { return fallback; }
@@ -21,7 +19,6 @@ function read<TV>(key: string, fallback: TV): TV {
 function write(key: string, v: unknown) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage unavailable */ } }
 
 export const todayKey = () => new Date().toLocaleDateString("en-CA");
-const yesterdayKey = () => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toLocaleDateString("en-CA"); };
 
 export const loadUnlocks = (): string[] => read<string[]>(UNLOCK_KEY, []);
 /** Remember cosmetics earned in any life. Returns the ones that are new. */
@@ -54,48 +51,6 @@ export function sanitizeLook(l: Look, unlocked: Set<string>): Look {
     wear: isLocked("wear", l.wear, unlocked) ? "none" : l.wear,
     outfit: isLocked("outfit", l.outfit, unlocked) ? "tshirt" : l.outfit,
   };
-}
-
-// ---------------------------------------------------------------------------
-// Daily gist banner and sheet
-// ---------------------------------------------------------------------------
-export function DailyBanner({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [open, setOpen] = useState(false);
-  const [info, setInfo] = useState<{ streak: number; claimedToday: boolean }>({ streak: 0, claimedToday: false });
-  const day = todayKey();
-  const refresh = () => { const d = read<{ last?: string; streak?: number }>(DAILY_KEY, {}); setInfo({ streak: d.streak ?? 0, claimedToday: d.last === day }); };
-  useEffect(refresh, [day]);
-  if (!p.alive || p.age < 6) return null;
-  const def = dailyFor(day);
-  const blocked = dailyBlock(p, day);
-  const done = info.claimedToday || p.flags.dailyDay === day;
-  const nextStreak = (read<{ last?: string; streak?: number }>(DAILY_KEY, {}).last === yesterdayKey() ? (info.streak || 0) + 1 : 1);
-  const choose = (i: number) => {
-    const streak = nextStreak;
-    run({ t: "daily", day, choice: i, streak });
-    write(DAILY_KEY, { last: day, streak });
-    setInfo({ streak, claimedToday: true });
-    setOpen(false);
-  };
-  return (
-    <>
-      <button type="button" onClick={() => setOpen(true)} className="flex w-full items-center gap-2 rounded-xl bg-white px-3 py-2 text-left shadow-sm ring-1 ring-slate-100">
-        <span className="text-[18px]">🗞️</span>
-        <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-[#0b2a6b]">{done ? T("Today's gist done. Come back tomorrow!", "Today gist don finish. Come back tomorrow!") : T(def.en, def.pcm)}</span>
-        <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10.5px] font-bold text-amber-700">🔥 {info.claimedToday ? info.streak : nextStreak - 1 > 0 ? nextStreak - 1 : 0}</span>
-      </button>
-      {open && (
-        <Sheet title={T("Today's gist", "Today gist")} onClose={() => setOpen(false)}>
-          <p className="text-sm text-slate-700">{T(def.en, def.pcm)}</p>
-          <p className="mt-1 text-[11px] text-slate-500">{T(`Streak: ${info.streak} day${info.streak === 1 ? "" : "s"}. ${(() => { const r = dailyRewardText(nextStreak); return `Reward: ${r.en}`; })()}`, `Streak: ${info.streak} day. ${(() => { const r = dailyRewardText(nextStreak); return `Reward: ${r.pcm}`; })()}`)}</p>
-          <div className="mt-3 space-y-2">
-            {def.choices.map((c, i) => <Btn key={i} tone="gold" className="w-full" disabled={done || Boolean(blocked)} onClick={() => choose(i)}>{T(c.en, c.pcm)}</Btn>)}
-          </div>
-          {done && <p className="mt-2 text-xs text-slate-500">{T("You have taken today's gist. Come back tomorrow to keep your streak.", "You don take today gist. Come back tomorrow to keep your streak.")}</p>}
-        </Sheet>
-      )}
-    </>
-  );
 }
 
 // ---------------------------------------------------------------------------

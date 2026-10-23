@@ -114,108 +114,7 @@ export function engageYear(p: Player, lines: string[]) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Daily gist: one small choice a day, a streak and a reward
-// ---------------------------------------------------------------------------
-interface DailyChoice { en: string; pcm: string; run: (p: Player) => [string, string] }
-interface DailyDef { id: string; en: string; pcm: string; choices: DailyChoice[] }
-const cash = (p: Player, n: number, why: [string, string]) => transact(p, { amount: n, reason: T(why[0], why[1]), category: "event" });
-
-export const DAILY: DailyDef[] = [
-  { id: "fuel", en: "Fuel price jumps overnight. Queues stretch round the corner.", pcm: "Fuel price jump overnight. Queue don turn the corner.", choices: [
-    { en: "Join the queue", pcm: "Join the queue", run: (p) => { bump(p, "stress", 4); cash(p, -I(p, 8_000), ["Fuel queue", "Fuel queue"]); return ["You queue for hours but you get fuel.", "You queue for hours but you get fuel."]; } },
-    { en: "Take a bus today", pcm: "Take bus today", run: (p) => { bump(p, "stress", 2); return ["Crowded, but cheap. You arrive with a story.", "E full but e cheap. You reach with gist."]; } },
-    { en: "Work from home", pcm: "Work from house", run: (p) => { bump(p, "smarts", 1); return ["A quiet day. You get plenty done.", "Quiet day. You do plenty work."]; } },
-  ] },
-  { id: "eagles", en: "Super Eagles are playing tonight and the whole street is shouting.", pcm: "Super Eagles dey play tonight and the whole street dey shout.", choices: [
-    { en: "Watch at the viewing centre", pcm: "Watch for viewing centre", run: (p) => { bump(p, "happiness", 5); cash(p, -I(p, 1_500), ["Viewing centre", "Viewing centre"]); return ["What a match! You lose your voice.", "Wetin be match! You lose your voice."]; } },
-    { en: "Stay home and sleep", pcm: "Stay house sleep", run: (p) => { bump(p, "stress", -3); return ["You rest well. You hear the shouting anyway.", "You rest well. You still hear the noise."]; } },
-  ] },
-  { id: "nepa", en: "NEPA takes light for three days in a row.", pcm: "NEPA carry light for three days straight.", choices: [
-    { en: "Buy diesel for the generator", pcm: "Buy diesel for generator", run: (p) => { cash(p, -I(p, 12_000), ["Diesel for the generator", "Diesel for generator"]); return ["The generator roars. Your neighbours envy you.", "Generator dey roar. Neighbours dey envy you."]; } },
-    { en: "Sit outside and gist", pcm: "Sit outside gist", run: (p) => { bump(p, "connections", 1); bump(p, "happiness", 2); return ["You learn what everyone on the street thinks.", "You know wetin everybody for street dey think."]; } },
-  ] },
-  { id: "scam", en: "A 'bank' texts: your account will be blocked unless you click.", pcm: "One 'bank' text: dem go block your account if you no click.", choices: [
-    { en: "Delete and report", pcm: "Delete and report", run: (p) => { bump(p, "smarts", 1); return ["Sharp. You tell three friends too.", "Sharp. You tell three friends too."]; } },
-    { en: "Call the real bank", pcm: "Call the real bank", run: (p) => { bump(p, "stress", 1); return ["They confirm it is a scam after 40 minutes on hold.", "Dem confirm say na scam after 40 minutes for hold."]; } },
-  ] },
-  { id: "owambe", en: "A neighbour is celebrating, and the whole compound is invited.", pcm: "Neighbour dey celebrate and the whole compound dey invited.", choices: [
-    { en: "Go and spray a little", pcm: "Go spray small", run: (p) => { cash(p, -I(p, 5_000), ["Spraying at a party", "Spray for party"]); bump(p, "connections", 2); bump(p, "happiness", 3); return ["Jollof, music, and three new contacts.", "Jollof, music and three new contact."]; } },
-    { en: "Take food home", pcm: "Carry food go house", run: (p) => { bump(p, "happiness", 2); return ["You leave with a heavy takeaway pack.", "You comot with heavy food pack."]; } },
-  ] },
-  { id: "bbn", en: "BBNaija auditions are announced. Your cousin says you should go.", pcm: "BBNaija audition don open. Your cousin say make you go.", choices: [
-    { en: "Audition for fun", pcm: "Audition for fun", run: (p) => { bump(p, "looks", 1); bump(p, "happiness", 3); return ["They ask you to leave after 4 seconds. You laugh about it.", "Dem ask you to comot after 4 seconds. You laugh am."]; } },
-    { en: "Stay in and plan your hustle", pcm: "Stay inside plan hustle", run: (p) => { bump(p, "smarts", 1); return ["You make a plan on the back of an envelope.", "You make plan for back of envelope."]; } },
-  ] },
-  { id: "naira", en: "The naira wobbles against the dollar again.", pcm: "Naira wobble against dollar again.", choices: [
-    { en: "Buy a few dollars", pcm: "Buy small dollar", run: (p) => { cash(p, -I(p, 10_000), ["A few dollars as a hedge", "Small dollar for hedge"]); bump(p, "smarts", 1); return ["A small hedge. Your future self nods.", "Small hedge. Your future self go nod."]; } },
-    { en: "Ignore and hope", pcm: "Ignore and hope", run: (p) => { bump(p, "stress", 2); return ["Hope is a strategy. Not a great one.", "Hope na strategy. No be the best one."]; } },
-  ] },
-  { id: "flood", en: "Heavy rain. The road to your street is now a river.", pcm: "Heavy rain. The road to your street don turn river.", choices: [
-    { en: "Help neighbours move things", pcm: "Help neighbours move things", run: (p) => { bump(p, "reputation", 2); bump(p, "fitness", 1); return ["Wet, tired, and well loved on your street.", "You wet, you tire, but the street love you."]; } },
-    { en: "Stay dry and watch", pcm: "Stay dry watch", run: (p) => { bump(p, "stress", 1); return ["You film it for WhatsApp status.", "You record am for WhatsApp status."]; } },
-  ] },
-  { id: "market", en: "A market woman whispers: tomatoes are about to be expensive.", pcm: "Market woman whisper: tomato go soon cost.", choices: [
-    { en: "Stock up", pcm: "Stock up", run: (p) => { cash(p, -I(p, 6_000), ["Tomatoes bought early", "Tomato wey you buy early"]); bump(p, "smarts", 1); return ["Next week you look like a prophet.", "Next week you go look like prophet."]; } },
-    { en: "Just greet her", pcm: "Just greet her", run: (p) => { bump(p, "connections", 1); return ["She remembers you. That is worth something.", "She go remember you. E get value."]; } },
-  ] },
-  { id: "strike", en: "NLC announces a nationwide strike starting tomorrow.", pcm: "NLC announce nationwide strike from tomorrow.", choices: [
-    { en: "Stay home in solidarity", pcm: "Stay house for solidarity", run: (p) => { bump(p, "stress", -2); return ["A free day. Nobody is sure why.", "Free day. Nobody sure why."]; } },
-    { en: "Hustle through it", pcm: "Hustle am", run: (p) => { cash(p, I(p, 4_000), ["Strike-day hustle", "Strike-day hustle"]); bump(p, "stress", 2); return ["Everything is closed, so you sell what is open.", "Everywhere close, so you sell wetin open."]; } },
-  ] },
-  { id: "sermon", en: "A sermon at the weekend hits close to home.", pcm: "Sermon for weekend touch your heart.", choices: [
-    { en: "Pray and reflect", pcm: "Pray and reflect", run: (p) => { bump(p, "stress", -4); bump(p, "happiness", 2); return ["You leave lighter than you came.", "You comot lighter than you enter."]; } },
-    { en: "Give an offering", pcm: "Give offering", run: (p) => { cash(p, -I(p, 3_000), ["Offering", "Offering"]); bump(p, "reputation", 1); return ["A small seed. The usher nods.", "Small seed. Usher nod."]; } },
-  ] },
-  { id: "detty", en: "It's the weekend. Friends say there is an event in town.", pcm: "Na weekend. Friends say event dey town.", choices: [
-    { en: "Go out", pcm: "Go out", run: (p) => { cash(p, -I(p, 12_000), ["A night out", "Night out"]); bump(p, "happiness", 4); bump(p, "connections", 1); return ["Great vibes. Your wallet remembers it tomorrow.", "Vibes sweet. Your wallet go remember tomorrow."]; } },
-    { en: "Cook at home", pcm: "Cook for house", run: (p) => { bump(p, "happiness", 2); return ["Jollof and a movie. Underrated.", "Jollof and movie. E good."]; } },
-  ] },
-  { id: "tip", en: "A stranger on the bus says your shoes are fine.", pcm: "Stranger for bus talk say your shoe fine.", choices: [
-    { en: "Smile and say thanks", pcm: "Smile say thanks", run: (p) => { bump(p, "happiness", 2); return ["Small compliment, big day.", "Small compliment, big day."]; } },
-    { en: "Check your pockets", pcm: "Check your pocket", run: (p) => { bump(p, "smarts", 1); return ["Nothing missing. You are alert.", "Nothing miss. You dey alert."]; } },
-  ] },
-];
-
 export const dayIndex = (day: string): number => { let h = 0; for (const c of day) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
-export const dailyFor = (day: string): DailyDef => DAILY[dayIndex(day) % DAILY.length];
-
-export function dailyBlock(p: Player, day: string): string | null {
-  if (p.flags.dailyDay === day) return T("You already took today's gist", "You don take today gist");
-  if (p.prison > 0 || !p.alive) return T("Not right now", "Not now");
-  return null;
-}
-
-export function dailyRewardText(streak: number): { en: string; pcm: string } {
-  if (streak > 0 && streak % 7 === 0) return { en: "Week streak! A scholarship chance and a lucky break.", pcm: "Week streak! Scholarship chance and lucky break." };
-  if (streak > 0 && streak % 3 === 0) return { en: "Streak bonus: a lucky break.", pcm: "Streak bonus: lucky break." };
-  return { en: "Streak bonus: a small cash gift.", pcm: "Streak bonus: small cash gift." };
-}
-
-export function dailyDo(p: Player, day: string, choice: number, streak: number): string {
-  const b = dailyBlock(p, day);
-  if (b) return b;
-  const d = dailyFor(day);
-  const c = d.choices[choice];
-  if (!c) return "";
-  p.flags.dailyDay = day;
-  const [en, pcm] = c.run(p);
-  let reward: string;
-  if (streak > 0 && streak % 7 === 0) {
-    p.luck = clamp(p.luck + 5);
-    if (p.school) { p.flags.scholarship = 1; reward = T("A scholarship chance lands: your school fees drop.", "Scholarship chance land: your school fees don drop."); }
-    else { cash(p, I(p, 100_000), ["Week-streak lucky break", "Week-streak lucky break"]); reward = T("A lucky break: a surprise payment arrives.", "Lucky break: surprise payment land."); }
-  } else if (streak > 0 && streak % 3 === 0) {
-    p.luck = clamp(p.luck + 3);
-    bump(p, "happiness", 3);
-    reward = T("A lucky break comes your way.", "Lucky break dey your side.");
-  } else {
-    const g = I(p, 5_000 * Math.min(Math.max(streak, 1), 5));
-    cash(p, g, ["Daily gist gift", "Daily gist gift"]);
-    reward = T(`A small gift of ${naira(g)} arrives.`, `Small gift of ${naira(g)} land.`);
-  }
-  return `${T(en, pcm)} ${reward}`;
-}
 
 // ---------------------------------------------------------------------------
 // Weekly challenge: the same start for everyone this week
@@ -282,6 +181,7 @@ export function gistFor(day: string, p: Player): { en: string; pcm: string; you?
 // ---------------------------------------------------------------------------
 // Chain events and Nigerian moments
 // ---------------------------------------------------------------------------
+const cash = (p: Player, n: number, why: [string, string]) => transact(p, { amount: n, reason: T(why[0], why[1]), category: "event" });
 const adult = (p: Player) => p.age >= 18;
 const evId = (p: Player) => p.flags.stranger;
 

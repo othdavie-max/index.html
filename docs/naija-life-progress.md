@@ -71,7 +71,6 @@ Business revenue growth, margins and creator payouts were reduced in this pass b
 
 ## Engagement pass
 - Moments: 19 funny shareable highlights (President, escaped kidnap, First Class, billionaire, jet, japa...) with share cards, in Legacy.
-- Daily gist: one small choice a day, streak rewards (cash, lucky break, scholarship chance). Streak is kept on the device.
 - Weekly challenge: same seed and start for everyone that week; score locks in at 40; best score saved on the device. A shared leaderboard needs a server and is not built.
 - Bucket list: 3 goals per life; finishing one unlocks a cosmetic (kept on the device) for every future character.
 - Naija Gist: generated gossip feed plus your own moments. A real-player feed needs a server and is not built.

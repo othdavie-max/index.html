@@ -9,7 +9,7 @@ import { EVENTS5, graduationData } from "./events5";
 import { EVENTS6 } from "./events6";
 import { KID_EVENTS } from "./kids";
 import { MARKET_EVENTS, fireAdvisor, hireAdvisor } from "./markets";
-import { ENGAGE_EVENTS, assignGoals, dailyDo, engageYear } from "./engage";
+import { ENGAGE_EVENTS, assignGoals, engageYear } from "./engage";
 import { campusDo, campusHire, campusYearEnd, enrol, graduateCampus, writeJamb } from "./campus";
 import { transportOptions, type TransportMode } from "./travel";
 import { buyListing, completeProjects, developLand, houseYear, refreshListings, type PurchaseMode } from "./property";
@@ -767,7 +767,6 @@ export type Action =
   | { t: "trade"; id: string }
   | { t: "postgrad"; id: string }
   | { t: "adopt" }
-  | { t: "daily"; day: string; choice: number; streak: number }
   | { t: "jamb"; cheat?: boolean }
   | { t: "enrol"; uni: string; major: string; pay: "family" | "self" | "aid" }
   | { t: "campus"; op: string; arg?: string }
@@ -834,7 +833,6 @@ function actionMeta(a: Action): { reason: string; category: import("./types").Tx
     case "postgrad": return { reason: T("Postgraduate study", "Postgraduate study"), category: "education" };
     case "adopt": return { reason: T("Adoption", "Adoption"), category: "family" };
     case "advisor": return { reason: T("Financial adviser", "Financial adviser"), category: "investment" };
-    case "daily": return { reason: T("Daily gist", "Daily gist"), category: "event" };
     case "jamb": return { reason: T("JAMB registration", "JAMB registration"), category: "education" };
     case "enrol": return { reason: T("University admission", "University admission"), category: "education" };
     case "campus": return { reason: T("Campus life", "Campus life"), category: "education" };
@@ -976,7 +974,6 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
     case "trade": return out(enrollTrade(p, a.id));
     case "postgrad": return out(enrollPostgrad(p, a.id));
     case "adopt": return out(adoptChild(p));
-    case "daily": return out(dailyDo(p, a.day, a.choice, a.streak));
     case "jamb": return out(writeJamb(p, Boolean(a.cheat)));
     case "enrol": return out(enrol(p, a.uni, a.major, a.pay));
     case "campus": return out(campusDo(p, a.op, a.arg));

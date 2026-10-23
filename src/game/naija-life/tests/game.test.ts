@@ -26,7 +26,7 @@ import { yearlyNews, modActive } from "../news";
 import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
-import { ENGAGE_EVENTS, GOAL_DEFS, MOMENT_DEFS, challengeFor, dailyFor, dailyBlock, engageYear, gistFor, weekId, DAILY } from "../engage";
+import { ENGAGE_EVENTS, GOAL_DEFS, MOMENT_DEFS, challengeFor, engageYear, gistFor, weekId } from "../engage";
 import { VEHICLE_MODELS, modelOf, needsLicense, priceOf, takeDrivingTest, licenseBlock } from "../vehicles";
 import { transportOptions, tripRisk } from "../travel";
 import { makeKidnap } from "../kidnap";
@@ -1216,7 +1216,7 @@ test("kidnap escape mini-game: planning raises the odds, running ends it", () =>
   assert.ok((outcomes.escaped ?? 0) > 0, `some escapes succeed: ${JSON.stringify(outcomes)}`);
 });
 
-test("engagement: moments, bucket list, daily gist, weekly challenge and chain events", () => {
+test("engagement: moments, bucket list, weekly challenge and chain events", () => {
   // every life starts with three distinct goals, at least one with a cosmetic prize
   const g = aliveAt(30);
   assert.equal(g.p.goals?.length, 3);
@@ -1240,19 +1240,6 @@ test("engagement: moments, bucket list, daily gist, weekly challenge and chain e
   engageYear(m, []); engageYear(m, []);
   assert.equal(new Set(m.moments!.map((x) => x.id)).size, m.moments!.length, "no duplicate moments");
   assert.ok(m.moments!.some((x) => x.id === "president") && m.moments!.some((x) => x.id === "kid_escaped" && x.en.includes("31")));
-  // daily gist: same for everyone on a day, one claim per day, rewards by streak
-  assert.equal(dailyFor("2026-10-22").id, dailyFor("2026-10-22").id);
-  assert.ok(new Set(["2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26"].map((d) => dailyFor(d).id)).size > 1);
-  assert.ok(DAILY.every((d) => d.choices.length >= 2));
-  const day = "2026-10-22";
-  const a = act(structuredClone(g), { t: "daily", day, choice: 0, streak: 1 });
-  assert.equal(a.g.p.flags.dailyDay, day);
-  assert.ok(dailyBlock(a.g.p, day));
-  const again = act(a.g, { t: "daily", day, choice: 0, streak: 2 });
-  assert.equal(again.g.p.money, a.g.p.money, "claiming twice does nothing");
-  const week = act(structuredClone(g), { t: "daily", day: "2026-10-23", choice: 0, streak: 7 });
-  assert.ok(week.g.p.luck >= g.p.luck);
-  assert.ok(ledgerBalances(a.g.p) && ledgerBalances(week.g.p));
   // weekly challenge: stable per week, different across weeks, and sets the start
   assert.equal(weekId(new Date(2026, 9, 22)), weekId(new Date(2026, 9, 20)));
   assert.notEqual(weekId(new Date(2026, 9, 22)), weekId(new Date(2026, 9, 29)));
