@@ -1384,6 +1384,8 @@ test("funeral report: verdict tag, attendance by closeness, special guests", () 
   assert.match(buildObituary(waste).tag.en, /wasted|peaceful|cut short/i);
   // everything is bilingual and the report is saved when a life ends
   for (const o of [op, oc, cold]) { assert.ok(o.highlights.length >= 4 && o.rating >= 3 && o.rating <= 99); assert.ok(o.highlights.every((h) => h.en && h.pcm)); }
+  for (const o of [op, oc, cold]) assert.ok(o.headline.en.length > 20 && o.headline.pcm && o.epitaph.en.startsWith("Here lie") && o.eulogy.en && o.gossip.length >= 1 && o.extras.some((x) => /Jollof rating/.test(x.en)));
+  assert.match(op.headline.en, /MARKETS CLOSE EARLY/);
   const dead = act(structuredClone(aliveAt(40)), { t: "surrender" });
   assert.ok(dead.g.p.obit && dead.g.p.obit.tag.en, "report saved on death");
 });

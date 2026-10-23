@@ -12,16 +12,16 @@ const first = (s: string) => s.split(" ")[0];
 
 // Funny lines, English then Pidgin.
 const CAME: Record<string, Bi[]> = {
-  dad: [bi("Said 'be strong', then cried in the car for an hour.", "Talk say 'be strong', then cry for car for one hour."), bi("Gave a speech longer than the sermon.", "Give speech wey pass the sermon.")],
-  mom: [bi("Wept for three days and still asked if you had eaten.", "Cry for three days and still ask if you don chop."), bi("Wore her best lace and cried louder than the choir.", "Wear her best lace and cry pass choir.")],
+  dad: [bi("Wore the same agbada from 1998 and said 'it still fits'. It did not.", "Wear the same agbada from 1998 and talk say 'e still fit'. E no fit."), bi("Said 'be strong', then cried in the car for an hour.", "Talk say 'be strong', then cry for car for one hour."), bi("Gave a speech longer than the sermon.", "Give speech wey pass the sermon.")],
+  mom: [bi("Arrived with enough food to feed the whole church. 'Nobody should faint here.'", "Come with food wey go feed whole church. 'Nobody must faint for here.'"), bi("Wept for three days and still asked if you had eaten.", "Cry for three days and still ask if you don chop."), bi("Wore her best lace and cried louder than the choir.", "Wear her best lace and cry pass choir.")],
   guardian: [bi("Paid for the caterers and told everyone about it.", "Pay caterers and tell everybody about am.")],
   grandparent: [bi("Said 'I buried my own children, I didn't expect this' and the room went silent.", "Talk say 'I bury my own pikin, I no expect this one' and everywhere quiet.")],
   sibling: [bi("Fought over who gets your phone at the back of the church.", "Quarrel over who go carry your phone for back of church."), bi("Told the story of that one time you ruined Christmas. Everyone laughed through tears.", "Tell story of the time you spoil Christmas. Everybody laugh with tears.")],
-  cousin: [bi("Came for the jollof, stayed for the gist.", "Come for jollof, stay for gist.")],
-  uncle: [bi("Asked about the will before the body was cold.", "Ask about will before body cold.")],
-  aunt: [bi("Took 40 photos and posted 38 of them.", "Snap 40 photo and post 38.")],
-  friend: [bi("Told the funniest story about you. Nobody knew whether to laugh.", "Tell the funniest story about you. Nobody sabi if to laugh."), bi("Cried louder than your family. Whose funeral is it?", "Cry pass your family. Na who burial be this?")],
-  classmate: [bi("Remembered the day you shared your lunch.", "Remember the day you share your food."), bi("Came with the old class WhatsApp group on speaker.", "Come with old class WhatsApp group for speaker.")],
+  cousin: [bi("Arrived late, ate first, cried second.", "Come late, chop first, cry second."), bi("Came for the jollof, stayed for the gist.", "Come for jollof, stay for gist.")],
+  uncle: [bi("Gave a 20-minute speech on 'the importance of family' and then asked who has the land documents.", "Give 20-minute speech on 'importance of family' then ask who get land document."), bi("Asked about the will before the body was cold.", "Ask about will before body cold.")],
+  aunt: [bi("Wailed in three languages and checked who was watching.", "Wail for three languages and check who dey look."), bi("Took 40 photos and posted 38 of them.", "Snap 40 photo and post 38.")],
+  friend: [bi("Gave a eulogy that started with 'he owed me ₦2,000' and ended in tears.", "Give eulogy wey start with 'e owe me ₦2,000' and end for tears."), bi("Told the funniest story about you. Nobody knew whether to laugh.", "Tell the funniest story about you. Nobody sabi if to laugh."), bi("Cried louder than your family. Whose funeral is it?", "Cry pass your family. Na who burial be this?")],
+  classmate: [bi("Came to say 'we sat together in JSS2' and then stayed for the jollof.", "Come to talk say 'we sit together for JSS2' and stay for jollof."), bi("Remembered the day you shared your lunch.", "Remember the day you share your food."), bi("Came with the old class WhatsApp group on speaker.", "Come with old class WhatsApp group for speaker.")],
   spouse: [bi("Couldn't speak. Held your hand the whole time.", "Fit no talk. Hold your hand all through."), bi("Wore white and read the eulogy through tears.", "Wear white and read eulogy with tears.")],
   kid: [bi("Spoke about you with a voice that kept breaking.", "Talk about you with voice wey dey break."), bi("Promised to carry the family name with pride.", "Promise to carry family name with pride.")],
   ex: [bi("Came 'to pay respects' and sat at the back looking mysterious.", "Come 'to pay respect' and sit back looking mysterious.")],
@@ -31,6 +31,8 @@ const ABSENT_FAR: Bi[] = [
   bi("Could not get a flight (lives on the next street).", "No fit get flight (stay for next street)."),
   bi("Said they would be there 'in spirit'.", "Talk say dem go dey 'in spirit'."),
   bi("Had an owambe the same day. The jollof was better.", "Get owambe same day. The jollof better pass."),
+  bi("Sent a voice note of 4 minutes saying 'I can't talk right now'.", "Send 4-minute voice note talk say 'I no fit talk now'."),
+  bi("Said they were 'unwell' at 2pm and posted a party video at 9pm.", "Talk say dem 'no well' by 2pm and post party video by 9pm."),
   bi("Sent a 'RIP' on WhatsApp and a crying emoji.", "Send 'RIP' for WhatsApp with crying emoji."),
 ];
 const ABSENT_COLD: Bi[] = [
@@ -208,7 +210,45 @@ export function buildObituary(p: Player): Obituary {
     rating >= 80 ? "A life people will talk about for years." : rating >= 60 ? "A good run. Not perfect, but people showed up." : rating >= 40 ? "An average life, with some good chapters." : "A tough life. The jollof at the funeral was the best part.",
     rating >= 80 ? "Life wey people go talk about for years." : rating >= 60 ? "Good run. E no perfect, but people show." : rating >= 40 ? "Normal life, with some good chapters." : "Hard life. Jollof for burial na the best part.",
   );
-  return { tag, tagline, rating, highlights: h.slice(0, 10), came: came.slice(0, 14), absent: absent.slice(0, 10), turnout: { came: totalCame, expected: Math.max(totalExpected, totalCame) }, guests: g.slice(0, 6), cause: causeLine, verdict };
+  const nm = `${p.name} ${p.surname}`;
+  const richEnough = worthReal(p) >= 100_000_000;
+  const headline = ((): Bi => {
+    if (p.achievements.includes("Became President")) return bi(`NATION IN SHOCK AS ${nm.toUpperCase()}, ${p.age}, DIES; MARKETS CLOSE EARLY`, `NATION DEY SHOCK AS ${nm.toUpperCase()}, ${p.age}, DIE; MARKET CLOSE EARLY`);
+    if (crooked && p.loot > 0) return bi(`EFCC 'MOURNS' AS ${nm.toUpperCase()} DIES; ASKS WHERE THE MONEY IS`, `EFCC 'DEY MOURN' AS ${nm.toUpperCase()} DIE; ASK WHERE THE MONEY DEY`);
+    if (hi >= 3) return bi(`${nm.toUpperCase()} DIES AT ${p.age}; RIVALS 'DEEPLY SADDENED' (CONFIRMED)`, `${nm.toUpperCase()} DIE AT ${p.age}; RIVALS 'DEEPLY SAD' (CONFIRMED)`);
+    if (p.kidnaps > 0 && typeof p.flags.kidEscaped === "number") return bi(`${nm}, ${p.age}, SURVIVES KIDNAPPERS AND NEPA, BUT NOT TIME`, `${nm}, ${p.age}, SURVIVE KIDNAPPERS AND NEPA, BUT NO SURVIVE TIME`);
+    if (richEnough && worthReal(p) >= 1_000_000_000) return bi(`BILLIONAIRE ${nm.toUpperCase()} DIES; RELATIVES SUE EACH OTHER BEFORE THE BODY IS COLD`, `BILLIONAIRE ${nm.toUpperCase()} DIE; RELATIVES SUE THEMSELVES BEFORE BODY COLD`);
+    if (jid === "doctor") return bi(`PATIENTS ASK WHO WILL NOW SAY 'TAKE THE DRUGS AND REST' AS DR ${p.surname.toUpperCase()} DIES`, `PATIENTS ASK WHO GO TALK 'TAKE DRUG AND REST' AS DR ${p.surname.toUpperCase()} DIE`);
+    if (p.age < 30) return bi(`${nm}, ${p.age}, DIES; TRENDS FOR THREE HOURS`, `${nm}, ${p.age}, DIE; TREND FOR THREE HOURS`);
+    if (nothing) return bi(`LOCAL PERSON ${nm.toUpperCase()} DIES; JOLLOF 'THE MAIN EVENT'`, `LOCAL PERSON ${nm.toUpperCase()} DIE; JOLLOF 'NA THE MAIN EVENT'`);
+    return bi(`${nm}, ${p.age}, DIES; FAMILY SAYS 'HE WENT PEACEFULLY', NEIGHBOURS SAY 'WE HEARD HIM'`, `${nm}, ${p.age}, DIE; FAMILY TALK 'E GO PEACEFULLY', NEIGHBOURS TALK 'WE HEAR AM'`);
+  })();
+  const epitaph = ((): Bi => {
+    if (p.loans.some((l) => l.direction === "owed" && l.status === "active")) return bi(`Here lies ${nm}. Paid his tithes, never paid his debts.`, `Here lie ${nm}. E pay tithe, e no pay debt.`);
+    if (p.achievements.includes("Japa success")) return bi(`Here lies ${nm}. Came, saw, japa'd, returned in a box.`, `Here lie ${nm}. E come, e see, e japa, e return inside box.`);
+    if (p.achievements.includes("Became President")) return bi(`Here lies ${nm}. Finally off the campaign trail. Fuel is still expensive.`, `Here lie ${nm}. E don comot campaign road. Fuel still cost.`);
+    if (crooked) return bi(`Here lies ${nm}. The cheque is in the mail. (It is not.)`, `Here lie ${nm}. The cheque dey for post. (E no dey.)`);
+    if (p.kids.length >= 3) return bi(`Here lies ${nm}. Finally, a quiet room.`, `Here lie ${nm}. Finally, quiet room.`);
+    if (p.businesses.length) return bi(`Here lies ${nm}. Closed for business. No refunds.`, `Here lie ${nm}. Business don close. No refund.`);
+    if (p.age >= 85) return bi(`Here lies ${nm}. NEPA took the light, but could not take ${p.gender === "male" ? "him" : "her"}.`, `Here lie ${nm}. NEPA carry light, but no fit carry am.`);
+    return pick([bi(`Here lies ${nm}. Finally resting. Fuel is still ₦1,000 a litre.`, `Here lie ${nm}. Finally resting. Fuel still cost ₦1,000 per litre.`), bi(`Here lies ${nm}. Gone to a place with 24-hour light.`, `Here lie ${nm}. Don go place wey get 24-hour light.`), bi(`Here lies ${nm}. Tell my landlord I tried.`, `Here lie ${nm}. Tell my landlord say I try.`)]);
+  })();
+  const eulogy = p.religion === "Muslim"
+    ? pick([bi("The imam called you 'a good man' twice, looked at his notes, and said it a third time to be sure.", "Imam call you 'good person' twice, look him notes, and talk am third time to be sure."), bi("The imam's reminder of the afterlife was so gentle that people asked for a copy.", "Imam reminder about afterlife soft so people ask for copy.")])
+    : pick([bi("The pastor called you 'a man of God' for 40 minutes, then announced the offering.", "Pastor call you 'man of God' for 40 minutes, then announce offering."), bi("The reverend prayed for 'those who are still alive' and looked at your relatives pointedly.", "Reverend pray for 'those wey still dey alive' and look your relatives well well."), bi("The choir sang so well the pastor asked them to stay for the next service.", "Choir sing so well pastor ask dem to stay for next service.")]);
+  const gossip: Bi[] = [];
+  if (p.spouse) gossip.push(bi("Aunty at the back: 'I told him not to marry that one.' (Everyone else: 'Shhh.')", "Aunty for back: 'I tell am no marry that one.' (Everybody: 'Shhh.')"));
+  if (p.houses.length > 0) gossip.push(bi("Two uncles were already arguing over who owns the land. The pastor has not finished.", "Two uncles don dey argue who own the land. Pastor never finish."));
+  if (p.debt > 0 || p.loans.some((l) => l.direction === "owed" && l.status === "active")) gossip.push(bi("A man with a notebook showed up. Nobody asked what was in it.", "One man with notebook show. Nobody ask wetin dey inside."));
+  if (p.kids.length === 0) gossip.push(bi("The neighbours kept asking 'who will inherit?' like it was a quiz.", "Neighbours dey ask 'who go inherit?' like quiz."));
+  gossip.push(pick([bi("Someone whispered that the photo on the banner is from 2009. The hair was not forgiven.", "Person whisper say photo for banner na 2009. Hair no forgiven."), bi("A neighbour swears you owed him ₦5,000. He has been telling everyone since morning.", "Neighbour swear say you owe am ₦5,000. E don dey tell everybody since morning."), bi("Two cousins were seen negotiating over the generator.", "Two cousins dey negotiate over generator.")]));
+  const exCame = p.rel.partners.some((r) => r.stage === "ex");
+  const extras: Bi[] = [];
+  const jr = clamp(Math.round(5 + Math.log10(Math.max(1, totalCame)) * 1.4 + (richEnough ? 1 : 0)), 3, 10);
+  extras.push(bi(`Jollof rating: ${jr}/10. ${jr >= 8 ? "Smoky, perfect, people asked who the cook was." : jr >= 6 ? "Not party jollof, but nobody complained." : "A bit watery, but we are grateful."} The small chops finished in 12 minutes.`, `Jollof rating: ${jr}/10. ${jr >= 8 ? "Smoky, perfect, people ask who cook am." : jr >= 6 ? "No be party jollof, but nobody complain." : "E watery small, but we dey grateful."} Small chops finish in 12 minutes.`));
+  if (exCame) extras.push(bi("Your ex and the family sat on the same row. The tension was better seasoned than the stew.", "Your ex and the family sit same row. Tension season pass the stew."));
+  extras.push(pick([bi("The MC tried a joke at the graveside. It did not land. A cousin clapped alone.", "MC try joke for graveside. E no land. One cousin clap alone."), bi("Somebody sprayed naira on the casket before security stopped them.", "Person spray naira for casket before security stop am."), bi("The DJ played the wrong song for 40 seconds. Nobody breathed.", "DJ play wrong song for 40 seconds. Nobody breathe.")]));
+  return { tag, tagline, rating, highlights: h.slice(0, 10), came: came.slice(0, 14), absent: absent.slice(0, 10), turnout: { came: totalCame, expected: Math.max(totalExpected, totalCame) }, guests: g.slice(0, 6), cause: causeLine, verdict, headline, epitaph, eulogy, gossip: gossip.slice(0, 3), extras };
 }
 
 void nn;

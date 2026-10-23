@@ -786,4 +786,13 @@ export interface Obituary {
   guests: Bi[];
   cause: Bi | null;
   verdict: Bi;
+  /** A newspaper-style headline. */
+  headline: Bi;
+  /** What the tombstone says. */
+  epitaph: Bi;
+  eulogy: Bi;
+  /** What people whispered at the back. */
+  gossip: Bi[];
+  /** Food review and awkward moments. */
+  extras: Bi[];
 }

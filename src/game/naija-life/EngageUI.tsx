@@ -168,13 +168,13 @@ export function ChallengeBanner({ onPlay }: { onPlay: (c: Challenge) => void }) 
 // The funeral report shown when a life ends
 // ---------------------------------------------------------------------------
 export function useObituary(p: Player): Obituary {
-  const [o] = useState<Obituary>(() => p.obit ?? buildObituary(p));
+  const [o] = useState<Obituary>(() => (p.obit && p.obit.headline ? p.obit : buildObituary(p)));
   return o;
 }
 
 export async function shareObituary(p: Player, o: Obituary): Promise<"shared" | "downloaded"> {
   const L = (b: { en: string; pcm: string }) => (p.lang === "en" ? b.en : b.pcm);
-  const lines = [L(o.tagline), ...o.highlights.slice(1, 3).map(L), o.guests[0] ? L(o.guests[0]) : ""].filter(Boolean);
+  const lines = [L(o.headline), L(o.tagline), o.guests[0] ? L(o.guests[0]) : "", L(o.epitaph)].filter(Boolean);
   return shareCard(
     {
       kicker: T("Naija Life · Funeral report", "Naija Life · Funeral report"),
@@ -209,6 +209,10 @@ export function ObituaryView({ p, o }: { p: Player; o: Obituary }) {
   const box = "divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white";
   return (
     <div className="space-y-3 text-left">
+      <div className="rounded-xl border-2 border-slate-800 bg-[#f4efe2] p-3 text-slate-900">
+        <div className="border-b-2 border-slate-800 pb-1 text-center font-serif text-[15px] font-black uppercase tracking-widest">{T("The Daily Naija", "The Daily Naija")}</div>
+        <div className="mt-2 font-serif text-[17px] font-black leading-tight">{L(o.headline)}</div>
+      </div>
       <div className="rounded-2xl bg-gradient-to-br from-[#0b2a6b] to-blue-600 p-4 text-white">
         <div className="text-3xl">{o.tag.emoji}</div>
         <div className="mt-1 text-[11px] font-bold uppercase tracking-wide text-blue-100">{T("Final verdict", "Final verdict")}</div>
@@ -227,7 +231,11 @@ export function ObituaryView({ p, o }: { p: Player; o: Obituary }) {
         <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-100">
           <div className="flex items-center justify-between text-[12px] text-slate-600"><span>{T(`${o.turnout.came} of ${o.turnout.expected} people came`, `${o.turnout.came} of ${o.turnout.expected} people come`)}</span><span className="font-bold text-blue-700">{pct}%</span></div>
           <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
-          {o.guests.length > 0 && <ul className="mt-2 space-y-1.5 text-[12.5px] leading-snug text-slate-700">{o.guests.map((x, i) => <li key={i}>🎤 {L(x)}</li>)}</ul>}
+          <ul className="mt-2 space-y-1.5 text-[12.5px] leading-snug text-slate-700">
+            {o.guests.map((x, i) => <li key={i}>🎤 {L(x)}</li>)}
+            <li>⛪ {L(o.eulogy)}</li>
+            {o.extras.map((x, i) => <li key={`x${i}`}>🍛 {L(x)}</li>)}
+          </ul>
         </div>
       </section>
       {o.came.length > 0 && (
@@ -242,6 +250,16 @@ export function ObituaryView({ p, o }: { p: Player; o: Obituary }) {
           <div className={box}>{o.absent.map((m, i) => <MournerRow key={i} m={m} lang={p.lang} gone />)}</div>
         </section>
       )}
+      {o.gossip.length > 0 && (
+        <section>
+          <h3 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Whispers at the back", "Gist for the back")}</h3>
+          <ul className="space-y-1.5 rounded-2xl bg-white p-3 text-[12.5px] italic leading-snug text-slate-600 ring-1 ring-slate-100">{o.gossip.map((x, j) => <li key={j}>🤫 {L(x)}</li>)}</ul>
+        </section>
+      )}
+      <div className="rounded-2xl bg-slate-800 p-4 text-center text-slate-100">
+        <div className="text-2xl">🪦</div>
+        <div className="mt-1 font-serif text-[15px] leading-snug">{L(o.epitaph)}</div>
+      </div>
     </div>
   );
 }
