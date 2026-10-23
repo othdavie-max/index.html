@@ -55,8 +55,8 @@ import { kidLook, lookToStr, randomLook, type Look } from "./look";
 import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
-const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
-const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
 

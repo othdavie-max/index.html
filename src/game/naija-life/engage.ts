@@ -189,11 +189,11 @@ export const ENGAGE_EVENTS: EventDef[] = [
   {
     id: "stranger_help",
     title: dual("A stranger in trouble", "Stranger dey wahala"),
-    weight: (p) => (p.age >= 14 && p.age <= 42 && evId(p) === undefined ? 1.1 : 0),
+    weight: (p) => (p.age >= 16 && p.age <= 42 && evId(p) === undefined ? 1.1 : 0),
     text: () => T("A well-dressed stranger's car breaks down near you. He has no cash on him and his phone is dead. He asks if you can help.", "One well-dressed stranger car spoil near you. E no get cash and him phone don die. E ask if you fit help."),
     choices: (p) => [
       { label: T("Give him transport money", "Give am transport money"), sub: naira(I(p, 5_000)), disabled: p.money < I(p, 5_000) ? T("Not enough cash", "Cash no reach") : false, run: (q) => { cash(q, -I(q, 5_000), ["Helped a stranger", "Help stranger"]); q.flags.stranger = q.age; q.flags.strangerHelped = 1; bump(q, "reputation", 2); return T("He writes your name in a small notebook and promises to remember. You wonder if he will.", "E write your name for small notebook and promise to remember. You dey wonder if e go remember."); } },
-      { label: T("Offer a ride", "Give am ride"), run: (q) => { q.flags.stranger = q.age; q.flags.strangerHelped = 1; bump(q, "stress", 2); bump(q, "reputation", 1); return T("You drop him at his gate. He says 'God will reward you'. Many people say that.", "You drop am for him gate. E say 'God go reward you'. Plenty people dey talk that one."); } },
+      { label: T("Offer a ride", "Give am ride"), disabled: p.possessions.license && p.vehicles.length > 0 ? false : T("You have no car to drive", "You no get car"), run: (q) => { q.flags.stranger = q.age; q.flags.strangerHelped = 1; bump(q, "stress", 2); bump(q, "reputation", 1); return T("You drop him at his gate. He says 'God will reward you'. Many people say that.", "You drop am for him gate. E say 'God go reward you'. Plenty people dey talk that one."); } },
       { label: T("Walk on", "Waka go"), run: (q) => { q.flags.stranger = q.age; return T("Not your problem. You keep walking.", "No be your problem. You continue waka."); } },
     ],
   },
@@ -224,9 +224,13 @@ export const ENGAGE_EVENTS: EventDef[] = [
   {
     id: "ramadan_sallah",
     title: dual("Ramadan and Sallah", "Ramadan and Sallah"),
-    weight: (p) => (p.religion === "Muslim" && p.age >= 10 ? 2 : 0),
-    text: () => T("Ramadan has ended and Sallah is here. Neighbours exchange food and the ram is the topic of every conversation.", "Ramadan don end and Sallah don reach. Neighbours dey exchange food and ram na the gist."),
-    choices: (p) => [
+    weight: (p) => (p.religion === "Muslim" && p.age >= 6 ? 2 : 0),
+    text: (p) => (p.age < 18 ? T("Ramadan has ended and Sallah is here. New clothes, jollof, and neighbours visiting all day. The ram is the topic of every conversation.", "Ramadan don end and Sallah don reach. New cloth, jollof, and neighbours dey visit the whole day. Ram na the gist everywhere.") : T("Ramadan has ended and Sallah is here. Neighbours exchange food and the ram is the topic of every conversation.", "Ramadan don end and Sallah don reach. Neighbours dey exchange food and ram na the gist.")),
+    choices: (p) => p.age < 18 ? [
+      { label: T("Wear your new clothes and visit neighbours", "Wear your new cloth and visit neighbours"), run: (q) => { const gift = I(q, 3_000); transact(q, { amount: gift, reason: T("Sallah money from relatives and neighbours", "Sallah money from relatives and neighbours"), category: "gift" }); bump(q, "happiness", 6); q.family.happy = clamp(q.family.happy + 3); return T(`Every house gives you rice and a little Sallah money: ${naira(gift)}. Best day of the year.`, `Every house give you rice and small Sallah money: ${naira(gift)}. Best day of the year.`); } },
+      { label: T("Help your mother in the kitchen", "Help your mama for kitchen"), run: (q) => { bump(q, "happiness", 3); bump(q, "smarts", 1); q.family.happy = clamp(q.family.happy + 4); return T("You stir, wash and carry plates. Your mother says you are a blessing.", "You stir, wash and carry plate. Your mama say you be blessing."); } },
+      { label: T("Share food with children on your street", "Share food with pikin for your street"), run: (q) => { bump(q, "reputation", 1); bump(q, "happiness", 4); return T("You and the other children eat together on the veranda. Nobody wants the day to end.", "You and other pikin chop together for veranda. Nobody wan make the day end."); } },
+    ] : [
       { label: T("Buy a ram and feed the street", "Buy ram feed the street"), sub: naira(I(p, 250_000)), disabled: p.money < I(p, 250_000) ? T("Not enough cash", "Cash no reach") : false, run: (q) => { cash(q, -I(q, 250_000), ["Sallah ram for the community", "Sallah ram for community"]); bump(q, "reputation", 5); bump(q, "happiness", 6); return T("The whole street prays for you. Your phone is full of greetings.", "Whole street dey pray for you. Your phone full with greeting."); } },
       { label: T("Celebrate simply with family", "Celebrate small with family"), run: (q) => { q.family.happy = clamp(q.family.happy + 6); bump(q, "happiness", 4); return T("New clothes, rice and visits. Warm and simple.", "New cloth, rice and visit. Warm and simple."); } },
       { label: T("Give to the needy", "Give to people wey need"), sub: naira(I(p, 80_000)), disabled: p.money < I(p, 80_000) ? T("Not enough cash", "Cash no reach") : false, run: (q) => { cash(q, -I(q, 80_000), ["Zakat and gifts", "Zakat and gifts"]); bump(q, "reputation", 3); bump(q, "stress", -3); return T("You give quietly. It feels right.", "You give quietly. E sweet for heart."); } },

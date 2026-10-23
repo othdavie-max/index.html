@@ -31,6 +31,7 @@ import { occupationFor } from "../occupation";
 import { buildObituary } from "../obituary";
 import { INTERACTIONS, interact, interactBlock, interactionsFor, makeFriend, refreshOccupation, refreshPeople } from "../people";
 import { addFriend } from "../family";
+import { ALL_EVENTS, ALL_AUTOS } from "../engine";
 import { ENGAGE_EVENTS, GOAL_DEFS, MOMENT_DEFS, challengeFor, engageYear, gistFor, weekId } from "../engage";
 import { VEHICLE_MODELS, modelOf, needsLicense, priceOf, takeDrivingTest, licenseBlock } from "../vehicles";
 import { transportOptions, tripRisk } from "../travel";
@@ -1397,4 +1398,38 @@ test("sound is safe without a browser and settings can be switched", () => {
   assert.equal(getSound().sfx, false);
   setSound({ sfx: true });
   assert.equal(getSound().sfx, true);
+});
+
+test("children only get child-sized events: no adult money or grown-up choices under 18", () => {
+  const base = aliveAt(9);
+  const money = (t: string): number => { const m = /₦([\d.,]+)\s*([KMB]?)/.exec(t); if (!m) return 0; return Number(m[1].replace(/,/g, "")) * ({ K: 1e3, M: 1e6, B: 1e9 } as Record<string, number>)[m[2]] || Number(m[1].replace(/,/g, "")); };
+  const adultWords = /\b(ram|mortgage|invest|salary|casino|bribe|hire|levy|aso-ebi|wedding|funeral|zakat|stocks?|crypto|boss|landlord|tenant|loan)\b/i;
+  let checked = 0;
+  for (const age of [4, 6, 8, 10, 12, 14, 16, 17]) {
+    for (const religion of ["Muslim", "Christian"]) {
+      const p = structuredClone(base.p); p.age = age; p.religion = religion; p.money = 3000 * p.index; p.prison = 0;
+      p.possessions.phone = true; p.possessions.smartphone = true; p.school = { stage: age < 12 ? "primary" : "secondary", yearsLeft: 3, type: "school" };
+      for (const e of ALL_EVENTS) {
+        if (!eligible(p, e.id) || !(e.weight(p) > 0)) continue;
+        const d = e.init ? e.init(p) : {};
+        const text = e.text(p, d);
+        for (const c of e.choices(p, d)) {
+          checked++;
+          const dis = Boolean(c.disabled);
+          const costTxt = `${c.label} ${c.sub ?? ""}`;
+          const cost = money(costTxt) / p.index ** 0.92;
+          assert.ok(dis || cost <= 120_000, `[${age}] ${e.id}: "${c.label}" costs ${costTxt}`);
+          assert.ok(!adultWords.test(`${c.label}`), `[${age}] ${e.id}: adult choice "${c.label}"`);
+        }
+        assert.ok(!/\b(buy a ram|mortgage|salary|your boss|rent is due)\b/i.test(text), `[${age}] ${e.id}: adult text`);
+      }
+      for (const a of ALL_AUTOS) {
+        if (!eligible(p, a.id) || !(a.weight(p) > 0)) continue;
+        const q = structuredClone(p); const m0 = q.money;
+        a.run(q);
+        assert.ok(q.money >= m0 - 120_000 * p.index, `[${age}] auto ${a.id} took too much from a child`);
+      }
+    }
+  }
+  assert.ok(checked > 20);
 });
