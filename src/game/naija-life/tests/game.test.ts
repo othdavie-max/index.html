@@ -26,6 +26,7 @@ import { yearlyNews, modActive } from "../news";
 import { refreshListings, planQuote } from "../property";
 import { upcomingPayments, monthlySummary, notificationsFor } from "../notices";
 import { T, setLang } from "../util";
+import { getSound, setSound, sfx, unlockAudio } from "../sound";
 import { occupationFor } from "../occupation";
 import { buildObituary } from "../obituary";
 import { INTERACTIONS, interact, interactBlock, interactionsFor, makeFriend, refreshOccupation, refreshPeople } from "../people";
@@ -1388,4 +1389,12 @@ test("funeral report: verdict tag, attendance by closeness, special guests", () 
   assert.match(op.headline.en, /MARKETS CLOSE EARLY/);
   const dead = act(structuredClone(aliveAt(40)), { t: "surrender" });
   assert.ok(dead.g.p.obit && dead.g.p.obit.tag.en, "report saved on death");
+});
+
+test("sound is safe without a browser and settings can be switched", () => {
+  assert.doesNotThrow(() => { unlockAudio(); for (const n of ["tap", "grow", "coin", "spend", "pop", "win", "bad", "death", "alarm", "buy", "page"] as const) sfx(n); });
+  setSound({ sfx: false, music: false });
+  assert.equal(getSound().sfx, false);
+  setSound({ sfx: true });
+  assert.equal(getSound().sfx, true);
 });

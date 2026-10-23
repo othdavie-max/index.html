@@ -192,7 +192,7 @@ export function BottomBar({ tab, setTab, p, busy, onGrow }: { tab: Tab; setTab: 
         type="button"
         disabled={busy || !p.alive}
         onClick={onGrow}
-        data-tour="grow" className="flex h-11 w-full items-center rounded-full bg-gradient-to-b from-[#2f86ff] to-[#1263e8] px-5 text-white shadow-[0_10px_22px_-8px_rgba(18,99,232,0.75)] transition active:scale-[0.99] disabled:opacity-50"
+        data-sfx="grow" data-tour="grow" className="flex h-11 w-full items-center rounded-full bg-gradient-to-b from-[#2f86ff] to-[#1263e8] px-5 text-white shadow-[0_10px_22px_-8px_rgba(18,99,232,0.75)] transition active:scale-[0.99] disabled:opacity-50"
       >
         <TrendingUp size={18} strokeWidth={2.6} />
         <span className="mx-2.5 h-5 w-px bg-white/35" />
@@ -204,7 +204,7 @@ export function BottomBar({ tab, setTab, p, busy, onGrow }: { tab: Tab; setTab: 
           const Icon = t.icon;
           const on = group === t.id;
           return (
-            <button key={t.id} data-tour={`tab-${t.id}`} type="button" onClick={() => setTab(t.id)} className="flex flex-col items-center gap-0.5 outline-none" aria-current={on ? "page" : undefined}>
+            <button key={t.id} data-sfx="page" data-tour={`tab-${t.id}`} type="button" onClick={() => setTab(t.id)} className="flex flex-col items-center gap-0.5 outline-none" aria-current={on ? "page" : undefined}>
               <span className={cx("flex min-w-[64px] flex-col items-center gap-0.5 rounded-2xl px-3 py-1 text-[11px] font-bold transition", on ? "bg-blue-50 text-blue-600" : "text-slate-400")}>
                 <Icon size={19} strokeWidth={on ? 2.5 : 2} />
                 {t.label()}

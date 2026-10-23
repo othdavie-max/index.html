@@ -13,6 +13,7 @@ import {
 import { eduAtLeast, eligibleJobs, jobDef } from "./helpers";
 import { Avatar } from "./Avatar";
 import { AdmissionCard, CampusCard, DegreeCard } from "./CampusUI";
+import { SoundToggles, useGameSounds } from "./SoundUI";
 import { ChallengeBanner, ChallengePanel, GistPanel, GoalsPanel, MomentsPanel, ObituaryView, shareObituary, useObituary, isLocked, lockHint, sanitizeLook, saveChallengeScore, saveUnlocksFrom, useUnlocks } from "./EngageUI";
 import { KidnapModal } from "./KidnapModal";
 import { BEARDS, GLASSES, HAIRS, HAIR_COLORS, OUTFITS, OUTFIT_COLORS, SKINS, WEARS, randomLook, strToLook, type Look } from "./look";
@@ -91,6 +92,7 @@ export default function NaijaLife() {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<Tab>("life");
+  useGameSounds(game);
   const [result, setResult] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [menu, setMenu] = useState(false);
@@ -318,6 +320,7 @@ export default function NaijaLife() {
           <div className="mt-3 grid grid-cols-2 gap-2">
             {(["en", "pcm"] as Lang[]).map((l) => <Btn key={l} tone={p.lang === l ? "gold" : "ghost"} onClick={() => chooseLang(l)}>{l === "en" ? "English" : "Pidgin"}</Btn>)}
           </div>
+          <div className="mt-3"><SoundToggles /></div>
           <div className="mt-4 space-y-2">
             <Btn tone="ghost" className="w-full" onClick={() => { setMenu(false); setTour(true); }}>{T("How to play (tutorial)", "How to play (tutorial)")}</Btn>
             <Btn tone="ghost" className="w-full" onClick={() => { setMenu(false); setBell(true); }}>{T("Alerts and history", "Alerts and history")}</Btn>
