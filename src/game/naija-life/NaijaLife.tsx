@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Share2 } from "lucide-react";
 import {
   ALL_TRIBES, HOUSE_KINDS, INVESTMENTS, LUXURIES, OFFICES, RELIGIONS, STATE_BY_ID, TRAVEL_STATES,
 } from "./data";
@@ -302,20 +301,15 @@ export default function NaijaLife() {
 
       {bell && (
         <Sheet title={T("Alerts and history", "Alerts and history")} onClose={() => setBell(false)}>
-          <H>{T("Needs your attention", "Wetin need your attention")}</H>
-          {notificationsFor(p).length === 0 && <p className="text-sm text-slate-500">{T("Nothing urgent.", "Nothing serious.")}</p>}
-          <ul className="space-y-1.5">
-            {notificationsFor(p).map((n, i) => <li key={i} className={cx("rounded-xl px-3 py-2 text-sm", n.level === "red" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-600")}>{n.text}</li>)}
-          </ul>
-          <H>{T("Recent years", "Wetin don happen")}</H>
-          <div className="max-h-64 space-y-2 overflow-y-auto">
+          <ListGroup title={T("Needs your attention", "Wetin need your attention")}>
+            {notificationsFor(p).length === 0 && <ListRow emoji="✅" tile="bg-emerald-100" name={T("Nothing urgent", "Nothing serious")} />}
+            {notificationsFor(p).map((x, i) => <ListRow key={i} emoji={x.level === "red" ? "🚨" : "ℹ️"} tile={x.level === "red" ? "bg-rose-100" : "bg-blue-100"} wrap name={x.text} />)}
+          </ListGroup>
+          <ListGroup title={T("Recent years", "Wetin don happen")}>
             {[...p.log].reverse().slice(0, 12).map((e, i) => (
-              <div key={i} className="rounded-xl bg-slate-50 p-2.5">
-                <div className="text-[11px] font-semibold text-blue-600">{T("Age", "Age")} {e.age}</div>
-                {e.lines.slice(0, 4).map((l, j) => <p key={j} className="text-xs text-slate-700">{l}</p>)}
-              </div>
+              <ListRow key={i} emoji="🗓️" tile="bg-sky-100" wrap name={`${T("Age", "Age")} ${e.age}`} desc={e.lines.slice(0, 3).join(" ")} />
             ))}
-          </div>
+          </ListGroup>
         </Sheet>
       )}
 
@@ -591,14 +585,14 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const net = worth(p);
   return (
     <>
-      <Card>
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div><div className="text-[11px] text-slate-500">{T("Cash", "Cash")}</div><div className="text-base font-bold text-blue-600">{naira(p.money)}</div></div>
-          <div><div className="text-[11px] text-slate-500">{T("Net worth", "Net worth")}</div><div className="text-base font-bold">{naira(net)}</div></div>
-          <div><div className="text-[11px] text-slate-500">{T("Debt", "Debt")}</div><div className={cx("text-base font-bold", p.debt > 0 && "text-red-600")}>{naira(p.debt)}</div></div>
+      <ListGroup>
+        <div className="grid grid-cols-3 gap-2 px-3.5 py-3 text-center">
+          <div><div className="text-[11px] text-slate-500">{T("Cash", "Cash")}</div><div className="text-base font-extrabold text-blue-600">{naira(p.money)}</div></div>
+          <div><div className="text-[11px] text-slate-500">{T("Net worth", "Net worth")}</div><div className="text-base font-extrabold text-[#0b2a6b]">{naira(net)}</div></div>
+          <div><div className="text-[11px] text-slate-500">{T("Debt", "Debt")}</div><div className={cx("text-base font-extrabold", p.debt > 0 ? "text-red-600" : "text-[#0b2a6b]")}>{naira(p.debt)}</div></div>
         </div>
-        <p className="mt-2 text-center text-[11px] text-slate-400">{T("Prices rise every year. Cash loses value. Houses and dollars hold up better.", "Prices dey rise every year. Cash dey lose value. House and dollar dey hold better.")}</p>
-      </Card>
+        <ListRow emoji="📉" tile="bg-slate-100" wrap name={T("Prices rise every year", "Prices dey rise every year")} desc={T("Cash loses value. Houses and dollars hold up better.", "Cash dey lose value. House and dollar dey hold better.")} />
+      </ListGroup>
 
       {sub === null && (
         <div className="space-y-4">
@@ -754,27 +748,20 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       )}
       {sub !== null && <button type="button" onClick={() => setSub(null)} className="mb-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm ring-1 ring-slate-200">‹ {T("Family", "Family")}</button>}
       {sub === "people" && (<>
-      <Card>
-        <H>{T("Your people", "Your people")}</H>
-        <div className="flex flex-wrap gap-3">
+      <ListGroup title={T("Your people", "Your people")}>
+        <div className="px-3.5 py-3">
+          <div className="flex flex-wrap gap-3">
           {p.family.dad && <Person look={p.family.dad} gender="male" age={p.age + 29} label={T("Papa", "Papa")} sub={p.family.parentsAlive ? T("alive", "dey alive") : T("late", "late")} dim={!p.family.parentsAlive} />}
           {p.family.mom && <Person look={p.family.mom} gender="female" age={p.age + 26} label={T("Mama", "Mama")} sub={p.family.parentsAlive ? T("alive", "dey alive") : T("late", "late")} dim={!p.family.parentsAlive} />}
           {p.spouse?.look && <Person look={p.spouse.look} gender={p.gender === "male" ? "female" : "male"} age={p.age} label={p.spouse.name} sub={T(`spouse · ${Math.round(p.spouse.happy)}% happy`, `spouse · ${Math.round(p.spouse.happy)}% happy`)} />}
           {p.kids.map((k, i) => k.look && <Person key={i} look={k.look} gender={k.gender} age={k.age} label={k.name} sub={T(`age ${k.age}`, `age ${k.age}`)} />)}
         </div>
-        <p className="mt-3 text-sm text-slate-800">
-          {T("Family lives in", "Your family dey live for")} <b>{fam.name}</b>. {fam.opp <= 3 ? T("Opportunities there are limited. They would love to move somewhere better.", "Opportunity there small. Dem go like move go better place.") : fam.opp >= 7 ? T("They are in a strong market.", "Dem dey strong market.") : T("Life there is steady.", "Life there dey okay.")}
-        </p>
-        <p className="mt-1 text-sm text-slate-600">{T("Family happiness", "Family happiness")} {Math.round(p.family.happy)}% · {luckWord}</p>
-        {p.houses.length > 0 && <p className="mt-2 text-xs text-blue-600">{T("Tip: Use a house as \"Family\" in the Money tab to bring them to your state.", "Tip: Set one house as \"Family\" for Money tab to bring dem come your state.")}</p>}
-        <div className="mt-3 flex flex-wrap gap-2">
-          {gifts.map((a) => (
-            <Btn key={a} small tone="ghost" disabled={p.money < a * p.index} onClick={() => run({ t: "send", amount: a * p.index })}>
-              {T("Send", "Send")} {naira(a * p.index)}
-            </Btn>
-          ))}
         </div>
-      </Card>
+        <ListRow emoji="📍" tile="bg-emerald-100" name={`${T("Family lives in", "Your family dey live for")} ${fam.name}`} desc={fam.opp <= 3 ? T("Opportunities there are limited. They would love to move somewhere better.", "Opportunity there small. Dem go like move go better place.") : T("They are doing alright there.", "Dem dey do well there.")} wrap />
+        <ListRow emoji="💞" tile="bg-rose-100" name={T("Family happiness", "Family happiness")} desc={luckWord} right={`${Math.round(p.family.happy)}%`} />
+        {p.houses.length > 0 && <ListRow emoji="💡" tile="bg-blue-100" name={T("Tip", "Tip")} desc={T("Use a house as \"Family\" in the Money tab to bring them to your state.", "Set one house as \"Family\" for Money tab to bring dem come your state.")} wrap />}
+        {gifts.map((a) => <ListRow key={a} emoji="💸" tile="bg-amber-100" name={`${T("Send", "Send")} ${naira(a * p.index)}`} desc={T("to your family", "to your family")} disabled={p.money < a * p.index} onClick={() => run({ t: "send", amount: a * p.index })} />)}
+      </ListGroup>
       <BackgroundCard p={p} /><OwedCard p={p} />
       </>)}
       {sub === "awards" && (<>
@@ -788,8 +775,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       {sub === "will" && p.age >= 18 && <WillCard p={p} run={run} />}
       {sub === "love" && (<>
       <RelationshipsCard p={p} run={run} />
-      {!p.spouse && p.flags.dating && <Card><H>{T("Dating", "Dating")}</H><p className="text-sm">{T(`Dating ${String(p.flags.dating)}. A proposal may be coming.`, `You dey date ${String(p.flags.dating)}. Proposal fit dey come.`)}</p></Card>}
-      {!p.spouse && !p.flags.dating && <Card><H>{T("Spouse", "Spouse")}</H><p className="text-sm text-slate-500">{T("Single. Use \"Look for love\" in the Life tab.", "You single. Use \"Look for love\" for Life tab.")}</p></Card>}
+      {!p.spouse && p.flags.dating && <ListGroup title={T("Dating", "Dating")}><ListRow emoji="💞" tile="bg-rose-100" wrap name={T(`Dating ${String(p.flags.dating)}`, `You dey date ${String(p.flags.dating)}`)} desc={T("A proposal may be coming.", "Proposal fit dey come.")} /></ListGroup>}
       </>)}
     </>
   );
@@ -804,16 +790,14 @@ function MapTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const regions = Array.from(new Set(TRAVEL_STATES.map((s) => s.region)));
   const REG_EMOJI: Record<string, [string, string]> = { "North Central": ["🌾", "bg-amber-100"], "North East": ["🏜️", "bg-orange-100"], "North West": ["🕌", "bg-yellow-100"], "South East": ["⛪", "bg-emerald-100"], "South South": ["🛢️", "bg-sky-100"], "South West": ["🌆", "bg-indigo-100"] };
   const top = (
-    <Card>
-      <H>{T("You are in", "Where you dey")}</H>
-      <div className="text-lg font-bold">{st.name} <span className="text-sm font-normal text-slate-500">· {st.capital}</span></div>
-      <div className="mt-2 space-y-1.5">
+    <ListGroup title={T("You are in", "Where you dey")} sub={T("Opportunity affects pay and what jobs exist. Insecurity raises kidnap and robbery risk, especially when you travel.", "Opportunity dey affect pay and wetin job dey. Insecurity dey raise kidnap and robbery risk, especially when you travel.")}>
+      <ListRow emoji="📍" tile="bg-red-100" name={st.name} desc={st.capital} />
+      <div className="space-y-2 px-3.5 py-3">
         <Meter label={T("Jobs", "Jobs")} value={st.opp} />
         <Meter label={T("Cost", "Cost")} value={st.cost * 5} max={10} invert />
         <Meter label={T("Insecurity", "Insecurity")} value={st.risk} invert />
       </div>
-      <p className="mt-2 text-[11px] text-slate-500">{T("Opportunity affects pay and what jobs exist. Insecurity raises kidnap and robbery risk, especially when you travel.", "Opportunity dey affect pay and wetin job dey. Insecurity dey raise kidnap and robbery risk, especially when you dey travel.")}</p>
-    </Card>
+    </ListGroup>
   );
   return (
     <>
@@ -899,78 +883,50 @@ function PowerTab({ p, run }: { p: Player; run: (a: Action) => void }) {
     <Hub back={T("Power", "Power")} groups={[
       { rows: [
       { id: "office", emoji: "🏛️", tile: "bg-yellow-100", name: officeTitle(p) ?? T("Out of office", "No dey office"), desc: next && !pol.militaryRuler ? T(`Next: ${next.title}`, `Next: ${next.title}`) : T("Your political career", "Your political career"), node: (<>
-      <Card>
-        <H>{officeTitle(p) ?? T("Out of office", "No dey office")}</H>
-        {holding && !pol.militaryRuler && <p className="text-sm text-slate-700">{T(`Term ${pol.terms}, ${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} left · ${naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay`, `Term ${pol.terms}, ${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} remain · ${naira(holding.salary * Math.pow(p.index, 0.9))} yearly pay`)}</p>}
-        {pol.militaryRuler && <p className="text-sm text-slate-700">{T("You rule by decree. Watch out for counter-coups.", "You dey rule by decree. Watch out for counter-coup.")}</p>}
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {pol.anointed && <Badge tone="gold">{T("Anointed", "Anointed")}</Badge>}
-          {pol.hero && <Badge tone="green">{T("People's hero", "People hero")}</Badge>}
-          {pol.vp && <Badge tone="gold">{T("Vice President", "Vice President")}</Badge>}
-          {pol.godfather && <Badge tone="red">{T("Owes a godfather", "Godfather dey follow you")}</Badge>}
-          {pol.defected && <Badge>{T("Defected", "Defected")}</Badge>}
-          {pol.kingmaker > 0 && <Badge tone="gold">{T("Kingmaker", "Kingmaker")} ×{pol.kingmaker}</Badge>}
-        </div>
-        <p className="mt-2 text-xs text-slate-500">{T("Zoning: this cycle the presidency is zoned to the", "Zoning: this time presidency dey zone to")} <b className="text-slate-800">{zone}</b>. {T(`You are from the ${mine}`, `You come from ${mine}`)}{zone === mine ? T(". Advantage!", ". Na advantage!") : T(". Disadvantage.", ". Na disadvantage.")}</p>
-        {next && !pol.militaryRuler && (
-          <div className="mt-3">
-            <Btn tone="gold" disabled={Boolean(block)} onClick={() => run({ t: "contest" })}>{T(`Run for ${next.title}`, `Contest for ${next.title}`)}</Btn>
-            {block && <p className="mt-1 text-xs text-slate-500">{block}</p>}
-          </div>
-        )}
-        <p className="mt-3 text-xs text-slate-500">{T("Reputation as a ruler", "Your name as ruler")}: <b className="text-slate-700">{ruler}</b> · {T("Stolen", "Stolen")}: {naira(p.loot)} · {T("Good deeds", "Good deeds")}: {p.goodDeeds}</p>
-      </Card></>) },
+      <ListGroup title={officeTitle(p) ?? T("Out of office", "No dey office")}>
+        {holding && !pol.militaryRuler && <ListRow emoji="🏛️" tile="bg-yellow-100" name={T(`Term ${pol.terms}`, `Term ${pol.terms}`)} desc={T(`${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} left`, `${pol.yearsLeft} year${pol.yearsLeft === 1 ? "" : "s"} remain`)} right={`${naira(holding.salary * Math.pow(p.index, 0.9))}/${T("yr", "yr")}`} />}
+        {pol.militaryRuler && <ListRow emoji="🪖" tile="bg-red-100" name={T("You rule by decree", "You dey rule by decree")} desc={T("Watch out for counter-coups.", "Watch out for counter-coup.")} wrap />}
+        {pol.anointed && <ListRow emoji="🙏" tile="bg-yellow-100" name={T("Anointed", "Anointed")} />}
+        {pol.hero && <ListRow emoji="🦸" tile="bg-emerald-100" name={T("People's hero", "People hero")} />}
+        {pol.vp && <ListRow emoji="🤝" tile="bg-sky-100" name={T("Vice President", "Vice President")} />}
+        {pol.godfather && <ListRow emoji="🕴️" tile="bg-rose-100" name={T("Owes a godfather", "Godfather dey follow you")} />}
+        {pol.defected && <ListRow emoji="🔀" tile="bg-slate-100" name={T("Defected", "Defected")} />}
+        {pol.kingmaker > 0 && <ListRow emoji="👑" tile="bg-yellow-100" name={`${T("Kingmaker", "Kingmaker")} ×${pol.kingmaker}`} />}
+        <ListRow emoji="🗺️" tile="bg-violet-100" wrap name={T(`Presidency zoned to the ${zone}`, `Presidency zone to ${zone}`)} desc={`${T(`You are from the ${mine}`, `You come from ${mine}`)}${zone === mine ? T(". Advantage!", ". Na advantage!") : T(". Disadvantage.", ". Na disadvantage.")}`} />
+        {next && !pol.militaryRuler && <ListRow emoji="🗳️" tile="bg-blue-100" name={T(`Run for ${next.title}`, `Contest for ${next.title}`)} note={block} disabled={Boolean(block)} onClick={() => run({ t: "contest" })} />}
+        <ListRow emoji="📜" tile="bg-amber-100" wrap name={`${T("Your name as ruler", "Your name as ruler")}: ${ruler}`} desc={`${T("Stolen", "Stolen")} ${naira(p.loot)} · ${T("Good deeds", "Good deeds")} ${p.goodDeeds}`} />
+      </ListGroup></>) },
       { id: "base", emoji: "🧱", tile: "bg-amber-100", name: T("Power base", "Power base"), desc: T("Party, umpire, courts, security", "Party, umpire, courts, security"), node: (<>
-      <Card>
-        <H sub={T("These decide who wins the ticket, the vote and the court case.", "These ones dey decide who go win ticket, vote and court case.")}>{T("Power bases", "Power bases")}</H>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+      <ListGroup title={T("Power bases", "Power bases")} sub={T("These decide who wins the ticket, the vote and the court case.", "These ones dey decide who go win ticket, vote and court case.")}>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-3.5 py-3">
           <Bar label={T("Party machine", "Party machine")} value={pol.machine} tone="gold" />
           <Bar label={T("Electoral umpire (INEC)", "Electoral umpire (INEC)")} value={pol.umpire} tone="gold" />
           <Bar label={T("Courts", "Courts")} value={pol.courts} tone="gold" />
           <Bar label={T("Security chiefs", "Security chiefs")} value={pol.military} tone="gold" />
         </div>
-        <div className="mt-3 space-y-2">
-          {POWER_MOVES.map((m) => {
-            const b = powerMoveBlock(p, m.id);
-            return (
-              <button key={m.id} type="button" disabled={Boolean(b)} onClick={() => run({ t: "power", id: m.id })} className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-left disabled:opacity-40">
-                <span className="flex justify-between text-sm font-semibold"><span>{m.label}</span><span className="text-blue-600">{naira(powerMoveCost(p, m.id))}</span></span>
-                <span className="block text-[11px] text-slate-500">{b ?? m.desc}</span>
-              </button>
-            );
-          })}
-        </div>
-      </Card></>) },
+      </ListGroup>
+      <ListGroup title={T("Power moves", "Power moves")}>
+        {POWER_MOVES.map((m) => { const b = powerMoveBlock(p, m.id); return <ListRow key={m.id} emoji="♟️" tile="bg-amber-100" name={m.label} desc={m.desc} wrap right={naira(powerMoveCost(p, m.id))} note={b} disabled={Boolean(b)} onClick={() => run({ t: "power", id: m.id })} />; })}
+      </ListGroup></>) },
       { id: "coup", emoji: "🪖", tile: "bg-red-100", name: T("Seize power", "Seize power"), desc: T("High risk coup", "Coup, risk plenty"), hidden: !showCoup, node: coupCard },
       { id: "nation", emoji: "🇳🇬", tile: "bg-emerald-100", name: T("State of the nation", "How the country be"), desc: T(`Economy ${Math.round(n.economy)} · approval ${Math.round(n.approval)}`, `Economy ${Math.round(n.economy)} · approval ${Math.round(n.approval)}`), hidden: !holding, node: (<>
-          <Card>
-            <H>{T("The state of the nation", "How the country be")}</H>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          <ListGroup title={T("The state of the nation", "How the country be")}>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-3.5 py-3">
               <Bar label={T("Economy", "Economy")} value={n.economy} />
               <Bar label={T("Security", "Security")} value={n.security} />
               <Bar label={T("Welfare", "Welfare")} value={n.welfare} />
               <Bar label={T("Approval", "Approval")} value={n.approval} tone="gold" />
               <Bar label={T("EFCC / coup heat", "EFCC / coup heat")} value={n.heat} invert />
             </div>
-          </Card></>) },
+          </ListGroup></>) },
       { id: "gov", emoji: "📋", tile: "bg-sky-100", name: T("Run the country", "Run the country"), desc: T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`), hidden: !holding, node: (<>
           {(["good", "corrupt", "neutral"] as const).map((side) => (
-            <Card key={side}>
-              <H sub={T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action remain this year`)}>
-                {side === "good" ? T("Rule well", "Rule well") : side === "corrupt" ? T("Be corrupt", "Chop public money") : T("Politics as usual", "Normal politics")}
-              </H>
-              <div className="space-y-2">
-                {GOV_ACTIONS.filter((a) => a.side === side && pol.office >= a.minOffice).map((a) => {
-                  const dis = a.disabled?.(p) || (p.actionsLeft <= 0 ? T("No actions left", "No action remain") : false);
-                  return (
-                    <button key={a.id} type="button" disabled={Boolean(dis)} onClick={() => run({ t: "gov", id: a.id })} className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-left disabled:opacity-40">
-                      <span className="block text-sm font-semibold">{a.label}</span>
-                      <span className="block text-[11px] text-slate-500">{dis || a.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
+            <ListGroup key={side} title={side === "good" ? T("Rule well", "Rule well") : side === "corrupt" ? T("Be corrupt", "Chop public money") : T("Politics as usual", "Normal politics")} sub={T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action remain this year`)}>
+              {GOV_ACTIONS.filter((a) => a.side === side && pol.office >= a.minOffice).map((a) => {
+                const dis = a.disabled?.(p) || (p.actionsLeft <= 0 ? T("No actions left", "No action remain") : false);
+                return <ListRow key={a.id} emoji={side === "good" ? "🏗️" : side === "corrupt" ? "💰" : "🤝"} tile={side === "good" ? "bg-emerald-100" : side === "corrupt" ? "bg-rose-100" : "bg-sky-100"} name={a.label} desc={a.desc} wrap note={dis || undefined} disabled={Boolean(dis)} onClick={() => run({ t: "gov", id: a.id })} />;
+              })}
+            </ListGroup>
           ))}</>) },
       { id: "routes", emoji: "🛣️", tile: "bg-violet-100", name: T("Roads to the Villa", "Roads to the Villa"), desc: T("Five ways to the top", "Five ways reach the top"), node: <RoutesCard /> },
       ] }]} />
@@ -1008,12 +964,11 @@ function LegacyTab({ g }: { g: Game }) {
   return (
     <Hub back={T("Legacy", "Legacy")} groups={[{ rows: [
       { id: "dyn", emoji: "👑", tile: "bg-amber-100", name: T(`The ${g.dynasty.surname} dynasty`, `The ${g.dynasty.surname} dynasty`), desc: T(`Generation ${p.generation} · share your legacy`, `Generation ${p.generation} · share your legacy`), node: (<>
-      <Card>
-        <H>{T(`The ${g.dynasty.surname} dynasty`, `The ${g.dynasty.surname} dynasty`)}</H>
-        <p className="text-sm text-slate-700">{T(`Generation ${p.generation}. When you die you continue as one of your children, with 70% of everything you built. The family name keeps growing.`, `Generation ${p.generation}. When you die, you go continue as one of your pikin, with 70% of everything you build. The family name go keep growing.`)}</p>
-        <Btn tone="gold" small className="mt-3" onClick={share}><Share2 size={14} className="mr-1 inline" /> {T("Share legacy card", "Share legacy card")}</Btn>
-        {msg && <p className="mt-2 text-xs text-emerald-600">{msg}</p>}
-      </Card></>) },
+      <ListGroup title={T(`The ${g.dynasty.surname} dynasty`, `The ${g.dynasty.surname} dynasty`)}>
+        <ListRow emoji="👑" tile="bg-amber-100" wrap name={T(`Generation ${p.generation}`, `Generation ${p.generation}`)} desc={T("When you die you continue as one of your children, with 70% of everything you built. The family name keeps growing.", "When you die you go continue as one of your pikin, with 70% of everything wey you build. The family name go dey grow.")} />
+        <ListRow emoji="📤" tile="bg-blue-100" name={T("Share legacy card", "Share legacy card")} onClick={share} />
+        {msg && <ListRow emoji="✅" tile="bg-emerald-100" name={msg} />}
+      </ListGroup></>) },
       { id: "moments", emoji: "📸", tile: "bg-pink-100", name: T("Moments", "Moments"), desc: T(`${p.moments?.length ?? 0} shareable`, `${p.moments?.length ?? 0} to share`), node: <MomentsPanel p={p} /> },
       { id: "goals", emoji: "🎯", tile: "bg-emerald-100", name: T("Bucket list", "Bucket list"), desc: T(`${(p.goals ?? []).filter((x) => x.done).length}/${(p.goals ?? []).length} goals done`, `${(p.goals ?? []).filter((x) => x.done).length}/${(p.goals ?? []).length} goals done`), node: <GoalsPanel p={p} /> },
       { id: "gist", emoji: "🗞️", tile: "bg-sky-100", name: T("Naija Gist", "Naija Gist"), desc: T("What people are saying today", "Wetin people dey talk today"), node: <GistPanel p={p} /> },
@@ -1026,18 +981,12 @@ function LegacyTab({ g }: { g: Game }) {
       </>) },
       { id: "anc", emoji: "🕯️", tile: "bg-violet-100", name: T("Ancestors", "Ancestors"), desc: T(`${g.dynasty.lineage.length} before you`, `${g.dynasty.lineage.length} before you`), hidden: g.dynasty.lineage.length === 0, node: (<>
       {g.dynasty.lineage.length > 0 && (
-        <Card>
-          <H>{T("Ancestors", "Ancestors")}</H>
-          <div className="space-y-2">
-            {[...g.dynasty.lineage].reverse().map((l, i) => (
-              <div key={i} className="rounded-xl bg-slate-50 p-3">
-                <div className="flex justify-between"><span className="font-semibold">{l.name}</span><Badge tone="gold">{T("Gen", "Gen")} {l.generation}</Badge></div>
-                <div className="text-xs text-blue-600">{l.epitaph}</div>
-                <div className="text-[11px] text-slate-500">{T(`Lived ${l.ageAtDeath} yrs`, `Live ${l.ageAtDeath} yrs`)} · {l.highestOffice} · {T("peak", "peak")} {naira(l.peakWorth)} · {l.cause}</div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <ListGroup title={T("Ancestors", "Ancestors")}>
+          {[...g.dynasty.lineage].reverse().map((l, i) => (
+            <ListRow key={i} emoji="🕯️" tile="bg-violet-100" wrap name={l.name} right={`${T("Gen", "Gen")} ${l.generation}`}
+              desc={`${l.epitaph} · ${T(`Lived ${l.ageAtDeath} yrs`, `Live ${l.ageAtDeath} yrs`)} · ${l.highestOffice} · ${T("peak", "peak")} ${naira(l.peakWorth)} · ${l.cause}`} />
+          ))}
+        </ListGroup>
       )}</>) },
     ] }]} />
   );

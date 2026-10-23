@@ -6,7 +6,7 @@ import { CAMPUS_OPS, CLUBS, campusBlock, classOf, cutFor, enrolBlock, familyCanP
 import { KIND_LABEL, MAJOR_BY_ID, UNIS, UNI_BY_ID, majorsOf, type Uni, type UniKind } from "./universities";
 import { STATE_BY_ID } from "./data";
 import type { Player } from "./types";
-import { Badge, Btn, Card, H, ListGroup, ListRow, Sheet, cx } from "./ui";
+import { Badge, Btn, H, ListGroup, ListRow, Sheet, cx } from "./ui";
 import { T, naira } from "./util";
 
 type Run = (a: Action) => void;
@@ -28,7 +28,6 @@ export function AdmissionCard({ p, run }: { p: Player; run: Run }) {
   const uni = uniId ? UNI_BY_ID[uniId] : null;
   const close = () => { setUniId(null); setMajorId(null); };
   const lowestFee = (u: Uni) => Math.min(...majorsOf(u).map((m) => uniFee(p, u, m)));
-  const reachable = (u: Uni) => majorsOf(u).some((m) => score >= cutFor(p, u, m));
   return (
     <div>
       <H sub={T(`JAMB score ${score}. Fees, cut-off marks and prestige all differ. Your family's wealth decides what you can afford.`, `JAMB score ${score}. Fees, cut-off and prestige all different. Your family money go decide wetin you fit afford.`)}>{T("Choose your university", "Choose your university")}</H>
@@ -92,25 +91,26 @@ export function CampusCard({ p, run }: { p: Player; run: Run }) {
   const total = mj?.years ?? 4;
   const sugText = c.sug === "won" ? T("SUG president", "SUG president") : c.sug === "deptRep" ? T("Class rep", "Class rep") : c.sug === "lost" ? T("Lost SUG election", "Lost SUG election") : T("No office", "No office");
   return (
-    <Card>
-      <H sub={`${mj?.label ?? ""} · ${u?.name ?? ""}`}>{T("Campus life", "Campus life")} · {T("Year", "Year")} {Math.min(c.year, total)}/{total}</H>
-      <div className="grid grid-cols-4 gap-1.5 text-center text-[11px]">
-        {[
-          [T("CGPA", "CGPA"), c.gpas.length ? c.cgpa.toFixed(2) : "–"],
-          [T("Network", "Network"), String(Math.round(c.network))],
-          [T("Leadership", "Leadership"), String(Math.round(c.lead))],
-          [T("Record", "Record"), c.trouble >= 40 ? T("Poor", "Poor") : T("Clean", "Clean")],
-        ].map(([k, v]) => <div key={k} className="rounded-xl bg-slate-50 py-1.5"><div className="text-sm font-bold text-slate-800">{v}</div><div className="text-slate-500">{k}</div></div>)}
-      </div>
-      <div className="mt-1.5 flex flex-wrap gap-1 text-[11px]">
-        <Badge tone={c.sug === "won" ? "green" : "gray"}>{sugText}</Badge>
-        {c.gpas.length > 0 && <Badge tone="gold">{classOf(c.cgpa)}</Badge>}
-        {c.clubs.map((id) => <Badge key={id}>{T(CLUBS.find((x) => x.id === id)?.en ?? id, CLUBS.find((x) => x.id === id)?.pcm ?? id)}</Badge>)}
-        {c.siwes && <Badge tone="green">SIWES</Badge>}
-        {c.offer && <Badge tone="green">{T("Job offer waiting", "Job offer dey wait")}</Badge>}
-        {c.aid > 0 && <Badge tone="green">{T("Scholarship", "Scholarship")} {Math.round(c.aid * 100)}%</Badge>}
-      </div>
-      <p className="mt-2 text-[11px] text-slate-500">{T("Each activity can be done once a year. Grades are worked out when you grow up a year. Your results, network and offices help you after graduation.", "You fit do each activity once for one year. Dem go work out grade when you grow up. Your result, network and office go help you after school.")}</p>
+    <>
+      <ListGroup title={`${T("Campus life", "Campus life")} · ${T("Year", "Year")} ${Math.min(c.year, total)}/${total}`} sub={`${mj?.label ?? ""} · ${u?.name ?? ""}`}>
+        <div className="grid grid-cols-4 gap-1.5 px-3.5 py-3 text-center text-[11px]">
+          {[
+            [T("CGPA", "CGPA"), c.gpas.length ? c.cgpa.toFixed(2) : "–"],
+            [T("Network", "Network"), String(Math.round(c.network))],
+            [T("Leadership", "Leadership"), String(Math.round(c.lead))],
+            [T("Record", "Record"), c.trouble >= 40 ? T("Poor", "Poor") : T("Clean", "Clean")],
+          ].map(([k, v]) => <div key={k}><div className="text-[15px] font-extrabold text-[#0b2a6b]">{v}</div><div className="text-slate-500">{k}</div></div>)}
+        </div>
+        <div className="flex flex-wrap gap-1 px-3.5 pb-3 text-[11px]">
+          <Badge tone={c.sug === "won" ? "green" : "gray"}>{sugText}</Badge>
+          {c.gpas.length > 0 && <Badge tone="gold">{classOf(c.cgpa)}</Badge>}
+          {c.clubs.map((id) => <Badge key={id}>{T(CLUBS.find((x) => x.id === id)?.en ?? id, CLUBS.find((x) => x.id === id)?.pcm ?? id)}</Badge>)}
+          {c.siwes && <Badge tone="green">SIWES</Badge>}
+          {c.offer && <Badge tone="green">{T("Job offer waiting", "Job offer dey wait")}</Badge>}
+          {c.aid > 0 && <Badge tone="green">{T("Scholarship", "Scholarship")} {Math.round(c.aid * 100)}%</Badge>}
+        </div>
+        <ListRow emoji="ℹ️" tile="bg-slate-100" wrap name={T("Each activity can be done once a year", "You fit do each activity once for year")} desc={T("Grades are worked out when you grow up a year. Your results, network and offices help you after graduation.", "Dem go work out grade when you grow up. Your result, network and office go help you after graduation.")} />
+      </ListGroup>
       <ListGroup>
         {CAMPUS_OPS.map((o) => {
           const b = o.id === "club" ? (c.used.includes("club") || c.clubs.length >= 3 ? campusBlock(p, "club", "x") ?? T("Already done this year", "You don do am this year") : null) : campusBlock(p, o.id, o.id === "sug" ? "low" : undefined);
@@ -140,7 +140,7 @@ export function CampusCard({ p, run }: { p: Player; run: Run }) {
           </ListGroup>
         </Sheet>
       )}
-    </Card>
+    </>
   );
 }
 
