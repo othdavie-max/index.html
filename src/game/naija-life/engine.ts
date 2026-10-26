@@ -27,6 +27,7 @@ import { applyDaily } from "./daily";
 import { LEGACY_EVENTS, inheritLegacy, legacyYear } from "./legacy";
 import { ARC_EVENTS, arcYear } from "./arcs";
 import { GOLD_EVENTS, goldYear } from "./gold";
+import { feedYear, newsAboutYou } from "./feed";
 import { RIVAL_EVENTS, callFavour, npcFortunes, rivalYear, type FavourKind } from "./rival";
 import { QUEST_EVENTS, milestonesYear, questsYear } from "./quests";
 import { businessShift } from "./business";
@@ -601,7 +602,7 @@ export function ageUp(g0: Game): Game {
   yearlyCrime(p, lines, pending);
   yahooYear(p, lines, pending);
   bitYear(p, lines, pending);
-  if (p.alive && p.age >= 6) { legacyYear(p, lines, pending); arcYear(p, pending); goldYear(p, pending); rivalYear(p, lines, pending); npcFortunes(p, lines, pending); milestonesYear(p, pending); questsYear(p, lines); }
+  if (p.alive && p.age >= 6) { legacyYear(p, lines, pending); arcYear(p, pending); goldYear(p, pending); rivalYear(p, lines, pending); npcFortunes(p, lines, pending); milestonesYear(p, pending); questsYear(p, lines); feedYear(p, lines); newsAboutYou(p); }
   fugitiveYear(p, lines);
   yearlyGrowth(p);
   yearlySocial(p, lines, (id, data) => pending.push({ kind: "event", id, data: { month: randInt(1, 12), ...(data ?? {}) } }));

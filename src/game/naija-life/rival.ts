@@ -1,4 +1,5 @@
 import { addCousin } from "./events6";
+import { postFeed } from "./feed";
 import { netWorthReal } from "./finance";
 import { I, bump, eligibleJobs, luckBonus } from "./helpers";
 import { transact } from "./ledger";
@@ -69,7 +70,7 @@ export function rivalYear(p: Player, lines: string[], pending: Pending[]) {
   const n = rivalNpc(p);
   if (!r || !n) return;
   const age = p.age + n.ageDelta;
-  const noteLine = (en: string, pcm: string, big = false) => { if (big || chance(0.6)) lines.push(T(en, pcm)); };
+  const noteLine = (en: string, pcm: string, big = false) => { if (big || chance(0.6)) lines.push(T(en, pcm)); postFeed(p, { who: n.name.split(" ")[0], e: "🥊", t: T(en, pcm) }); };
   // Wealth: slow before work, then compounding with luck and drive.
   const grow = age < 20 ? 0.03 : rand(-0.04, 0.2) * r.drive;
   r.wealth = Math.max(50_000, r.wealth * (1 + grow) + (age >= 22 ? rand(80_000, 600_000) * r.drive : 0));
@@ -112,6 +113,7 @@ export function npcFortunes(p: Player, lines: string[], pending: Pending[]) {
     n.occupation = n.title;
     n.income = tt.income;
     if (tt.power >= 2) n.generosity = clamp(n.generosity + 10);
+    postFeed(p, { who: n.name.split(" ")[0], e: up ? "🎉" : "😔", t: up ? T(`New role: ${n.title}. Grateful. 🙏🏾`, `New role: ${n.title}. I dey grateful. 🙏🏾`) : T("Tough times. Pray for me.", "Hard times. Help me pray.") });
     if (n.closeness >= 25 || n.role === "friend") lines.push(up ? T(`Your old ${n.role === "classmate" ? "classmate" : n.role} ${n.name} is now: ${n.title}.`, `Your old ${n.role === "classmate" ? "classmate" : n.role} ${n.name} don become: ${n.title}.`) : T(`You hear that ${n.name} has fallen on hard times.`, `You hear say ${n.name} don enter hard times.`));
   }
   // Someone you once helped remembers you.

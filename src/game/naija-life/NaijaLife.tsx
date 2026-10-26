@@ -23,7 +23,7 @@ import { BottomBar, ExploreChips, ExploreHub, GameHeader, LifeFeed, StatsCard, E
 import { shareCard } from "./share";
 import type { Game, Gender, LineageEntry, Player } from "./types";
 import { Invest2Card } from "./Invest2UI";
-import { FavoursCard, FriendBoardCard, LegacyCard, MilestonesCard, RivalCard } from "./LifeUI";
+import { FavoursCard, FriendBoardCard, LegacyCard, MilestonesCard, NaijaGramCard, RivalCard } from "./LifeUI";
 import { setLiveSeason } from "./calendar";
 import { ribbonTitle, ribbonsOf } from "./ribbons";
 import { DnaRow, LotteryCard, PetsCard, StyleCard, TalentCard } from "./BitlifeUI";
@@ -35,6 +35,7 @@ import { Pops, changeChips, type Chip } from "./Pops";
 import { MiniHost } from "./mini/Host";
 import { sfx } from "./sound";
 import { isGold } from "./gold";
+import { questDone, questsOf } from "./quests";
 import { ChallengesCard, PerkPicker, RibbonBookCard, UnlockPop } from "./ReplayUI";
 import { applyPerk, checkChallenges, collectRibbons } from "./replay";
 import { liveRibbons } from "./ribbons";
@@ -114,6 +115,10 @@ export default function NaijaLife() {
   const [chips, setChips] = useState<Chip[]>([]);
   const [unlock, setUnlock] = useState<{ emoji: string; title: string; kind: string } | null>(null);
   const unlockQueue = useRef<{ emoji: string; title: string; kind: string }[]>([]);
+  const [welcome, setWelcome] = useState(false);
+  useEffect(() => { if (!result) return; const tn = toneOf(result); try { sfx(tn === "good" ? "win" : tn === "bad" ? "bad" : "pop"); } catch { /* no audio */ } }, [result]);
+  useEffect(() => { if (chips.some((c) => c.emoji === "₦" && c.tone === "good")) { try { sfx("coin"); } catch { /* no audio */ } } }, [chips]);
+  useEffect(() => { if (!game) return; try { localStorage.setItem(`naija-life-seen-${slot}`, String(Date.now())); } catch { /* storage unavailable */ } }, [game, slot]);
   const [menu, setMenu] = useState(false);
   const [cardImg, setCardImg] = useState<{ url: string; text: string } | null>(null);
 
@@ -203,7 +208,7 @@ export default function NaijaLife() {
           slots={slots}
           lang={lang}
           onLang={chooseLang}
-          onContinue={(i) => { setSlot(i); setLangState(slots[i]?.p.lang ?? lang); setGame(slots[i]); setTab("life"); }}
+          onContinue={(i) => { try { const t = Number(localStorage.getItem(`naija-life-seen-${i}`) ?? 0); if (t && Date.now() - t > 4 * 3600 * 1000) setWelcome(true); } catch { /* storage unavailable */ } setSlot(i); setLangState(slots[i]?.p.lang ?? lang); setGame(slots[i]); setTab("life"); }}
           onDelete={(i) => setSlots((s) => { const next = [...s]; next[i] = null; writeSlots(next); return next; })}
           onStart={(o, i) => {
             setSlot(i);
@@ -255,6 +260,7 @@ export default function NaijaLife() {
       </SubNavContext.Provider>
 
       <Pops chips={chips} note={toast} />
+      {welcome && !view && p.alive && <WelcomeBack p={p} onClose={() => setWelcome(false)} />}
       <UnlockPop item={unlock} onDone={() => { const nx = unlockQueue.current.shift() ?? null; setUnlock(nx); }} />
 
       <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { const next = ageUp(game); setGame(next); setTab("life"); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch { /* old browser */ } const c = changeChips(game.p, next.p, 2); if (c.length && next.p.alive) setChips(c); celebrate(next.p); try { navigator.vibrate?.(next.p.alive ? 12 : [40, 60, 40]); } catch { /* no haptics */ } }} />
@@ -574,6 +580,23 @@ const STAGE_TITLE: Record<string, () => string> = {
   admission: () => T("After secondary school", "After secondary school"), nysc: () => T("NYSC year", "NYSC year"), work: () => T("Work and money-making", "Work and money-making"),
 };
 
+function WelcomeBack({ p, onClose }: { p: Player; onClose: () => void }) {
+  const last = p.log[p.log.length - 1];
+  const line = last?.lines.find((l) => !/^(Money this year|Money for this year)/i.test(l)) ?? "";
+  const qs = questsOf(p);
+  const done = qs.filter((q) => questDone(p, q)).length;
+  return (
+    <Sheet onClose={onClose} title={T(`Welcome back, ${p.name}! 👋🏾`, `Welcome back, ${p.name}! 👋🏾`)}>
+      <div className="space-y-2">
+        <div className="rounded-2xl bg-blue-50 px-3 py-2.5 text-[13.5px] text-blue-900"><b>{T(`Age ${p.age}`, `Age ${p.age}`)}</b> · {line}</div>
+        {qs.length > 0 && <div className="rounded-2xl bg-emerald-50 px-3 py-2.5 text-[13px] font-semibold text-emerald-800">🎯 {T(`Goals this year: ${done}/${qs.length}. Finish them before you grow up.`, `Goals this year: ${done}/${qs.length}. Finish dem before you grow up.`)}</div>}
+        <div className="rounded-2xl bg-amber-50 px-3 py-2.5 text-[13px] font-semibold text-amber-800">🎁 {T("Your free daily pick is waiting on the Life screen.", "Your free daily pick dey wait for Life screen.")}</div>
+      </div>
+      <Btn className="mt-4 w-full" onClick={onClose}>{T("Let's go", "Oya make we go")}</Btn>
+    </Sheet>
+  );
+}
+
 function GoldBanner() {
   useEffect(() => { try { sfx("win"); } catch { /* no audio */ } }, []);
   return (
@@ -785,7 +808,7 @@ function Person({ look, gender, age, label, sub, dim }: { look: Look; gender: Ge
 }
 
 function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
-  const [sub, setSub] = useState<"people" | "family" | "friends" | "class" | "love" | "will" | "awards" | "rival" | "favours" | "legacy" | null>(null);
+  const [sub, setSub] = useState<"people" | "family" | "friends" | "class" | "love" | "will" | "awards" | "rival" | "favours" | "legacy" | "gram" | null>(null);
   const alivePeople = Object.values(p.npcs).filter((n) => n.alive);
   const famCount = alivePeople.filter((n) => ["dad", "mom", "guardian", "sibling", "grandparent", "uncle", "aunt", "cousin"].includes(n.role)).length;
   const friendCount = alivePeople.filter((n) => n.role === "friend").length;
@@ -807,6 +830,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
                 { id: "class" as const, emoji: "🎒", tile: "bg-violet-100", name: T("Classmates", "Classmates"), desc: classCount ? T(`${classCount} in your class`, `${classCount} for your class`) : T("Primary, secondary, university", "Primary, secondary, university") },
                 { id: "love" as const, emoji: "❤️", tile: "bg-rose-100", name: T("Love life", "Love life"), desc: p.spouse ? T(`Married to ${p.spouse.name}`, `You marry ${p.spouse.name}`) : p.flags.dating ? T(`Dating ${String(p.flags.dating)}`, `You dey date ${String(p.flags.dating)}`) : T("Dating, marriage and children", "Dating, marriage and pikin") },
                 ...(p.age >= 12 ? [{ id: "rival" as const, emoji: "🥊", tile: "bg-rose-100", name: T("My rival", "My rival"), desc: T("Your cousin, and your mother's favourite comparison", "Your cousin, and mama favourite comparison") }] : []),
+                ...(p.age >= 12 ? [{ id: "gram" as const, emoji: "📸", tile: "bg-pink-100", name: "NaijaGram", desc: T("What everyone is posting, including your rival", "Wetin everybody dey post, even your rival") }] : []),
                 { id: "legacy" as const, emoji: "🏛️", tile: "bg-violet-100", name: T("Family name and legacy", "Family name and legacy"), desc: T("Name, compound, heirlooms", "Name, compound, heirlooms") },
                 ...(p.age >= 18 ? [{ id: "favours" as const, emoji: "🤲🏾", tile: "bg-amber-100", name: T("Favours", "Favours"), desc: T("People who owe you, and what to ask", "People wey owe you, and wetin to ask") }] : []),
                 ...(p.age >= 18 ? [{ id: "will" as const, emoji: "📜", tile: "bg-amber-100", name: T("Will", "Will"), desc: T("Decide who gets what", "Decide who go get wetin") }] : []),
@@ -851,6 +875,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       </ListGroup>
       </>)}
       {sub === "legacy" && <LegacyCard p={p} />}
+      {sub === "gram" && <NaijaGramCard p={p} />}
       {sub === "rival" && <RivalCard p={p} />}
       {sub === "favours" && <FavoursCard p={p} run={run} />}
       {sub === "family" && <PeopleList p={p} run={run} group="family" />}

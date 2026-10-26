@@ -2129,3 +2129,23 @@ test("story arcs run across three years and end; golden events and replay checks
   for (const e of gold.GOLD_EVENTS) for (let i = 0; i < 2; i++) { const r = structuredClone(p); const m = r.money; e.choices(r, {})[i].run(r); assert.ok(r.money > m); }
   assert.ok(rp.CHALLENGES.length >= 10 && rp.PERKS.length >= 5);
 });
+
+test("NaijaGram fills up, your milestones get a post and a rival comment, and the news mentions you", async () => {
+  const fd = await import("../feed");
+  const rv = await import("../rival");
+  const g = aliveAt(30);
+  const p = structuredClone(g.p);
+  for (let i = 0; i < 3; i++) rv.rivalYear(p, [], []);
+  const lines: string[] = [];
+  p.flags.mile_b1 = p.age;
+  fd.feedYear(p, lines);
+  const f = fd.feedOf(p);
+  assert.ok(f.length >= 2);
+  assert.ok(f.some((x) => x.you), "your milestone is posted");
+  if (rv.rivalNpc(p)) assert.ok(lines.some((l) => /comment/i.test(l)), "the rival comments");
+  const n0 = p.world?.news.length ?? 0;
+  fd.newsAboutYou(p);
+  assert.ok((p.world?.news.length ?? 0) > n0, "a headline about you");
+  for (let i = 0; i < 40; i++) fd.feedYear(p, []);
+  assert.ok(fd.feedOf(p).length <= 30, "feed is capped");
+});

@@ -5,6 +5,7 @@ import type { Action } from "./engine";
 import { avatarSvg } from "./avatarSvg";
 import { MILESTONES, QUEST_BY_ID, doneMilestones, questDone, questsOf } from "./quests";
 import { netWorthReal } from "./finance";
+import { feedOf } from "./feed";
 import { favourBlock, powerOf, rivalCompare, rivalNpc, type FavourKind } from "./rival";
 import { shareCard } from "./share";
 import { dailyClaimed, dailyFor } from "./daily";
@@ -219,9 +220,34 @@ export function ProgressCard({ p }: { p: Player }) {
           </span>
         </div>
       )}
-      {streak > 1 && (
-        <div className="flex items-center gap-2 border-t border-slate-100 px-3.5 py-2 text-[12px] font-bold text-orange-700"><span aria-hidden>🔥</span>{T(`${streak}-day streak. Come back tomorrow to keep it.`, `${streak}-day streak. Come back tomorrow make e no break.`)}{streak % 7 !== 0 && <span className="ml-auto text-[11px] font-semibold text-slate-400">{T(`${7 - (streak % 7)} to a bonus`, `${7 - (streak % 7)} to bonus`)}</span>}</div>
+      {streak > 0 && (
+        <div className="flex items-center gap-2.5 border-t border-slate-100 px-3.5 py-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-[19px]">🔥</span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center justify-between text-[12.5px] font-extrabold text-[#0b2a6b]"><span>{T(`${streak}-day streak`, `${streak}-day streak`)}</span><span className="text-[11px] font-semibold text-slate-400">{T("Day 7 = bonus", "Day 7 = bonus")}</span></span>
+            <span className="mt-1 flex gap-1">{Array.from({ length: 7 }, (_, i) => { const filled = i < ((streak - 1) % 7) + 1; return <span key={i} className={cx("flex h-5 flex-1 items-center justify-center rounded-md text-[10px] font-black", filled ? "bg-orange-400 text-white" : "bg-slate-100 text-slate-400")}>{i === 6 ? "🎁" : i + 1}</span>; })}</span>
+          </span>
+        </div>
       )}
     </section>
+  );
+}
+
+/** NaijaGram: what your rival, old friends and the gist pages are posting. */
+export function NaijaGramCard({ p }: { p: Player }) {
+  const posts = [...feedOf(p)].reverse();
+  return (
+    <ListGroup title="📸 NaijaGram" sub={T("Your rival, old friends and the gist pages. Your own wins show up here too.", "Your rival, old friends and gist pages. Your own wins go show here too.")}>
+      {posts.length === 0 ? <ListRow emoji="📭" tile="bg-slate-100" name={T("Nothing yet", "Nothing yet")} desc={T("Grow up a little. The gist is coming.", "Grow small. Gist dey come.")} /> : posts.map((x, i) => (
+        <div key={i} className={cx("flex gap-3 px-3.5 py-3", x.you && "bg-blue-50/60")}>
+          <span className={cx("flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[20px] ring-2", x.you ? "bg-blue-100 ring-blue-300" : "bg-pink-50 ring-pink-200")} aria-hidden>{x.e}</span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center justify-between gap-2"><span className="truncate text-[13px] font-extrabold text-[#0b2a6b]">{x.who}</span><span className="shrink-0 text-[10.5px] text-slate-400">{T(`age ${x.a}`, `age ${x.a}`)}</span></span>
+            <span className="block text-[13px] leading-snug text-slate-700">{x.t}</span>
+            <span className="mt-1 block text-[11px] font-semibold text-rose-500">❤️ {x.likes.toLocaleString()}</span>
+          </span>
+        </div>
+      ))}
+    </ListGroup>
   );
 }
