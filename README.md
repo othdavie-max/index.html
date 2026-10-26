@@ -8,6 +8,9 @@ A production-ready marketing site + lead-generation platform + admin CMS for **B
 
 ## 1. Tech stack
 
+> **New:** this repository also contains a standalone political life simulation game at `/game` — see [`docs/game/README.md`](docs/game/README.md).
+
+
 | Layer | Choice |
 |---|---|
 | Framework | Next.js 16 (App Router), TypeScript, React 19 |
