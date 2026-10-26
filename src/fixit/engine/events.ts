@@ -9,13 +9,15 @@ import { subRng } from "../../game/engine/rng";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { Effects, EventKind, EventOption, FixState, GameEvent } from "./types";
 import { plantForEvent } from "./echoes";
+import { sack, PORTFOLIO_BY_ID } from "./cabinet";
+import type { Portfolio } from "./types";
 import { addMod, clamp, clamp100, delivery, foodAffordIdx, lever, pushNews, pushReport, realWage, round, isFloodSeason, uid, nb } from "./util";
 
 const sname = (id: string) => STATE_BY_ID[id]?.name ?? id;
 
 interface Fx {
   mods?: Effects; dur?: number | null; unrest?: number; trust?: number; wealth?: number; evidence?: number; humanRights?: number;
-  insecurity?: number; scandal?: number; coverage?: number; treasury?: number; reserves?: number; opposition?: number; foreign?: number; corruption?: number;
+  insecurity?: number; scandal?: number; sackMinister?: boolean; ministerIntegrity?: number; coverage?: number; treasury?: number; reserves?: number; opposition?: number; foreign?: number; corruption?: number;
 }
 interface Opt {
   id: string; label: string; explain: string; cost: number | ((s: FixState) => number); tradeoff: string; unc: "low" | "medium" | "high";
@@ -43,7 +45,19 @@ const PROTEST_OPTS = (relief: string, reliefCost: number): Opt[] => [
     chance: (s) => 0.5 + 0.2 * (s.sec.humanRights / 100), win: { unrest: -7, trust: -0.5 }, lose: { unrest: 8, trust: -4, humanRights: -6 }, winText: "Order was kept and the protest wound down.", loseText: "Clashes turned violent, with deaths and anger at the response." },
 ];
 
+const ministerName = (s: FixState) => { const p = s.flags.scandalMinister as Portfolio | undefined; const m = p ? s.cabinet.members[p] : undefined; return m ? `${PORTFOLIO_BY_ID[p!].title} ${m.name}` : "A minister"; };
 const TEMPLATES: Tpl[] = [
+  {
+    id: "ministerScandal", kind: "scandal", urgency: 2,
+    title: (s) => `${ministerName(s)} accused of fraud`,
+    cause: (s) => `Auditors say money meant for the ministry was diverted to private accounts linked to ${ministerName(s)}. The press wants to know what you will do.`,
+    options: [
+      { id: "sack", label: "Sack the minister", explain: "Act fast and appoint someone new.", cost: 0, tradeoff: "The post is vacant until you appoint a replacement; their allies are angry.", unc: "low", chance: () => 0.95, win: { sackMinister: true, trust: 2.5, mods: { corruption: -1 }, dur: 6 }, lose: { sackMinister: true, trust: 1 }, winText: "Voters approved of the swift action.", loseText: "" },
+      { id: "investigate", label: "Suspend and investigate", explain: "Let an independent panel decide.", cost: 10, tradeoff: "Slow; if they are guilty you look weak for waiting.", unc: "medium", chance: () => 0.5, win: { trust: 1, ministerIntegrity: 15 }, lose: { sackMinister: true, trust: -1 }, winText: "The panel found procedural failures, not theft; the minister promised reforms.", loseText: "The panel confirmed the fraud and the minister had to go." },
+      { id: "defend", label: "Defend your minister", explain: "Call it a political smear.", cost: 0, tradeoff: "If the evidence holds, you share the blame.", unc: "high", chance: () => 0.3, win: { trust: -0.5 }, lose: { trust: -4, evidence: 6, opposition: 3 }, winText: "The story faded.", loseText: "More documents emerged; you are now tied to the scandal." },
+    ],
+    expire: { trust: -3, evidence: 4 }, expireText: () => "Your silence was read as protection for a corrupt minister.",
+  },
   {
     id: "foodProtest", kind: "protest", urgency: 2,
     title: (_s, st) => `Food price protests in ${st}`,
@@ -274,6 +288,7 @@ export function createEvent(s: FixState, tpl: string, stateId: string): GameEven
   };
   s.events.push(ev);
   s.flags[`cd:${tpl}:${stateId}`] = s.month;
+  if (tpl === "ministerScandal" && s.flags.scandalMinister) s.flags[`ev:${id}:portfolio`] = s.flags.scandalMinister;
   if (s.events.length > 120) s.events = s.events.filter((e, i) => e.status === "open" || i > s.events.length - 80);
   pushNews(s, { source: `event:${id}`, headline: ev.title, body: ev.cause, tone: t.kind === "opportunity" ? "good" : "bad", stateId });
   return ev;
@@ -296,6 +311,9 @@ function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string) {
   if (fx.opposition) s.gov.opposition = clamp100(s.gov.opposition + fx.opposition);
   if (fx.corruption) s.gov.corruption = clamp100(s.gov.corruption + fx.corruption);
   if (fx.scandal) s.me.scandals += fx.scandal;
+  const port = s.flags[`ev:${e.id}:portfolio`] as Portfolio | undefined;
+  if (port && fx.sackMinister) sack(s, port);
+  if (port && fx.ministerIntegrity && s.cabinet.members[port]) s.cabinet.members[port]!.integrity = clamp100(s.cabinet.members[port]!.integrity + fx.ministerIntegrity);
 }
 
 export interface EventResult { ok: boolean; text: string; chance: number }

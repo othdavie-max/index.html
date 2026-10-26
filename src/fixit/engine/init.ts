@@ -3,6 +3,8 @@ import { hashString, subRng } from "../../game/engine/rng";
 import { REGION_OVERRIDES, ZONE_PRIORS } from "../data/catalogue";
 import { FIX_VERSION, type FixState, type Region } from "./types";
 import { clamp100, snap } from "./util";
+import { initCabinet } from "./cabinet";
+import { initRival } from "./rival";
 
 export const START = {
   fx: 1500, reserves: 36, inflation: 25, foodInflation: 31, oil: 78, pump: 750, treasury: 1500,
@@ -44,10 +46,12 @@ export function newGame(seed = 2027, president = "Madam/Mr President"): FixState
     gov: { corruption: 65, procurement: 38, capacity: 42, transparency: 38, trust: 40, approval: 52, opposition: 45, happiness: 48 },
     me: { wealth: 250, evidence: 0, scandals: 0, acts: [] },
     why: {},
-    regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [],
+    regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [], cabinet: { members: {}, pool: [], reshuffles: 0 }, rival: { name: "", party: "", zone: "", popularity: 45 }, campaign: { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 }, election: null,
     baseline: undefined as never,
     flags: {}, settings: { autosave: true, reducedMotion: false },
   };
+  initCabinet(s);
+  initRival(s);
   // initial fuel numbers so the dashboard is truthful on day one
   s.fuel.parity = (s.eco.oilPrice * s.eco.fx) / 159 * 1.35;
   s.fuel.pump = s.fuel.parity * (1 - 0.5 * s.fuel.coverage);

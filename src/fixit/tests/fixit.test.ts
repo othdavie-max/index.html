@@ -125,10 +125,10 @@ describe("projects", () => {
     const s = newGame(8); s.fin.treasury = 50000;
     expect(startProject(s, "solar", "NG-KN", "treasury").ok).toBe(true);
     const p = s.projects[0];
-    const power0 = s.power.available;
+    const ctrl = newGame(8); ctrl.fin.treasury = 50000;
     run(s, 8); expect(p.progress).toBeGreaterThan(0.2); expect(p.progress).toBeLessThan(1); expect(p.spent).toBeGreaterThan(0);
     run(s, 14); expect(p.status).toBe("done"); expect(p.benefitScale).toBeGreaterThan(0.3);
-    run(s, 8); expect(s.power.available).toBeGreaterThan(power0 + 50);
+    run(s, 8); run(ctrl, 30); expect(s.power.available).toBeGreaterThan(ctrl.power.available + 100);
   });
   it("projects stall when there is no cash and resume after", () => {
     const s = newGame(8); s.fin.treasury = 600; startProject(s, "highway", "NG-KD", "treasury");

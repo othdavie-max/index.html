@@ -42,8 +42,8 @@ export function ProjectIcon({ size = 18 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="-14 -14 28 28" aria-hidden><circle r={10} fill="#fff" stroke="#0b1f36" strokeWidth={3} /><path d="M-4,4V-4H3L4,0H0V4Z" fill="#0b1f36" /></svg>;
 }
 
-export function MapView({ s, layer, selectedState, selectedLga, onSelectState, onSelectLga, height, showEvents = true, showProjects = true, labels = true }: {
-  s: FixState; layer: Layer; selectedState: string | null; selectedLga: string | null; onSelectState: (id: string | null) => void; onSelectLga: (id: string | null) => void;
+export function MapView({ s, layer, fill, selectedState, selectedLga, onSelectState, onSelectLga, height, showEvents = true, showProjects = true, labels = true }: {
+  s: FixState; layer: Layer; fill?: (id: string) => string; selectedState: string | null; selectedLga: string | null; onSelectState: (id: string | null) => void; onSelectLga: (id: string | null) => void;
   height?: number | string; showEvents?: boolean; showProjects?: boolean; labels?: boolean;
 }) {
   const [geo, setGeo] = useState<GeoData | null>(null);
@@ -67,7 +67,7 @@ export function MapView({ s, layer, selectedState, selectedLga, onSelectState, o
       selectedLga={selectedLga}
       onSelectState={onSelectState}
       onSelectLga={onSelectLga}
-      fillState={(id) => stressColor(stateLayerValue(s, id, layer))}
+      fillState={fill ?? ((id) => stressColor(stateLayerValue(s, id, layer)))}
       fillLga={(id) => stressColor(lgaLayerValue(s, id, layer))}
       showLabels={labels}
       height={height}

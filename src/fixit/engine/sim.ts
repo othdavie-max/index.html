@@ -12,6 +12,9 @@ import { addMod, calMonth, clamp, clamp100, debtServiceRatio, delivery, foodAffo
 import { generateEvents, resolveExpired } from "./events";
 import { resolveEchoes } from "./echoes";
 import { checkAchievements, midtermCheck } from "./promises";
+import { cabinetMonthly } from "./cabinet";
+import { rivalMonthly } from "./rival";
+import { createEvent } from "./events";
 import { makeNews } from "./news";
 import { evaluateTermEnd } from "./legacy";
 
@@ -29,6 +32,8 @@ export function advanceMonth(s: FixState): boolean {
   phase2(s, subRng(s.meta.seed, "flows", m));
   phase3(s, subRng(s.meta.seed, "prices", m));
   phase4(s, subRng(s.meta.seed, "people", m));
+  cabinetMonthly(s, subRng(s.meta.seed, "cabinet", m), (p) => { s.flags.scandalMinister = p; createEvent(s, "ministerScandal", "NG-FC"); });
+  rivalMonthly(s, subRng(s.meta.seed, "rival", m));
   resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));

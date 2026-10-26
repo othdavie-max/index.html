@@ -118,6 +118,10 @@ export interface Echo {
   outcome?: string;
   outTone?: "good" | "bad" | "neutral";
 }
+export type Portfolio = "finance" | "agriculture" | "power" | "security" | "cbn" | "works";
+export type Faction = "technocrat" | "loyalist" | "heavyweight";
+export interface Minister { id: string; name: string; portfolio: Portfolio; skill: number; integrity: number; faction: Faction; trait: string; zone: string; since: number; mood: number }
+export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number }
 export interface Achievement { id: string; label: string; month: number }
 
 export interface Report { id: string; month: number; title: string; lines: string[]; tone: "good" | "bad" | "neutral" }
@@ -172,6 +176,10 @@ export interface FixState {
   /** campaign promises chosen at the start (ids from promises.ts) */
   promises: string[];
   achievements: Achievement[];
+  cabinet: { members: Partial<Record<Portfolio, Minister>>; pool: Minister[]; reshuffles: number };
+  rival: { name: string; party: string; zone: string; popularity: number };
+  campaign: { rallies: Record<string, number>; debateShift: number; mobilise: number; attacks: number; actionsThisMonth: number; month: number };
+  election: ElectionResult | null;
   terms: TermResult[];
   baseline: Snap;
   flags: Record<string, number | string | boolean>;

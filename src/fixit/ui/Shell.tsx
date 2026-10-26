@@ -8,6 +8,7 @@ import { monthsLeftInTerm } from "../engine/views";
 import { TERM_MONTHS } from "../engine/types";
 import { HowTo, MenuModal } from "./Menu";
 import { Legacy } from "./Legacy";
+import { ElectionNight } from "./ElectionNight";
 
 const ICON = 20;
 const NAV: { id: Tab; label: string; short: string; icon: ReactNode }[] = [
@@ -39,6 +40,19 @@ function MonthSummaryModal() {
         <div className="g-tiny g-muted">▲ better for the country, ▼ worse. Every change comes from the simulation.</div>
       </div>
     </Modal>
+  );
+}
+
+function Ticker() {
+  const s = useS();
+  const items = s.news.slice(-8).reverse();
+  if (!items.length) return null;
+  const text = items.map((n) => `${n.tone === "bad" ? "▼" : n.tone === "good" ? "▲" : "●"} ${n.headline}`).join("     ");
+  return (
+    <div className="fx-ticker" aria-label="Latest headlines">
+      <span className="fx-ticker-tag">BREAKING</span>
+      <div className="fx-ticker-track"><div className="fx-ticker-move"><span>{text}</span><span aria-hidden>{text}</span></div></div>
+    </div>
   );
 }
 
@@ -81,6 +95,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <Button variant="navy" disabled={blocked} onClick={() => advance(3)} title="Skip ahead up to three months; stops early if something needs a decision" aria-label="Skip three months"><FastForward size={17} /><span className="g-small" style={{ color: "inherit" }}>+3</span></Button>
           <button className="g-hero-btn" style={{ padding: "8px 16px", fontSize: 15, boxShadow: "0 3px 0 var(--g-emerald-d)" }} disabled={blocked} onClick={() => advance(1)} aria-label="End month: move on to the next month"><CalendarDays size={18} /><span>End month</span></button>
         </header>
+        <Ticker />
         <main className="g-content" id="main">{children}</main>
       </div>
       <nav className="g-bottomnav fx-bottomnav" aria-label="Primary">
@@ -89,7 +104,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {menu && <MenuModal onClose={() => setMenu(false)} />}
       {how && <HowTo onClose={() => setHow(false)} />}
       <MonthSummaryModal />
-      {s.ended && <Legacy />}
+      {s.ended && (s.election && s.election.month === s.month && !s.flags[`electionSeen:${s.month}`] ? <ElectionNight /> : <Legacy />)}
     </div>
   );
 }

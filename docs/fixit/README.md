@@ -23,3 +23,10 @@ Run tests: `npx vitest run src/fixit`.
 - **Diminishing quick fixes**: repeating the same measure within 12 months is less effective each time.
 - **Milestones**: achievements awarded once from real outcomes.
 - **Advisers** give two (often conflicting) views on each challenge.
+
+## Cabinet, rival and election
+- **Cabinet** (`engine/cabinet.ts`): six portfolios (Finance, Central Bank, Agriculture, Power, Works, Security). Ministers have skill (scales their area's levers), honesty (low honesty adds corruption, cuts procurement quality and risks a minister-fraud event) and a faction: technocrat (skill, investor confidence), party loyalist (+0.7 vote points each, weakens the rival), regional heavyweight (+3 in their zone). Vacancies drag their area down. Moods fall when their area worsens; very unhappy ministers resign. Free reshuffles in the first three months.
+- **Rival** (`engine/rival.ts`): a named opposition leader whose popularity mirrors your approval and who attacks bad news in quotes generated from the numbers.
+- **Campaign**: opens six months before election day (term 1). Two activities a month: rallies by zone (diminishing returns), door-to-door drive, risky attack ads, plus a three-question debate.
+- **Election**: counted per state; win needs >50% nationally and ≥25% in 24 of 37 states, otherwise a run-off. Results are seeded and shown on an animated election-night map.
+- **Street voices and ticker** (`engine/voices.ts`): fictional citizens quote this month's real numbers; a breaking-news ticker shows the latest headlines.

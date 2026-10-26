@@ -13,6 +13,10 @@ import { reelectionChance } from "../../engine/legacy";
 import { ChallengePanel, EventCard } from "../Decisions";
 import { MapLegend, MapView } from "../MapView";
 import { Trend, Word, bn } from "../parts";
+import { CabinetCard } from "../Cabinet";
+import { CampaignPanel, RivalCard } from "../Campaign";
+import { streetVoices } from "../../engine/voices";
+import { MessageCircle } from "lucide-react";
 
 function Kpi({ icon, label, value, sub, tone, word, trend, go }: { icon: React.ReactNode; label: string; value: string; sub: string; tone: Tone; word: string; trend?: React.ReactNode; go: Tab }) {
   const { setTab } = useFix();
@@ -61,7 +65,7 @@ function StatusBar() {
       <div className="fx-odds" style={{ ["--p" as string]: odds }} aria-label={`Re-election chance if the vote were today: ${odds}%`}><span>{odds}%</span></div>
       <div>
         <div style={{ fontWeight: 800 }}>{s.term >= 2 ? "Final term" : "Re-election chance if the vote were today"}</div>
-        <div className="g-small g-muted">{left} month{left === 1 ? "" : "s"} until {s.term >= 2 ? "you leave office" : "election day"}. It rises with happiness, trust and promises kept.</div>
+        <div className="g-small g-muted">{left} month{left === 1 ? "" : "s"} until {s.term >= 2 ? "you leave office" : "election day"}. It rises with happiness, trust and promises kept. Unkept promises start to count against you in the final year.</div>
       </div>
       <div>
         <div style={{ fontWeight: 800 }}>Promises: {onTrack} of {s.promises.length} on target</div>
@@ -86,6 +90,23 @@ function ComingUp() {
         ))}
       </div>
       <div className="g-tiny g-muted" style={{ marginTop: 6 }}>● green = expected benefit · ● red = risk · ● amber = could go either way, depending on what you do before then.</div>
+    </Card>
+  );
+}
+
+function Voices() {
+  const s = useS();
+  const v = streetVoices(s, 3);
+  const face = (m: string) => (m === "bad" ? "😟" : m === "good" ? "🙂" : "😐");
+  return (
+    <Card title="Voices from the street" icon={<MessageCircle size={16} />}>
+      {v.map((x) => (
+        <div key={x.who} className="fx-voice">
+          <span className="fx-voice-av" style={{ background: x.mood === "bad" ? "#ffe4ea" : x.mood === "good" ? "#e3faf0" : "#eef2f6" }} aria-label={x.mood === "bad" ? "unhappy" : x.mood === "good" ? "happy" : "neutral"}>{face(x.mood)}</span>
+          <div><div className="g-small" style={{ color: "#0f172a" }}>“{x.quote}”</div><div className="g-tiny g-muted">{x.who}, {x.place}</div></div>
+        </div>
+      ))}
+      <div className="g-tiny g-muted" style={{ marginTop: 4 }}>Fictional people, reacting to this month&apos;s real numbers.</div>
     </Card>
   );
 }
@@ -127,12 +148,13 @@ export function Presidency() {
       {showBrief && (
         <div className="g-card-flat g-row g-wrap" style={{ background: "#e3faf0", borderColor: "#86e3b9", gap: 14 }}>
           <div className="g-grow" style={{ minWidth: 220 }}>
-            <b>Your first month.</b> <span className="g-small">① Read the big card: it is the country&apos;s biggest problem. ② Pick an action. Green chips show what improves, red what gets worse, and the yellow “Later” box what it sets up for the future. ③ Press <b>End month</b>.</span>
+            <b>Your first month.</b> <span className="g-small">Tip: pick your ministers in “Your cabinet” below (free for three months). ① Read the big card: it is the country&apos;s biggest problem. ② Pick an action. Green chips show what improves, red what gets worse, and the yellow “Later” box what it sets up for the future. ③ Press <b>End month</b>.</span>
           </div>
           <Button size="sm" onClick={() => act((x) => { x.flags.briefed = true; return { ok: true, message: "" }; }, { silent: true })}><X size={14} /> Got it</Button>
         </div>
       )}
       <StatusBar />
+      <CampaignPanel />
       <Kpis />
       <ChallengePanel ch={ch} />
       <div className="fx-two">
@@ -151,6 +173,13 @@ export function Presidency() {
               </div>
             )}
           </Card>
+        </div>
+      </div>
+      <div className="fx-two">
+        <CabinetCard />
+        <div className="g-col" style={{ gap: 14 }}>
+          <Voices />
+          <RivalCard />
         </div>
       </div>
       <div className="fx-two">

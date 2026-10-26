@@ -1,8 +1,8 @@
 /** Term end: re-election, early removal, legacy report and a title earned from real outcomes (not from labels the player picked). */
-import { subRng } from "../../game/engine/rng";
 import { TERM_MONTHS, MAX_TERMS, type FixState, type Snap, type TermResult } from "./types";
-import { clamp, round, snap } from "./util";
-import { PROMISE_BY_ID, promiseElectionBonus, promiseScore } from "./promises";
+import { round, snap } from "./util";
+import { PROMISE_BY_ID, promiseScore } from "./promises";
+import { electionReport, runElection, winChance } from "./rival";
 
 export interface LegacyRow { label: string; start: string; end: string; delta: string; better: boolean | null }
 export interface Legacy {
@@ -18,9 +18,7 @@ export interface Legacy {
 }
 
 export function reelectionChance(s: FixState): number {
-  const a = s.gov.approval;
-  const p = 1 / (1 + Math.exp(-(a - 50) / 8));
-  return clamp(p + promiseElectionBonus(s) - (s.me.scandals > 1 ? 0.08 : 0) - (s.gov.opposition - 45) / 400, 0.03, 0.97);
+  return winChance(s);
 }
 
 /** Called after every processed month. */
@@ -34,11 +32,11 @@ export function evaluateTermEnd(s: FixState) {
     return;
   }
   if (s.month - s.termStart >= TERM_MONTHS) {
-    const p = reelectionChance(s);
-    const won = subRng(s.meta.seed, "election", s.term).next() < p;
-    if (won && s.term < MAX_TERMS) finishTerm(s, "won", `You won re-election (about ${Math.round(p * 100)}% chance going in). A second and final term begins.`);
-    else if (won) finishTerm(s, "completed", "You completed your final term. The constitution allows no more.");
-    else finishTerm(s, "lost", `Voters turned you out of office (you had about a ${Math.round(p * 100)}% chance of re-election).`);
+    if (s.term >= MAX_TERMS) { finishTerm(s, "completed", "You completed your final term. The constitution allows no more."); return; }
+    const r = runElection(s);
+    electionReport(s, r);
+    if (r.won) finishTerm(s, "won", `You won re-election with ${r.national}% of the vote${r.runoff ? " after a run-off" : ""} (about ${Math.round(r.chance * 100)}% chance going in). A second and final term begins.`);
+    else finishTerm(s, "lost", `Voters turned you out: ${r.national}% of the vote, and at least 25% in ${r.statesOver25} of 37 states${r.national > 50 ? " (the run-off went to your rival)" : ""}. You had about a ${Math.round(r.chance * 100)}% chance.`);
   }
 }
 

@@ -2,6 +2,8 @@
 import { defaultBackend, MemoryBackend, type StorageBackend } from "../game/persistence/saveSystem";
 import { FIX_VERSION, type FixState } from "./engine/types";
 import { monthLabel } from "./engine/util";
+import { initCabinet } from "./engine/cabinet";
+import { initRival } from "./engine/rival";
 
 export const SAVE_FORMAT = "nigeria-fixit-save";
 export type Slot = "auto" | "1" | "2" | "3";
@@ -18,6 +20,9 @@ export function validate(x: unknown): FixState {
   for (const k of need) if (!(k in s)) throw new FixSaveError(`The save is missing "${k}".`, "corrupt");
   if (typeof s.month !== "number" || !Number.isFinite(s.eco.fx) || s.eco.fx <= 0) throw new FixSaveError("The save contains invalid numbers.", "corrupt");
   s.why ??= {}; s.echoes ??= []; s.promises ??= []; s.achievements ??= []; s.reports ??= []; s.terms ??= []; s.flags ??= {}; s.settings ??= { autosave: true, reducedMotion: false };
+  if (!s.cabinet) initCabinet(s);
+  if (!s.rival || !s.campaign) initRival(s);
+  s.election ??= null;
   return s;
 }
 export function serialise(s: FixState): string {

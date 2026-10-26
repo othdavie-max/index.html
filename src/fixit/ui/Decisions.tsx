@@ -13,6 +13,8 @@ import { nb, monthLabel } from "../engine/util";
 import { SymbolIcon } from "./MapView";
 import { Chips, UncBadge } from "./parts";
 import { decorate } from "../engine/challenge";
+import type { Portfolio } from "../engine/types";
+const ADVISER_PORTFOLIO: Record<string, Portfolio> = { "Finance Minister": "finance", "Central Bank Governor": "cbn", "Agriculture Minister": "agriculture", "Power Minister": "power", "National Security Adviser": "security" };
 
 export function ActionCard({ a, onDo }: { a: ChallengeAction; onDo: () => void }) {
   return (
@@ -54,7 +56,7 @@ export function ChallengePanel({ ch }: { ch: Challenge }) {
           {why && <ul className="fx-why" style={{ marginTop: 6 }}>{ch.why.map((w, i) => <li key={i}>{w}</li>)}</ul>}
         </div>
       )}
-      {ch.advice && <div className="fx-advice">{ch.advice.map((a) => <div key={a.who} className="fx-bubble"><b>{a.who}</b>“{a.says}”</div>)}</div>}
+      {ch.advice && <div className="fx-advice">{ch.advice.map((a) => { const p = ADVISER_PORTFOLIO[a.who]; const m = p ? state.cabinet.members[p] : undefined; return <div key={a.who} className="fx-bubble"><b>{a.who}{m ? ` · ${m.name}` : p ? " · (vacant)" : ""}</b>“{a.says}”</div>; })}</div>}
       <div className="g-section-title" style={{ marginTop: 14 }}>What will you do?</div>
       <div className="fx-actions">{ch.actions.map((a, i) => <ActionCard key={i} a={a} onDo={() => run(a.ref)} />)}</div>
       {ch.others.length > 0 && <div className="g-tiny g-muted" style={{ marginTop: 10 }}>Also on your desk: {ch.others.map((o) => o.title.toLowerCase()).join(" · ")}. Find more options under <button className="g-btn g-btn-ghost g-btn-sm" onClick={() => setTab("policies")}>Policies</button> and <button className="g-btn g-btn-ghost g-btn-sm" onClick={() => setTab("projects")}>Projects</button>.</div>}
