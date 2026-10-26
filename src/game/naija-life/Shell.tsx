@@ -2,7 +2,6 @@
 
 import { TONE_STYLE, toneOf } from "./tone";
 import { EconStrip } from "./EconUI";
-import { useMini, type MiniKind } from "./mini/Host";
 import { DailyCard, ProgressCard } from "./LifeUI";
 import { useMemo, useState } from "react";
 import type React from "react";
@@ -288,7 +287,6 @@ const ACT_HINT: Record<string, () => string> = {
 };
 const ACT_TILE: Record<string, string> = { study: "bg-violet-100", gym: "bg-emerald-100", worship: "bg-amber-100", hawk: "bg-orange-100", network: "bg-pink-100", gig: "bg-green-100", date: "bg-rose-100", godfather: "bg-sky-100" };
 
-const ACT_MINI: Record<string, MiniKind> = { study: "quiz", hawk: "haggle", gig: "traffic", gym: "penalty", network: "spray" };
 const MONEY_LINE = /^(Money this year|Money for this year)/i;
 
 /** One year of the story. The newest year is the hero card; older years fold away. */
@@ -317,8 +315,7 @@ function headline(lines: string[]): string {
 
 export function LifeFeed({ g, run, afterYear }: { g: Game; run: (a: Action) => void; afterYear?: React.ReactNode }) {
   const p = g.p;
-  const mini = useMini();
-  const doActivity = (id: string) => { const k = ACT_MINI[id]; if (!k) { run({ t: "activity", id }); return; } mini({ kind: k, onDone: (s) => run(s === null ? { t: "activity", id } : { t: "activity", id, score: s }) }); };
+  const doActivity = (id: string) => run({ t: "activity", id });
   const [open, setOpen] = useState(true);
   const [openAge, setOpenAge] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -353,7 +350,7 @@ export function LifeFeed({ g, run, afterYear }: { g: Game; run: (a: Action) => v
               const block = activityBlock(p, a);
               return (
                 <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => doActivity(a.id)} className="relative flex flex-col items-center gap-0.5 rounded-2xl border border-slate-100 bg-white px-1 py-2 shadow-[0_6px_16px_-12px_rgba(30,64,175,0.4)] transition active:scale-[0.95] disabled:opacity-45">
-                  {ACT_MINI[a.id] && !block && <span className="absolute right-1 top-1 rounded-full bg-amber-400 px-1 text-[8.5px] font-black text-white" title="mini-game">🎮</span>}<span className={cx("flex h-9 w-9 items-center justify-center rounded-xl text-[20px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
+                  <span className={cx("flex h-9 w-9 items-center justify-center rounded-xl text-[20px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
                   <span className="w-full truncate text-center text-[12px] font-extrabold leading-tight text-[#0b2a6b]">{ACT_SHORT[a.id]?.() ?? a.label}</span>
                   <span className="w-full truncate text-center text-[10px] font-medium leading-tight text-slate-500">{block ? (a.cost && p.money < a.cost * p.index ? T("Needs ", "Need ") + naira(a.cost * p.index) : block) : a.cost ? naira(a.cost * p.index) : ACT_HINT[a.id]?.() ?? ""}</span>
                 </button>
