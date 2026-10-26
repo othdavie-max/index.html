@@ -10,14 +10,15 @@ import { PROJECT_BY_ID } from "../data/catalogue";
 import { TERM_MONTHS, type FixState, type Project } from "./types";
 import { addMod, calMonth, clamp, clamp100, debtServiceRatio, delivery, foodAffordIdx, infraScore, isFloodSeason, isHarvest, isLeanSeason, lever, powerRatio, pushNews, pushReport, realWage, round, snap, debtTotalNgn, nb, annualGdpNgn } from "./util";
 import { generateEvents, resolveExpired } from "./events";
+import { resolveEchoes } from "./echoes";
+import { checkAchievements, midtermCheck } from "./promises";
 import { makeNews } from "./news";
 import { evaluateTermEnd } from "./legacy";
 
 /** USD bn per month of imports that are not fuel/food/debt: calibrated so the starting balance is roughly neutral */
 const OTHER_IMPORTS = 2.95;
 
-type _R = never;
-const REGION_KEYS = ["food", "insecurity", "jobless", "power", "flood"] as const;
+type RegionKey = "food" | "insecurity" | "jobless" | "power" | "flood";
 const SS_OIL = ["NG-RI", "NG-BY", "NG-DE", "NG-AK"];
 
 export function advanceMonth(s: FixState): boolean {
@@ -28,11 +29,14 @@ export function advanceMonth(s: FixState): boolean {
   phase2(s, subRng(s.meta.seed, "flows", m));
   phase3(s, subRng(s.meta.seed, "prices", m));
   phase4(s, subRng(s.meta.seed, "people", m));
+  resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));
   phase7(s);
   s.processed = m;
   s.month = m + 1;
+  midtermCheck(s);
+  checkAchievements(s);
   evaluateTermEnd(s);
   return true;
 }
@@ -122,7 +126,7 @@ function completeProject(s: FixState, p: Project) {
 }
 
 // ------------------------------------------------------------------ 2. production, supply, demand, fiscal flows
-function avgRegion(s: FixState, ids: string[], k: (typeof REGION_KEYS)[number]) { return ids.reduce((a, id) => a + s.regions[id][k], 0) / ids.length; }
+function avgRegion(s: FixState, ids: string[], k: RegionKey) { return ids.reduce((a, id) => a + s.regions[id][k], 0) / ids.length; }
 
 function phase2(s: FixState, rng: Rng) {
   const L = (n: Parameters<typeof lever>[1]) => lever(s, n);
@@ -280,7 +284,7 @@ function phase3(s: FixState, rng: Rng) {
   const gapF = s.agri.demand - s.agri.supply;
   const pumpChg = (fu.pump / START_PUMP - 1) * 100;
   const transportPush = 0.12 * pumpChg - 0.3 * L("transport") * 0 + L("transport") * 0.4;
-  const foodTarget = 23 + 2.5 * gapF + 14 * Math.max(e.emaDrift, -0.4) + transportPush + season + L("foodPrice");
+  const foodTarget = 23 + 2.5 * gapF + 14 * Math.max(e.emaDrift, -0.15) + transportPush + season + L("foodPrice");
   e.foodInflation = clamp(e.foodInflation + 0.3 * (foodTarget - e.foodInflation), -5, 90);
   s.why.food = [
     gapF > 1 ? "Not enough food is reaching markets for demand" : "Food supply is roughly meeting demand",
@@ -291,7 +295,7 @@ function phase3(s: FixState, rng: Rng) {
 
   // headline inflation
   const monet = 25 * (s.fin.waysAndMeans / Math.max(1, s.fin.revenue));
-  const coreTarget = 8 + 18 * Math.max(e.emaDrift, -0.4) + 0.025 * (fu.pump - 600) + L("inflation") + monet;
+  const coreTarget = 8.5 + 18 * Math.max(e.emaDrift, -0.15) + 0.025 * (fu.pump - 600) + L("inflation") + monet;
   const target2 = 0.45 * e.foodInflation + 0.55 * coreTarget;
   e.inflation = clamp(e.inflation + 0.22 * (target2 - e.inflation), -2, 80);
   e.priceLevel *= 1 + e.inflation / 1200;
@@ -413,7 +417,7 @@ function phase4(s: FixState, rng: Rng) {
     }
   }
 }
-const LOCAL_EFFECT: Record<string, (typeof REGION_KEYS)[number]> = {
+const LOCAL_EFFECT: Record<string, RegionKey> = {
   storage: "food", irrigation: "food", farmRoads: "food", foodProcessing: "jobless", transmission: "power", solar: "power", gasPlant: "power",
   securityInfra: "insecurity", industrial: "jobless", highway: "jobless", port: "jobless", transit: "jobless",
 };

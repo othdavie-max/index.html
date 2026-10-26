@@ -56,7 +56,7 @@
 .gm .fx-why { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 13px; color: #334155; }
 .gm .fx-delta-good { color: #047857; font-weight: 700; }
 .gm .fx-delta-bad { color: #be123c; font-weight: 700; }
-.gm .fx-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.gm .fx-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
 @media (max-width: 860px) { .gm .fx-two { grid-template-columns: minmax(0, 1fr); } }
 .gm .fx-term { height: 6px; border-radius: 4px; background: rgba(15,23,42,.1); overflow: hidden; width: 120px; }
 .gm .fx-term > span { display: block; height: 100%; background: var(--g-emerald); }
@@ -72,3 +72,33 @@
   .gm .g-topbar .fx-term { width: 70px; }
   .gm .g-topbar .g-btn-ghost { padding: 6px !important; }
 }
+.gm .fx-chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.gm .fx-chips-label { font-size: 11px; font-weight: 800; color: var(--g-muted); text-transform: uppercase; letter-spacing: .05em; margin-right: 2px; }
+.gm .fx-chip { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.gm .fx-chip[data-good="1"] { background: var(--g-emerald-soft); color: #046c43; }
+.gm .fx-chip[data-good="0"] { background: var(--g-danger-soft); color: #9f1239; }
+.gm .fx-later { display: flex; gap: 6px; align-items: flex-start; font-size: 12.5px; color: #6b4f00; background: #fff8e6; border: 1px dashed #f5c86b; border-radius: 10px; padding: 6px 8px; }
+.gm .fx-advice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+@media (max-width: 760px) { .gm .fx-advice { grid-template-columns: minmax(0, 1fr); } }
+.gm .fx-bubble { background: #fff; border: 1px solid var(--g-border); border-radius: 12px; padding: 8px 10px; font-size: 13px; position: relative; }
+.gm .fx-bubble b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--g-muted); }
+.gm .fx-status { display: grid; grid-template-columns: auto 1fr 1fr; gap: 14px; align-items: center; background: var(--g-navy); color: #fff; border-radius: 16px; padding: 14px 18px; }
+@media (max-width: 760px) { .gm .fx-status { grid-template-columns: 1fr; } }
+.gm .fx-status .g-muted { color: #9db3c9; }
+.gm .fx-odds { width: 74px; height: 74px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 20px; background: conic-gradient(var(--g-emerald) calc(var(--p) * 1%), rgba(255,255,255,.15) 0); position: relative; }
+.gm .fx-odds::after { content: ""; position: absolute; inset: 8px; border-radius: 50%; background: var(--g-navy); }
+.gm .fx-odds span { position: relative; z-index: 1; }
+.gm .fx-timeline { display: grid; gap: 0; }
+.gm .fx-tl { display: grid; grid-template-columns: 64px 14px 1fr; gap: 8px; align-items: start; padding: 7px 0; border-bottom: 1px solid #eef2f6; }
+.gm .fx-tl:last-child { border-bottom: 0; }
+.gm .fx-tl i { width: 12px; height: 12px; border-radius: 50%; margin-top: 3px; border: 2px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; }
+.gm .fx-tl i[data-t="good"] { background: var(--g-emerald); }
+.gm .fx-tl i[data-t="bad"] { background: var(--g-danger); }
+.gm .fx-tl i[data-t="mixed"] { background: #f59e0b; }
+.gm .fx-tl i[data-t="neutral"] { background: #94a3b8; }
+.gm .fx-promise-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .gm .fx-promise-pick { grid-template-columns: minmax(0, 1fr); } }
+.gm .fx-pp { text-align: left; border: 2px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #fff; border-radius: 14px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+.gm .fx-pp[aria-pressed="true"] { border-color: var(--g-emerald); background: rgba(0,200,117,.14); }
+.gm .fx-pp .fx-check { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid rgba(255,255,255,.4); display: grid; place-items: center; font-weight: 900; font-size: 14px; }
+.gm .fx-pp[aria-pressed="true"] .fx-check { background: var(--g-emerald); border-color: var(--g-emerald); color: #03231a; }

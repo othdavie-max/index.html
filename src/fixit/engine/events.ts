@@ -8,13 +8,14 @@ import type { Rng } from "../../game/engine/rng";
 import { subRng } from "../../game/engine/rng";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { Effects, EventKind, EventOption, FixState, GameEvent } from "./types";
+import { plantForEvent } from "./echoes";
 import { addMod, clamp, clamp100, delivery, foodAffordIdx, lever, pushNews, pushReport, realWage, round, isFloodSeason, uid, nb } from "./util";
 
 const sname = (id: string) => STATE_BY_ID[id]?.name ?? id;
 
 interface Fx {
   mods?: Effects; dur?: number | null; unrest?: number; trust?: number; wealth?: number; evidence?: number; humanRights?: number;
-  insecurity?: number; coverage?: number; treasury?: number; reserves?: number; opposition?: number; foreign?: number; corruption?: number;
+  insecurity?: number; scandal?: number; coverage?: number; treasury?: number; reserves?: number; opposition?: number; foreign?: number; corruption?: number;
 }
 interface Opt {
   id: string; label: string; explain: string; cost: number | ((s: FixState) => number); tradeoff: string; unc: "low" | "medium" | "high";
@@ -191,11 +192,11 @@ const TEMPLATES: Tpl[] = [
     title: () => "Journalists and auditors are asking questions",
     cause: (s) => `Reports link contract awards to your circle. There is documentary evidence on file (exposure ${round(s.me.evidence)} out of 100).`,
     options: [
-      { id: "cooperate", label: "Open the files and cooperate", explain: "Hand over documents; cancel tainted contracts.", cost: 20, tradeoff: "Costs you ill-gotten wealth and invites penalties.", unc: "low", chance: () => 0.9, win: { wealth: -150, evidence: -25, trust: 3, mods: { transparency: 4 }, dur: 10 }, lose: { wealth: -150, evidence: -10, trust: 1 }, winText: "Cooperation limited the damage.", loseText: "" },
-      { id: "obstruct", label: "Obstruct and discredit the accusers", explain: "Use allies and pressure.", cost: 15, tradeoff: "If it fails, the scandal is far worse.", unc: "high", chance: (s) => 0.2 + 0.3 * (1 - s.gov.transparency / 100), win: { evidence: -8, trust: -1 }, lose: { evidence: 18, trust: -9, opposition: 5, wealth: -250 }, winText: "The story faded.", loseText: "The cover-up was exposed; the public was furious." },
-      { id: "scapegoat", label: "Sack the officials involved", explain: "Show decisive action.", cost: 10, tradeoff: "Weakens delivery capacity for a while.", unc: "medium", chance: () => 0.55, win: { evidence: -12, trust: 0.5, mods: { capacity: -3 }, dur: 6 }, lose: { evidence: 6, trust: -4 }, winText: "The reshuffle satisfied critics for now.", loseText: "Critics said you were protecting the real culprits." },
+      { id: "cooperate", label: "Open the files and cooperate", explain: "Hand over documents; cancel tainted contracts.", cost: 20, tradeoff: "Costs you ill-gotten wealth and invites penalties.", unc: "low", chance: () => 0.9, win: { scandal: 1, wealth: -150, evidence: -25, trust: 3, mods: { transparency: 4 }, dur: 10 }, lose: { scandal: 1, wealth: -150, evidence: -10, trust: 1 }, winText: "Cooperation limited the damage.", loseText: "" },
+      { id: "obstruct", label: "Obstruct and discredit the accusers", explain: "Use allies and pressure.", cost: 15, tradeoff: "If it fails, the scandal is far worse.", unc: "high", chance: (s) => 0.2 + 0.3 * (1 - s.gov.transparency / 100), win: { evidence: -8, trust: -1 }, lose: { scandal: 1, evidence: 18, trust: -9, opposition: 5, wealth: -250 }, winText: "The story faded.", loseText: "The cover-up was exposed; the public was furious." },
+      { id: "scapegoat", label: "Sack the officials involved", explain: "Show decisive action.", cost: 10, tradeoff: "Weakens delivery capacity for a while.", unc: "medium", chance: () => 0.55, win: { evidence: -12, trust: 0.5, mods: { capacity: -3 }, dur: 6 }, lose: { scandal: 1, evidence: 6, trust: -4 }, winText: "The reshuffle satisfied critics for now.", loseText: "Critics said you were protecting the real culprits." },
     ],
-    expire: { evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
+    expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
 export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries(TEMPLATES.map((t) => [t.id, t]));
@@ -294,6 +295,7 @@ function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string) {
   if (fx.foreign) s.fin.foreignDebt += fx.foreign;
   if (fx.opposition) s.gov.opposition = clamp100(s.gov.opposition + fx.opposition);
   if (fx.corruption) s.gov.corruption = clamp100(s.gov.corruption + fx.corruption);
+  if (fx.scandal) s.me.scandals += fx.scandal;
 }
 
 export interface EventResult { ok: boolean; text: string; chance: number }
@@ -323,6 +325,7 @@ export function resolveEvent(s: FixState, eventId: string, optionId: string): Ev
   if (e.tpl === "kickback" && o.id === "accept") s.me.acts.push("kickback");
   if (e.tpl === "kickback" && o.id === "report") s.me.acts.push("reported");
   if (e.tpl === "investigation" && o.id === "obstruct") s.me.acts.push("obstructed");
+  plantForEvent(s, e.tpl, o.id, ok, o.label, e.stateId);
   pushReport(s, {
     title: `${e.title}: ${o.label}`, tone: ok ? "good" : "bad",
     lines: [

@@ -11,7 +11,7 @@ export const START_YEAR = 2027;
 export const calMonth = (month: number) => (START_CAL_MONTH + month) % 12;
 export const calYear = (month: number) => START_YEAR + Math.floor((START_CAL_MONTH + month) / 12);
 export const monthLabel = (month: number) => `${MONTHS[calMonth(month)]} ${calYear(month)}`;
-export const monthShort = (month: number) => `${MONTHS[calMonth(month)].slice(0, 3)} ${String(calYear(month)).slice(2)}`;
+export const monthShort = (month: number) => `${MONTHS[calMonth(month)].slice(0, 3)} ${calYear(month)}`;
 export const isLeanSeason = (month: number) => { const c = calMonth(month); return c >= 5 && c <= 7; };
 export const isHarvest = (month: number) => { const c = calMonth(month); return c >= 9 && c <= 11; };
 export const isFloodSeason = (month: number) => { const c = calMonth(month); return c >= 7 && c <= 9; };

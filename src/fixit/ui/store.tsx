@@ -4,13 +4,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { newGame } from "../engine/init";
 import { advanceMonth } from "../engine/sim";
 import { advance as advanceCmd, type Result } from "../engine/actions";
-import type { FixState, GameEvent, NewsItem, Snap } from "../engine/types";
+import type { Achievement, Echo, FixState, GameEvent, NewsItem, Snap } from "../engine/types";
+import { setPromises } from "../engine/promises";
 import { monthLabel, snap } from "../engine/util";
 import { FixSaves, FixSaveError, type Slot } from "../persistence";
 
 export type Tab = "presidency" | "map" | "policies" | "projects" | "nation" | "news";
 export interface Change { label: string; from: string; to: string; tone: "good" | "bad" | "neutral" }
-export interface MonthSummary { from: string; to: string; months: number; changes: Change[]; events: GameEvent[]; news: NewsItem[] }
+export interface MonthSummary { from: string; to: string; months: number; changes: Change[]; events: GameEvent[]; news: NewsItem[]; echoes: Echo[]; achievements: Achievement[]; headline?: NewsItem }
 export interface Toast { id: number; text: string; bad: boolean }
 
 interface Ctx {
@@ -23,7 +24,7 @@ interface Ctx {
   advance: (months?: number) => void;
   summary: MonthSummary | null;
   closeSummary: () => void;
-  startNew: (seed?: number) => void;
+  startNew: (seed?: number, promises?: string[]) => void;
   continueTerm: () => void;
   loadSlot: (slot: Slot) => Promise<boolean>;
   saveSlot: (slot: Slot) => Promise<boolean>;
@@ -109,6 +110,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     const startMonth = g.month;
     const seen = new Set(g.events.filter((e) => e.status === "open").map((e) => e.id));
     const newsBefore = g.news.length;
+    const achBefore = g.achievements.length;
     let n = 0;
     for (let i = 0; i < months; i++) {
       if (!advanceMonth(g)) break;
@@ -120,14 +122,19 @@ export function FixProvider({ children }: { children: ReactNode }) {
     if (n === 0) { bump(); return; }
     const after = snap(g);
     const events = g.events.filter((e) => e.status === "open" && !seen.has(e.id));
-    const news = g.news.slice(newsBefore).filter((x) => x.month >= startMonth).slice(-5);
-    setSummary({ from: monthLabel(startMonth), to: monthLabel(g.month), months: n, changes: diffSummary(before, after), events, news });
+    const news = g.news.slice(newsBefore).filter((x) => x.month >= startMonth && !x.source.startsWith("echo:") && !x.source.startsWith("ach:")).slice(-5);
+    const echoes = g.echoes.filter((e) => e.status === "done" && e.due >= startMonth && e.due < g.month);
+    const fresh = g.news.slice(newsBefore).filter((x) => x.month >= startMonth);
+    const headline = fresh.filter((x) => !x.source.startsWith("ach:")).find((x) => x.tone === "bad" && !x.source.startsWith("echo")) ?? fresh.find((x) => x.tone === "good") ?? fresh[0];
+    setSummary({ from: monthLabel(startMonth), to: monthLabel(g.month), months: n, changes: diffSummary(before, after), events, news, echoes, achievements: g.achievements.slice(achBefore), headline });
     bump();
     if (g.settings.autosave) void saveSlot("auto");
   }, [bump, saveSlot]);
 
-  const startNew = useCallback((seed?: number) => {
+  const startNew = useCallback((seed?: number, promises?: string[]) => {
+    const prev = gameRef.current?.promises;
     const g = newGame(seed ?? Math.floor(Math.random() * 1e6) + 1);
+    setPromises(g, promises ?? prev ?? []);
     setGame(g); setScreen("play"); setTab("presidency"); setSummary(null); setSelect({ state: null, lga: null }); bump();
     void saves.save("auto", g).then(() => setLastSaved(Date.now())).catch(() => undefined);
   }, [bump, saves]);

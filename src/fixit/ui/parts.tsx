@@ -32,3 +32,13 @@ export const bn = (n: number) => {
   const a = Math.abs(n), sg = n < 0 ? "−" : "";
   return a >= 1000 ? `${sg}₦${(a / 1000).toFixed(a >= 10000 ? 0 : 1)}tn` : `${sg}₦${Math.round(a).toLocaleString("en-NG")}bn`;
 };
+
+export function Chips({ chips, label }: { chips: { label: string; up: boolean; good: boolean }[]; label?: string }) {
+  if (!chips.length) return null;
+  return (
+    <div className="fx-chips" aria-label={label ?? "Effects"}>
+      {label && <span className="fx-chips-label">{label}</span>}
+      {chips.map((c) => <span key={c.label} className="fx-chip" data-good={c.good ? "1" : "0"}>{c.label} {c.up ? "↑" : "↓"}</span>)}
+    </div>
+  );
+}

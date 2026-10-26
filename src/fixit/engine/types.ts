@@ -104,6 +104,22 @@ export interface Snap {
   realIncome: number; growth: number; foodAfford: number; personalWealth: number; trust: number; infra: number; displaced: number; dsr: number; debtGdp: number;
 }
 
+/** A delayed consequence of an earlier decision. Scheduled when you act; resolved months later from the state at that time. */
+export interface Echo {
+  id: string;
+  kind: string;
+  cause: string;
+  causeMonth: number;
+  due: number;
+  hint: string;
+  tone: "good" | "bad" | "mixed";
+  stateId?: string;
+  status: "pending" | "done";
+  outcome?: string;
+  outTone?: "good" | "bad" | "neutral";
+}
+export interface Achievement { id: string; label: string; month: number }
+
 export interface Report { id: string; month: number; title: string; lines: string[]; tone: "good" | "bad" | "neutral" }
 
 export interface TermResult {
@@ -152,6 +168,10 @@ export interface FixState {
   news: NewsItem[];
   reports: Report[];
   history: Snap[];
+  echoes: Echo[];
+  /** campaign promises chosen at the start (ids from promises.ts) */
+  promises: string[];
+  achievements: Achievement[];
   terms: TermResult[];
   baseline: Snap;
   flags: Record<string, number | string | boolean>;

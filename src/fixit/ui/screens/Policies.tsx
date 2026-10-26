@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
-import { Fuel } from "lucide-react";
+import { Fuel, Hourglass } from "lucide-react";
 import { useFix, useS } from "../store";
-import { Badge, Button, Callout, Card } from "../../../game/ui/kit";
+import { Badge, Bar, Button, Callout, Card } from "../../../game/ui/kit";
 import { CATEGORIES, POLICIES, type Category } from "../../data/catalogue";
 import { applyFuel, enactPolicy, previewFuel, repealPolicy, priceMult, type FuelAction } from "../../engine/actions";
 import { monthLabel, nb } from "../../engine/util";
-import { Word } from "../parts";
+import { Chips, Word } from "../parts";
+import { chips, policyStrength } from "../../engine/forecast";
+import { futureHint } from "../../engine/echoes";
 
 const FUEL_OPTS: { id: FuelAction | "hold"; label: string; blurb: string }[] = [
   { id: "increase", label: "Increase subsidy", blurb: "Cheaper petrol, bigger bill" },
@@ -61,23 +63,33 @@ export function Policies() {
         <button className="g-chip" aria-pressed={cat === "all"} onClick={() => setCat("all")}>All areas</button>
         {CATEGORIES.map((c) => <button key={c.id} className="g-chip" aria-pressed={cat === c.id} onClick={() => setCat(c.id)}>{c.label}</button>)}
       </div>
+      {active.length > 0 && (
+        <Card title={`In force (${active.length}) · running cost ${nb(active.reduce((a, d) => a + d.monthly * priceMult(s), 0))}/month`}>
+          <div className="g-col" style={{ gap: 8 }}>
+            {active.map((d) => { const k = policyStrength(s, d.id); return (
+              <div key={d.id} className="g-row g-wrap" style={{ gap: 10 }}>
+                <div className="g-grow" style={{ minWidth: 200 }}><b className="g-small">{d.name}</b><Bar value={k} label={`${d.name} strength`} /><div className="g-tiny g-muted">{k >= 1 ? "Working at full strength" : `${Math.round(k * 100)}% of full effect · full by ${monthLabel(s.policies[d.id].since + d.delay)}`}</div></div>
+                <Button size="sm" variant="ghost" onClick={() => act((x) => repealPolicy(x, d.id))}>End</Button>
+              </div>
+            ); })}
+          </div>
+        </Card>
+      )}
       <div className="g-grid g-grid-2">
-        {list.map((p) => {
-          const st = s.policies[p.id];
-          const on = !!st?.active;
+        {list.filter((p) => !s.policies[p.id]?.active).map((p) => {
           const cost = p.setup * priceMult(s);
+          const later = futureHint({ type: "policy", id: p.id });
           return (
             <Card key={p.id} className="g-col">
-              <div className="g-row g-between g-wrap"><b>{p.name}</b>{on ? <Badge tone="green">In force since {monthLabel(st.since)}</Badge> : <Badge>{CATEGORIES.find((c) => c.id === p.cat)?.label}</Badge>}</div>
-              <div className="g-small">{p.what}</div>
-              <div className="fx-act-meta">
-                <span><b>Cost:</b> {nb(cost)} setup{p.monthly ? `, then ${p.monthly > 0 ? nb(p.monthly * priceMult(s)) + "/month" : "saves " + nb(-p.monthly * priceMult(s)) + "/month"}` : ""}</span>
-                <span><b>Short term:</b> {p.short}</span>
-                <span><b>Long term:</b> {p.long}</span>
-                <span><b>Risks:</b> {p.risks}</span>
-                <span><b>Takes about:</b> {p.delay <= 1 ? "effect is immediate" : `${p.delay} months to reach full effect`}</span>
-              </div>
-              <div>{on ? <Button size="sm" onClick={() => act((x) => repealPolicy(x, p.id))}>End this policy</Button> : <Button size="sm" variant="primary" disabled={cost > s.fin.treasury} onClick={() => act((x) => enactPolicy(x, p.id))}>{cost > s.fin.treasury ? "Not enough cash" : "Start policy"}</Button>}</div>
+              <div className="g-row g-between g-wrap"><b>{p.name}</b><Badge>{CATEGORIES.find((c) => c.id === p.cat)?.label}</Badge></div>
+              <div className="g-small" style={{ color: "#475569" }}>{p.what}</div>
+              <Chips chips={chips(p.effects)} label="Effect" />
+              {later && <div className="fx-later"><Hourglass size={14} style={{ flex: "none", marginTop: 1 }} aria-hidden /><span><b>Later:</b> {later}</span></div>}
+              <div className="g-row g-wrap" style={{ gap: 6 }}><span className="g-badge">{nb(cost)} setup{p.monthly ? ` · ${p.monthly > 0 ? nb(p.monthly * priceMult(s)) + "/month" : "saves " + nb(-p.monthly * priceMult(s)) + "/month"}` : ""}</span><span className="g-badge g-badge-blue">{p.delay <= 1 ? "Works at once" : `Full effect in ${p.delay} months`}</span></div>
+              <details><summary className="g-small" style={{ cursor: "pointer", color: "#334155", fontWeight: 600 }}>More detail</summary>
+                <div className="fx-act-meta" style={{ marginTop: 6 }}><span><b>Short term:</b> {p.short}</span><span><b>Long term:</b> {p.long}</span><span><b>Risks:</b> {p.risks}</span></div>
+              </details>
+              <div><Button size="sm" variant="primary" disabled={cost > s.fin.treasury} onClick={() => act((x) => enactPolicy(x, p.id))}>{cost > s.fin.treasury ? "Not enough cash" : "Start policy"}</Button></div>
             </Card>
           );
         })}

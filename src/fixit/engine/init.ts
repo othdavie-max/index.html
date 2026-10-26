@@ -44,7 +44,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President"): FixState
     gov: { corruption: 65, procurement: 38, capacity: 42, transparency: 38, trust: 40, approval: 52, opposition: 45, happiness: 48 },
     me: { wealth: 250, evidence: 0, scandals: 0, acts: [] },
     why: {},
-    regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [],
+    regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [],
     baseline: undefined as never,
     flags: {}, settings: { autosave: true, reducedMotion: false },
   };

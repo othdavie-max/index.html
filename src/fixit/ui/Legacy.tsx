@@ -46,6 +46,7 @@ export function Legacy() {
           <Card title="Crises you faced">{lg.crises.length ? <ul className="fx-why">{lg.crises.map((a, i) => <li key={i}>{a}</li>)}</ul> : <div className="g-small g-muted">A calm term.</div>}</Card>
           <Card title="Why it turned out this way">{lg.causes.length ? <ul className="fx-why">{lg.causes.map((a, i) => <li key={i}>{a}</li>)}</ul> : <div className="g-small g-muted">Few strong forces stood out.</div>}</Card>
         </div>
+        {s.achievements.length > 0 && <Card title={`Milestones (${s.achievements.length})`}><div className="fx-pills">{s.achievements.map((a) => <span key={a.id} className="g-badge g-badge-green">🏅 {a.label}</span>)}</div></Card>}
         <div className="g-row g-wrap" style={{ gap: 10 }}>
           {won && <Button variant="primary" onClick={continueTerm}><Play size={16} /> Begin your second term</Button>}
           <Button variant={won ? "default" : "primary"} onClick={() => startNew(s.meta.seed)}><RotateCcw size={16} /> Replay this same world</Button>

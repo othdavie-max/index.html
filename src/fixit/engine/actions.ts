@@ -6,6 +6,7 @@ import type { Funding, FixState } from "./types";
 import { advanceMonth } from "./sim";
 import { resolveEvent } from "./events";
 import { continueNextTerm } from "./legacy";
+import { plantForMeasure, plantForPolicy, scheduleEcho } from "./echoes";
 import { addMod, clamp, clamp100, debtServiceRatio, delivery, lever, monthLabel, nb, pushReport, realWage, removeMods, round } from "./util";
 
 export interface Result { ok: boolean; message: string; lines?: string[] }
@@ -30,6 +31,7 @@ export function enactPolicy(s: FixState, id: string): Result {
   addMod(s, `policy:${id}`, d.name, d.effects, { duration: null, ramp: Math.max(1, d.delay) });
   const m = s.modifiers.find((x) => x.source === `policy:${id}` && x.start === s.month);
   if (m) m.monthly = d.monthly;
+  plantForPolicy(s, id, d.name);
   const full = monthLabel(s.month + d.delay);
   const lines = [`${d.what}`, `Setup ${nb(cost)}${d.monthly ? `, then ${d.monthly > 0 ? "about " + nb(d.monthly * priceMult(s)) + " a month" : "saves about " + nb(-d.monthly * priceMult(s)) + " a month"}` : ""}.`, `Short term: ${d.short}`, `Long term: ${d.long}`, `Full effect by ${full}. Risk: ${d.risks}`];
   pushReport(s, { title: `Policy started: ${d.name}`, tone: "neutral", lines });
@@ -45,7 +47,12 @@ export function repealPolicy(s: FixState, id: string): Result {
 }
 
 // ------------------------------------------------------------------ one-off measures
+/** how many times a measure was used in the last 12 months */
+export function recentUses(s: FixState, id: string): number {
+  return String(s.flags[`uses:${id}`] ?? "").split(",").filter(Boolean).map(Number).filter((m) => s.month - m < 12).length;
+}
 export function applyMeasure(s: FixState, id: string): Result {
+  const lines0: string[] = [];
   const d = MEASURE_BY_ID[id];
   if (!d) return fail("Unknown measure.");
   const cd = s.flags[`cd:measure:${id}`];
@@ -56,13 +63,18 @@ export function applyMeasure(s: FixState, id: string): Result {
   if (err) return fail(err);
   const sd = d.unc === "low" ? 0.1 : d.unc === "medium" ? 0.25 : 0.45;
   const rng = subRng(s.meta.seed, "measure", id, s.month);
-  const scale = clamp((0.7 + 0.3 * delivery(s)) * (1 + rng.normal(0, sd)), 0.25, 1.6);
+  const recent = recentUses(s, id);
+  const fatigue = 0.72 ** recent; // the same quick fix works less well each time it is repeated within a year
+  const scale = clamp((0.7 + 0.3 * delivery(s)) * (1 + rng.normal(0, sd)) * fatigue, 0.15, 1.6);
+  s.flags[`uses:${id}`] = [...String(s.flags[`uses:${id}`] ?? "").split(",").filter(Boolean), String(s.month)].slice(-6).join(",");
   addMod(s, `measure:${id}`, d.name, d.effects, { duration: d.duration, ramp: 1, scale });
   const m = s.modifiers.find((x) => x.source === `measure:${id}` && x.start === s.month);
   if (m && d.monthlyCost) m.monthly = d.monthlyCost;
   s.flags[`cd:measure:${id}`] = s.month + (d.cooldown ?? 4);
+  plantForMeasure(s, id, d.name);
+  if (recent > 0) lines0.push(`Used ${recent} time${recent > 1 ? "s" : ""} in the past year, so it works less well now (people and markets expect it).`);
   const verdict = scale >= 1.1 ? "Early signs are better than expected." : scale >= 0.85 ? "Early signs are in line with expectations." : "Early signs are weaker than hoped.";
-  const lines = [d.explain, `Cost ${nb(cost)} now${d.monthlyCost ? ` plus ${nb(d.monthlyCost * priceMult(s))} a month for ${d.duration} months` : ""}.`, `Trade-off: ${d.tradeoff}`, `${verdict} Delivery is about ${Math.round(scale * 100)}% of the nominal effect.`];
+  const lines = [...lines0, d.explain, `Cost ${nb(cost)} now${d.monthlyCost ? ` plus ${nb(d.monthlyCost * priceMult(s))} a month for ${d.duration} months` : ""}.`, `Trade-off: ${d.tradeoff}`, `${verdict} Delivery is about ${Math.round(scale * 100)}% of the nominal effect.`];
   pushReport(s, { title: d.name, tone: scale >= 0.85 ? "good" : "neutral", lines });
   return { ok: true, message: `${d.name}: ${verdict}`, lines };
 }
@@ -109,6 +121,7 @@ export function startProject(s: FixState, defId: string, stateId: string, fundin
     s.me.evidence = clamp100(s.me.evidence + 7);
     s.gov.corruption = clamp100(s.gov.corruption + 0.8);
     s.me.acts.push("kickback");
+    scheduleEcho(s, "contractorFails", `You gave the ${d.name.toLowerCase()} contract to a friend's firm`, Math.max(3, Math.round(months / 2)), "Your friend's firm may cut corners on the project", { key: id, stateId });
   }
   const lines = [
     `${d.what}`, `Site: ${STATE_BY_ID[stateId].name}. Budget ${nb(cost)} over about ${months} months, funded by: ${FUNDING_LABEL[funding]}.`,
@@ -198,6 +211,8 @@ export function applyFuel(s: FixState, action: FuelAction): Result {
     addMod(s, "policy:fuelTransfers", "Targeted fuel transfers", { wage: 4 * reach, happiness: 2.5 * reach, welfare: 4 * reach }, { duration: null, ramp: 4 });
   }
   s.flags.fuelActionMonth = s.month;
+  if (action === "remove" || action === "reduce") scheduleEcho(s, "fuelShockWave", action === "remove" ? "You removed the fuel subsidy" : "You halved the fuel subsidy", 2, "Bus fares and food prices will follow fuel up", { key: action });
+  if (action === "reform") scheduleEcho(s, "transfersVerdict", "You replaced the fuel subsidy with targeted transfers", 6, "Verdict: are transfers reaching the poor?", { key: action });
   const lines = [
     ...pv.notes,
     `Estimated monthly saving once prices settle: ${nb(pv.saving)} (${Math.round(pv.savingShareOfDeficit * 100)}% of the current monthly deficit).`,
@@ -218,6 +233,7 @@ export function borrow(s: FixState, kind: BorrowKind, amount: number): Result {
     f.treasury += amount; f.domesticDebt += amount;
     f.domRate = Math.min(34, f.domRate + 0.15 * (amount / 1000));
     s.jobs.sme = clamp100(s.jobs.sme - 0.4 * (amount / 1000));
+    if (amount >= 2000) scheduleEcho(s, "crowdOut", `You borrowed ${nb(amount)} from local banks`, 4, "Banks may lend less to businesses", { key: String(amount) });
     const lines = [`Borrowed ${nb(amount)} from local banks at about ${round(f.domRate, 1)}%.`, "Cash is available now, but interest is paid every month and bank lending to businesses is squeezed."];
     pushReport(s, { title: "Borrowed at home", tone: "neutral", lines });
     return { ok: true, message: `Borrowed ${nb(amount)} at home.`, lines };
@@ -228,6 +244,7 @@ export function borrow(s: FixState, kind: BorrowKind, amount: number): Result {
     const rate = clamp(8 + (60 - f.creditRating) * 0.15 + 0.1 * Math.max(0, e.inflation - 15), 7, 16);
     f.forRate = (f.forRate * f.foreignDebt + rate * amount) / (f.foreignDebt + amount);
     f.foreignDebt += amount; f.treasury += amount * e.fx; e.reserves += amount * 0.5;
+    scheduleEcho(s, "bondRepay", `You borrowed $${amount}bn in dollars`, 12, "If the naira falls, this dollar debt costs more", { key: String(amount) });
     const lines = [`Issued $${amount}bn of dollar bonds at about ${round(rate, 1)}%.`, `You get ${nb(amount * e.fx)} now. Repayments are in dollars: if the naira falls 20%, the naira cost of this debt rises 20%.`];
     pushReport(s, { title: "Dollar bond issued", tone: "neutral", lines });
     return { ok: true, message: `Issued $${amount}bn of bonds.`, lines };

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, Hourglass, MapPin } from "lucide-react";
 import { useFix } from "./store";
 import { Badge, Button, Callout, Field, Modal } from "../../game/ui/kit";
 import { STATES, STATE_BY_ID } from "../../game/data/states";
@@ -11,19 +11,19 @@ import { canStartProject, performRef, projectCost, startProject, respond } from 
 import type { ActionRef, Challenge, ChallengeAction } from "../engine/challenge";
 import { nb, monthLabel } from "../engine/util";
 import { SymbolIcon } from "./MapView";
-import { UncBadge } from "./parts";
+import { Chips, UncBadge } from "./parts";
+import { decorate } from "../engine/challenge";
 
 export function ActionCard({ a, onDo }: { a: ChallengeAction; onDo: () => void }) {
   return (
     <div className="fx-act">
       <b>{a.label}</b>
-      <div className="g-small" style={{ color: "#334155" }}>{a.explain}</div>
-      <div className="fx-act-meta">
-        <span><b>Cost:</b> {a.costLabel}</span>
-        <span><b>Trade-off:</b> {a.tradeoff}</span>
-      </div>
+      <div className="g-small" style={{ color: "#475569" }}>{a.explain}</div>
+      {a.chips && <Chips chips={a.chips} label="Now" />}
+      {a.later && <div className="fx-later"><Hourglass size={14} style={{ flex: "none", marginTop: 1 }} aria-hidden /><span><b>Later:</b> {a.later}</span></div>}
+      <div className="g-tiny" style={{ color: "#64748b" }}><b style={{ color: "#334155" }}>Downside:</b> {a.tradeoff}</div>
       <div className="fx-row" style={{ justifyContent: "space-between", marginTop: 2 }}>
-        <UncBadge u={a.uncertainty} />
+        <span className="g-row" style={{ gap: 6, flexWrap: "wrap" }}><span className="g-badge">{a.costLabel}</span><UncBadge u={a.uncertainty} /></span>
         <Button size="sm" variant="primary" disabled={!!a.blocked} onClick={onDo} title={a.blocked}>{a.blocked ?? (a.ref.type === "wait" ? "Hold steady" : a.ref.type === "project" ? "Choose site…" : "Do this")}</Button>
       </div>
     </div>
@@ -54,6 +54,7 @@ export function ChallengePanel({ ch }: { ch: Challenge }) {
           {why && <ul className="fx-why" style={{ marginTop: 6 }}>{ch.why.map((w, i) => <li key={i}>{w}</li>)}</ul>}
         </div>
       )}
+      {ch.advice && <div className="fx-advice">{ch.advice.map((a) => <div key={a.who} className="fx-bubble"><b>{a.who}</b>“{a.says}”</div>)}</div>}
       <div className="g-section-title" style={{ marginTop: 14 }}>What will you do?</div>
       <div className="fx-actions">{ch.actions.map((a, i) => <ActionCard key={i} a={a} onDo={() => run(a.ref)} />)}</div>
       {ch.others.length > 0 && <div className="g-tiny g-muted" style={{ marginTop: 10 }}>Also on your desk: {ch.others.map((o) => o.title.toLowerCase()).join(" · ")}. Find more options under <button className="g-btn g-btn-ghost g-btn-sm" onClick={() => setTab("policies")}>Policies</button> and <button className="g-btn g-btn-ghost g-btn-sm" onClick={() => setTab("projects")}>Projects</button>.</div>}
@@ -80,7 +81,7 @@ export function EventCard({ e, compact }: { e: GameEvent; compact?: boolean }) {
         <div className="fx-actions" style={{ marginTop: 2 }}>
           {e.options.map((o) => {
             const cost = o.cost * (0.6 + 0.4 * (state.eco.priceLevel / 100));
-            return <ActionCard key={o.id} a={{ ref: { type: "respond", eventId: e.id, optionId: o.id }, label: o.label, explain: o.explain, costLabel: cost > 0 ? nb(cost) : "No cash", tradeoff: o.tradeoff, uncertainty: o.uncertainty, blocked: cost > state.fin.treasury ? "Not enough cash" : undefined }} onDo={() => act((s) => respond(s, e.id, o.id))} />;
+            return <ActionCard key={o.id} a={decorate(state, { ref: { type: "respond", eventId: e.id, optionId: o.id }, label: o.label, explain: o.explain, costLabel: cost > 0 ? nb(cost) : "No cash", tradeoff: o.tradeoff, uncertainty: o.uncertainty, blocked: cost > state.fin.treasury ? "Not enough cash" : undefined })} onDo={() => act((s) => respond(s, e.id, o.id))} />;
           })}
         </div>
       )}

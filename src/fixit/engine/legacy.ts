@@ -2,6 +2,7 @@
 import { subRng } from "../../game/engine/rng";
 import { TERM_MONTHS, MAX_TERMS, type FixState, type Snap, type TermResult } from "./types";
 import { clamp, round, snap } from "./util";
+import { PROMISE_BY_ID, promiseElectionBonus, promiseScore } from "./promises";
 
 export interface LegacyRow { label: string; start: string; end: string; delta: string; better: boolean | null }
 export interface Legacy {
@@ -18,8 +19,8 @@ export interface Legacy {
 
 export function reelectionChance(s: FixState): number {
   const a = s.gov.approval;
-  const p = 1 / (1 + Math.exp(-(a - 46) / 7));
-  return clamp(p - (s.me.scandals > 1 ? 0.08 : 0) - (s.gov.opposition - 45) / 400, 0.03, 0.97);
+  const p = 1 / (1 + Math.exp(-(a - 50) / 8));
+  return clamp(p + promiseElectionBonus(s) - (s.me.scandals > 1 ? 0.08 : 0) - (s.gov.opposition - 45) / 400, 0.03, 0.97);
 }
 
 /** Called after every processed month. */
@@ -80,6 +81,7 @@ export function buildLegacy(s: FixState, a: Snap, b: Snap, result: TermResult["r
     { label: "Public happiness", start: `${a.happiness}`, end: `${b.happiness}`, delta: sign(b.happiness - a.happiness), better: b.happiness > a.happiness },
     { label: "Real incomes (start = 100)", start: `${a.realIncome}`, end: `${b.realIncome}`, delta: sign(b.realIncome - a.realIncome), better: b.realIncome > a.realIncome },
     { label: "Projects completed", start: "0", end: `${done.length}`, delta: `+${done.length}`, better: done.length > 0 ? true : null },
+    ...(s.promises.length ? [{ label: "Campaign promises kept", start: `${s.promises.length} made`, end: `${promiseScore(s).kept} kept`, delta: `${promiseScore(s).kept}/${s.promises.length}`, better: promiseScore(s).kept * 2 >= s.promises.length } as LegacyRow] : []),
     { label: "Your personal wealth (₦m)", start: `${Math.round(a.personalWealth)}`, end: `${Math.round(b.personalWealth)}`, delta: sign(b.personalWealth - a.personalWealth, 0), better: null },
   ];
 
@@ -96,6 +98,8 @@ export function buildLegacy(s: FixState, a: Snap, b: Snap, result: TermResult["r
     if (e.kind === "opportunity" || e.kind === "scandal") continue;
     crises.push(`${e.title} (${e.status === "expired" ? "unanswered" : "answered"})`);
   }
+  for (const id of s.promises) { const d = PROMISE_BY_ID[id]; if (!d) continue; if (d.kept(s)) ach.unshift(`Promise kept: ${d.label}.`); else fail.unshift(`Promise broken: ${d.label} (${d.status(s)}).`); }
+  for (const e of s.echoes) if (e.status === "done" && e.causeMonth >= s.termStart && e.outcome && e.outTone === "bad") causes.push(`Earlier decision came back: ${e.outcome}`);
   if (s.me.scandals > 0) crises.push(`${s.me.scandals} corruption scandal${s.me.scandals > 1 ? "s" : ""} surfaced`);
   const dsrWorse = b.dsr > a.dsr + 5;
   if (dsrWorse) causes.push("Debt payments crowded out spending on services and projects.");
@@ -108,7 +112,7 @@ export function buildLegacy(s: FixState, a: Snap, b: Snap, result: TermResult["r
   if (s.projects.some((p) => p.leaked > p.cost * 0.12)) causes.push("Corruption and weak procurement drained money from projects.");
 
   const { title, why } = pickTitle(s, a, b, done.length);
-  return { title, titleWhy: why, rows, achievements: ach.slice(0, 6), failures: fail.slice(0, 6), crises: crises.slice(0, 8), causes: causes.slice(0, 6), result, months: s.month - s.termStart };
+  return { title, titleWhy: why, rows, achievements: ach.slice(0, 8), failures: fail.slice(0, 8), crises: crises.slice(0, 8), causes: causes.slice(0, 7), result, months: s.month - s.termStart };
 }
 
 function pickTitle(s: FixState, a: Snap, b: Snap, done: number): { title: string; why: string } {

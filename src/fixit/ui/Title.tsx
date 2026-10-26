@@ -4,11 +4,38 @@ import { Play, FolderOpen, Info, RotateCcw } from "lucide-react";
 import { useFix } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { SaveSlots } from "./Menu";
+import { DEFAULT_PROMISES, PROMISES } from "../engine/promises";
 
 export function Title() {
   const { startNew, hasAuto, loadSlot } = useFix();
   const [slots, setSlots] = useState(false);
   const [about, setAbout] = useState(false);
+  const [step, setStep] = useState<"intro" | "promises">("intro");
+  const [picked, setPicked] = useState<string[]>(DEFAULT_PROMISES);
+  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= 3 ? [...p.slice(1), id] : [...p, id]));
+  if (step === "promises") return (
+    <div className="fx-title-screen">
+      <div className="fx-title-card">
+        <div>
+          <div className="g-tiny" style={{ letterSpacing: ".18em", color: "#9db3c9", fontWeight: 800 }}>BEFORE YOU TAKE THE OATH</div>
+          <h1 style={{ fontSize: "clamp(28px,5vw,42px)", fontWeight: 900, lineHeight: 1.1, marginTop: 6 }}>Make three promises to Nigeria</h1>
+          <p style={{ color: "#cfe0ee", marginTop: 8 }}>Voters will remember. Each promise you keep raises your re-election chances; each one you break lowers them. Pick the ones you believe you can deliver.</p>
+        </div>
+        <div className="fx-promise-pick" role="group" aria-label="Campaign promises">
+          {PROMISES.map((p) => (
+            <button key={p.id} className="fx-pp" aria-pressed={picked.includes(p.id)} onClick={() => toggle(p.id)}>
+              <span className="fx-check" aria-hidden>{picked.includes(p.id) ? "✓" : ""}</span>
+              <span><b>{p.label}</b></span>
+            </button>
+          ))}
+        </div>
+        <div className="g-row g-wrap" style={{ gap: 12 }}>
+          <button className="fx-big-btn" disabled={picked.length !== 3} onClick={() => startNew(undefined, picked)}><Play size={22} /> Take the oath ({picked.length}/3)</button>
+          <Button variant="light" onClick={() => setStep("intro")}>Back</Button>
+        </div>
+      </div>
+    </div>
+  );
   return (
     <div className="fx-title-screen">
       <div className="fx-title-card">
@@ -23,7 +50,7 @@ export function Title() {
           <div className="g-tiny" style={{ color: "#9db3c9" }}>This is a fictional, internally consistent scenario. All figures are simulated game values, not real data or forecasts. Map boundaries are real (geoBoundaries, CC BY 4.0).</div>
         </div>
         <div className="g-row g-wrap" style={{ gap: 12 }}>
-          <button className="fx-big-btn" onClick={() => startNew()}><Play size={22} /> Start Presidency</button>
+          <button className="fx-big-btn" onClick={() => setStep("promises")}><Play size={22} /> Start Presidency</button>
           {hasAuto && <Button variant="light" onClick={() => void loadSlot("auto")}><RotateCcw size={17} /> Continue</Button>}
           <Button variant="light" onClick={() => setSlots(true)}><FolderOpen size={17} /> Load game</Button>
           <Button variant="light" onClick={() => setAbout(true)}><Info size={17} /> About</Button>

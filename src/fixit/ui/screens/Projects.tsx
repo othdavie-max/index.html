@@ -9,6 +9,8 @@ import { cancelProject, projectCost } from "../../engine/actions";
 import { monthLabel, nb } from "../../engine/util";
 import type { Project } from "../../engine/types";
 import { StartProjectModal } from "../Decisions";
+import { Chips } from "../parts";
+import { chips } from "../../engine/forecast";
 
 function ProjectCard({ p }: { p: Project }) {
   const { act } = useFix();
@@ -37,6 +39,7 @@ export function Projects() {
   const s = useS();
   const [tab, setTab] = useState<"active" | "new" | "done">(s.projects.length ? "active" : "new");
   const [defId, setDefId] = useState<string | null>(null);
+  const [countAtOpen, setCountAtOpen] = useState(0);
   const active = s.projects.filter((p) => p.status === "active" || p.status === "stalled");
   const done = s.projects.filter((p) => p.status === "done" || p.status === "cancelled");
   return (
@@ -55,20 +58,21 @@ export function Projects() {
                 <Card key={d.id} className="g-col">
                   <div className="g-row g-between g-wrap"><b>{d.name}</b><Badge>{d.cat}</Badge></div>
                   <div className="g-small">{d.what}</div>
+                  <Chips chips={chips(d.benefit)} label="When done" />
                   <div className="fx-act-meta">
                     <span><b>Cost:</b> about {nb(projectCost(s, d.id, "treasury"))} over {d.months} months</span>
                     <span><b>Benefit:</b> {d.benefitText}</span>
                     <span><b>Needs capacity:</b> {d.capacityNeed} (you have {Math.round(s.gov.capacity)}) · <b>Risk of delay/overrun:</b> {d.risk >= 0.55 ? "high" : d.risk >= 0.35 ? "medium" : "lower"}</span>
                     <span><b>Funding options:</b> {d.funding.map((f) => FUNDING_LABEL[f]).join(", ")}</span>
                   </div>
-                  <div className="g-row g-between"><span className="g-tiny g-muted">{count}/{d.max ?? "∞"} started</span><Button size="sm" variant="primary" onClick={() => setDefId(d.id)}>Choose site &amp; funding</Button></div>
+                  <div className="g-row g-between"><span className="g-tiny g-muted">{count}/{d.max ?? "∞"} started</span><Button size="sm" variant="primary" onClick={() => { setCountAtOpen(s.projects.length); setDefId(d.id); }}>Choose site &amp; funding</Button></div>
                 </Card>
               );
             })}
           </div>
         </>
       )}
-      {defId && <StartProjectModal defId={defId} onClose={() => { setDefId(null); setTab("active"); }} />}
+      {defId && <StartProjectModal defId={defId} onClose={() => { setDefId(null); if (s.projects.length > countAtOpen) setTab("active"); }} />}
     </div>
   );
 }

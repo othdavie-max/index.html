@@ -6,7 +6,9 @@ import { MEASURE_BY_ID, POLICY_BY_ID, PROJECT_BY_ID } from "../data/catalogue";
 import type { FixState } from "./types";
 import { openEvents } from "./events";
 import { debtServiceRatio, foodAffordIdx, lever, nb, powerRatio, realWage, round } from "./util";
-import { priceMult, previewFuel } from "./actions";
+import { priceMult, previewFuel, recentUses } from "./actions";
+import { refChips, type Chip } from "./forecast";
+import { futureHint } from "./echoes";
 
 export type ActionRef =
   | { type: "measure"; id: string }
@@ -26,6 +28,10 @@ export interface ChallengeAction {
   uncertainty: "low" | "medium" | "high";
   /** reason it cannot be chosen right now */
   blocked?: string;
+  /** effects now, as plain chips (filled in by computeChallenge) */
+  chips?: Chip[];
+  /** what this decision plants for later */
+  later?: string | null;
 }
 export interface Challenge {
   id: string;
@@ -37,7 +43,22 @@ export interface Challenge {
   eventId?: string;
   actions: ChallengeAction[];
   others: { id: string; title: string; severity: number }[];
+  /** two advisers, often disagreeing — flavour that also hints at trade-offs */
+  advice?: { who: string; says: string }[];
 }
+const ADVICE: Record<string, { who: string; says: string }[]> = {
+  food: [{ who: "Agriculture Minister", says: "Relief helps this month, but storage and farm roads stop this happening every year." }, { who: "Finance Minister", says: "Vouchers every month will sink us. Waive duties and let imports cool prices." }],
+  fx: [{ who: "Central Bank Governor", says: "Selling dollars buys weeks, not months. Fix why dollars are leaving." }, { who: "Trade Minister", says: "Unify the exchange rate. Investors will not come while there are two prices." }],
+  fuel: [{ who: "Finance Minister", says: "The subsidy eats a fifth of our revenue. Every month we wait costs more." }, { who: "Chief of Staff", says: "Cut it without protecting the poor and the streets will explode." }],
+  inflation: [{ who: "Central Bank Governor", says: "Higher rates will tame prices, but give it months." }, { who: "Labour Minister", says: "Workers cannot wait months. Their pay is worth less every week." }],
+  power: [{ who: "Power Minister", says: "Patching lines is not enough. Pay for gas and maintenance, or blackouts come back." }, { who: "Finance Minister", says: "Solar mini-grids are quicker and cheaper than another big plant." }],
+  jobs: [{ who: "Youth Minister", says: "Young people need work now, not in two years." }, { who: "Industry Minister", says: "Real jobs come from factories, and factories need power and roads." }],
+  security: [{ who: "National Security Adviser", says: "We need more troops in the hotspots immediately." }, { who: "Attorney General", says: "Abuses by troops create tomorrow's recruits. Keep it lawful." }],
+  fiscal: [{ who: "Finance Minister", says: "Collect the taxes we are owed before borrowing more." }, { who: "Debt Office", says: "Dollar bonds are cheaper today but dangerous if the naira falls." }],
+  trust: [{ who: "Chief of Staff", says: "People think we are all thieves. Publish every contract." }, { who: "Party Chairman", says: "Audits will embarrass our own people. Be careful." }],
+  steady: [{ who: "Chief of Staff", says: "Calm months are rare. Start the slow projects now; they pay off before the election." }],
+  event: [{ who: "Chief of Staff", says: "Answer quickly. Unanswered, this spreads." }, { who: "Attorney General", says: "Whatever we do, it must be lawful. The world is watching." }],
+};
 
 function mAct(s: FixState, id: string): ChallengeAction {
   const d = MEASURE_BY_ID[id];
@@ -45,7 +66,7 @@ function mAct(s: FixState, id: string): ChallengeAction {
   const cd = s.flags[`cd:measure:${id}`];
   const blocked = typeof cd === "number" && s.month < cd ? "Not available again yet" : cost > s.fin.treasury ? "Not enough cash" : id === "fxSale" && s.eco.reserves < 8 ? "Reserves too low" : undefined;
   return {
-    ref: { type: "measure", id }, label: d.name, explain: d.explain,
+    ref: { type: "measure", id }, label: d.name, explain: recentUses(s, id) ? `${d.explain} Weaker now: used ${recentUses(s, id)}× this year.` : d.explain,
     costLabel: `${cost > 0 ? nb(cost) : "No cash"}${d.monthlyCost ? ` + ${nb(d.monthlyCost * priceMult(s))}/month for ${d.duration} months` : ""}`, tradeoff: d.tradeoff, uncertainty: d.unc, blocked,
   };
 }
@@ -155,6 +176,22 @@ export function problemList(s: FixState): { id: string; title: string; severity:
 }
 
 export function computeChallenge(s: FixState): Challenge {
+  const ch = rawChallenge(s);
+  ch.actions = ch.actions.map((a) => decorate(s, a));
+  ch.advice = ADVICE[ch.id.startsWith("event:") ? "event" : ch.id];
+  return ch;
+}
+export function decorate(s: FixState, a: ChallengeAction): ChallengeAction {
+  const r = a.ref;
+  let c: Chip[] = refChips(r as { type: string; id?: string; defId?: string });
+  let tpl: string | undefined;
+  if (r.type === "respond") tpl = s.events.find((e) => e.id === r.eventId)?.tpl;
+  if (r.type === "fuel") c = r.action === "increase" ? [{ label: "Petrol price", up: false, good: true }, { label: "Budget", up: false, good: false }] : [{ label: "Petrol price", up: true, good: false }, { label: "Budget", up: true, good: true }, ...(r.action === "reform" ? [{ label: "Help for the poor", up: true, good: true }] : [{ label: "Protest risk", up: true, good: false }])];
+  if (r.type === "bond") c = [{ label: "Cash now", up: true, good: true }, { label: "Dollar debt", up: true, good: false }];
+  const later = futureHint({ type: r.type, id: "id" in r ? r.id : undefined, action: r.type === "fuel" ? r.action : undefined, eventTpl: tpl, optionId: r.type === "respond" ? r.optionId : undefined });
+  return { ...a, chips: c, later };
+}
+function rawChallenge(s: FixState): Challenge {
   // an urgent situation on the ground always comes first
   const ev = openEvents(s).find((e) => e.kind !== "opportunity" && e.kind !== "scandal" && e.deadline - s.month <= 2 && (e.scale >= 2));
   const others = problemList(s).filter((p) => p.severity > 0.25).slice(0, 4);

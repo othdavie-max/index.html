@@ -16,3 +16,10 @@ A presidential strategy/economic simulation at `/fix` (the earlier life-to-presi
 - Naira: monthly drift from dollar supply/demand gap, inflation, investor confidence, reserves defence and noise. No control sets the rate.
 
 Run tests: `npx vitest run src/fixit`.
+
+## Decisions shape the future
+- **Delayed consequences** (`engine/echoes.ts`): many measures, policies, fuel and borrowing choices, event responses and favoured contracts schedule an *echo*. It is shown in advance ("Coming up", the yellow "Later" box on every choice) and resolved months later from the state at that time, so follow-through matters (e.g. releasing grain plants an "empty silos" risk for the next lean season that storage investment defuses; open contracting pays off after a year only if kept).
+- **Campaign promises** (`engine/promises.ts`): pick three at the start; each kept promise raises re-election odds, each broken one lowers them. Midterm report card at month 24; promises appear in the legacy report.
+- **Diminishing quick fixes**: repeating the same measure within 12 months is less effective each time.
+- **Milestones**: achievements awarded once from real outcomes.
+- **Advisers** give two (often conflicting) views on each challenge.

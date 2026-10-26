@@ -35,7 +35,8 @@ export function SaveSlots({ mode, onDone }: { mode: "load" | "both"; onDone: () 
 export function HowTo({ onClose }: { onClose: () => void }) {
   const steps = [
     ["Read the red card", "The Presidency screen shows the country's biggest problem right now, and why."],
-    ["Pick an action", "Each choice shows its cost, its trade-off and how uncertain it is. Money is limited: government funds are not the same as reserves, debt or your own wealth."],
+    ["Pick an action", "Green chips show what gets better, red what gets worse. Each choice shows its cost and how uncertain it is."],
+    ["Watch the yellow “Later” box", "Most decisions plant a consequence that arrives months later: silos run empty, unions copy a pay deal, open contracting starts saving money. “Coming up” on the Presidency screen lists them, and what you do before then decides how they turn out."],
     ["End the month", "Prices, the naira, jobs and security all move. Read what changed and what your choice did."],
     ["Build for later", "Policies and Projects take months to work. The Map shows where trouble is brewing, and where your projects are."],
   ];
@@ -43,7 +44,7 @@ export function HowTo({ onClose }: { onClose: () => void }) {
     <Modal title="How to play (one minute)" onClose={onClose} footer={<Button variant="primary" onClick={onClose}>Got it</Button>}>
       <div className="g-col">
         {steps.map(([t, b], i) => <div key={t} className="fx-step"><i>{i + 1}</i><div><b>{t}</b><div className="g-small g-muted">{b}</div></div></div>)}
-        <div className="g-small g-muted">You have four years (48 months). At the end, voters decide whether you get a second term, and your legacy report shows what you really changed.</div>
+        <div className="g-small g-muted">You have four years (48 months) and three promises. Keeping promises and keeping people happy raise your re-election chance (the green circle). At the end, your legacy report shows what you really changed.</div>
       </div>
     </Modal>
   );
