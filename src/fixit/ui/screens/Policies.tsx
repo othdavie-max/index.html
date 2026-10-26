@@ -7,6 +7,10 @@ import { CATEGORIES, POLICIES, type Category } from "../../data/catalogue";
 import { applyFuel, enactPolicy, previewFuel, repealPolicy, priceMult, type FuelAction } from "../../engine/actions";
 import { monthLabel, nb } from "../../engine/util";
 import { Chips, Word } from "../parts";
+import { billFor } from "../../engine/politics";
+import { BudgetCard, VoteModal } from "../Politics";
+import type { Result } from "../../engine/actions";
+import type { FixState } from "../../engine/types";
 import { chips, policyStrength } from "../../engine/forecast";
 import { futureHint } from "../../engine/echoes";
 
@@ -23,6 +27,8 @@ export function FuelPanel() {
   const [pick, setPick] = useState<FuelAction>("reform");
   const f = s.fuel;
   const pv = previewFuel(s, pick);
+  const [vote, setVote] = useState<{ bill: string; exec: (x: FixState) => Result } | null>(null);
+  const fuelBill = billFor({ type: "fuel", action: pick });
   const share = f.costMonthly / Math.max(1, s.fin.revenue);
   return (
     <Card title="Fuel subsidy" icon={<Fuel size={16} />}>
@@ -42,9 +48,10 @@ export function FuelPanel() {
           <div className="g-small"><b>Pump price:</b> ₦{Math.round(pv.pumpNow)} → about ₦{Math.round(pv.pumpTarget)} ({pv.changePct >= 0 ? "+" : ""}{pv.changePct.toFixed(0)}%) over a few months</div>
           <div className="g-small"><b>Monthly bill:</b> {nb(pv.costBefore)} → {nb(pv.costAfter)}; saving {nb(pv.saving)} ({Math.round(pv.savingShareOfDeficit * 100)}% of the deficit)</div>
           <ul className="fx-why">{pv.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
-          <div><Button variant="primary" onClick={() => act((x) => applyFuel(x, pick))}>Apply{pv.setup ? ` (${nb(pv.setup)} setup)` : ""}</Button></div>
+          <div><Button variant="primary" onClick={() => (fuelBill ? setVote({ bill: fuelBill, exec: (x) => applyFuel(x, pick) }) : act((x) => applyFuel(x, pick)))}>{fuelBill ? "Send to the Assembly" : "Apply"}{pv.setup ? ` (${nb(pv.setup)} setup)` : ""}</Button></div>
         </div>
       </div>
+      {vote && <VoteModal bill={vote.bill} exec={vote.exec} onClose={() => setVote(null)} />}
     </Card>
   );
 }
@@ -55,10 +62,13 @@ export function Policies() {
   const [cat, setCat] = useState<Category | "all">("all");
   const list = POLICIES.filter((p) => cat === "all" || p.cat === cat);
   const active = POLICIES.filter((p) => s.policies[p.id]?.active);
+  const [vote, setVote] = useState<{ bill: string; exec: (x: FixState) => Result } | null>(null);
+  const start = (id: string) => { const bill = billFor({ type: "policy", id }); if (bill) setVote({ bill, exec: (x) => enactPolicy(x, id) }); else act((x) => enactPolicy(x, id)); };
   return (
     <div className="g-col" style={{ gap: 14 }}>
       <div className="g-row g-between g-wrap"><div className="g-page-title">Policies</div><div className="g-small g-muted">{active.length} in force · most take months to reach full effect</div></div>
       <FuelPanel />
+      <BudgetCard />
       <div className="g-row g-wrap g-chip-row" style={{ gap: 6 }} role="group" aria-label="Policy area">
         <button className="g-chip" aria-pressed={cat === "all"} onClick={() => setCat("all")}>All areas</button>
         {CATEGORIES.map((c) => <button key={c.id} className="g-chip" aria-pressed={cat === c.id} onClick={() => setCat(c.id)}>{c.label}</button>)}
@@ -89,11 +99,12 @@ export function Policies() {
               <details><summary className="g-small" style={{ cursor: "pointer", color: "#334155", fontWeight: 600 }}>More detail</summary>
                 <div className="fx-act-meta" style={{ marginTop: 6 }}><span><b>Short term:</b> {p.short}</span><span><b>Long term:</b> {p.long}</span><span><b>Risks:</b> {p.risks}</span></div>
               </details>
-              <div><Button size="sm" variant="primary" disabled={cost > s.fin.treasury} onClick={() => act((x) => enactPolicy(x, p.id))}>{cost > s.fin.treasury ? "Not enough cash" : "Start policy"}</Button></div>
+              <div><Button size="sm" variant="primary" disabled={cost > s.fin.treasury} onClick={() => start(p.id)}>{cost > s.fin.treasury ? "Not enough cash" : billFor({ type: "policy", id: p.id }) ? "Send to Assembly" : "Start policy"}</Button></div>
             </Card>
           );
         })}
       </div>
+      {vote && <VoteModal bill={vote.bill} exec={vote.exec} onClose={() => setVote(null)} />}
       <Callout tone="info">Effects are scaled by how well government can deliver (capacity {Math.round(s.gov.capacity)}/100). Honest, capable institutions make every policy work better.</Callout>
     </div>
   );

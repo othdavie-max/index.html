@@ -106,3 +106,6 @@ export function nb(n: number): string {
   if (a >= 1000) return `${sign}₦${(a / 1000).toFixed(a >= 10000 ? 0 : 1)}tn`;
   return `${sign}₦${Math.round(a).toLocaleString("en-NG")}bn`;
 }
+
+/** how to address the player: their chosen name, or a neutral title if they did not give one */
+export const presidentName = (s: { meta: { president: string } }) => (!s.meta.president || s.meta.president === "Madam/Mr President" ? "Your Excellency" : `President ${s.meta.president}`);

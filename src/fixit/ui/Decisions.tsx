@@ -12,6 +12,8 @@ import type { ActionRef, Challenge, ChallengeAction } from "../engine/challenge"
 import { nb, monthLabel } from "../engine/util";
 import { SymbolIcon } from "./MapView";
 import { Chips, UncBadge } from "./parts";
+import { billFor } from "../engine/politics";
+import { VoteModal } from "./Politics";
 import { decorate } from "../engine/challenge";
 import type { Portfolio } from "../engine/types";
 const ADVISER_PORTFOLIO: Record<string, Portfolio> = { "Finance Minister": "finance", "Central Bank Governor": "cbn", "Agriculture Minister": "agriculture", "Power Minister": "power", "National Security Adviser": "security" };
@@ -26,7 +28,7 @@ export function ActionCard({ a, onDo }: { a: ChallengeAction; onDo: () => void }
       <div className="g-tiny" style={{ color: "#64748b" }}><b style={{ color: "#334155" }}>Downside:</b> {a.tradeoff}</div>
       <div className="fx-row" style={{ justifyContent: "space-between", marginTop: 2 }}>
         <span className="g-row" style={{ gap: 6, flexWrap: "wrap" }}><span className="g-badge">{a.costLabel}</span><UncBadge u={a.uncertainty} /></span>
-        <Button size="sm" variant="primary" disabled={!!a.blocked} onClick={onDo} title={a.blocked}>{a.blocked ?? (a.ref.type === "wait" ? "Hold steady" : a.ref.type === "project" ? "Choose site…" : "Do this")}</Button>
+        <Button size="sm" variant="primary" disabled={!!a.blocked} onClick={onDo} title={a.blocked}>{a.blocked ?? (a.ref.type === "wait" ? "Hold steady" : a.ref.type === "project" ? "Choose site…" : billFor(a.ref as { type: string; id?: string; action?: string }) ? "Send to Assembly" : "Do this")}</Button>
       </div>
     </div>
   );
@@ -36,9 +38,12 @@ export function ChallengePanel({ ch }: { ch: Challenge }) {
   const { act, state, setTab } = useFix();
   const [project, setProject] = useState<string | null>(null);
   const [why, setWhy] = useState(false);
+  const [vote, setVote] = useState<{ bill: string; ref: ActionRef } | null>(null);
   if (!state) return null;
   const run = (ref: ActionRef) => {
     if (ref.type === "project") { setProject(ref.defId); return; }
+    const bill = billFor(ref as { type: string; id?: string; action?: string });
+    if (bill) { setVote({ bill, ref }); return; }
     act((s) => performRef(s, ref));
   };
   return (
@@ -61,6 +66,7 @@ export function ChallengePanel({ ch }: { ch: Challenge }) {
       <div className="fx-actions">{ch.actions.map((a, i) => <ActionCard key={i} a={a} onDo={() => run(a.ref)} />)}</div>
       {ch.others.length > 0 && <div className="g-tiny g-muted" style={{ marginTop: 10 }}>Also on your desk: {ch.others.map((o) => o.title.toLowerCase()).join(" · ")}. Find more options under <button className="g-btn g-btn-ghost g-btn-sm" onClick={() => setTab("policies")}>Policies</button> and <button className="g-btn g-btn-ghost g-btn-sm" onClick={() => setTab("projects")}>Projects</button>.</div>}
       {project && <StartProjectModal defId={project} onClose={() => setProject(null)} />}
+      {vote && <VoteModal bill={vote.bill} exec={(x) => performRef(x, vote.ref)} onClose={() => setVote(null)} />}
     </section>
   );
 }

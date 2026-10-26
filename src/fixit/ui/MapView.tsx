@@ -19,6 +19,8 @@ export const EVENT_SYMBOL: Record<EventKind, Sym> = {
   opportunity: { shape: "star", letter: "★", color: "#047857", label: "Opportunity" },
   scandal: { shape: "diamond", letter: "?", color: "#6b21a8", label: "Integrity issue" },
   global: { shape: "circle", letter: "G", color: "#475569", label: "Global shock" },
+  story: { shape: "hex", letter: "!", color: "#0b1f36", label: "Major story" },
+  request: { shape: "square", letter: "G", color: "#0369a1", label: "Governor request" },
 };
 export function shapePath(shape: Sym["shape"], r: number): string {
   const pts = (n: number, rot: number, rr = r) => Array.from({ length: n }, (_, i) => { const a = rot + (i * 2 * Math.PI) / n; return `${(Math.cos(a) * rr).toFixed(2)},${(Math.sin(a) * rr).toFixed(2)}`; }).join(" ");
@@ -115,7 +117,7 @@ export function MapView({ s, layer, fill, selectedState, selectedLga, onSelectSt
 }
 
 export function MapLegend({ layerLabel }: { layerLabel: string }) {
-  const kinds: EventKind[] = ["protest", "strike", "insecurity", "flood", "foodcrisis", "grid", "oilattack", "opportunity"];
+  const kinds: EventKind[] = ["protest", "strike", "insecurity", "flood", "foodcrisis", "grid", "oilattack", "story", "request", "opportunity"];
   return (
     <div className="fx-legend" aria-label="Map legend">
       <span><b>{layerLabel}:</b> low <span className="fx-ramp" /> severe</span>

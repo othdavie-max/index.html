@@ -53,6 +53,7 @@ function StatePanel({ s, id, lga }: { s: FixState; id: string; lga: string | nul
         <div className="g-row g-between"><h3 style={{ fontSize: 19, fontWeight: 800 }}>{lg ? lg.name : meta.name}</h3><Button size="sm" variant="ghost" onClick={() => setSelect({ state: lga ? id : null, lga: null })} aria-label="Close"><X size={16} /></Button></div>
         <div className="g-small g-muted">{lg ? `${lg.name} local government, ${meta.name} state · ${Math.round(lg.areaKm2).toLocaleString()} km²` : `${meta.isFct ? "Federal Capital Territory" : "State"} · capital ${meta.capital} · ${ZONES[meta.zone]}`}</div>
         {lg && <div className="g-tiny g-muted">Local conditions are simulated around the state picture.</div>}
+        {(() => { const g = s.governors.find((x) => x.zone === meta.zone); return g ? <div className="g-small" style={{ marginTop: 4 }}>Zone governor: <b>{g.name}</b> ({g.party}) · {g.relation >= 65 ? "an ally" : g.relation >= 45 ? "neutral" : g.relation >= 25 ? "cool towards you" : "hostile"} ({Math.round(g.relation)}/100)</div> : null; })()}
       </div>
       <div className="g-col" style={{ gap: 8 }}>{vals.map((x) => <Gauge key={x.k} label={METRICS.find((m) => m.id === x.k)!.label} v={x.v} />)}</div>
       <div className="g-small"><b>Biggest pressure here:</b> {METRICS.find((m) => m.id === worst.k)!.label.toLowerCase()}. <span className="g-muted">{cause[worst.k]}</span></div>

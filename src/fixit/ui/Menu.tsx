@@ -39,6 +39,7 @@ export function HowTo({ onClose }: { onClose: () => void }) {
     ["Watch the yellow “Later” box", "Most decisions plant a consequence that arrives months later: silos run empty, unions copy a pay deal, open contracting starts saving money. “Coming up” on the Presidency screen lists them, and what you do before then decides how they turn out."],
     ["End the month", "Prices, the naira, jobs and security all move. Read what changed and what your choice did."],
     ["Pick your team", "Your cabinet's skill makes policies work better; honesty decides how much money leaks. Technocrats are skilled, loyalists keep the party behind you, regional heavyweights bring votes. Reshuffles are free for three months."],
+    ["Work with the system", "Big changes such as fuel subsidy reform need the National Assembly: lobby, then call the vote. Keep governors and groups (traders, farmers, youth, workers, business, military, faith leaders) on side, set the yearly budget, and address the nation at key moments."],
     ["Win the election", "Six months before election day the campaign opens: hold rallies by zone, run a door-to-door drive, face your rival in a debate. You need over 50% nationally and 25% in 24 of 37 states. Then watch election night state by state."],
     ["Build for later", "Policies and Projects take months to work. The Map shows where trouble is brewing, and where your projects are."],
   ];

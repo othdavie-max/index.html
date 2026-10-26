@@ -6,6 +6,8 @@ import { advanceMonth } from "../engine/sim";
 import { advance as advanceCmd, type Result } from "../engine/actions";
 import type { Achievement, Echo, FixState, GameEvent, NewsItem, Snap } from "../engine/types";
 import { setPromises } from "../engine/promises";
+import type { SetupOptions } from "../engine/setup";
+import { hallEntry } from "../persistence";
 import { monthLabel, snap } from "../engine/util";
 import { FixSaves, FixSaveError, type Slot } from "../persistence";
 
@@ -24,7 +26,7 @@ interface Ctx {
   advance: (months?: number) => void;
   summary: MonthSummary | null;
   closeSummary: () => void;
-  startNew: (seed?: number, promises?: string[]) => void;
+  startNew: (seed?: number, promises?: string[], setup?: SetupOptions) => void;
   continueTerm: () => void;
   loadSlot: (slot: Slot) => Promise<boolean>;
   saveSlot: (slot: Slot) => Promise<boolean>;
@@ -129,11 +131,14 @@ export function FixProvider({ children }: { children: ReactNode }) {
     setSummary({ from: monthLabel(startMonth), to: monthLabel(g.month), months: n, changes: diffSummary(before, after), events, news, echoes, achievements: g.achievements.slice(achBefore), headline });
     bump();
     if (g.settings.autosave) void saveSlot("auto");
-  }, [bump, saveSlot]);
+    if (g.ended) { const h = hallEntry(g); if (h) void saves.addHall(h).catch(() => undefined); }
+  }, [bump, saveSlot, saves]);
 
-  const startNew = useCallback((seed?: number, promises?: string[]) => {
+  const startNew = useCallback((seed?: number, promises?: string[], setup?: SetupOptions) => {
     const prev = gameRef.current?.promises;
-    const g = newGame(seed ?? Math.floor(Math.random() * 1e6) + 1);
+    const pm = gameRef.current?.meta;
+    const opts: SetupOptions = setup ?? (pm ? { scenario: pm.scenario, difficulty: pm.difficulty, portrait: pm.portrait, president: pm.president } : {});
+    const g = newGame(seed ?? Math.floor(Math.random() * 1e6) + 1, opts.president ?? "Madam/Mr President", opts);
     setPromises(g, promises ?? prev ?? []);
     setGame(g); setScreen("play"); setTab("presidency"); setSummary(null); setSelect({ state: null, lga: null }); bump();
     void saves.save("auto", g).then(() => setLastSaved(Date.now())).catch(() => undefined);

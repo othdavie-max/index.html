@@ -64,7 +64,7 @@ export interface Project {
   benefitScale?: number;
 }
 
-export type EventKind = "protest" | "strike" | "insecurity" | "flood" | "foodcrisis" | "grid" | "oilattack" | "opportunity" | "scandal" | "global";
+export type EventKind = "protest" | "strike" | "insecurity" | "flood" | "foodcrisis" | "grid" | "oilattack" | "opportunity" | "scandal" | "global" | "story" | "request";
 export interface EventOption {
   id: string; label: string; explain: string; cost: number; tradeoff: string; uncertainty: "low" | "medium" | "high";
 }
@@ -122,6 +122,12 @@ export type Portfolio = "finance" | "agriculture" | "power" | "security" | "cbn"
 export type Faction = "technocrat" | "loyalist" | "heavyweight";
 export interface Minister { id: string; name: string; portfolio: Portfolio; skill: number; integrity: number; faction: Faction; trait: string; zone: string; since: number; mood: number }
 export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number }
+export type Difficulty = "easy" | "normal" | "hard";
+export interface Portrait { skin: number; hair: number; style: number; accent: number }
+export type GroupId = "traders" | "farmers" | "youth" | "workers" | "business" | "military" | "faith";
+export type Trait = "reformer" | "populist" | "strongman" | "clean" | "builder" | "borrower";
+export type BudgetHead = "education" | "health" | "security" | "infrastructure" | "social";
+export interface Governor { zone: string; name: string; party: "NPP" | "PRA"; relation: number; ambition: number }
 export interface Achievement { id: string; label: string; month: number }
 
 export interface Report { id: string; month: number; title: string; lines: string[]; tone: "good" | "bad" | "neutral" }
@@ -137,7 +143,7 @@ export interface TermResult {
 
 export interface FixState {
   version: number;
-  meta: { seed: number; id: string; president: string; hard: boolean };
+  meta: { seed: number; id: string; president: string; hard: boolean; scenario: string; difficulty: Difficulty; portrait: Portrait };
   month: number; // months elapsed since inauguration
   processed: number; // last month index fully processed (idempotency)
   term: number;
@@ -180,6 +186,13 @@ export interface FixState {
   rival: { name: string; party: string; zone: string; popularity: number };
   campaign: { rallies: Record<string, number>; debateShift: number; mobilise: number; attacks: number; actionsThisMonth: number; month: number };
   election: ElectionResult | null;
+  assembly: { support: number; lobby: Record<string, number>; passed: number; defeats: number };
+  governors: Governor[];
+  groups: Record<GroupId, number>;
+  groupMood: Record<GroupId, number>;
+  reputation: Record<Trait, number>;
+  budget: { levels: Record<BudgetHead, number>; passedYear: number };
+  speech: { last: number; moment: string | null };
   terms: TermResult[];
   baseline: Snap;
   flags: Record<string, number | string | boolean>;

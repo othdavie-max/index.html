@@ -5,19 +5,66 @@ import { useFix } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { SaveSlots } from "./Menu";
 import { DEFAULT_PROMISES, PROMISES } from "../engine/promises";
+import { DIFFICULTY, SCENARIOS } from "../engine/setup";
+import type { Difficulty, Portrait as PortraitT } from "../engine/types";
+import { Portrait, PORTRAIT_OPTIONS } from "../../game/ui/kit";
+import { Hall } from "./Hall";
 
 export function Title() {
   const { startNew, hasAuto, loadSlot } = useFix();
   const [slots, setSlots] = useState(false);
   const [about, setAbout] = useState(false);
-  const [step, setStep] = useState<"intro" | "promises">("intro");
+  const [step, setStep] = useState<"intro" | "setup" | "promises">("intro");
+  const [hall, setHall] = useState(false);
+  const [name, setName] = useState("");
+  const [scenario, setScenario] = useState("standard");
+  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
+  const [portrait, setPortrait] = useState<PortraitT>({ skin: 3, hair: 0, style: 0, accent: 0 });
+  const cycle = (k: keyof PortraitT) => setPortrait((p) => ({ ...p, [k]: (p[k] + 1) % (PORTRAIT_OPTIONS as unknown as Record<string, number>)[k] }));
   const [picked, setPicked] = useState<string[]>(DEFAULT_PROMISES);
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= 3 ? [...p.slice(1), id] : [...p, id]));
+  if (step === "setup") return (
+    <div className="fx-title-screen">
+      <div className="fx-title-card">
+        <div>
+          <div className="g-tiny" style={{ letterSpacing: ".18em", color: "#9db3c9", fontWeight: 800 }}>STEP 1 OF 2</div>
+          <h1 style={{ fontSize: "clamp(28px,5vw,42px)", fontWeight: 900, lineHeight: 1.1, marginTop: 6 }}>Who are you, and what do you inherit?</h1>
+        </div>
+        <div className="g-row g-wrap" style={{ gap: 18, alignItems: "flex-start" }}>
+          <div className="g-col" style={{ alignItems: "center", gap: 8 }}>
+            <Portrait p={portrait} size={110} name={name || "the President"} />
+            <div className="g-row g-wrap" style={{ gap: 4, justifyContent: "center", maxWidth: 220 }}>
+              {(["skin", "hair", "style", "accent"] as const).map((k) => <Button key={k} size="sm" variant="light" onClick={() => cycle(k)}>{k === "style" ? "Hair style" : k === "accent" ? "Outfit" : k === "skin" ? "Skin" : "Hair colour"}</Button>)}
+            </div>
+          </div>
+          <div className="g-col g-grow" style={{ minWidth: 260, gap: 8 }}>
+            <label className="g-small" htmlFor="pres-name" style={{ fontWeight: 700 }}>Your name</label>
+            <input id="pres-name" className="g-input" style={{ background: "rgba(255,255,255,.95)" }} placeholder="e.g. Adaora Bello" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
+            <div className="g-small" style={{ fontWeight: 700, marginTop: 6 }}>Difficulty</div>
+            <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Difficulty">{(Object.keys(DIFFICULTY) as Difficulty[]).map((d) => <button key={d} className="fx-pp" style={{ padding: "8px 12px" }} aria-pressed={difficulty === d} onClick={() => setDifficulty(d)}><span><b>{DIFFICULTY[d].label}</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>{DIFFICULTY[d].blurb}</div></span></button>)}</div>
+          </div>
+        </div>
+        <div className="g-small" style={{ fontWeight: 700 }}>Scenario</div>
+        <div className="fx-promise-pick" role="group" aria-label="Scenario">
+          {SCENARIOS.map((sc) => (
+            <button key={sc.id} className="fx-pp" aria-pressed={scenario === sc.id} onClick={() => setScenario(sc.id)}>
+              <span className="fx-check" aria-hidden>{scenario === sc.id ? "✓" : ""}</span>
+              <span><b>{sc.name}</b><div className="g-tiny" style={{ color: "#cfe0ee", marginTop: 2 }}>{sc.blurb}</div></span>
+            </button>
+          ))}
+        </div>
+        <div className="g-row g-wrap" style={{ gap: 12 }}>
+          <button className="fx-big-btn" onClick={() => setStep("promises")}>Next: your promises</button>
+          <Button variant="light" onClick={() => setStep("intro")}>Back</Button>
+        </div>
+      </div>
+    </div>
+  );
   if (step === "promises") return (
     <div className="fx-title-screen">
       <div className="fx-title-card">
         <div>
-          <div className="g-tiny" style={{ letterSpacing: ".18em", color: "#9db3c9", fontWeight: 800 }}>BEFORE YOU TAKE THE OATH</div>
+          <div className="g-tiny" style={{ letterSpacing: ".18em", color: "#9db3c9", fontWeight: 800 }}>STEP 2 OF 2 · BEFORE YOU TAKE THE OATH</div>
           <h1 style={{ fontSize: "clamp(28px,5vw,42px)", fontWeight: 900, lineHeight: 1.1, marginTop: 6 }}>Make three promises to Nigeria</h1>
           <p style={{ color: "#cfe0ee", marginTop: 8 }}>Voters will remember. Each promise you keep raises your re-election chances; each one you break lowers them. Pick the ones you believe you can deliver.</p>
         </div>
@@ -30,8 +77,8 @@ export function Title() {
           ))}
         </div>
         <div className="g-row g-wrap" style={{ gap: 12 }}>
-          <button className="fx-big-btn" disabled={picked.length !== 3} onClick={() => startNew(undefined, picked)}><Play size={22} /> Take the oath ({picked.length}/3)</button>
-          <Button variant="light" onClick={() => setStep("intro")}>Back</Button>
+          <button className="fx-big-btn" disabled={picked.length !== 3} onClick={() => startNew(undefined, picked, { scenario, difficulty, portrait, president: name.trim() || "Madam/Mr President" })}><Play size={22} /> Take the oath ({picked.length}/3)</button>
+          <Button variant="light" onClick={() => setStep("setup")}>Back</Button>
         </div>
       </div>
     </div>
@@ -50,14 +97,16 @@ export function Title() {
           <div className="g-tiny" style={{ color: "#9db3c9" }}>This is a fictional, internally consistent scenario. All figures are simulated game values, not real data or forecasts. Map boundaries are real (geoBoundaries, CC BY 4.0).</div>
         </div>
         <div className="g-row g-wrap" style={{ gap: 12 }}>
-          <button className="fx-big-btn" onClick={() => setStep("promises")}><Play size={22} /> Start Presidency</button>
+          <button className="fx-big-btn" onClick={() => setStep("setup")}><Play size={22} /> Start Presidency</button>
           {hasAuto && <Button variant="light" onClick={() => void loadSlot("auto")}><RotateCcw size={17} /> Continue</Button>}
           <Button variant="light" onClick={() => setSlots(true)}><FolderOpen size={17} /> Load game</Button>
+          <Button variant="light" onClick={() => setHall(true)}>🏛️ Hall of Presidents</Button>
           <Button variant="light" onClick={() => setAbout(true)}><Info size={17} /> About</Button>
         </div>
       </div>
       {slots && <Modal title="Load a game" onClose={() => setSlots(false)}><SaveSlots mode="load" onDone={() => setSlots(false)} /></Modal>}
       {about && <About onClose={() => setAbout(false)} />}
+      {hall && <Hall onClose={() => setHall(false)} />}
     </div>
   );
 }

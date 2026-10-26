@@ -5,12 +5,15 @@ import { FIX_VERSION, type FixState, type Region } from "./types";
 import { clamp100, snap } from "./util";
 import { initCabinet } from "./cabinet";
 import { initRival } from "./rival";
+import { initAssembly, initBudget, initSpeech } from "./politics";
+import { computeGroups, initSociety } from "./society";
+import { applySetup, type SetupOptions } from "./setup";
 
 export const START = {
   fx: 1500, reserves: 36, inflation: 25, foodInflation: 31, oil: 78, pump: 750, treasury: 1500,
 };
 
-export function newGame(seed = 2027, president = "Madam/Mr President"): FixState {
+export function newGame(seed = 2027, president = "Madam/Mr President", setup: SetupOptions = {}): FixState {
   const rng = subRng(seed, "init");
   const regions: Record<string, Region> = {};
   for (const st of STATES) {
@@ -25,7 +28,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President"): FixState
   }
   const s: FixState = {
     version: FIX_VERSION,
-    meta: { seed, id: `f${seed.toString(36)}-${hashString(president).toString(36).slice(0, 4)}`, president, hard: false },
+    meta: { seed, id: `f${seed.toString(36)}-${hashString(president).toString(36).slice(0, 4)}`, president, hard: false, scenario: "standard", difficulty: "normal", portrait: { skin: 2, hair: 0, style: 0, accent: 0 } },
     month: 0, processed: -1, term: 1, termStart: 0, ended: null, done: false,
     eco: {
       fx: START.fx, reserves: START.reserves, inflation: START.inflation, foodInflation: START.foodInflation, emaDrift: 0.45, priceLevel: 100, foodPriceIdx: 100,
@@ -46,12 +49,18 @@ export function newGame(seed = 2027, president = "Madam/Mr President"): FixState
     gov: { corruption: 65, procurement: 38, capacity: 42, transparency: 38, trust: 40, approval: 52, opposition: 45, happiness: 48 },
     me: { wealth: 250, evidence: 0, scandals: 0, acts: [] },
     why: {},
-    regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [], cabinet: { members: {}, pool: [], reshuffles: 0 }, rival: { name: "", party: "", zone: "", popularity: 45 }, campaign: { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 }, election: null,
+    regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [], cabinet: { members: {}, pool: [], reshuffles: 0 }, rival: { name: "", party: "", zone: "", popularity: 45 }, campaign: { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 }, election: null, assembly: { support: 55, lobby: {}, passed: 0, defeats: 0 }, governors: [], groups: {} as never, groupMood: {} as never, reputation: {} as never, budget: {} as never, speech: { last: -9, moment: null },
     baseline: undefined as never,
     flags: {}, settings: { autosave: true, reducedMotion: false },
   };
   initCabinet(s);
   initRival(s);
+  initAssembly(s);
+  initBudget(s);
+  initSpeech(s);
+  initSociety(s);
+  applySetup(s, { ...setup, president: setup.president ?? president });
+  computeGroups(s);
   // initial fuel numbers so the dashboard is truthful on day one
   s.fuel.parity = (s.eco.oilPrice * s.eco.fx) / 159 * 1.35;
   s.fuel.pump = s.fuel.parity * (1 - 0.5 * s.fuel.coverage);

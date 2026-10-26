@@ -3,8 +3,11 @@ import { Award, RotateCcw, Play } from "lucide-react";
 import { useFix, useS } from "./store";
 import { Button, Card } from "../../game/ui/kit";
 import { buildLegacy } from "../engine/legacy";
-import { snap } from "../engine/util";
+import { presidentName, snap } from "../engine/util";
 import type { TermResult } from "../engine/types";
+import { ShareButton } from "./ShareCard";
+import { Portrait } from "../../game/ui/kit";
+import { GROUPS, TRAITS, dominantTrait } from "../engine/society";
 
 export function Legacy() {
   const s = useS();
@@ -19,10 +22,11 @@ export function Legacy() {
         <div className="g-card-dark g-card" style={{ background: "#0b1f36", color: "#fff" }}>
           <div className="g-tiny" style={{ letterSpacing: ".14em", color: "#9db3c9", fontWeight: 800 }}>{s.done ? "YOUR LEGACY" : `END OF TERM ${last.term}`}</div>
           <div className="g-row" style={{ gap: 14, marginTop: 6, alignItems: "flex-start" }}>
-            <Award size={44} color="#00c875" aria-hidden />
+            <Portrait p={s.meta.portrait} size={64} name={s.meta.president} />
             <div>
               <h2 style={{ fontSize: "clamp(26px,5vw,38px)", fontWeight: 900, lineHeight: 1.05 }}>{lg.title}</h2>
-              <div style={{ color: "#cfe0ee", marginTop: 6 }}>{lg.titleWhy}</div>
+              <div style={{ color: "#cfe0ee", marginTop: 6 }}>{presidentName(s)}. {lg.titleWhy}</div>
+              {dominantTrait(s) && <div style={{ color: "#86efac", marginTop: 4, fontWeight: 700 }}><Award size={15} style={{ verticalAlign: "-2px" }} /> Remembered as {TRAITS[dominantTrait(s)!].title}</div>}
             </div>
           </div>
           <div style={{ marginTop: 12, fontWeight: 700 }}>{s.ended.text}</div>
@@ -46,9 +50,14 @@ export function Legacy() {
           <Card title="Crises you faced">{lg.crises.length ? <ul className="fx-why">{lg.crises.map((a, i) => <li key={i}>{a}</li>)}</ul> : <div className="g-small g-muted">A calm term.</div>}</Card>
           <Card title="Why it turned out this way">{lg.causes.length ? <ul className="fx-why">{lg.causes.map((a, i) => <li key={i}>{a}</li>)}</ul> : <div className="g-small g-muted">Few strong forces stood out.</div>}</Card>
         </div>
+        <Card title="How each group judged you">
+          <div className="fx-pills">{GROUPS.map((g) => <span key={g.id} className={`g-badge ${s.groups[g.id] >= 55 ? "g-badge-green" : s.groups[g.id] < 35 ? "g-badge-red" : ""}`}>{g.icon} {g.label}: {s.groups[g.id]}</span>)}</div>
+          <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Assembly: {s.assembly.passed} bills passed, {s.assembly.defeats} defeated.</div>
+        </Card>
         {s.achievements.length > 0 && <Card title={`Milestones (${s.achievements.length})`}><div className="fx-pills">{s.achievements.map((a) => <span key={a.id} className="g-badge g-badge-green">🏅 {a.label}</span>)}</div></Card>}
         <div className="g-row g-wrap" style={{ gap: 10 }}>
           {won && <Button variant="primary" onClick={continueTerm}><Play size={16} /> Begin your second term</Button>}
+          <ShareButton s={s} title={lg.title} a={last.start} b={last.end} verdict={lg.titleWhy} />
           <Button variant={won ? "default" : "primary"} onClick={() => startNew(s.meta.seed)}><RotateCcw size={16} /> Replay this same world</Button>
           <Button onClick={() => startNew()}>New presidency</Button>
           <Button variant="light" onClick={quit} style={{ background: "#12304f", color: "#fff" }}>Back to title</Button>

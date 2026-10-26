@@ -9,26 +9,34 @@ import { subRng } from "../../game/engine/rng";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { Effects, EventKind, EventOption, FixState, GameEvent } from "./types";
 import { plantForEvent } from "./echoes";
+import { STORY_TEMPLATES, STORY_TRIGGERS } from "./stories";
+import { earn, groupPressure, relate } from "./society";
+import { eventRate } from "./setup";
+import type { GroupId } from "./types";
 import { sack, PORTFOLIO_BY_ID } from "./cabinet";
 import type { Portfolio } from "./types";
 import { addMod, clamp, clamp100, delivery, foodAffordIdx, lever, pushNews, pushReport, realWage, round, isFloodSeason, uid, nb } from "./util";
 
 const sname = (id: string) => STATE_BY_ID[id]?.name ?? id;
 
-interface Fx {
+export interface Fx {
   mods?: Effects; dur?: number | null; unrest?: number; trust?: number; wealth?: number; evidence?: number; humanRights?: number;
   insecurity?: number; scandal?: number; sackMinister?: boolean; ministerIntegrity?: number; coverage?: number; treasury?: number; reserves?: number; opposition?: number; foreign?: number; corruption?: number;
+  oilPrice?: number; health?: number; groups?: Partial<Record<GroupId, number>>; governors?: number; govRel?: number;
 }
-interface Opt {
+export interface Opt {
   id: string; label: string; explain: string; cost: number | ((s: FixState) => number); tradeoff: string; unc: "low" | "medium" | "high";
   chance: (s: FixState, e: GameEvent) => number; win: Fx; lose: Fx; winText: string; loseText: string;
 }
-interface Tpl {
+export interface Tpl {
   id: string; kind: EventKind; urgency: number;
   title: (s: FixState, st: string) => string;
   cause: (s: FixState, st: string) => string;
   options: Opt[];
   expire: Fx; expireText: (st: string) => string;
+  onCreate?: (s: FixState) => void;
+  /** story arcs: what follows this stage, depending on the choice and its outcome (null = arc ends) */
+  next?: (s: FixState, opt: string | null, ok: boolean) => { tpl: string; delay: number } | null;
 }
 
 const trustP = (s: FixState) => s.gov.trust / 100;
@@ -213,7 +221,7 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries(TEMPLATES.map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES].map((t) => [t.id, t]));
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
   return t.options.map((o) => ({
@@ -257,16 +265,38 @@ function candidates(s: FixState, rng: Rng): Cand[] {
   return c;
 }
 
+interface QueuedArc { tpl: string; due: number; stateId: string }
+function arcQueue(s: FixState): QueuedArc[] { return typeof s.flags.arcQueue === "string" ? (JSON.parse(s.flags.arcQueue) as QueuedArc[]) : []; }
+function queueNext(s: FixState, t: Tpl, e: GameEvent, opt: string | null, ok: boolean) {
+  const n = t.next?.(s, opt, ok);
+  if (!n) return;
+  const q = arcQueue(s);
+  q.push({ tpl: n.tpl, due: s.month + n.delay, stateId: n.tpl.startsWith("outbreak2") ? "NG-LA" : e.stateId });
+  s.flags.arcQueue = JSON.stringify(q);
+}
+
 export function generateEvents(s: FixState, rng: Rng) {
+  // story arcs already in motion always continue
+  const q = arcQueue(s);
+  const due = q.filter((a) => a.due <= s.month);
+  if (due.length) { for (const a of due) createEvent(s, a.tpl, a.stateId); s.flags.arcQueue = JSON.stringify(q.filter((a) => a.due > s.month)); }
   const open = s.events.filter((e) => e.status === "open").length;
   if (open >= 6) return;
   let made = 0;
-  for (const cand of candidates(s, rng)) {
+  const rate = eventRate(s);
+  const cands = candidates(s, rng);
+  if (s.month >= 6 && !s.events.some((e) => e.kind === "story" && e.status === "open")) {
+    for (const tr of STORY_TRIGGERS) if (!s.flags[`arc:${tr.tpl}`]) cands.unshift({ tpl: tr.tpl, p: tr.p(s), place: () => { s.flags[`arc:${tr.tpl}`] = s.month; return tr.place(s, (a) => rng.pick(a)); } });
+  }
+  cands.push({ tpl: "govRequest", p: s.events.some((x) => x.tpl === "govRequest" && x.status === "open") ? 0 : 0.05, place: () => { const g = rng.pick(s.governors); const ids = Object.keys(s.regions).filter((id) => STATE_BY_ID[id]?.zone === g.zone && !cooling(s, "govRequest", id, 8)); return ids.length ? rng.pick(ids) : null; } });
+  const pressure: Record<string, GroupId> = { foodProtest: "traders", fuelProtest: "workers", labourStrike: "workers", youthProtest: "youth" };
+  for (const cand of cands) {
     if (made >= 2 || open + made >= 6) break;
     if (cand.p <= 0) continue;
+    const p = cand.p * rate * (pressure[cand.tpl] ? groupPressure(s, pressure[cand.tpl]) : 1);
     // each candidate gets its own deterministic draw
     const draw = subRng(s.meta.seed, "ev", cand.tpl, s.month).next();
-    if (draw >= cand.p) continue;
+    if (draw >= p) continue;
     const place = cand.place();
     if (!place) continue;
     createEvent(s, cand.tpl, place);
@@ -286,6 +316,10 @@ export function createEvent(s: FixState, tpl: string, stateId: string): GameEven
     id, tpl, kind: t.kind, stateId, title: t.title(s, st), cause: t.cause(s, st), scale, born: s.month, deadline: s.month + t.urgency + 1,
     status: "open", options: eventOptions(t, s),
   };
+  t.onCreate?.(s);
+  if (t.kind === "story") s.speech.moment = "story";
+  if (t.kind === "insecurity") s.speech.moment = "security";
+  if (t.onCreate) { ev.cause = t.cause(s, st); ev.title = t.title(s, st); }
   s.events.push(ev);
   s.flags[`cd:${tpl}:${stateId}`] = s.month;
   if (tpl === "ministerScandal" && s.flags.scandalMinister) s.flags[`ev:${id}:portfolio`] = s.flags.scandalMinister;
@@ -311,6 +345,11 @@ function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string) {
   if (fx.opposition) s.gov.opposition = clamp100(s.gov.opposition + fx.opposition);
   if (fx.corruption) s.gov.corruption = clamp100(s.gov.corruption + fx.corruption);
   if (fx.scandal) s.me.scandals += fx.scandal;
+  if (fx.oilPrice) s.eco.oilPrice = Math.max(38, s.eco.oilPrice + fx.oilPrice);
+  if (fx.health) s.soc.health = clamp100(s.soc.health + fx.health);
+  if (fx.groups) for (const [k, v] of Object.entries(fx.groups)) s.groupMood[k as GroupId] = clamp(s.groupMood[k as GroupId] + (v as number), -40, 40);
+  if (fx.governors) for (const g of s.governors) g.relation = clamp100(g.relation + fx.governors);
+  if (fx.govRel) relate(s, e.stateId, fx.govRel);
   const port = s.flags[`ev:${e.id}:portfolio`] as Portfolio | undefined;
   if (port && fx.sackMinister) sack(s, port);
   if (port && fx.ministerIntegrity && s.cabinet.members[port]) s.cabinet.members[port]!.integrity = clamp100(s.cabinet.members[port]!.integrity + fx.ministerIntegrity);
@@ -344,6 +383,9 @@ export function resolveEvent(s: FixState, eventId: string, optionId: string): Ev
   if (e.tpl === "kickback" && o.id === "report") s.me.acts.push("reported");
   if (e.tpl === "investigation" && o.id === "obstruct") s.me.acts.push("obstructed");
   plantForEvent(s, e.tpl, o.id, ok, o.label, e.stateId);
+  earn(s, `event:${e.tpl}:${o.id}`);
+  if (t.kind !== "request" && t.kind !== "scandal") relate(s, e.stateId, ok ? 1.5 : 0.5);
+  queueNext(s, t, e, o.id, ok);
   pushReport(s, {
     title: `${e.title}: ${o.label}`, tone: ok ? "good" : "bad",
     lines: [
@@ -367,6 +409,8 @@ export function resolveExpired(s: FixState) {
       e.status = "expired";
       e.outcome = t.expireText(sname(e.stateId));
       applyFx(s, e, t.expire, "expire");
+      if (t.kind !== "request" && t.kind !== "opportunity") relate(s, e.stateId, -3);
+      queueNext(s, t, e, null, false);
       pushNews(s, { source: `event-exp:${e.id}`, headline: `${e.title}: unanswered`, body: e.outcome, tone: t.kind === "opportunity" ? "neutral" : "bad", stateId: e.stateId });
     }
   }

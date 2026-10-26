@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { AlertTriangle, Banknote, BriefcaseBusiness, CalendarClock, Coins, Fuel, HeartHandshake, ShieldAlert, Target, TrendingUp, X } from "lucide-react";
 import { useFix, useS, type Tab } from "../store";
-import { Bar, Button, Card, EmptyState, Modal } from "../../../game/ui/kit";
+import { Bar, Button, Card, EmptyState, Modal, Tabs } from "../../../game/ui/kit";
 import { computeChallenge } from "../../engine/challenge";
 import { economyScore, fiscalCondition, headline, securityLabel, trendOf, monthsLeftInTerm, type Tone, type Layer } from "../../engine/views";
 import { nb, monthLabel, monthShort } from "../../engine/util";
@@ -14,6 +14,10 @@ import { ChallengePanel, EventCard } from "../Decisions";
 import { MapLegend, MapView } from "../MapView";
 import { Trend, Word, bn } from "../parts";
 import { CabinetCard } from "../Cabinet";
+import { GovernorsCard, GroupsCard, SpeechButton, StandingChips } from "../Politics";
+import { budgetDue } from "../../engine/politics";
+import { Portrait } from "../../../game/ui/kit";
+import { calYear, presidentName } from "../../engine/util";
 import { CampaignPanel, RivalCard } from "../Campaign";
 import { streetVoices } from "../../engine/voices";
 import { MessageCircle } from "lucide-react";
@@ -62,10 +66,16 @@ function StatusBar() {
   const onTrack = s.promises.filter((id) => PROMISE_BY_ID[id]?.kept(s)).length;
   return (
     <div className="fx-status" role="region" aria-label="Your standing">
+      <div className="g-row" style={{ gap: 12 }}>
+        <Portrait p={s.meta.portrait} size={64} name={s.meta.president} />
+        <div><div style={{ fontWeight: 900, fontSize: 17 }}>{presidentName(s)}</div><StandingChips /><div style={{ marginTop: 6 }}><SpeechButton /></div></div>
+      </div>
+      <div className="g-row" style={{ gap: 12 }}>
       <div className="fx-odds" style={{ ["--p" as string]: odds }} aria-label={`Re-election chance if the vote were today: ${odds}%`}><span>{odds}%</span></div>
       <div>
         <div style={{ fontWeight: 800 }}>{s.term >= 2 ? "Final term" : "Re-election chance if the vote were today"}</div>
         <div className="g-small g-muted">{left} month{left === 1 ? "" : "s"} until {s.term >= 2 ? "you leave office" : "election day"}. It rises with happiness, trust and promises kept. Unkept promises start to count against you in the final year.</div>
+      </div>
       </div>
       <div>
         <div style={{ fontWeight: 800 }}>Promises: {onTrack} of {s.promises.length} on target</div>
@@ -108,6 +118,31 @@ function Voices() {
       ))}
       <div className="g-tiny g-muted" style={{ marginTop: 4 }}>Fictional people, reacting to this month&apos;s real numbers.</div>
     </Card>
+  );
+}
+
+type GovTab = "cabinet" | "groups" | "governors" | "rival" | "voices";
+function GovernmentTabs() {
+  const s = useS();
+  const [t, setT] = useState<GovTab>(s.month <= 2 ? "cabinet" : "groups");
+  const angry = Object.values(s.groups).filter((v) => v < 35).length;
+  const hostile = s.governors.filter((g) => g.relation < 30).length;
+  return (
+    <div className="g-col" style={{ gap: 10 }}>
+      <div className="g-section-title">Your government and the country</div>
+      <Tabs<GovTab> value={t} onChange={setT} tabs={[
+        { id: "cabinet", label: "Cabinet", badge: s.month <= 2 ? <span className="g-badge g-badge-green">free changes</span> : undefined },
+        { id: "groups", label: "Groups", badge: angry ? <span className="g-badge g-badge-red">{angry} angry</span> : undefined },
+        { id: "governors", label: "Governors", badge: hostile ? <span className="g-badge g-badge-red">{hostile} hostile</span> : undefined },
+        { id: "rival", label: "Opposition" },
+        { id: "voices", label: "Street voices" },
+      ]} />
+      {t === "cabinet" && <CabinetCard />}
+      {t === "groups" && <GroupsCard />}
+      {t === "governors" && <GovernorsCard />}
+      {t === "rival" && <RivalCard />}
+      {t === "voices" && <Voices />}
+    </div>
   );
 }
 
@@ -154,6 +189,7 @@ export function Presidency() {
         </div>
       )}
       <StatusBar />
+      {budgetDue(s) && s.month > 0 && <div className="g-card-flat g-row g-wrap" style={{ background: "#fff8e6", borderColor: "#f5c86b", gap: 10 }}><span className="g-grow g-small"><b>The {calYear(s.month)} budget is due.</b> Decide how much goes to schools, health, security, roads and social support, then get it through the Assembly.</span><Button size="sm" variant="primary" onClick={() => setTab("policies")}>Open the budget</Button></div>}
       <CampaignPanel />
       <Kpis />
       <ChallengePanel ch={ch} />
@@ -175,13 +211,7 @@ export function Presidency() {
           </Card>
         </div>
       </div>
-      <div className="fx-two">
-        <CabinetCard />
-        <div className="g-col" style={{ gap: 14 }}>
-          <Voices />
-          <RivalCard />
-        </div>
-      </div>
+      <GovernmentTabs />
       <div className="fx-two">
         <Card title={last ? last.title : "Latest report"} action={<Button size="sm" onClick={() => setTab("news")}>All decisions</Button>}>
           {last ? <><div className="g-tiny g-muted">{monthLabel(last.month)}</div><ul className="fx-why" style={{ marginTop: 6 }}>{last.lines.map((l, i) => <li key={i}>{l}</li>)}</ul></> : <div className="g-small g-muted">Your decisions and what they did will be explained here.</div>}

@@ -7,6 +7,8 @@ import { advanceMonth } from "./sim";
 import { resolveEvent } from "./events";
 import { continueNextTerm } from "./legacy";
 import { plantForMeasure, plantForPolicy, scheduleEcho } from "./echoes";
+import { earn, nudgeGroups, relate } from "./society";
+import { setMoment } from "./politics";
 import { addMod, clamp, clamp100, debtServiceRatio, delivery, lever, monthLabel, nb, pushReport, realWage, removeMods, round } from "./util";
 
 export interface Result { ok: boolean; message: string; lines?: string[] }
@@ -32,6 +34,7 @@ export function enactPolicy(s: FixState, id: string): Result {
   const m = s.modifiers.find((x) => x.source === `policy:${id}` && x.start === s.month);
   if (m) m.monthly = d.monthly;
   plantForPolicy(s, id, d.name);
+  nudgeGroups(s, `policy:${id}`); earn(s, `policy:${id}`);
   const full = monthLabel(s.month + d.delay);
   const lines = [`${d.what}`, `Setup ${nb(cost)}${d.monthly ? `, then ${d.monthly > 0 ? "about " + nb(d.monthly * priceMult(s)) + " a month" : "saves about " + nb(-d.monthly * priceMult(s)) + " a month"}` : ""}.`, `Short term: ${d.short}`, `Long term: ${d.long}`, `Full effect by ${full}. Risk: ${d.risks}`];
   pushReport(s, { title: `Policy started: ${d.name}`, tone: "neutral", lines });
@@ -72,6 +75,7 @@ export function applyMeasure(s: FixState, id: string): Result {
   if (m && d.monthlyCost) m.monthly = d.monthlyCost;
   s.flags[`cd:measure:${id}`] = s.month + (d.cooldown ?? 4);
   plantForMeasure(s, id, d.name);
+  nudgeGroups(s, `measure:${id}`); earn(s, `measure:${id}`);
   if (recent > 0) lines0.push(`Used ${recent} time${recent > 1 ? "s" : ""} in the past year, so it works less well now (people and markets expect it).`);
   const verdict = scale >= 1.1 ? "Early signs are better than expected." : scale >= 0.85 ? "Early signs are in line with expectations." : "Early signs are weaker than hoped.";
   const lines = [...lines0, d.explain, `Cost ${nb(cost)} now${d.monthlyCost ? ` plus ${nb(d.monthlyCost * priceMult(s))} a month for ${d.duration} months` : ""}.`, `Trade-off: ${d.tradeoff}`, `${verdict} Delivery is about ${Math.round(scale * 100)}% of the nominal effect.`];
@@ -115,6 +119,7 @@ export function startProject(s: FixState, defId: string, stateId: string, fundin
   const months = Math.round(d.months * (funding === "concessional" ? 1.2 : 1));
   s.projects.push({ id, defId, name: d.name, stateId, lgaId: opts.lgaId, funding, start: s.month, months, delay: 0, progress: 0, cost, baseCost: cost, spent: 0, leaked: 0, quality, status: "active", notes: [], favour: opts.favour });
   s.flags[`fx0:${id}`] = s.eco.fx;
+  earn(s, "project"); relate(s, stateId, 4);
   if (opts.favour) {
     s.me.wealth += cost * 40 / 1000 * 1000 / 1000; // ₦m: 4% of the contract
     s.me.wealth = round(s.me.wealth, 1);
@@ -211,6 +216,8 @@ export function applyFuel(s: FixState, action: FuelAction): Result {
     addMod(s, "policy:fuelTransfers", "Targeted fuel transfers", { wage: 4 * reach, happiness: 2.5 * reach, welfare: 4 * reach }, { duration: null, ramp: 4 });
   }
   s.flags.fuelActionMonth = s.month;
+  nudgeGroups(s, `fuel:${action}`); earn(s, `fuel:${action}`);
+  if (action !== "increase") setMoment(s, "fuel");
   if (action === "remove" || action === "reduce") scheduleEcho(s, "fuelShockWave", action === "remove" ? "You removed the fuel subsidy" : "You halved the fuel subsidy", 2, "Bus fares and food prices will follow fuel up", { key: action });
   if (action === "reform") scheduleEcho(s, "transfersVerdict", "You replaced the fuel subsidy with targeted transfers", 6, "Verdict: are transfers reaching the poor?", { key: action });
   const lines = [
@@ -230,7 +237,7 @@ export function borrow(s: FixState, kind: BorrowKind, amount: number): Result {
   if (kind === "domestic") {
     if (amount > 3000) return fail("Local banks will lend at most ₦3tn at a time.");
     if (debtServiceRatio(s) > 0.9) return fail("Debt payments already take almost all revenue; lenders refuse.");
-    f.treasury += amount; f.domesticDebt += amount;
+    f.treasury += amount; f.domesticDebt += amount; earn(s, "borrow");
     f.domRate = Math.min(34, f.domRate + 0.15 * (amount / 1000));
     s.jobs.sme = clamp100(s.jobs.sme - 0.4 * (amount / 1000));
     if (amount >= 2000) scheduleEcho(s, "crowdOut", `You borrowed ${nb(amount)} from local banks`, 4, "Banks may lend less to businesses", { key: String(amount) });
@@ -243,7 +250,7 @@ export function borrow(s: FixState, kind: BorrowKind, amount: number): Result {
     if (amount > 3) return fail("Investors will take at most $3bn at a time.");
     const rate = clamp(8 + (60 - f.creditRating) * 0.15 + 0.1 * Math.max(0, e.inflation - 15), 7, 16);
     f.forRate = (f.forRate * f.foreignDebt + rate * amount) / (f.foreignDebt + amount);
-    f.foreignDebt += amount; f.treasury += amount * e.fx; e.reserves += amount * 0.5;
+    f.foreignDebt += amount; f.treasury += amount * e.fx; e.reserves += amount * 0.5; earn(s, "borrow");
     scheduleEcho(s, "bondRepay", `You borrowed $${amount}bn in dollars`, 12, "If the naira falls, this dollar debt costs more", { key: String(amount) });
     const lines = [`Issued $${amount}bn of dollar bonds at about ${round(rate, 1)}%.`, `You get ${nb(amount * e.fx)} now. Repayments are in dollars: if the naira falls 20%, the naira cost of this debt rises 20%.`];
     pushReport(s, { title: "Dollar bond issued", tone: "neutral", lines });

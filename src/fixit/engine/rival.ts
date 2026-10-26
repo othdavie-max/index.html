@@ -12,6 +12,7 @@ import { clamp, clamp100, nb, pushNews, pushReport } from "./util";
 import { stateLayerValue } from "./views";
 import { promiseScore } from "./promises";
 import { heavyweightZones, loyalistCount } from "./cabinet";
+import { voteBonus } from "./setup";
 
 export const YOUR_PARTY = { name: "National Progress Party", abbr: "NPP" };
 const RIVAL_NAMES = ["Chief Babatunde Adeleke-Ross", "Alhaji Umaru Kwankwaso-Bida", "Dr Chinedu Okonkwo-Hart", "Senator Ebiye Tonye-Briggs", "Mrs Aisha Garba-Lamido", "Prof Remi Akinwale"];
@@ -31,13 +32,15 @@ export const monthsToElection = (s: FixState) => s.termStart + TERM_MONTHS - s.m
 function nationalBase(s: FixState): number {
   const { kept, total } = promiseScore(s);
   return 50 + 0.33 * (s.gov.approval - 50) + 0.08 * (s.gov.trust - 40) + 1.6 * kept - (monthsToElection(s) <= 12 ? 1.3 * (total - kept) : 0)
-    - 0.06 * (s.rival.popularity - 45) + 0.7 * loyalistCount(s) - 3 + s.campaign.debateShift + s.campaign.mobilise - (s.me.scandals > 1 ? 2.5 : 0);
+    - 0.06 * (s.rival.popularity - 45) + 0.7 * loyalistCount(s) - 3 + s.campaign.debateShift + s.campaign.mobilise + voteBonus(s) - (s.me.scandals > 1 ? 2.5 : 0);
 }
 export function stateShare(s: FixState, id: string, noise = 0): number {
   const st = STATE_BY_ID[id];
   const done = s.projects.filter((p) => p.status === "done" && p.stateId === id).length;
   const hw = heavyweightZones(s).filter((z) => z === st.zone).length;
-  return clamp(nationalBase(s) + 0.15 * (45 - stateLayerValue(s, id, "overview")) + (s.campaign.rallies[st.zone] ?? 0) + 3 * hw + 1.5 * Math.min(3, done) - (st.zone === s.rival.zone ? 6 : 0) + noise, 5, 95);
+  const gov = s.governors?.find((g) => g.zone === st.zone);
+  const govFx = gov ? (gov.relation - 50) / 12 + (gov.party === "NPP" ? 1 : -1) : 0;
+  return clamp(nationalBase(s) + 0.15 * (45 - stateLayerValue(s, id, "overview")) + (s.campaign.rallies[st.zone] ?? 0) + 3 * hw + govFx + 1.5 * Math.min(3, done) - (st.zone === s.rival.zone ? 6 : 0) + noise, 5, 95);
 }
 export function projectVote(s: FixState, rng?: Rng): Omit<ElectionResult, "month" | "chance"> {
   const shock = rng ? rng.normal(0, 2.5) : 0;

@@ -14,6 +14,8 @@ import { resolveEchoes } from "./echoes";
 import { checkAchievements, midtermCheck } from "./promises";
 import { cabinetMonthly } from "./cabinet";
 import { rivalMonthly } from "./rival";
+import { governorSpeed, relate, societyMonthly } from "./society";
+import { assemblyMonthly } from "./politics";
 import { createEvent } from "./events";
 import { makeNews } from "./news";
 import { evaluateTermEnd } from "./legacy";
@@ -34,6 +36,8 @@ export function advanceMonth(s: FixState): boolean {
   phase4(s, subRng(s.meta.seed, "people", m));
   cabinetMonthly(s, subRng(s.meta.seed, "cabinet", m), (p) => { s.flags.scandalMinister = p; createEvent(s, "ministerScandal", "NG-FC"); });
   rivalMonthly(s, subRng(s.meta.seed, "rival", m));
+  societyMonthly(s, subRng(s.meta.seed, "society", m));
+  assemblyMonthly(s);
   resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));
@@ -59,7 +63,7 @@ function phase1(s: FixState) {
 }
 
 export function projectSpeed(s: FixState, p: Project): number {
-  return clamp(0.5 + 0.5 * p.quality, 0.4, 1.1);
+  return clamp((0.5 + 0.5 * p.quality) * governorSpeed(s, p.stateId) * (s.reputation?.builder >= 12 ? 1.05 : 1), 0.4, 1.2);
 }
 
 function stepProject(s: FixState, p: Project) {
@@ -124,6 +128,7 @@ function completeProject(s: FixState, p: Project) {
   p.progress = 1;
   p.done = s.month;
   p.benefitScale = round(scale, 2);
+  relate(s, p.stateId, 6);
   addMod(s, `project:${p.id}`, `${p.name} (completed)`, def.benefit, { ramp: 6, scale });
   const pctOfPromise = Math.round(scale * 100);
   pushReport(s, { title: `${p.name} completed`, tone: scale >= 0.85 ? "good" : "neutral", lines: [`Built in ${s.month - p.start + 1} months against ${p.months} planned.`, `Cost ${nb(p.cost)} (budget ${nb(p.baseCost)}); about ${nb(p.leaked)} was lost to leakage.`, `Delivering about ${pctOfPromise}% of the promised benefit: ${def.benefitText}.`] });

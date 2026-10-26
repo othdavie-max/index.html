@@ -109,7 +109,8 @@ export function buildLegacy(s: FixState, a: Snap, b: Snap, result: TermResult["r
   if (done.length >= 3) causes.push("Projects that finished started adding to growth and cutting costs.");
   if (s.projects.some((p) => p.leaked > p.cost * 0.12)) causes.push("Corruption and weak procurement drained money from projects.");
 
-  const { title, why } = pickTitle(s, a, b, done.length);
+  let { title, why } = pickTitle(s, a, b, done.length);
+  if (result === "removed" && title !== "Self-Enriching President") { title = "Ousted President"; why = "Support collapsed so far that you were removed from office before your term ended."; }
   return { title, titleWhy: why, rows, achievements: ach.slice(0, 8), failures: fail.slice(0, 8), crises: crises.slice(0, 8), causes: causes.slice(0, 7), result, months: s.month - s.termStart };
 }
 

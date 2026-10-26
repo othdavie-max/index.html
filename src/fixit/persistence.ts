@@ -4,6 +4,8 @@ import { FIX_VERSION, type FixState } from "./engine/types";
 import { monthLabel } from "./engine/util";
 import { initCabinet } from "./engine/cabinet";
 import { initRival } from "./engine/rival";
+import { initAssembly, initBudget, initSpeech } from "./engine/politics";
+import { initSociety } from "./engine/society";
 
 export const SAVE_FORMAT = "nigeria-fixit-save";
 export type Slot = "auto" | "1" | "2" | "3";
@@ -23,6 +25,11 @@ export function validate(x: unknown): FixState {
   if (!s.cabinet) initCabinet(s);
   if (!s.rival || !s.campaign) initRival(s);
   s.election ??= null;
+  if (!s.assembly) initAssembly(s);
+  if (!s.budget) initBudget(s);
+  if (!s.speech) initSpeech(s);
+  if (!s.groups || !s.governors) initSociety(s);
+  s.meta.scenario ??= "standard"; s.meta.difficulty ??= "normal"; s.meta.portrait ??= { skin: 2, hair: 0, style: 0, accent: 0 };
   return s;
 }
 export function serialise(s: FixState): string {
@@ -37,6 +44,14 @@ export function deserialise(text: string): { state: FixState; summary: Summary }
   return { state: validate(env.state), summary: env.summary };
 }
 
+export interface HallEntry { id: string; president: string; scenario: string; difficulty: string; term: number; title: string; result: string; vote: number | null; approval: number; inflation: [number, number]; fx: [number, number]; projects: number; date: number; score: number }
+export function hallEntry(s: FixState): HallEntry | null {
+  const t = s.terms[s.terms.length - 1];
+  if (!t) return null;
+  const done = s.projects.filter((p) => p.status === "done").length;
+  const score = Math.round(t.end.approval + (t.start.inflation - t.end.inflation) + (t.start.fx - t.end.fx) / 50 + done * 2 + (t.result === "won" || t.result === "completed" ? 15 : 0) - (s.me.acts.filter((a) => a === "kickback").length * 5));
+  return { id: `${s.meta.id}:${t.term}:${s.meta.seed}`, president: s.meta.president, scenario: s.meta.scenario, difficulty: s.meta.difficulty, term: t.term, title: t.title, result: t.result, vote: s.election && s.election.month === s.month ? s.election.national : null, approval: Math.round(t.end.approval), inflation: [t.start.inflation, t.end.inflation], fx: [t.start.fx, t.end.fx], projects: done, date: Date.now(), score };
+}
 export class FixSaves {
   constructor(private backend: StorageBackend = defaultBackend()) {}
   async save(slot: Slot, s: FixState) { const text = serialise(s); await this.backend.set(`fix:save:${slot}`, text); await this.backend.set(`fix:meta:${slot}`, JSON.stringify(deserialise(text).summary)); }
@@ -46,6 +61,8 @@ export class FixSaves {
     for (const slot of SLOTS) { try { const m = await this.backend.get(`fix:meta:${slot}`); out.push({ slot, summary: m ? (JSON.parse(m) as Summary) : undefined }); } catch { out.push({ slot }); } }
     return out;
   }
+  async hall(): Promise<HallEntry[]> { try { const t = await this.backend.get("fix:hall"); return t ? (JSON.parse(t) as HallEntry[]) : []; } catch { return []; } }
+  async addHall(e: HallEntry) { const list = (await this.hall()).filter((x) => x.id !== e.id); list.push(e); list.sort((a, b) => b.score - a.score); await this.backend.set("fix:hall", JSON.stringify(list.slice(0, 50))); }
   async remove(slot: Slot) { await this.backend.remove(`fix:save:${slot}`); await this.backend.remove(`fix:meta:${slot}`); }
 }
 export { MemoryBackend };

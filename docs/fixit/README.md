@@ -30,3 +30,12 @@ Run tests: `npx vitest run src/fixit`.
 - **Campaign**: opens six months before election day (term 1). Two activities a month: rallies by zone (diminishing returns), door-to-door drive, risky attack ads, plus a three-question debate.
 - **Election**: counted per state; win needs >50% nationally and ≥25% in 24 of 37 states, otherwise a run-off. Results are seeded and shown on an animated election-night map.
 - **Street voices and ticker** (`engine/voices.ts`): fictional citizens quote this month's real numbers; a breaking-news ticker shows the latest headlines.
+
+## Scenarios, Assembly, society and stories
+- **Setup** (`engine/setup.ts`): name, portrait, five scenarios (inherited mess, debt crisis, oil boom, disputed election, calm but poor) and three difficulties (cash, crisis frequency, voter mood).
+- **National Assembly** (`engine/politics.ts`): controversial policies, fuel-subsidy changes and the annual budget need a vote. Chance comes from Assembly support (loyalists, governors, popularity, rival, scandals) minus the bill's difficulty; lobby first (constituency projects, favours, public pressure). The gate is applied in the UI/command layer; engine actions remain directly callable.
+- **Budget**: five heads with levels from deep cut to big raise; running costs and levers via a `budget` modifier; due each January.
+- **Speeches**: honest / hopeful / tough / blame, judged against the moment (e.g. blame works only early; hopeful only if things are improving); three-month cooldown.
+- **Society** (`engine/society.ts`): seven groups with their own approval (traders, farmers, youth, workers, business, military, faith leaders). Decisions nudge them; very angry groups raise protest odds or cost investment/security. Reputation traits (Reformer, Populist, Strongman, Clean, Builder, Borrower) come from choices and carry effects. Six zone governors (party, relationship) affect project speed, votes and Assembly support, make funding requests and may defect.
+- **Story arcs** (`engine/stories.ts`): outbreak, oil crash, coup rumour, refugees, lithium discovery and a summit; multi-stage, branch on choice and outcome, once per game.
+- **Hall of Presidents** (local) and a **share card** (canvas PNG, Web Share when available).
