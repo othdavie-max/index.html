@@ -79,6 +79,16 @@ export function ShareButton({ s, title, a, b, verdict }: { s: FixState; title: s
     try {
       if (nav.share && nav.canShare?.({ files: [file] })) { await nav.share({ files: [file], title: "My presidency", text: `I was ${title} in Nigeria: Can You Fix It?` }); setMsg("Shared."); return; }
     } catch { /* user cancelled or sharing blocked */ }
+    // inside a published claude.ai page, files are offered through the viewer's downloads capability
+    const host = (window as unknown as { claude?: { use?: (n: string) => Promise<{ save: (r: { filename: string; data: Blob }) => Promise<unknown> } | null> } }).claude;
+    if (host?.use) {
+      const dl = await host.use("downloads").catch(() => null);
+      if (dl) {
+        try { await dl.save({ filename: "my-presidency.png", data: blob }); setMsg("Image saved."); }
+        catch (e) { const code = (e as { code?: string }).code; setMsg(code === "declined" ? "Save cancelled." : code === "rate_limited" ? "Please wait a moment and try again." : "Saving is not available here."); }
+        return;
+      }
+    }
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url; link.download = "my-presidency.png"; link.click();
