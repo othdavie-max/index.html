@@ -1,0 +1,21 @@
+<template>
+  <style>
+    #root{position:absolute;inset:0;background:var(--g);overflow:hidden;font-family:Inter,sans-serif}
+    .t{position:absolute;left:0;right:0;top:178px;text-align:center;font-family:'Archivo Black',sans-serif;font-size:76px;line-height:1;color:#fff;letter-spacing:-0.02em;white-space:nowrap}
+    .phone{position:absolute;left:110px;top:330px;width:860px;border-radius:56px 56px 0 0;box-shadow:0 40px 90px rgba(0,0,0,.35);overflow:hidden;background:#fff}
+    .phone img{display:block;width:860px}
+    .stk{position:absolute;left:150px;right:150px;text-align:center;background:#fff;color:#0b1b33;font-family:'Archivo Black',sans-serif;font-size:58px;line-height:1.05;padding:30px 24px;border-radius:36px;box-shadow:0 22px 50px rgba(0,0,0,.35)}
+  </style>
+  <div id="root" data-composition-id="gold" data-width="1080" data-height="1920" style="--g:#075e32">
+    <h1 id="gold-t" class="t clip" data-start="0" data-duration="3.8" style="color:#fbbf24">Golden moments.</h1>
+    <div id="gold-phone" class="phone clip" data-start="0" data-duration="3.8" data-layout-allow-overflow><img src="assets/gold.jpg" alt=""></div>
+    <div id="gold-s" class="stk clip" data-start="1.6" data-duration="2.2" style="top:1520px;background:#fbbf24">About 1 in 50 years.</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#gold-t",{opacity:0,filter:"blur(14px)",scale:1.25},{opacity:1,filter:"blur(0px)",scale:1,duration:0.55,ease:"power3.out"},0);
+    tl.fromTo("#gold-phone",{y:700},{y:0,duration:0.6,ease:"power4.out"},0);
+    tl.fromTo("#gold-s",{x:-700,opacity:0},{x:0,opacity:1,duration:0.45,ease:"power4.out"},1.6);
+    window.__timelines["gold"] = tl;
+  </script>
+</template>

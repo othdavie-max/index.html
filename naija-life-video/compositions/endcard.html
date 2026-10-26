@@ -1,0 +1,24 @@
+<template>
+  <style>
+    #root{position:absolute;inset:0;background:var(--g);overflow:hidden;font-family:Inter,sans-serif}
+    .t{position:absolute;left:0;right:0;top:178px;text-align:center;font-family:'Archivo Black',sans-serif;font-size:76px;line-height:1;color:#fff;letter-spacing:-0.02em;white-space:nowrap}
+    .phone{position:absolute;left:110px;top:330px;width:860px;border-radius:56px 56px 0 0;box-shadow:0 40px 90px rgba(0,0,0,.35);overflow:hidden;background:#fff}
+    .phone img{display:block;width:860px}
+    .stk{position:absolute;left:150px;right:150px;text-align:center;background:#fff;color:#0b1b33;font-family:'Archivo Black',sans-serif;font-size:58px;line-height:1.05;padding:30px 24px;border-radius:36px;box-shadow:0 22px 50px rgba(0,0,0,.35)}
+  </style>
+  <div id="root" data-composition-id="endcard" data-width="1080" data-height="1920" style="--g:#075e32">
+    <div id="end-n" class="clip" data-start="0" data-duration="5.2" style="position:absolute;left:0;right:0;top:640px;text-align:center;font-family:'Archivo Black',sans-serif;font-size:190px;line-height:0.95;color:#fff;letter-spacing:-0.03em">Naija<br><span id="end-l" style="color:#fbbf24">Life</span></div>
+    <div id="end-f" class="clip" data-start="0" data-duration="5.2" style="position:absolute;left:0;right:0;top:1080px;display:flex;height:22px"><i id="end-f1" style="flex:1;background:#fff"></i><i style="flex:1;background:transparent"></i><i id="end-f3" style="flex:1;background:#fff"></i></div>
+    <div id="end-c" class="clip" data-start="1.6" data-duration="3.6" style="position:absolute;left:150px;right:150px;top:1200px;text-align:center;font-size:56px;font-weight:700;color:#fff;line-height:1.2">Live it your way.<br>English or Pidgin.</div>
+    <div id="end-u" class="stk clip" data-start="2.8" data-duration="2.4" style="top:1500px;font-size:44px;left:130px;right:130px">naija-life-flame.vercel.app</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#end-n",{y:200,opacity:0,scale:0.8},{y:0,opacity:1,scale:1,duration:0.7,ease:"back.out(1.6)"},0.1);
+    tl.fromTo("#end-f1",{scaleX:0,transformOrigin:"left center"},{scaleX:1,duration:0.4,ease:"power3.out"},0.8);
+    tl.fromTo("#end-f3",{scaleX:0,transformOrigin:"right center"},{scaleX:1,duration:0.4,ease:"power3.out"},0.8);
+    tl.fromTo("#end-c",{opacity:0,y:40},{opacity:1,y:0,duration:0.5,ease:"power3.out"},1.6);
+    tl.fromTo("#end-u",{scale:0.5,opacity:0},{scale:1,opacity:1,duration:0.45,ease:"back.out(2)"},2.8);
+    window.__timelines["endcard"] = tl;
+  </script>
+</template>

@@ -1,0 +1,20 @@
+<template>
+  <style>
+    #root{position:absolute;inset:0;background:var(--g);overflow:hidden;font-family:Inter,sans-serif}
+    .t{position:absolute;left:0;right:0;top:178px;text-align:center;font-family:'Archivo Black',sans-serif;font-size:76px;line-height:1;color:#fff;letter-spacing:-0.02em;white-space:nowrap}
+    .phone{position:absolute;left:110px;top:330px;width:860px;border-radius:56px 56px 0 0;box-shadow:0 40px 90px rgba(0,0,0,.35);overflow:hidden;background:#fff}
+    .phone img{display:block;width:860px}
+    .stk{position:absolute;left:150px;right:150px;text-align:center;background:#fff;color:#0b1b33;font-family:'Archivo Black',sans-serif;font-size:58px;line-height:1.05;padding:30px 24px;border-radius:36px;box-shadow:0 22px 50px rgba(0,0,0,.35)}
+  </style>
+  <div id="root" data-composition-id="hook" data-width="1080" data-height="1920" style="--g:#075e32">
+    <h1 id="hook-t" class="t clip" data-start="0" data-duration="3.2">Born in Naija.</h1>
+    <div id="hook-phone" class="phone clip" data-start="0" data-duration="3.2" data-layout-allow-overflow><img src="assets/start.jpg" alt=""></div>
+    <div id="hook-s" class="stk clip" data-start="1.1" data-duration="2.1" style="top:1480px">Now live it.</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#hook-phone",{y:140},{y:0,duration:0.6,ease:"power4.out"},0);
+    tl.fromTo("#hook-s",{scale:0.6,opacity:0,rotation:-4},{scale:1,opacity:1,rotation:0,duration:0.4,ease:"back.out(2)"},1.1);
+    window.__timelines["hook"] = tl;
+  </script>
+</template>
