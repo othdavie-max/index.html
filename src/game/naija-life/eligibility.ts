@@ -70,6 +70,7 @@ export const GATES: Record<string, Gate> = {
   parent_estate: { minAge: 0 },
   efcc_raid: { minAge: 16 },
   black_tax: { minAge: 20 },
+  gold_contract: { minAge: 15 }, gold_skit: { minAge: 15 }, gold_mentor: { minAge: 15 }, gold_land: { minAge: 15 }, gold_scholarship: { minAge: 15 }, gold_ticket: { minAge: 18 },
   policy_choice: { minAge: 30 },
   compound_reunion: { minAge: 18 },
   heirloom_offer: { minAge: 18 },

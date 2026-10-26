@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ALL_TRIBES, HOUSE_KINDS, INVESTMENTS, LUXURIES, OFFICES, RELIGIONS, STATE_BY_ID, TRAVEL_STATES,
 } from "./data";
@@ -33,6 +33,11 @@ import { isRealtor } from "./realtor";
 import { eventEmoji, toneOf } from "./tone";
 import { Pops, changeChips, type Chip } from "./Pops";
 import { MiniHost } from "./mini/Host";
+import { sfx } from "./sound";
+import { isGold } from "./gold";
+import { ChallengesCard, PerkPicker, RibbonBookCard, UnlockPop } from "./ReplayUI";
+import { applyPerk, checkChallenges, collectRibbons } from "./replay";
+import { liveRibbons } from "./ribbons";
 import { FamilyChat } from "./mini/FamilyChat";
 import { ActionSheet, BackPill, SubNavContext, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
@@ -107,6 +112,8 @@ export default function NaijaLife() {
   const [toast, setToast] = useState("");
   useEffect(() => { setLiveSeason(new Date()); }, []);
   const [chips, setChips] = useState<Chip[]>([]);
+  const [unlock, setUnlock] = useState<{ emoji: string; title: string; kind: string } | null>(null);
+  const unlockQueue = useRef<{ emoji: string; title: string; kind: string }[]>([]);
   const [menu, setMenu] = useState(false);
   const [cardImg, setCardImg] = useState<{ url: string; text: string } | null>(null);
 
@@ -176,6 +183,15 @@ export default function NaijaLife() {
     return r.msg;
   };
   const run = (a: Action) => { runMsg(a); };
+  const celebrate = (np: Player) => {
+    const ribs = liveRibbons(np);
+    const fresh = collectRibbons(ribs.map((r) => r.id));
+    const ch = checkChallenges(np);
+    const items = [...ribs.filter((r) => fresh.includes(r.id)).map((r) => ({ emoji: r.emoji, title: T(r.en, r.pcm), kind: T("Ribbon unlocked", "Ribbon don unlock") })), ...ch.map((x) => ({ emoji: x.emoji, title: T(x.en, x.pcm), kind: T("Challenge complete", "Challenge complete") }))];
+    if (!items.length) return;
+    unlockQueue.current.push(...items);
+    if (!unlock) { setUnlock(unlockQueue.current.shift() ?? null); try { sfx("win"); } catch { /* no audio */ } }
+  };
 
   if (!ready) return <div className="min-h-screen bg-[#f3f8ff]" />;
 
@@ -191,7 +207,7 @@ export default function NaijaLife() {
           onDelete={(i) => setSlots((s) => { const next = [...s]; next[i] = null; writeSlots(next); return next; })}
           onStart={(o, i) => {
             setSlot(i);
-            setGame(newGame(o));
+            setGame(applyPerk(newGame(o)));
             setTab("life");
             if (!hasSeenTutorial()) setTour(true);
           }}
@@ -239,19 +255,21 @@ export default function NaijaLife() {
       </SubNavContext.Provider>
 
       <Pops chips={chips} note={toast} />
+      <UnlockPop item={unlock} onDone={() => { const nx = unlockQueue.current.shift() ?? null; setUnlock(nx); }} />
 
-      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { const next = ageUp(game); setGame(next); setTab("life"); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch { /* old browser */ } const c = changeChips(game.p, next.p, 2); if (c.length && next.p.alive) setChips(c); try { navigator.vibrate?.(next.p.alive ? 12 : [40, 60, 40]); } catch { /* no haptics */ } }} />
+      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { const next = ageUp(game); setGame(next); setTab("life"); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch { /* old browser */ } const c = changeChips(game.p, next.p, 2); if (c.length && next.p.alive) setChips(c); celebrate(next.p); try { navigator.vibrate?.(next.p.alive ? 12 : [40, 60, 40]); } catch { /* no haptics */ } }} />
 
       {result !== null && (
         <Sheet>
           <div className="mb-2 mt-4 flex justify-center"><span className={cx("flex h-14 w-14 items-center justify-center rounded-2xl text-[30px]", toneOf(result) === "good" ? "bg-emerald-50" : toneOf(result) === "bad" ? "bg-rose-50" : "bg-blue-50")} aria-hidden>{toneOf(result) === "good" ? "🎉" : toneOf(result) === "bad" ? "😬" : "👉🏾"}</span></div>
-          <p className="text-center text-base leading-relaxed text-slate-900">{result}</p>
+          <p className="whitespace-pre-line text-center text-base leading-relaxed text-slate-900">{result}</p>
           <Btn className="mt-4 w-full" onClick={() => setResult(null)}>{T("Continue", "Continue")}</Btn>
         </Sheet>
       )}
 
       {view && p.alive && (
         <Sheet title={view.title}>
+          {evHead?.kind === "event" && isGold(evHead.id) && <GoldBanner />}
           {!evLook && <div className="mb-3 flex justify-center"><span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-[44px] shadow-inner ring-1 ring-blue-100" aria-hidden>{eventEmoji(String(evHead?.kind === "event" ? evHead.id : ""), view.title)}</span></div>}
           {evLook && (
             <div className="mb-3 flex justify-center">
@@ -534,6 +552,8 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
             </select>
           </label>
         )}
+        <PerkPicker />
+        <details className="rounded-2xl border border-slate-100 bg-white"><summary className="cursor-pointer px-3 py-2.5 text-[13px] font-extrabold text-[#0b2a6b]">🏅 {T("Ribbon book and challenges", "Ribbon book and challenges")}</summary><div className="space-y-3 px-1 pb-2"><RibbonBookCard /><ChallengesCard /></div></details>
         <Btn className="w-full py-3 text-base" onClick={() => {
           const pr = FAMILY_PRESETS.find((x) => x.id === preset);
           onStart({ name, gender, stateId: stateId || null, tribe: tribe || null, religion: religion || null, look, lang, seed: seedText.trim() ? hashSeed(seedText) : null, familyConfig: pr?.cfg, forceArchetype: pr?.force }, target);
@@ -553,6 +573,15 @@ const STAGE_TITLE: Record<string, () => string> = {
   primary: () => T("Primary school", "Primary school"), secondary: () => T("Secondary school", "Secondary school"), university: () => T("University", "University"),
   admission: () => T("After secondary school", "After secondary school"), nysc: () => T("NYSC year", "NYSC year"), work: () => T("Work and money-making", "Work and money-making"),
 };
+
+function GoldBanner() {
+  useEffect(() => { try { sfx("win"); } catch { /* no audio */ } }, []);
+  return (
+    <div className="mb-3 overflow-hidden rounded-2xl bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 p-[2px]">
+      <div className="rounded-[14px] bg-gradient-to-r from-amber-50 to-yellow-50 px-3 py-2 text-center text-[12px] font-black uppercase tracking-[0.2em] text-amber-700">✨ {T("Rare golden moment", "Rare golden moment")} ✨</div>
+    </div>
+  );
+}
 
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const [sub, setSub] = useState<WorkSub>(null);
@@ -813,6 +842,8 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       <BackgroundCard p={p} /><OwedCard p={p} />
       </>)}
       {sub === "awards" && (<>
+      <RibbonBookCard />
+      <ChallengesCard />
       <MilestonesCard p={p} />
       <FriendBoardCard p={p} />
       <ListGroup title={T("Achievements", "Achievements")}>
@@ -1053,6 +1084,7 @@ function DeathScreen({ g, onHeir, onNew }: { g: Game; onHeir: (i: number) => voi
   const entry = g.dynasty.lineage[g.dynasty.lineage.length - 1];
   const [msg, setMsg] = useState("");
   const obit = useObituary(p);
+  useEffect(() => { collectRibbons(ribbonsOf(p).map((r) => r.id)); checkChallenges(p); }, [p]);
   const share = async () => {
     const r2 = await shareObituary(p, obit, "post");
     setMsg(r2 === "shared" ? T("Shared!", "Shared!") : T("Card ready. Save it or screenshot it!", "Card don ready. Save am or take screenshot!"));

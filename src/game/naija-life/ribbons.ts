@@ -40,3 +40,11 @@ export function ribbonsOf(p: Player): Ribbon[] {
   return R.filter((r) => { try { return r.check(p); } catch { return false; } }).map(({ check, ...r }) => { void check; return r; }).slice(0, 8);
 }
 export const ribbonTitle = (r: Ribbon) => T(r.en, r.pcm);
+
+/** Every ribbon, for the collection book. */
+export const ALL_RIBBONS: Ribbon[] = R.map(({ check, ...x }) => { void check; return x; });
+const DEATH_ONLY = new Set(["young", "lonely", "broke"]);
+/** Ribbons that can be earned while still alive, for the live "unlocked!" pop-up. */
+export function liveRibbons(p: Player): Ribbon[] {
+  return R.filter((r) => !DEATH_ONLY.has(r.id)).filter((r) => { try { return r.check(p); } catch { return false; } }).map(({ check, ...x }) => { void check; return x; });
+}

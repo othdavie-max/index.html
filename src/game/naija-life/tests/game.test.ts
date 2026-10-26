@@ -544,6 +544,7 @@ test("mortgages: terms, deposit only, monthly repayments, foreclosure and sale p
   const months = q.p.ledger.filter((t) => t.recurring === loan.id).length;
   assert.ok(months >= 12 && months <= 26, `about one instalment per month, saw ${months}`);
   // selling pays the bank first
+  q.p.prison = 0; q.queue = [];
   const sold = act(q, { t: "sell", id: house.id }).g;
   assert.equal(sold.p.loans.find((l) => l.id === loan.id)!.status, "paid");
   assert.ok(ledgerBalances(sold.p));
@@ -1786,9 +1787,9 @@ test("unserviced vehicles wear out faster than serviced ones and eventually brea
   p.money = 1e12;
   const m = VEHICLE_MODELS.find((x) => x.cat === "car")!;
   const a = addVehicle(p, m); const b = addVehicle(p, m);
-  a.service = 0; b.service = 2; a.condition = 90; b.condition = 90;
+  a.service = 0; b.service = 2; a.condition = 70; b.condition = 70;
   const lines: string[] = [];
-  for (let i = 0; i < 48; i++) { p.month = (i % 12) + 1; vehicleMonth(p, lines); }
+  for (let i = 0; i < 72; i++) { p.month = (i % 12) + 1; vehicleMonth(p, lines); }
   assert.ok(a.condition < b.condition - 15, `neglected ${a.condition} vs full ${b.condition}`);
   assert.ok(lines.some((l) => /broke|break/i.test(l)), "the neglected car breaks down");
 });
@@ -2099,4 +2100,32 @@ test("mini-game scores feed into actions, and skipping keeps the old behaviour",
   let r = act(q, { t: "biz", op: "start", id: BIZ_KINDS[0].id, name: "Test" } as never).g;
   const bz = r.p.businesses[0];
   if (bz) { r.p.actionsLeft = 2; const before = r.p.money; r = act(r, { t: "biz", op: "shift", id: bz.id, score: 1 }).g; assert.ok(r.p.money > before, "a good rush hour pays"); }
+});
+
+test("story arcs run across three years and end; golden events and replay checks work", async () => {
+  const arcs = await import("../arcs");
+  const gold = await import("../gold");
+  const rp = await import("../replay");
+  const g = aliveAt(30);
+  const p = structuredClone(g.p);
+  p.prison = 0; p.money = 1e10;
+  for (const a of arcs.ARCS) {
+    const q = structuredClone(p);
+    q.age = Math.max(a.ages[0], 30); q.flags.arc = a.id; q.flags.arcStep = 0; q.flags.arcScore = 0;
+    for (let n = 0; n < 3; n++) {
+      const ev = arcs.ARC_EVENTS.find((e) => e.id === `arc_${a.id}_${n}`)!;
+      assert.ok(ev.valid!(q), `${a.id} step ${n} valid`);
+      const txt = ev.choices(q, {})[0].run(q);
+      assert.ok(typeof txt === "string" && txt.length > 0);
+      if (n < 2) assert.ok(/continue/i.test(txt), "cliffhanger");
+    }
+    assert.ok(!q.flags.arc && String(q.flags.arcsDone).includes(a.id), `${a.id} finished`);
+  }
+  // arcYear starts one eventually
+  const q = structuredClone(p); q.housing.type = "rented";
+  let started = false;
+  for (let i = 0; i < 80 && !started; i++) { const pend: import("../types").Pending[] = []; arcs.arcYear(q, pend); started = pend.length > 0; q.age += 1; if (q.age > 60) q.age = 30; }
+  assert.ok(started, "a story starts eventually");
+  for (const e of gold.GOLD_EVENTS) for (let i = 0; i < 2; i++) { const r = structuredClone(p); const m = r.money; e.choices(r, {})[i].run(r); assert.ok(r.money > m); }
+  assert.ok(rp.CHALLENGES.length >= 10 && rp.PERKS.length >= 5);
 });

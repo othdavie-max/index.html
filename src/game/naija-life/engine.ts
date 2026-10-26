@@ -25,6 +25,8 @@ import { yearlyNews } from "./news";
 import { MONEY_EVENTS, POLICY_EVENTS, econYear } from "./economy";
 import { applyDaily } from "./daily";
 import { LEGACY_EVENTS, inheritLegacy, legacyYear } from "./legacy";
+import { ARC_EVENTS, arcYear } from "./arcs";
+import { GOLD_EVENTS, goldYear } from "./gold";
 import { RIVAL_EVENTS, callFavour, npcFortunes, rivalYear, type FavourKind } from "./rival";
 import { QUEST_EVENTS, milestonesYear, questsYear } from "./quests";
 import { businessShift } from "./business";
@@ -71,7 +73,7 @@ import type { FamilyConfig } from "./family";
 import type { FamilyArchetype } from "./types";
 
 const PRISON_EVENT_IDS = new Set(PRISON_EVENTS.map((e) => e.id));
-export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...MONEY_EVENTS, ...POLICY_EVENTS, ...INV2_EVENTS, ...RIVAL_EVENTS, ...LEGACY_EVENTS, ...QUEST_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
+export const ALL_EVENTS: EventDef[] = [...EVENTS, ...EVENTS2, ...EVENTS3, ...EVENTS4, ...EVENTS5, ...EVENTS6, ...MILITARY_EVENTS, ...PRISON_EVENTS, ...SUPPORT_EVENTS, ...EDU_EVENTS, ...KID_EVENTS, ...MARKET_EVENTS, ...ENGAGE_EVENTS, ...NYSC_EVENTS, ...SCENARIO_EVENTS, ...SKILL_EVENTS, ...PARENT_EVENTS, ...YAHOO_EVENTS, ...BIT_EVENTS, ...MONEY_EVENTS, ...POLICY_EVENTS, ...INV2_EVENTS, ...RIVAL_EVENTS, ...LEGACY_EVENTS, ...ARC_EVENTS, ...GOLD_EVENTS, ...QUEST_EVENTS, ...HEALTH_EVENTS, ...REL_EVENTS, ...BIZ_EVENTS, ...BET_EVENTS, ...SOCIAL_EVENTS, ...CRIME_EVENTS, ...LIFE_EVENTS, ...POLITICS_EVENTS];
 export const ALL_AUTOS = [...AUTOS, ...AUTOS2, ...AUTOS3];
 export const EVENT_DEFS: Record<string, EventDef> = Object.fromEntries(ALL_EVENTS.map((e) => [e.id, e]));
 const START_YEAR = new Date().getFullYear();
@@ -599,7 +601,7 @@ export function ageUp(g0: Game): Game {
   yearlyCrime(p, lines, pending);
   yahooYear(p, lines, pending);
   bitYear(p, lines, pending);
-  if (p.alive && p.age >= 6) { legacyYear(p, lines, pending); rivalYear(p, lines, pending); npcFortunes(p, lines, pending); milestonesYear(p, pending); questsYear(p, lines); }
+  if (p.alive && p.age >= 6) { legacyYear(p, lines, pending); arcYear(p, pending); goldYear(p, pending); rivalYear(p, lines, pending); npcFortunes(p, lines, pending); milestonesYear(p, pending); questsYear(p, lines); }
   fugitiveYear(p, lines);
   yearlyGrowth(p);
   yearlySocial(p, lines, (id, data) => pending.push({ kind: "event", id, data: { month: randInt(1, 12), ...(data ?? {}) } }));
