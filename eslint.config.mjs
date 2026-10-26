@@ -18,7 +18,7 @@ const eslintConfig = defineConfig([
   },
   {
     // The game's UI copy uses ordinary apostrophes in JSX text; escaping them harms readability of the source.
-    files: ["src/game/**/*.tsx"],
+    files: ["src/game/**/*.tsx", "src/fixit/**/*.tsx"],
     rules: { "react/no-unescaped-entities": "off" },
   },
   // Override default ignores of eslint-config-next.

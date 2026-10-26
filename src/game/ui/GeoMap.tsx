@@ -4,7 +4,7 @@
  * without touching this component. Supports mouse (drag, wheel), touch (drag, pinch), keyboard (arrows, +/-, 0,
  * Enter on focused regions) and on-screen zoom buttons. Stroke widths are non-scaling so borders stay crisp at any zoom.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Minus, Plus, Maximize2 } from "lucide-react";
 import type { GeoData } from "./geoData";
 import { lgasByState } from "./geoData";
@@ -26,6 +26,8 @@ export interface GeoMapProps {
   showLabels?: boolean;
   height?: number | string;
   ariaLabel?: string;
+  /** extra SVG drawn on top (markers, symbols); coordinates are the same as the geometry's */
+  overlay?: (ctx: { pxPerUnit: number; zoom: number }) => ReactNode;
 }
 
 const pad = (bb: [number, number, number, number], f = 0.12): View => {
@@ -196,6 +198,7 @@ export function GeoMap(p: GeoMapProps) {
             return <text key={`tl${l.id}`} x={l.c[0]} y={l.c[1]} textAnchor="middle" className="g-map-label" fontSize={9.5 / pxPerUnit} strokeWidth={3 / pxPerUnit}>{name}</text>;
           })}
         </g>
+        {p.overlay?.({ pxPerUnit, zoom })}
       </svg>
       <div className="g-map-ctl">
         <button aria-label="Zoom in" onClick={() => zoomAt(1 / 1.4, view.x + view.w / 2, view.y + view.h / 2)}><Plus size={18} /></button>

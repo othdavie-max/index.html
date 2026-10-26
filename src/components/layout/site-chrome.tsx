@@ -18,7 +18,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
   // the political simulation game is a self-contained app with its own shell
-  const isGame = pathname?.startsWith("/game");
+  const isGame = pathname?.startsWith("/game") || pathname?.startsWith("/fix");
   const isBooking = pathname === "/book";
   const [chatOpen, setChatOpen] = useState(false);
 
