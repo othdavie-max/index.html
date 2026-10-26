@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useFix } from "./store";
 import { Badge, Button, EmptyState, Modal } from "../../game/ui/kit";
 import type { HallEntry } from "../persistence";
-import { SCENARIO_BY_ID, DIFFICULTY } from "../engine/setup";
+import { issuesLabel, DIFFICULTY } from "../engine/setup";
 
 export function Hall({ onClose }: { onClose: () => void }) {
   const { saves } = useFix();
@@ -19,7 +19,7 @@ export function Hall({ onClose }: { onClose: () => void }) {
               <b style={{ width: 28, fontSize: 18, color: i === 0 ? "#b45309" : "#64748b" }}>{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}</b>
               <div className="g-grow">
                 <div className="g-row g-wrap" style={{ gap: 6 }}><b>{h.president}</b><Badge tone="navy">{h.title}</Badge><Badge tone={h.result === "won" || h.result === "completed" ? "green" : "red"}>{h.result === "won" ? "Re-elected" : h.result === "completed" ? "Served two terms" : h.result === "removed" ? "Removed" : "Voted out"}</Badge></div>
-                <div className="g-tiny g-muted">{SCENARIO_BY_ID[h.scenario]?.name ?? h.scenario} · {DIFFICULTY[h.difficulty as keyof typeof DIFFICULTY]?.label ?? h.difficulty} · term {h.term} · {new Date(h.date).toLocaleDateString()}</div>
+                <div className="g-tiny g-muted">{issuesLabel(h.scenario)} · {DIFFICULTY[h.difficulty as keyof typeof DIFFICULTY]?.label ?? h.difficulty} · term {h.term} · {new Date(h.date).toLocaleDateString()}</div>
                 <div className="g-small" style={{ marginTop: 2 }}>Inflation {h.inflation[0]}% → {h.inflation[1]}% · naira ₦{h.fx[0].toLocaleString()} → ₦{h.fx[1].toLocaleString()} · {h.projects} projects · approval {h.approval}%{h.vote !== null ? ` · ${h.vote}% of the vote` : ""}</div>
               </div>
               <b className="g-num">{h.score}</b>

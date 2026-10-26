@@ -169,7 +169,7 @@ function phase2(s: FixState, rng: Rng) {
   s.power.grid = clamp100(s.power.grid - Math.max(0, wear) * 0.7);
 
   // --- food: weather draws once a year, supply, losses
-  if (s.month % 12 === 0 || s.flags.weatherYear === undefined) {
+  if ((s.month % 12 === 0 && s.flags.weatherYear !== Math.floor(s.month / 12)) || s.flags.weatherYear === undefined) {
     const w = subRng(s.meta.seed, "weather", Math.floor(s.month / 12));
     s.agri.weather = round(clamp(w.normal(0, 0.55), -1, 1), 2);
     s.flags.weatherYear = Math.floor(s.month / 12);
@@ -295,7 +295,7 @@ function phase3(s: FixState, rng: Rng) {
   const pumpChg = (fu.pump / START_PUMP - 1) * 100;
   const transportPush = 0.12 * pumpChg - 0.3 * L("transport") * 0 + L("transport") * 0.4;
   const foodTarget = 23 + 2.5 * gapF + 14 * Math.max(e.emaDrift, -0.15) + transportPush + season + L("foodPrice");
-  e.foodInflation = clamp(e.foodInflation + 0.3 * (foodTarget - e.foodInflation), -5, 90);
+  e.foodInflation = clamp(e.foodInflation + 0.3 * (Math.max(1.5, foodTarget) - e.foodInflation), 0, 90);
   s.why.food = [
     gapF > 1 ? "Not enough food is reaching markets for demand" : "Food supply is roughly meeting demand",
     `About ${Math.round(s.agri.loss)}% of harvested food is lost before it is eaten`,
@@ -306,7 +306,8 @@ function phase3(s: FixState, rng: Rng) {
   // headline inflation
   const monet = 25 * (s.fin.waysAndMeans / Math.max(1, s.fin.revenue));
   const coreTarget = 8.5 + 18 * Math.max(e.emaDrift, -0.15) + 0.025 * (fu.pump - 600) + L("inflation") + monet;
-  const target2 = 0.45 * e.foodInflation + 0.55 * coreTarget;
+  // prices rarely fall outright: very low readings settle around a few percent
+  const target2 = Math.max(3, 0.45 * e.foodInflation + 0.55 * coreTarget);
   e.inflation = clamp(e.inflation + 0.22 * (target2 - e.inflation), -2, 80);
   e.priceLevel *= 1 + e.inflation / 1200;
   e.foodPriceIdx *= 1 + e.foodInflation / 1200;

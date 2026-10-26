@@ -137,7 +137,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const startNew = useCallback((seed?: number, promises?: string[], setup?: SetupOptions) => {
     const prev = gameRef.current?.promises;
     const pm = gameRef.current?.meta;
-    const opts: SetupOptions = setup ?? (pm ? { scenario: pm.scenario, difficulty: pm.difficulty, portrait: pm.portrait, president: pm.president } : {});
+    const opts: SetupOptions = setup ?? (pm ? { difficulty: pm.difficulty, portrait: pm.portrait, president: pm.president } : {});
     const g = newGame(seed ?? Math.floor(Math.random() * 1e6) + 1, opts.president ?? "Madam/Mr President", opts);
     setPromises(g, promises ?? prev ?? []);
     setGame(g); setScreen("play"); setTab("presidency"); setSummary(null); setSelect({ state: null, lga: null }); bump();

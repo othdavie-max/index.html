@@ -7,7 +7,7 @@ import { initCabinet } from "./cabinet";
 import { initRival } from "./rival";
 import { initAssembly, initBudget, initSpeech } from "./politics";
 import { computeGroups, initSociety } from "./society";
-import { applySetup, type SetupOptions } from "./setup";
+import { applySetup, issuesOf, type SetupOptions } from "./setup";
 
 export const START = {
   fx: 1500, reserves: 36, inflation: 25, foodInflation: 31, oil: 78, pump: 750, treasury: 1500,
@@ -68,6 +68,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
   s.fuel.costMonthly = (1500 * (1 + 0.15 * s.fuel.coverage) / 1000) * (s.fuel.parity - s.fuel.pump) * (1 + s.fuel.leak);
   s.baseline = snap(s);
   s.history.push(s.baseline);
-  s.news.push({ id: "start", month: 0, headline: "A new president takes the oath of office", body: "Prices are rising, the naira is weak and the lights flicker. The country is waiting for you.", tone: "neutral", source: "start" });
+  const bad = issuesOf(s).filter((x) => !x.good);
+  s.news.push({ id: "start", month: 0, headline: bad.length >= 2 ? `New president takes office amid ${bad[0].name.toLowerCase()} and ${bad[1].name.toLowerCase()}` : "A new president takes the oath of office", body: issuesOf(s).map((x) => x.brief).join(" "), tone: "neutral", source: "start" });
   return s;
 }

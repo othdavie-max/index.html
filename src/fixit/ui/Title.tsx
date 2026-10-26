@@ -5,7 +5,7 @@ import { useFix } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { SaveSlots } from "./Menu";
 import { DEFAULT_PROMISES, PROMISES } from "../engine/promises";
-import { DIFFICULTY, SCENARIOS } from "../engine/setup";
+import { DIFFICULTY } from "../engine/setup";
 import type { Difficulty, Portrait as PortraitT } from "../engine/types";
 import { Portrait, PORTRAIT_OPTIONS } from "../../game/ui/kit";
 import { Hall } from "./Hall";
@@ -17,7 +17,6 @@ export function Title() {
   const [step, setStep] = useState<"intro" | "setup" | "promises">("intro");
   const [hall, setHall] = useState(false);
   const [name, setName] = useState("");
-  const [scenario, setScenario] = useState("standard");
   const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   const [portrait, setPortrait] = useState<PortraitT>({ skin: 3, hair: 0, style: 0, accent: 0 });
   const cycle = (k: keyof PortraitT) => setPortrait((p) => ({ ...p, [k]: (p[k] + 1) % (PORTRAIT_OPTIONS as unknown as Record<string, number>)[k] }));
@@ -28,7 +27,7 @@ export function Title() {
       <div className="fx-title-card">
         <div>
           <div className="g-tiny" style={{ letterSpacing: ".18em", color: "#9db3c9", fontWeight: 800 }}>STEP 1 OF 2</div>
-          <h1 style={{ fontSize: "clamp(28px,5vw,42px)", fontWeight: 900, lineHeight: 1.1, marginTop: 6 }}>Who are you, and what do you inherit?</h1>
+          <h1 style={{ fontSize: "clamp(28px,5vw,42px)", fontWeight: 900, lineHeight: 1.1, marginTop: 6 }}>Who are you?</h1>
         </div>
         <div className="g-row g-wrap" style={{ gap: 18, alignItems: "flex-start" }}>
           <div className="g-col" style={{ alignItems: "center", gap: 8 }}>
@@ -44,14 +43,8 @@ export function Title() {
             <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Difficulty">{(Object.keys(DIFFICULTY) as Difficulty[]).map((d) => <button key={d} className="fx-pp" style={{ padding: "8px 12px" }} aria-pressed={difficulty === d} onClick={() => setDifficulty(d)}><span><b>{DIFFICULTY[d].label}</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>{DIFFICULTY[d].blurb}</div></span></button>)}</div>
           </div>
         </div>
-        <div className="g-small" style={{ fontWeight: 700 }}>Scenario</div>
-        <div className="fx-promise-pick" role="group" aria-label="Scenario">
-          {SCENARIOS.map((sc) => (
-            <button key={sc.id} className="fx-pp" aria-pressed={scenario === sc.id} onClick={() => setScenario(sc.id)}>
-              <span className="fx-check" aria-hidden>{scenario === sc.id ? "✓" : ""}</span>
-              <span><b>{sc.name}</b><div className="g-tiny" style={{ color: "#cfe0ee", marginTop: 2 }}>{sc.blurb}</div></span>
-            </button>
-          ))}
+        <div className="fx-intro" style={{ fontSize: 14 }}>
+          <div><b>🎲 A different Nigeria every time.</b> When you take the oath, the game rolls what you inherit: maybe a collapsing naira and a looming strike, maybe banditry in the North West, a looted treasury or a bumper harvest. You will only find out on day one.</div>
         </div>
         <div className="g-row g-wrap" style={{ gap: 12 }}>
           <button className="fx-big-btn" onClick={() => setStep("promises")}>Next: your promises</button>
@@ -77,7 +70,7 @@ export function Title() {
           ))}
         </div>
         <div className="g-row g-wrap" style={{ gap: 12 }}>
-          <button className="fx-big-btn" disabled={picked.length !== 3} onClick={() => startNew(undefined, picked, { scenario, difficulty, portrait, president: name.trim() || "Madam/Mr President" })}><Play size={22} /> Take the oath ({picked.length}/3)</button>
+          <button className="fx-big-btn" disabled={picked.length !== 3} onClick={() => startNew(undefined, picked, { difficulty, portrait, president: name.trim() || "Madam/Mr President" })}><Play size={22} /> Take the oath ({picked.length}/3)</button>
           <Button variant="light" onClick={() => setStep("setup")}>Back</Button>
         </div>
       </div>
@@ -92,7 +85,7 @@ export function Title() {
           <p style={{ fontSize: 20, marginTop: 10, color: "#cfe0ee", fontWeight: 600 }}>Your country. Your decisions. Your legacy.</p>
         </div>
         <div className="fx-intro">
-          <div><b>The scenario.</b> You have just been sworn in as President. Prices are rising, the naira is weak, fuel is subsidised at a cost the treasury can barely bear, the lights keep going out, and many families are going hungry. You have four years, a limited budget and no easy answers.</div>
+          <div><b>The job.</b> You have just been sworn in as President. Every presidency inherits a different Nigeria: a weak naira, food prices, fuel queues, blackouts, banditry, angry unions or a looted treasury. You never know which until you take office. You have four years, a limited budget and no easy answers.</div>
           <div><b>How it works.</b> Each month, the game shows you the country&apos;s biggest problem and a few real choices, each with a cost, a trade-off and an honest uncertainty. Choose, end the month, and see what changes. Nothing is faked: every number comes from the simulation.</div>
           <div className="g-tiny" style={{ color: "#9db3c9" }}>This is a fictional, internally consistent scenario. All figures are simulated game values, not real data or forecasts. Map boundaries are real (geoBoundaries, CC BY 4.0).</div>
         </div>

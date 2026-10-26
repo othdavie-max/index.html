@@ -6,15 +6,31 @@ import { createEvent } from "../engine/events";
 import { billChance, billFor, budgetDue, callVote, giveSpeech, lobby, passBudget } from "../engine/politics";
 import { dominantTrait, earn, governorOf, governorSpeed } from "../engine/society";
 import { hallEntry, deserialise, serialise } from "../persistence";
+import { ISSUE_BY_ID, issuesOf } from "../engine/setup";
 import { lever } from "../engine/util";
 
-describe("scenarios, difficulty and identity", () => {
-  it("scenarios start from different situations", () => {
-    const std = newGame(61), debt = newGame(61, "X", { scenario: "debt" }), boom = newGame(61, "X", { scenario: "boom" });
-    expect(debt.fin.treasury).toBeLessThan(std.fin.treasury);
-    expect(debt.fin.creditRating).toBeLessThan(std.fin.creditRating);
-    expect(boom.eco.oilPrice).toBeGreaterThan(std.eco.oilPrice);
-    expect(boom.meta.scenario).toBe("boom");
+describe("random starting issues, difficulty and identity", () => {
+  it("every game rolls its own mix of national issues; the same seed repeats it", () => {
+    const mixes = new Set<string>();
+    for (let seed = 1; seed <= 20; seed++) {
+      const s = newGame(seed);
+      const ids = issuesOf(s).map((i) => i.id);
+      expect(ids.length).toBeGreaterThanOrEqual(3);
+      expect(ids.filter((id) => ISSUE_BY_ID[id].good).length).toBeLessThanOrEqual(1);
+      for (const id of ids) for (const c of ISSUE_BY_ID[id].clash ?? []) expect(ids).not.toContain(c);
+      mixes.add(ids.slice().sort().join(","));
+    }
+    expect(mixes.size).toBeGreaterThan(12);
+    expect(newGame(5).meta.scenario).toBe(newGame(5).meta.scenario);
+  });
+  it("each issue really changes the starting state", () => {
+    const base = newGame(61, "X", { issues: [] }), debt = newGame(61, "X", { issues: ["debt"] }), naira = newGame(61, "X", { issues: ["naira"] }), food = newGame(61, "X", { issues: ["food"] });
+    expect(debt.fin.treasury).toBeLessThan(base.fin.treasury);
+    expect(debt.fin.creditRating).toBeLessThan(base.fin.creditRating);
+    expect(naira.eco.fx).toBeGreaterThan(base.eco.fx);
+    expect(food.eco.foodInflation).toBeGreaterThan(base.eco.foodInflation);
+    advanceMonths(food, 1);
+    expect(food.agri.weather).toBeLessThan(0); // the poor rains are kept for the first year
   });
   it("difficulty changes starting cash; name and portrait are kept", () => {
     const e = newGame(62, "X", { difficulty: "easy" }), h = newGame(62, "X", { difficulty: "hard", president: "Adaora Bello", portrait: { skin: 1, hair: 2, style: 3, accent: 4 } });

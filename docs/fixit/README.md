@@ -32,7 +32,7 @@ Run tests: `npx vitest run src/fixit`.
 - **Street voices and ticker** (`engine/voices.ts`): fictional citizens quote this month's real numbers; a breaking-news ticker shows the latest headlines.
 
 ## Scenarios, Assembly, society and stories
-- **Setup** (`engine/setup.ts`): name, portrait, five scenarios (inherited mess, debt crisis, oil boom, disputed election, calm but poor) and three difficulties (cash, crisis frequency, voter mood).
+- **Setup** (`engine/setup.ts`): name, portrait and three difficulties (cash, crisis frequency, voter mood). There are no fixed scenarios: each new game rolls 3–4 national issues from a pool of 14 (naira, debt, food, fuel, power, banditry, insurgency, farmer-herder clashes, youth, strikes, oil theft, floods, a disputed election, a looted treasury), plus at most one piece of good news (oil windfall, bumper harvest, investor interest, a honeymoon), with clashing issues excluded and small random variation in the starting numbers. Seeded, so replaying a world repeats its mix.
 - **National Assembly** (`engine/politics.ts`): controversial policies, fuel-subsidy changes and the annual budget need a vote. Chance comes from Assembly support (loyalists, governors, popularity, rival, scandals) minus the bill's difficulty; lobby first (constituency projects, favours, public pressure). The gate is applied in the UI/command layer; engine actions remain directly callable.
 - **Budget**: five heads with levels from deep cut to big raise; running costs and levers via a `budget` modifier; due each January.
 - **Speeches**: honest / hopeful / tough / blame, judged against the moment (e.g. blame works only early; hopeful only if things are improving); three-month cooldown.

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Share2 } from "lucide-react";
 import { Button } from "../../game/ui/kit";
 import type { FixState, Snap } from "../engine/types";
-import { SCENARIO_BY_ID } from "../engine/setup";
+import { issuesOf } from "../engine/setup";
 import { presidentName } from "../engine/util";
 import { TRAITS, dominantTrait } from "../engine/society";
 
@@ -42,7 +42,7 @@ export function drawShareCard(canvas: HTMLCanvasElement, s: FixState, title: str
   ctx.fillStyle = HAIRS[p.hair % 4]; ctx.beginPath(); ctx.ellipse(cx, cy - 45, 47, 24, 0, Math.PI, Math.PI * 2); ctx.fill();
   ctx.restore();
   ctx.fillStyle = "#fff"; ctx.font = font(900, 54); ctx.fillText(presidentName(s).slice(0, 30), 300, 235);
-  ctx.fillStyle = "#cfe0ee"; ctx.font = font(600, 28); ctx.fillText(`${SCENARIO_BY_ID[s.meta.scenario]?.name ?? ""} · ${s.meta.difficulty}`, 300, 285);
+  ctx.fillStyle = "#cfe0ee"; ctx.font = font(600, 28); ctx.fillText(`${issuesOf(s).filter((i) => !i.good).slice(0, 2).map((i) => i.name).join(" · ")}`.slice(0, 48), 300, 285);
   const t = dominantTrait(s); if (t) { ctx.fillStyle = "#86efac"; ctx.fillText(`Known as ${TRAITS[t].title}`, 300, 325); }
   // title
   ctx.fillStyle = "#00c875"; ctx.font = font(900, 84); wrap(ctx, title, 70, 480, W - 140, 92);
