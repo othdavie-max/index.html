@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { Action } from "./engine";
 import { avatarSvg } from "./avatarSvg";
-import { QUEST_BY_ID, doneMilestones, questDone, questsOf } from "./quests";
+import { MILESTONES, QUEST_BY_ID, doneMilestones, questDone, questsOf } from "./quests";
+import { netWorthReal } from "./finance";
 import { favourBlock, powerOf, rivalCompare, rivalNpc, type FavourKind } from "./rival";
 import { shareCard } from "./share";
 import { dailyClaimed, dailyFor } from "./daily";
@@ -112,13 +113,12 @@ export function DailyCard({ p, run }: { p: Player; run: Run }) {
       {seasons.length > 0 && <div className="flex items-center gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-[12px] font-bold text-amber-900 ring-1 ring-amber-100"><span className="text-base" aria-hidden>{seasons[0].emoji}</span><span className="min-w-0 flex-1">{T(seasons[0].en, seasons[0].pcm)}</span></div>}
       {day && !dailyClaimed(p, day) && (
         <section>
-          <h2 className="mb-1.5 flex items-center justify-between px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500"><span>{T("Today's pick", "Today pick")}</span><span className="text-[11.5px] font-semibold normal-case tracking-normal">{Number(p.flags.dailyStreak ?? 0) > 0 ? `🔥 ${p.flags.dailyStreak}` : T("One choice a day", "One choice every day")}</span></h2>
+          <h2 className="mb-1.5 flex items-center justify-between px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500"><span>🎁 {T("Today's free pick", "Today free pick")}</span><span className="text-[11.5px] font-semibold normal-case tracking-normal">{Number(p.flags.dailyStreak ?? 0) > 0 ? `🔥 ${p.flags.dailyStreak}` : T("One choice a day", "One choice every day")}</span></h2>
           <div className="grid grid-cols-3 gap-1.5">
             {dailyFor(day).map((d) => (
-              <button key={d.id} type="button" onClick={() => run({ t: "daily", id: d.id, day })} className="flex flex-col items-center gap-0.5 rounded-2xl border border-slate-100 bg-white px-1.5 py-2 text-center shadow-sm active:bg-slate-50">
-                <span className="text-2xl" aria-hidden>{d.emoji}</span>
-                <span className="text-[11.5px] font-extrabold leading-tight text-[#0b2a6b]">{T(d.en, d.pcm)}</span>
-                <span className="text-[10px] leading-tight text-slate-500">{T(d.effect[0], d.effect[1])}</span>
+              <button key={d.id} type="button" onClick={() => run({ t: "daily", id: d.id, day })} className="flex flex-col items-center gap-0.5 rounded-2xl border border-amber-100 bg-gradient-to-b from-amber-50 to-white px-1.5 py-1.5 text-center shadow-sm transition active:scale-[0.96]">
+                <span className="text-xl" aria-hidden>{d.emoji}</span>
+                <span className="line-clamp-2 text-[11px] font-extrabold leading-tight text-[#0b2a6b]">{T(d.en, d.pcm)}</span>
               </button>
             ))}
           </div>
@@ -169,5 +169,59 @@ export function FriendBoardCard({ p }: { p: Player }) {
       </div>
       {list.map((x, i) => <ListRow key={x.code} emoji={i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🏅"} tile={x.me ? "bg-blue-100" : "bg-amber-100"} name={`${x.s.n}${x.me ? ` (${T("you", "you")})` : ""}`} desc={`${x.s.alive ? T("Age", "Age") : T("Died at", "Die for")} ${x.s.a} · ${x.s.r} ${T("ribbons", "ribbons")} · ${T("gen", "gen")} ${x.s.g}`} right={naira(x.s.w)} />)}
     </ListGroup>
+  );
+}
+
+const MONEY_STEPS: [string, number][] = [["m1", 1e6], ["m10", 1e7], ["m100", 1e8], ["b1", 1e9], ["b10", 1e10]];
+
+/** Goals, the next money milestone and your streak, in one compact card. Tap to see the goals. */
+export function ProgressCard({ p }: { p: Player }) {
+  const [open, setOpen] = useState(false);
+  const qs = questsOf(p);
+  if (p.age < 6) return null;
+  const done = qs.filter((q) => questDone(p, q)).length;
+  const worth = netWorthReal(p);
+  const next = p.age >= 14 ? MONEY_STEPS.find(([id]) => p.flags[`mile_${id}`] === undefined) : undefined;
+  const nextM = next ? MILESTONES.find((m) => m.id === next[0]) : undefined;
+  const prevTarget = next ? (MONEY_STEPS[MONEY_STEPS.indexOf(next) - 1]?.[1] ?? 0) : 0;
+  const pct = next ? Math.max(2, Math.min(100, Math.round(((Math.max(0, worth) - prevTarget) / (next[1] - prevTarget)) * 100))) : 0;
+  const streak = Number(p.flags.dailyStreak ?? 0);
+  return (
+    <section className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+      {qs.length > 0 && (
+        <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left active:bg-slate-50" aria-expanded={open}>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-[19px]">🎯</span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center justify-between text-[13.5px] font-extrabold text-[#0b2a6b]"><span>{T("Goals this year", "Goals this year")}</span><span className="text-[12px] text-emerald-700">{done}/{qs.length}</span></span>
+            <span className="mt-1 flex gap-1">{qs.map((q, i) => <span key={i} className={cx("h-1.5 flex-1 rounded-full", questDone(p, q) ? "bg-emerald-500" : "bg-slate-200")} />)}</span>
+          </span>
+          <span className={cx("shrink-0 text-lg font-black text-slate-400 transition-transform", open && "rotate-90")}>›</span>
+        </button>
+      )}
+      {open && (
+        <div className="border-t border-slate-100 bg-slate-50/60 px-3.5 py-2">
+          {qs.map((q) => { const d = QUEST_BY_ID[q.id]; if (!d) return null; const ok = questDone(p, q); return (
+            <div key={q.id} className="flex items-center gap-2 py-1 text-[12.5px]">
+              <span aria-hidden>{ok ? "✅" : d.emoji}</span>
+              <span className={cx("min-w-0 flex-1 font-semibold", ok ? "text-emerald-700 line-through" : "text-slate-700")}>{T(d.en, d.pcm)}</span>
+              {d.progress && !ok && <span className="shrink-0 text-[11px] text-slate-500">{d.progress(p, q.base)}</span>}
+            </div>
+          ); })}
+          <p className="pt-1 text-[10.5px] text-slate-400">{T("Finish them before you grow up to collect the rewards.", "Finish dem before you grow up to collect the reward.")}</p>
+        </div>
+      )}
+      {nextM && next && (
+        <div className="flex items-center gap-3 border-t border-slate-100 px-3.5 py-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[19px]">{nextM.emoji}</span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center justify-between gap-2 text-[13px] font-extrabold text-[#0b2a6b]"><span className="truncate">{T("Next", "Next")}: {T(nextM.en, nextM.pcm)}</span><span className="shrink-0 text-[12px] text-amber-700">{pct}%</span></span>
+            <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-200"><span className="block h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500" style={{ width: `${pct}%` }} /></span>
+          </span>
+        </div>
+      )}
+      {streak > 1 && (
+        <div className="flex items-center gap-2 border-t border-slate-100 px-3.5 py-2 text-[12px] font-bold text-orange-700"><span aria-hidden>🔥</span>{T(`${streak}-day streak. Come back tomorrow to keep it.`, `${streak}-day streak. Come back tomorrow make e no break.`)}{streak % 7 !== 0 && <span className="ml-auto text-[11px] font-semibold text-slate-400">{T(`${7 - (streak % 7)} to a bonus`, `${7 - (streak % 7)} to bonus`)}</span>}</div>
+      )}
+    </section>
   );
 }

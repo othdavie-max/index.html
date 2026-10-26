@@ -30,7 +30,7 @@ import { DnaRow, LotteryCard, PetsCard, StyleCard, TalentCard } from "./BitlifeU
 import { petsOf } from "./bitlife";
 import { JobsView, NyscPanel, RealtorView, SchoolPanel, YahooPanel } from "./WorkUI";
 import { isRealtor } from "./realtor";
-import { eventEmoji } from "./tone";
+import { eventEmoji, toneOf } from "./tone";
 import { Pops, changeChips, type Chip } from "./Pops";
 import { ActionSheet, BackPill, SubNavContext, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
@@ -208,7 +208,7 @@ export default function NaijaLife() {
   return (
     <Shell>
       <GameHeader p={p} onMenu={() => setMenu(true)} onWallet={() => setTab("money")} alerts={notificationsFor(p).filter((n) => n.level !== "green").length} />
-      <StatsCard p={p} />
+      <StatsCard p={p} compact={tab !== "life"} onOpen={() => setTab("life")} />
       <SubNavContext.Provider value={setSubOpen}>
       <main className="flex-1 space-y-3 px-4 pb-64 pt-2">
         {tab !== "life" && !subOpen && <BackPill label={T("Life story", "Life story")} onClick={() => setTab("life")} />}
@@ -218,7 +218,7 @@ export default function NaijaLife() {
         {tab === "life" && <>
           {p.prison > 0 && <button type="button" onClick={() => setTab("work")} className="flex w-full items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-left"><span className="text-xl">⛓️</span><span className="min-w-0 flex-1 text-[13px] font-bold text-red-700">{T(`In prison · ${p.prison} yr left. Prison options are in the Work tab.`, `For prison · ${p.prison} yr remain. Prison options dey Work tab.`)}</span><span className="text-lg font-black text-red-500">›</span></button>}
           {p.flags.admOpen && !p.school && p.prison <= 0 && <button type="button" onClick={() => setTab("work")} className="flex w-full items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-3.5 py-2.5 text-left"><span className="text-xl">🎓</span><span className="min-w-0 flex-1 text-[13px] font-bold text-blue-700">{T("Admissions are open. Pick your university in the University tab.", "Admission don open. Pick your university for University tab.")}</span><span className="text-lg font-black text-blue-500">›</span></button>}
-          <HeadlinesCard p={p} /><LifeFeed g={game} run={run} />
+          <LifeFeed g={game} run={run} afterYear={<HeadlinesCard p={p} />} />
         </>}
         {tab === "phone" && p.prison <= 0 && <PhoneTab p={p} run={run} />}
         {tab === "health" && <HealthTab p={p} run={run} />}
@@ -235,11 +235,12 @@ export default function NaijaLife() {
 
       <Pops chips={chips} note={toast} />
 
-      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { const next = ageUp(game); setGame(next); setTab("life"); const c = changeChips(game.p, next.p, 2); if (c.length && next.p.alive) setChips(c); try { navigator.vibrate?.(next.p.alive ? 12 : [40, 60, 40]); } catch { /* no haptics */ } }} />
+      <BottomBar tab={tab} setTab={setTab} p={p} busy={busy} onGrow={() => { const next = ageUp(game); setGame(next); setTab("life"); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch { /* old browser */ } const c = changeChips(game.p, next.p, 2); if (c.length && next.p.alive) setChips(c); try { navigator.vibrate?.(next.p.alive ? 12 : [40, 60, 40]); } catch { /* no haptics */ } }} />
 
       {result !== null && (
         <Sheet>
-          <p className="text-base leading-relaxed text-slate-900">{result}</p>
+          <div className="mb-2 mt-4 flex justify-center"><span className={cx("flex h-14 w-14 items-center justify-center rounded-2xl text-[30px]", toneOf(result) === "good" ? "bg-emerald-50" : toneOf(result) === "bad" ? "bg-rose-50" : "bg-blue-50")} aria-hidden>{toneOf(result) === "good" ? "🎉" : toneOf(result) === "bad" ? "😬" : "👉🏾"}</span></div>
+          <p className="text-center text-base leading-relaxed text-slate-900">{result}</p>
           <Btn className="mt-4 w-full" onClick={() => setResult(null)}>{T("Continue", "Continue")}</Btn>
         </Sheet>
       )}
@@ -264,10 +265,13 @@ export default function NaijaLife() {
                   setGame(r.g);
                   setResult(r.text);
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left shadow-[0_6px_16px_-12px_rgba(30,64,175,0.45)] transition active:scale-[0.98] active:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-45"
               >
-                <span className="block text-sm font-semibold text-slate-900">{c.label}</span>
-                {(c.sub || c.disabled) && <span className={cx("block text-xs", c.disabled ? "text-red-600" : "text-blue-600")}>{c.disabled || c.sub}</span>}
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[15px] font-bold leading-snug text-[#0b2a6b]">{c.label}</span>
+                  {(c.sub || c.disabled) && <span className={cx("mt-0.5 block text-[12px] font-semibold", c.disabled ? "text-red-600" : "text-blue-600")}>{c.disabled || c.sub}</span>}
+                </span>
+                <span className="shrink-0 text-xl font-black text-blue-400" aria-hidden>›</span>
               </button>
             ))}
           </div>
@@ -539,6 +543,11 @@ function StartScreen({ onStart, slots, onContinue, onDelete, lang, onLang }: { o
 // ---------------------------------------------------------------------------
 type WorkSub = "jobs" | "biz" | "learn" | "agent" | "school" | "campus" | "admission" | "nysc" | "classmates" | "yahoo" | "talent" | null;
 
+const STAGE_TITLE: Record<string, () => string> = {
+  primary: () => T("Primary school", "Primary school"), secondary: () => T("Secondary school", "Secondary school"), university: () => T("University", "University"),
+  admission: () => T("After secondary school", "After secondary school"), nysc: () => T("NYSC year", "NYSC year"), work: () => T("Work and money-making", "Work and money-making"),
+};
+
 function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const [sub, setSub] = useState<WorkSub>(null);
   const cur = jobDef(p);
@@ -563,7 +572,7 @@ function WorkTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   return (
     <>
       {sel === null ? (
-        rows.length ? <HubList onPick={(r) => setSub(r.id as WorkSub)} groups={[{ rows }]} /> : (
+        rows.length ? <HubList onPick={(r) => setSub(r.id as WorkSub)} groups={[{ title: STAGE_TITLE[stage]?.() ?? T("Work", "Work"), rows }]} /> : (
           <ListGroup title={stage === "infant" ? T("Infant", "Infant") : T("Nursery", "Nursery")} sub={T("Nothing to manage yet. Enjoy being small, school starts at 6.", "Nothing to manage yet. Enjoy being small, school start for 6.")}>
             <ListRow emoji="👶" tile="bg-sky-100" name={T("Growing up", "Dey grow")} desc={T("Your family looks after you", "Your family dey look after you")} />
           </ListGroup>
@@ -608,14 +617,14 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
   const net = worth(p);
   return (
     <>
-      <ListGroup>
+      {sub === null && <ListGroup>
         <div className="grid grid-cols-3 gap-2 px-3.5 py-3 text-center">
           <div><div className="text-[11px] text-slate-500">{T("Cash", "Cash")}</div><div className="text-base font-extrabold text-blue-600">{naira(p.money)}</div></div>
           <div><div className="text-[11px] text-slate-500">{T("Net worth", "Net worth")}</div><div className="text-base font-extrabold text-[#0b2a6b]">{naira(net)}</div></div>
           <div><div className="text-[11px] text-slate-500">{T("Debt", "Debt")}</div><div className={cx("text-base font-extrabold", p.debt > 0 ? "text-red-600" : "text-[#0b2a6b]")}>{naira(p.debt)}</div></div>
         </div>
         <ListRow emoji="📉" tile="bg-slate-100" wrap name={T("Prices rise every year", "Prices dey rise every year")} desc={T("Cash loses value. Houses and dollars hold up better.", "Cash dey lose value. House and dollar dey hold better.")} />
-      </ListGroup>
+      </ListGroup>}
 
       {sub === null && (
         <div className="space-y-4">
@@ -649,7 +658,7 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           ))}
         </div>
       )}
-      {sub !== null && <button type="button" onClick={() => setSub(null)} className="mb-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm ring-1 ring-slate-200">‹ {T("Money", "Money")}</button>}
+      {sub !== null && <BackPill label={T("Money", "Money")} onClick={() => setSub(null)} />}
 
       {sub === "wallet" && (<><NetWorthCard p={p} /><SubsCard p={p} /><LedgerCard p={p} /></>)}
       {sub === "garage" && <GarageCard p={p} run={run} />}
@@ -670,12 +679,6 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
       </>)}
       {sub === "property" && (<><PortfolioCard p={p} run={run} /><PropertyMarketCard p={p} run={run} /></>)}
       {sub === "invest" && (<>
-      <MarketNewsCard p={p} run={run} />
-      <Invest2Card p={p} run={run} />
-
-      <ListGroup title={T("Invest", "Invest")} sub={T("Returns are not guaranteed.", "Profit no certain.")}>
-        {INVESTMENTS.map((o) => <ListRow key={o.kind} emoji={INVEST_EMOJI[o.kind] ?? "💹"} tile="bg-emerald-100" name={o.label} desc={o.desc} right={`${T("min", "min")} ${naira(o.min * p.index)}`} onClick={() => setInv(o.kind)} />)}
-      </ListGroup>
       {p.holdings.length > 0 && (
         <ListGroup title={T("Your portfolio", "Your investments")}>
           {p.holdings.map((h) => (
@@ -684,6 +687,11 @@ function MoneyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           ))}
         </ListGroup>
       )}
+      <ListGroup title={T("Invest", "Invest")} sub={T("Returns are not guaranteed.", "Profit no certain.")}>
+        {INVESTMENTS.map((o) => <ListRow key={o.kind} emoji={INVEST_EMOJI[o.kind] ?? "💹"} tile="bg-emerald-100" name={o.label} desc={o.desc} right={`${T("min", "min")} ${naira(o.min * p.index)}`} onClick={() => setInv(o.kind)} />)}
+      </ListGroup>
+      <Invest2Card p={p} run={run} />
+      <MarketNewsCard p={p} run={run} />
       {invPick && (() => {
         const o = INVESTMENTS.find((x) => x.kind === invPick)!;
         const min = o.min * p.index;
@@ -779,7 +787,7 @@ function FamilyTab({ p, run }: { p: Player; run: (a: Action) => void }) {
           </section>
         </div>
       )}
-      {sub !== null && <button type="button" onClick={() => setSub(null)} className="mb-2 flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm ring-1 ring-slate-200">‹ {T("Family", "Family")}</button>}
+      {sub !== null && <BackPill label={T("Family", "Family")} onClick={() => setSub(null)} />}
       {sub === "people" && (<>
       <ListGroup title={T("Your people", "Your people")}>
         <div className="px-3.5 py-3">

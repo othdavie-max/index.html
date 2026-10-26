@@ -2,8 +2,9 @@
 
 import { TONE_STYLE, toneOf } from "./tone";
 import { EconStrip } from "./EconUI";
-import { DailyCard, QuestsCard } from "./LifeUI";
+import { DailyCard, ProgressCard } from "./LifeUI";
 import { useMemo, useState } from "react";
+import type React from "react";
 import {
   Baby, Backpack, Brain, Briefcase, Flag as FlagIcon, GraduationCap, School, ChevronRight, Compass, Crown, Gavel, Heart, HeartPulse, Hourglass, Map as MapIcon, MapPin, Menu as MenuIcon,
   ShieldCheck, Smartphone, Smile, Sparkles, Trophy, TrendingUp, User, Users, Wallet, Zap,
@@ -116,8 +117,18 @@ function StatCell({ icon: Icon, label, value, tint, ink, bar, invert }: { icon: 
   );
 }
 
-export function StatsCard({ p }: { p: Player }) {
+export function StatsCard({ p, compact, onOpen }: { p: Player; compact?: boolean; onOpen?: () => void }) {
   const s = p.stats;
+  if (compact) {
+    const items: [typeof Heart, number, string, boolean?][] = [[Heart, s.health, "text-rose-500"], [Smile, s.happiness, "text-amber-500"], [Brain, s.smarts, "text-violet-600"], [Sparkles, s.looks, "text-pink-500"], [Zap, s.stress, "text-orange-500", true], [Users, s.connections, "text-teal-600"], [ShieldCheck, s.reputation, "text-blue-600"]];
+    return (
+      <button type="button" data-tour="stats" onClick={onOpen} className="mx-4 flex w-[calc(100%-2rem)] items-center justify-between rounded-2xl border border-slate-100 bg-white px-2.5 py-1.5 shadow-[0_6px_20px_-12px_rgba(30,64,175,0.3)]" aria-label={T("Your stats. Tap for your life story.", "Your stats. Tap for your life story.")}>
+        {items.map(([Icon, v, ink, inv], i) => { const val = Math.round(v); const low = inv ? val > 70 : val < 30; return (
+          <span key={i} className="flex items-center gap-0.5"><Icon size={12} className={ink} strokeWidth={2.4} fill={Icon === Heart ? "currentColor" : "none"} /><span className={cx("text-[11.5px] font-extrabold tabular-nums", low ? "text-red-500" : "text-[#0b2a6b]")}>{val}</span></span>
+        ); })}
+      </button>
+    );
+  }
   return (
     <section data-tour="stats" className="mx-4 grid grid-cols-4 divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-white shadow-[0_6px_20px_-12px_rgba(30,64,175,0.3)]" aria-label={T("Your stats", "Your stats")}>
       <StatCell icon={Heart} label={T("Health", "Health")} value={s.health} tint="bg-rose-100" ink="text-rose-500" bar="#22c55e" />
@@ -276,26 +287,68 @@ const ACT_HINT: Record<string, () => string> = {
 };
 const ACT_TILE: Record<string, string> = { study: "bg-violet-100", gym: "bg-emerald-100", worship: "bg-amber-100", hawk: "bg-orange-100", network: "bg-pink-100", gig: "bg-green-100", date: "bg-rose-100", godfather: "bg-sky-100" };
 
-export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
+const MONEY_LINE = /^(Money this year|Money for this year)/i;
+
+/** One year of the story. The newest year is the hero card; older years fold away. */
+function YearLines({ lines, animate }: { lines: string[]; animate?: boolean }) {
+  const main = lines.filter((l) => !MONEY_LINE.test(l));
+  const money = lines.find((l) => MONEY_LINE.test(l));
+  return (
+    <>
+      <ul className="space-y-1.5">
+        {main.map((l, i) => { const tn = TONE_STYLE[toneOf(l)]; return (
+          <li key={i} className={cx("flex gap-2 rounded-xl px-2 py-1.5 text-[13.5px] leading-snug", tn.text, tn.bg || "bg-slate-50", animate && "nl-line")} style={animate ? { animationDelay: `${120 + i * 140}ms` } : undefined}>
+            <span className={cx("my-0.5 w-1 shrink-0 rounded-full", tn.bar)} aria-hidden />
+            <span className="min-w-0 flex-1">{l}</span>
+          </li>
+        ); })}
+      </ul>
+      {money && <p className={cx("mt-2 rounded-xl bg-blue-50/70 px-2.5 py-1.5 text-[11.5px] font-semibold text-blue-900", animate && "nl-line")} style={animate ? { animationDelay: `${120 + main.length * 140}ms` } : undefined}>💰 {money}</p>}
+    </>
+  );
+}
+
+function headline(lines: string[]): string {
+  const main = lines.filter((l) => !MONEY_LINE.test(l));
+  return main.find((l) => toneOf(l) !== "neutral") ?? main[0] ?? lines[0] ?? "";
+}
+
+export function LifeFeed({ g, run, afterYear }: { g: Game; run: (a: Action) => void; afterYear?: React.ReactNode }) {
   const p = g.p;
   const [open, setOpen] = useState(true);
+  const [openAge, setOpenAge] = useState<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const logs = useMemo(() => [...p.log].reverse(), [p.log]);
+  const latest = logs[0];
+  const older = logs.slice(1);
+  const shown = showAll ? older : older.slice(0, 6);
   return (
-    <div className="space-y-2.5">
-      <EconStrip p={p} />
-      <DailyCard p={p} run={run} />
-      <QuestsCard p={p} />
+    <div className="space-y-3">
+      <style>{`@keyframes nlline{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.nl-line{animation:nlline .45s ease-out both}@keyframes nlcard{0%{transform:scale(.97);box-shadow:0 0 0 0 rgba(37,99,235,.35)}60%{transform:scale(1.01)}100%{transform:none;box-shadow:0 0 0 10px rgba(37,99,235,0)}}.nl-card{animation:nlcard .6s ease-out both}`}</style>
+      {latest && (
+        <section data-tour="timeline" key={`year-${latest.age}-${p.log.length}`} className="nl-card rounded-3xl border border-blue-100 bg-white p-3.5 shadow-[0_14px_30px_-18px_rgba(30,64,175,0.55)]">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="flex items-baseline gap-2">
+              <span className="text-[22px] font-black leading-none tracking-tight text-[#0b2a6b]">{T("Age", "Age")} {latest.age}</span>
+              <span className="text-[12px] font-semibold text-slate-400">{p.birthYear + latest.age}</span>
+            </div>
+            <span className={cx("shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold", DOTS[(latest.age + 5) % DOTS.length].chip)}>{stageOf(latest.age)}</span>
+          </div>
+          <YearLines lines={latest.lines} animate />
+        </section>
+      )}
+      {afterYear}
       <section>
         <button type="button" onClick={() => setOpen(!open)} data-tour="activities" className="mb-1.5 flex w-full items-center justify-between px-1" aria-expanded={open}>
-          <span className="text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Activities", "Activities")}</span>
-          <span className="flex items-center gap-1 text-[11.5px] font-semibold text-slate-500">{T(`${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} left this year`, `${p.actionsLeft} action${p.actionsLeft === 1 ? "" : "s"} remain this year`)}<ChevronRight size={15} className={cx("transition-transform", open && "rotate-90")} /></span>
+          <span className="flex items-center gap-1.5 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Do something this year", "Do something this year")}{p.actionsLeft > 0 && p.alive && <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" /></span>}</span>
+          <span className="flex items-center gap-1 text-[11.5px] font-semibold text-slate-500">{T(`${p.actionsLeft} left`, `${p.actionsLeft} remain`)}<ChevronRight size={15} className={cx("transition-transform", open && "rotate-90")} /></span>
         </button>
         {open && (
           <div className="grid grid-cols-4 gap-1.5">
             {ACTIVITIES.filter((a) => p.age >= a.minAge - 2).map((a) => {
               const block = activityBlock(p, a);
               return (
-                <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => run({ t: "activity", id: a.id })} className="flex flex-col items-center gap-0.5 rounded-2xl border border-slate-100 bg-white px-1 py-2 shadow-[0_6px_16px_-12px_rgba(30,64,175,0.4)] transition active:scale-[0.97] disabled:opacity-45">
+                <button key={a.id} type="button" disabled={Boolean(block)} title={block ?? a.desc} onClick={() => run({ t: "activity", id: a.id })} className="flex flex-col items-center gap-0.5 rounded-2xl border border-slate-100 bg-white px-1 py-2 shadow-[0_6px_16px_-12px_rgba(30,64,175,0.4)] transition active:scale-[0.95] disabled:opacity-45">
                   <span className={cx("flex h-9 w-9 items-center justify-center rounded-xl text-[20px]", ACT_TILE[a.id] ?? "bg-slate-100")}>{ACT_EMOJI[a.id] ?? "✨"}</span>
                   <span className="w-full truncate text-center text-[12px] font-extrabold leading-tight text-[#0b2a6b]">{ACT_SHORT[a.id]?.() ?? a.label}</span>
                   <span className="w-full truncate text-center text-[10px] font-medium leading-tight text-slate-500">{block ? (a.cost && p.money < a.cost * p.index ? T("Needs ", "Need ") + naira(a.cost * p.index) : block) : a.cost ? naira(a.cost * p.index) : ACT_HINT[a.id]?.() ?? ""}</span>
@@ -305,38 +358,34 @@ export function LifeFeed({ g, run }: { g: Game; run: (a: Action) => void }) {
           </div>
         )}
       </section>
-      <section>
-        <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Life story", "Life story")}</h2>
-        <div className="rounded-2xl border border-slate-100 bg-white p-2.5 shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
-          <ol data-tour="timeline" className="relative space-y-2">
-            {logs.map((e, idx) => {
-              const c = DOTS[(e.age + 5) % DOTS.length];
+      <ProgressCard p={p} />
+      <DailyCard p={p} run={run} />
+      <EconStrip p={p} />
+      {older.length > 0 && (
+        <section>
+          <h2 className="mb-1.5 px-1 text-[12px] font-extrabold uppercase tracking-wide text-slate-500">{T("Earlier years", "Earlier years")}</h2>
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_22px_-14px_rgba(30,64,175,0.35)]">
+            {shown.map((e, idx) => {
+              const isOpen = openAge === e.age;
+              const h = headline(e.lines);
+              const tn = TONE_STYLE[toneOf(h)];
               return (
-                <li key={`${e.age}-${idx}`} className="relative flex gap-3">
-                  <div className="relative flex w-5 shrink-0 justify-center">
-                    {idx < logs.length - 1 && <span className="absolute top-5 -bottom-3 w-px bg-slate-200" />}
-                    <span className="relative z-10 mt-3.5 h-3 w-3 rounded-full ring-4 ring-white" style={{ background: c.dot }} />
-                  </div>
-                  <div className={cx("flex-1 rounded-xl bg-slate-50/90 px-2.5 py-2", idx === 0 && "ring-1 ring-blue-200")}>
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[14.5px] font-extrabold leading-tight text-[#0b2a6b]">{T("Age", "Age")} {e.age}</span>
-                      <span className={cx("shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold", c.chip)}>{stageOf(e.age)}</span>
-                    </div>
-                    <ul className="mt-1 space-y-1">
-                      {e.lines.map((l, i) => { const tn = TONE_STYLE[toneOf(l)]; return (
-                        <li key={i} className={cx("flex gap-1.5 rounded-lg py-0.5 pr-1 text-[12px] leading-snug", tn.text, tn.bg)}>
-                          <span className={cx("my-0.5 w-1 shrink-0 rounded-full", tn.bar)} aria-hidden />
-                          <span className="min-w-0 flex-1">{l}</span>
-                        </li>
-                      ); })}
-                    </ul>
-                  </div>
-                </li>
+                <div key={`${e.age}-${idx}`}>
+                  <button type="button" onClick={() => setOpenAge(isOpen ? null : e.age)} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left active:bg-slate-50" aria-expanded={isOpen}>
+                    <span className={cx("flex h-9 w-12 shrink-0 flex-col items-center justify-center rounded-xl text-[10px] font-bold leading-none", DOTS[(e.age + 5) % DOTS.length].chip)}><span className="text-[15px] font-black">{e.age}</span>{T("yrs", "yrs")}</span>
+                    <span className={cx("my-1 w-1 shrink-0 self-stretch rounded-full", tn.bar)} aria-hidden />
+                    <span className={cx("min-w-0 flex-1 text-[12.5px] leading-snug text-slate-700", !isOpen && "line-clamp-2")}>{h}</span>
+                    <span className="shrink-0 text-[11px] font-bold text-slate-400">{e.lines.length > 1 && !isOpen ? `+${e.lines.length - 1}` : ""}</span>
+                    <ChevronRight size={15} className={cx("shrink-0 text-slate-400 transition-transform", isOpen && "rotate-90")} />
+                  </button>
+                  {isOpen && <div className="px-3 pb-3"><YearLines lines={e.lines.filter((l) => l !== h)} /></div>}
+                </div>
               );
             })}
-          </ol>
-        </div>
-      </section>
+          </div>
+          {older.length > 6 && <button type="button" onClick={() => setShowAll(!showAll)} className="mt-2 w-full rounded-full bg-white py-2 text-[12.5px] font-bold text-blue-700 shadow-sm ring-1 ring-slate-200">{showAll ? T("Show fewer years", "Show small years") : T(`Show all ${older.length} years`, `Show all ${older.length} years`)}</button>}
+        </section>
+      )}
     </div>
   );
 }

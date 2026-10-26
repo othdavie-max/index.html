@@ -21,7 +21,7 @@ export function EconStrip({ p }: { p: Player }) {
         <span className="text-base" aria-hidden>{mood.emoji}</span>
         <span className="min-w-0 flex-1 truncate">{T("Economy", "Economy")}: {T(mood.en, mood.pcm)}</span>
         <span className="shrink-0 rounded-full bg-white/70 px-2 py-0.5">₦{rate.toLocaleString()}/$</span>
-        {p.age >= 18 && <span className="shrink-0 text-slate-500">★ {statusOf(p)}</span>}
+        {p.age >= 18 && <span className="shrink-0 text-slate-500">{T("Standing", "Standing")} {statusOf(p)}</span>}
       </button>
       {open && (
         <ActionSheet emoji={mood.emoji} tile="bg-blue-100" title={T(`Economy: ${mood.en}`, `Economy: ${mood.pcm}`)} sub={T(mood.note[0], mood.note[1])} onClose={() => setOpen(false)}>

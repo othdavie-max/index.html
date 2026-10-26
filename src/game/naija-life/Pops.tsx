@@ -32,7 +32,7 @@ const TONE = { good: "text-emerald-700 ring-emerald-200", bad: "text-rose-700 ri
 export function Pops({ chips, note }: { chips: Chip[]; note: string }) {
   if (!chips.length && !note) return null;
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-[206px] z-[45] flex flex-col items-center gap-1.5 px-4" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-0 top-[74px] z-[45] flex flex-col items-center gap-1.5 px-4" aria-live="polite">
       <style>{`@keyframes nlpop{0%{opacity:0;transform:translateY(12px) scale(.55)}12%{opacity:1;transform:translateY(0) scale(1.1)}22%{transform:translateY(0) scale(1)}78%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-10px) scale(.96)}}.nlpop{animation:nlpop 2.6s cubic-bezier(.2,.9,.3,1) both}`}</style>
       {note && (
         <div key={note} className="nlpop max-w-[88%] rounded-2xl bg-white/95 px-3.5 py-1.5 text-center text-[12.5px] font-semibold leading-snug text-slate-700 shadow-lg ring-1 ring-slate-200 backdrop-blur">{note}</div>
