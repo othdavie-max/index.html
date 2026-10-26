@@ -2,13 +2,14 @@
 import { useMemo, useState } from "react";
 import { Newspaper, Save, Settings as SettingsIcon, HelpCircle, Dices, Trash2 } from "lucide-react";
 import { useGame, useS } from "../store";
-import { Badge, Button, Callout, Card, ConfirmDialog, EmptyState, Field, Modal } from "../kit";
+import { Badge, Button, Callout, Card, ConfirmDialog, EmptyState, Field } from "../kit";
 import { STATES } from "../../data/states";
 import { formatMonth, formatMonthShort } from "../../engine/calendar";
 import { stateName } from "../../engine/admin";
 import { partyAbbr, partyColor } from "../../engine/queries";
 import type { NewsTopic } from "../../engine/types";
 import { SlotsModal, AboutModal } from "./Title";
+import { Tutorial } from "../Tutorial";
 
 const TOPIC_LABEL: Record<NewsTopic, string> = { national: "National politics", state: "State politics", local: "Local government", elections: "Elections", economy: "Economy", services: "Public services", security: "Security", corruption: "Corruption & investigations", party: "Party developments", personal: "Personal" };
 
@@ -56,15 +57,6 @@ export function NewsScreen() {
   );
 }
 
-const HOW_TO = [
-  ["Time only moves when you press “Advance one month”.", "Inspect the map, your finances and the news as long as you like. “Next event” skips ahead until something needs your attention."],
-  ["Build a life first.", "Study, work, start a business and get involved locally. Skills, money and name recognition decide how far you can go."],
-  ["Politics needs a party.", "Join one, build relationships, and win its ticket in a primary before you can face voters."],
-  ["Elections are simulated, not scripted.", "Money helps with diminishing returns. Recognition, organisation, party strength, local conditions and opponents all matter — and the Results screen explains why you won or lost."],
-  ["Office brings real powers and limits.", "A chairman, governor and president control different budgets and projects; delivery takes time."],
-  ["Corruption is a choice with consequences.", "It can pay in the short run, but evidence accumulates and investigations are driven by oversight, media, witnesses and your cover — not by arbitrary punishment."],
-];
-
 export function SettingsScreen() {
   const state = useS();
   const { dispatch, saveSlot, toast, quitToTitle, setScreen } = useGame();
@@ -105,7 +97,7 @@ export function SettingsScreen() {
       </Card>
       {modal === "slots" && <SlotsModal mode="both" onClose={() => setModal(null)} />}
       {modal === "about" && <AboutModal onClose={() => setModal(null)} />}
-      {modal === "how" && <Modal title="How to play" onClose={() => setModal(null)} wide><ol className="g-col" style={{ paddingLeft: 18, margin: 0 }}>{HOW_TO.map(([a, b]) => <li key={a}><b>{a}</b><div className="g-small g-muted">{b}</div></li>)}</ol></Modal>}
+      {modal === "how" && <Tutorial onClose={() => setModal(null)} />}
       {modal === "end" && <ConfirmDialog title="Start a new game?" confirmLabel="Save & start new" onCancel={() => setModal(null)} onConfirm={async () => { setModal(null); await saveSlot("auto"); setScreen("create"); }} body="Your current life is saved to the autosave slot first." />}
     </div>
   );

@@ -1,11 +1,11 @@
 "use client";
-import { ArrowRight, MapPin, Wallet, Sparkles, CalendarClock, ScrollText, Newspaper, Briefcase, Landmark, GraduationCap } from "lucide-react";
+import { ArrowRight, MapPin, Wallet, Sparkles, CalendarClock, ScrollText, Newspaper, Briefcase, Landmark, GraduationCap, CheckCircle2, Circle } from "lucide-react";
 import { useGame, useS } from "../store";
-import { Button, Card, Meter, Portrait, Badge, naira, EmptyState } from "../kit";
+import { Button, Card, Meter, Portrait, Badge, naira, EmptyState, Bar } from "../kit";
 import { TimeControls } from "../Shell";
 import { LGA_BY_ID, stateName } from "../../engine/admin";
 import { playerAge, formatMonth, formatMonthShort } from "../../engine/calendar";
-import { upcoming, suggestions, happiness, politicalStatus, educationLabel } from "../../engine/insights";
+import { upcoming, suggestions, happiness, politicalStatus, educationLabel, startGuide } from "../../engine/insights";
 import { netWorth } from "../../engine/finance";
 import { partyColor } from "../../engine/queries";
 import { timeBudget } from "../../engine/life";
@@ -24,9 +24,26 @@ export function HomeScreen() {
   const heads = [...state.news].filter((n) => n.importance >= 2 || n.personal).reverse().slice(0, 4);
   const lga = LGA_BY_ID[p.residenceLgaId];
   const party = p.politics.membership?.partyId ?? null;
+  const guide = startGuide(state);
+  const guideDone = guide.filter((g) => g.done).length;
 
   return (
     <div className="g-col" style={{ gap: 16 }}>
+      {guideDone < guide.length && (
+        <Card title={`Getting started — ${guideDone} of ${guide.length} done`} icon={<Sparkles size={16} />}>
+          <Bar value={guideDone / guide.length} label="Getting started progress" />
+          <div className="g-col" style={{ gap: 0, marginTop: 6 }}>
+            {guide.map((g) => (
+              <div key={g.id} className="g-list-row" style={{ opacity: g.done ? 0.6 : 1 }}>
+                {g.done ? <CheckCircle2 size={20} color="#00a862" /> : <Circle size={20} color="#94a3b8" />}
+                <div className="g-grow"><b className="g-small" style={{ textDecoration: g.done ? "line-through" : "none" }}>{g.title}</b>{!g.done && <div className="g-tiny g-muted">{g.body}</div>}</div>
+                {!g.done && <Button size="sm" onClick={() => go(g.tab, g.sub)}>{g.cta}</Button>}
+              </div>
+            ))}
+          </div>
+          <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Need more help? Press the ? button at the top any time.</div>
+        </Card>
+      )}
       <div className="g-grid g-split">
         <div className="g-col" style={{ gap: 16 }}>
           <Card>

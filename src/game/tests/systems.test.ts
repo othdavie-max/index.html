@@ -375,3 +375,19 @@ describe("insights for the interface", () => {
     expect(digest(last)).toBeTruthy();
   });
 });
+
+describe("beginner guide", () => {
+  it("ticks off steps from real game state", async () => {
+    const { startGuide } = await import("../engine/insights");
+    const s = makeGame({ seed: 50 });
+    const done = () => startGuide(s).filter((g) => g.done).map((g) => g.id);
+    expect(done()).toEqual([]);
+    advance(s, 1, { keepAfloat: 100000 });
+    expect(done()).toContain("advance");
+    perform(s, { t: "commitment", key: "volunteering", on: true });
+    expect(done()).toContain("community");
+    perform(s, { t: "joinParty", partyId: "PHP" });
+    expect(done()).toContain("party");
+    expect(startGuide(s).every((g) => g.title.length > 0 && g.body.length > 0)).toBe(true);
+  });
+});

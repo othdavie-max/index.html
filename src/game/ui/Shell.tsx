@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Home, User, Map as MapIcon, Landmark, Vote, Building2, TrendingUp, Newspaper, Settings, Bell, ChevronsLeft, ChevronsRight, MoreHorizontal, CalendarDays, FastForward, Save, X } from "lucide-react";
+import { Home, User, Map as MapIcon, Landmark, Vote, Building2, TrendingUp, Newspaper, Settings, Bell, ChevronsLeft, ChevronsRight, MoreHorizontal, CalendarDays, FastForward, Save, X, HelpCircle } from "lucide-react";
 import { useGame, useS, type Tab } from "./store";
 import { Button, Modal, Badge, Spinner, cx } from "./kit";
 import { formatMonth, playerAge } from "../engine/calendar";
 import { execInfo } from "../engine/governance";
 import { canAdvance } from "../engine/turn";
 import { DecisionDialog } from "./DecisionDialog";
+import { Tutorial } from "./Tutorial";
 
 interface NavItem { id: Tab; label: string; icon: ReactNode }
 const ICON = 20;
@@ -71,6 +72,8 @@ export function Shell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [more, setMore] = useState(false);
   const [notifs, setNotifs] = useState(false);
+  const [tour, setTour] = useState(() => { try { return typeof window !== "undefined" && !window.localStorage.getItem("nrtp-tour-seen") && state.clock.monthIndex === 0; } catch { return false; } });
+  const closeTour = () => { setTour(false); try { window.localStorage.setItem("nrtp-tour-seen", "1"); } catch { /* storage blocked */ } };
   const unread = state.notifications.filter((n) => !n.read).length;
   void version;
   const primary: Tab[] = ["home", "life", "map", "politics"];
@@ -99,6 +102,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <div style={{ fontWeight: 800, lineHeight: 1.1 }}>{formatMonth(state, state.clock.monthIndex)}</div>
             <div className="g-tiny g-muted">{state.player.name}, age {age}{lastSaved ? ` · saved ${new Date(lastSaved).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}</div>
           </div>
+          <button className="g-btn g-btn-ghost" onClick={() => setTour(true)} aria-label="How to play" title="How to play" style={{ padding: 8 }}><HelpCircle size={20} /></button>
           <button className="g-btn g-btn-ghost" onClick={() => setNotifs(true)} aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`} style={{ position: "relative", padding: 8 }}>
             <Bell size={20} />{unread > 0 && <span style={{ position: "absolute", top: 2, right: 2, background: "#e11d48", color: "#fff", borderRadius: 999, fontSize: 10, minWidth: 16, height: 16, display: "grid", placeItems: "center", fontWeight: 700 }}>{unread > 9 ? "9+" : unread}</span>}
           </button>
@@ -119,6 +123,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </Modal>
       )}
       {notifs && <NotificationsPanel onClose={() => setNotifs(false)} />}
+      {tour && <Tutorial onClose={closeTour} />}
       {state.pending.length > 0 && <DecisionDialog />}
     </div>
   );

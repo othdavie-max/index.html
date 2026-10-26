@@ -129,3 +129,17 @@ export function nationalPoll(state: GameState): { partyId: string; share: number
   void w;
   return Object.entries(tot).map(([partyId, v]) => ({ partyId, share: v / sum })).sort((a, b) => b.share - a.share);
 }
+
+export interface GuideStep { id: string; title: string; body: string; done: boolean; tab: Tab; sub?: string; cta: string }
+/** A short beginner checklist derived from real game state (ticks itself as the player progresses). */
+export function startGuide(state: GameState): GuideStep[] {
+  const p = state.player;
+  const c = p.commitments;
+  return [
+    { id: "advance", title: "Move time forward one month", body: "Press the green “Next month” button at the top. Nothing happens until you do.", done: state.clock.monthIndex > 0, tab: "home", cta: "Show me" },
+    { id: "path", title: "Choose what to do with your life", body: "Go to school, get a job or start a business. This is how you earn money and skills.", done: !!p.education.enrolled || p.occupation.kind !== "unemployed" || !!p.business || p.education.certificates.length > 1, tab: "life", sub: p.education.level === "secondary" ? "education" : "work", cta: "Open My Life" },
+    { id: "community", title: "Get known in your community", body: "Volunteer or organise locally. Voters can only vote for someone they have heard of.", done: c.volunteering || c.organising || c.partyWork || c.studentUnion || Object.values(p.fame.lgas).some((v) => v >= 5), tab: "life", sub: "time", cta: "Pick commitments" },
+    { id: "party", title: "Join a political party", body: "In Nigeria you can only run for office through a party. Compare them and join one.", done: !!p.politics.membership, tab: "politics", sub: "parties", cta: "See the parties" },
+    { id: "race", title: "Find an election you can run in", body: "The Elections screen shows each race and what you still need (age, party, money).", done: p.politics.candidacies.length > 0 || p.politics.electionHistory.length > 0 || !!p.politics.seatId, tab: "elections", sub: "races", cta: "See races" },
+  ];
+}
