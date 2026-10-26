@@ -20,7 +20,7 @@ export function jambBlock(p: Player): string | null {
   return null;
 }
 
-export function writeJamb(p: Player, cheat: boolean): string {
+export function writeJamb(p: Player, cheat: boolean, quiz?: number): string {
   const b = jambBlock(p);
   if (b) return b;
   transact(p, { amount: -I(p, cheat ? 40_000 : 12_000), reason: cheat ? T("JAMB form and 'expo'", "JAMB form and 'expo'") : T("JAMB form and CBT centre", "JAMB form and CBT centre"), category: "education" });
@@ -28,7 +28,8 @@ export function writeJamb(p: Player, cheat: boolean): string {
     bump(p, "reputation", -12);
     return T("The centre was raided. JAMB blacklists your result.", "Dem raid the centre. JAMB blacklist your result.");
   }
-  const score = Math.round(cheat ? randInt(230, 320) : clamp(110 + p.stats.smarts * 1.7 + rand(-25, 25), 100, 380));
+  const q = typeof quiz === "number" && Number.isFinite(quiz) ? Math.max(0, Math.min(1, quiz)) : null;
+  const score = Math.round(cheat ? randInt(230, 320) : clamp(110 + p.stats.smarts * 1.7 + rand(-25, 25) + (q === null ? 0 : (q - 0.5) * 90), 100, 380));
   p.flags.admScore = score;
   p.flags.admOpen = 1;
   p.flags.admAge = p.age;

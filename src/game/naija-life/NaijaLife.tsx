@@ -32,6 +32,8 @@ import { JobsView, NyscPanel, RealtorView, SchoolPanel, YahooPanel } from "./Wor
 import { isRealtor } from "./realtor";
 import { eventEmoji, toneOf } from "./tone";
 import { Pops, changeChips, type Chip } from "./Pops";
+import { MiniHost } from "./mini/Host";
+import { FamilyChat } from "./mini/FamilyChat";
 import { ActionSheet, BackPill, SubNavContext, Hub, HubList, ListGroup, ListRow, Badge, Bar, Btn, Card, H, Meter, Sheet, cx } from "./ui";
 import { FAMILY_PRESETS } from "./family";
 import { notificationsFor } from "./notices";
@@ -164,21 +166,23 @@ export default function NaijaLife() {
     return () => clearTimeout(t);
   }, [chips]);
 
-  const run = (a: Action) => {
-    if (!game) return;
+  const runMsg = (a: Action, quiet = false): string => {
+    if (!game) return "";
     const r = act(game, a);
     setGame(r.g);
-    if (r.msg) setToast(r.msg);
+    if (r.msg && !quiet) setToast(r.msg);
     const c = changeChips(game.p, r.g.p, 1);
     if (c.length && r.g.p.age === game.p.age) setChips(c);
+    return r.msg;
   };
+  const run = (a: Action) => { runMsg(a); };
 
   if (!ready) return <div className="min-h-screen bg-[#f3f8ff]" />;
 
   if (!game) {
     setLang(lang);
     return (
-      <Shell>
+    <Shell>
         <StartScreen
           slots={slots}
           lang={lang}
@@ -206,6 +210,7 @@ export default function NaijaLife() {
   const busy = game.queue.length > 0 || result !== null;
 
   return (
+    <MiniHost runMsg={runMsg}>
     <Shell>
       <GameHeader p={p} onMenu={() => setMenu(true)} onWallet={() => setTab("money")} alerts={notificationsFor(p).filter((n) => n.level !== "green").length} />
       <StatsCard p={p} compact={tab !== "life"} onOpen={() => setTab("life")} />
@@ -253,7 +258,7 @@ export default function NaijaLife() {
               <Avatar look={evLook} gender={p.gender === "male" ? "female" : "male"} age={26} mood={75} size={110} />
             </div>
           )}
-          <p className="text-[15px] leading-relaxed text-slate-800">{view.text}</p>
+          {evHead?.kind === "event" && evHead.id === "black_tax" ? <FamilyChat text={view.text} /> : <p className="text-[15px] leading-relaxed text-slate-800">{view.text}</p>}
           <div className="mt-4 space-y-2">
             {view.choices.map((c, i) => (
               <button
@@ -352,6 +357,7 @@ export default function NaijaLife() {
         </Sheet>
       )}
     </Shell>
+    </MiniHost>
   );
 }
 

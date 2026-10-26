@@ -6,7 +6,7 @@ import { Avatar } from "./Avatar";
 import type { Action } from "./engine";
 import { BET_KINDS, betBlock, betProfit } from "./betting";
 import { profileOf } from "./bizProfiles";
-import { BIZ_KINDS, BIZ_BY_ID, actBlock, actCost, hireCost, leverFees, leverIdx, scaleCost, startBlock, startCostFor, upgradeCost, valuation, workerPay } from "./business";
+import { BIZ_KINDS, BIZ_BY_ID, actBlock, actCost, hireCost, leverFees, leverIdx, scaleCost, shiftBlock, startBlock, startCostFor, upgradeCost, valuation, workerPay } from "./business";
 import { CRIMES, crimeBlock } from "./crime";
 import { HOME_TIERS, HOUSE_KINDS, LUXURIES, STATE_BY_ID } from "./data";
 import { mortgageBalance, mortgageQuote } from "./mortgage";
@@ -30,6 +30,7 @@ import { ActionSheet, BackPill, Badge, Bar, Btn, Hub, HubList, ListGroup, ListRo
 import { riskLabel, transportOptions } from "./travel";
 import { interactBlock, interactionsFor, makeFriendBlock } from "./people";
 import { PRISON_OPS, appealCost, prisonBlockOp } from "./prison";
+import { useMini } from "./mini/Host";
 import { T, naira } from "./util";
 
 type Run = (a: Action) => void;
@@ -980,6 +981,7 @@ const sc0 = (p: Player, b: Business) => scaleCost(p, BIZ_BY_ID[b.kind].startCost
 const roleLabel = (b: Business, w: { role?: string }) => { const r = profileOf(b.kind).roles.find((x) => x.id === w.role) ?? profileOf(b.kind).roles[0]; return T(r.label[0], r.label[1]); };
 
 function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Run; onClose: () => void }) {
+  const mini = useMini();
   const [workerId, setWorkerId] = useState<string | null>(null);
   const [offerId, setOfferId] = useState<string | null>(null);
   const k = BIZ_BY_ID[b.kind];
@@ -1028,6 +1030,11 @@ function BusinessSheet({ p, b, run, onClose }: { p: Player; b: Business; run: Ru
             ))}
           </div>
         </div>
+      )}
+      {b.status === "open" && (
+        <ListGroup title={T("Get your hands dirty", "Enter the work yourself")}>
+          <ListRow emoji="🍛" tile="bg-orange-100" name={T("Work the rush hour yourself", "Work the rush hour yourself")} desc={T("A mini-game. Serve customers fast for extra profit and quality. Uses one action.", "Mini-game. Serve customers fast for extra profit and quality. E go use one action.")} note={shiftBlock(p, b.id)} disabled={Boolean(shiftBlock(p, b.id))} onClick={() => mini({ kind: "rush", label: b.name, onDone: (s) => run({ t: "biz", op: "shift", id: b.id, score: s ?? 0.5 }) })} wrap />
+        </ListGroup>
       )}
       <ListGroup title={T("How you run it", "How you run am")} sub={T(prof.intro[0], prof.intro[1])}>
         <div className="px-3.5 pt-3">
@@ -1216,12 +1223,13 @@ export function MortgageCard({ p, run }: { p: Player; run: Run }) {
 // Prison
 // ---------------------------------------------------------------------------
 export function PrisonCard({ p, run, full }: { p: Player; run: Run; full?: boolean }) {
+  const mini = useMini();
   if (p.prison <= 0) return null;
   return (
     <ListGroup title={T("In prison", "For prison")} sub={`${T(`${p.prison} year${p.prison === 1 ? "" : "s"} left. Phones, work, travel, shopping, dating and betting are not possible from inside.`, `${p.prison} year${p.prison === 1 ? "" : "s"} remain. Phone, work, travel, shopping, dating and betting no possible from inside.`)}${full ? ` ${T("This section is closed while you are locked up. You can still study, work on the prison detail, appeal, ask family for help, see a doctor or make a will.", "This section closed as you dey prison. You fit still read, work for prison detail, appeal, ask family for help, see doctor or make will.")}` : ""}`}>
       {PRISON_OPS.map((o) => {
         const b = prisonBlockOp(p, o.id);
-        return <ListRow key={o.id} emoji={o.id === "work" ? "🔨" : o.id === "study" ? "📚" : o.id === "appeal" ? "⚖️" : "🏃"} tile="bg-rose-100" name={T(o.en, o.pcm)} desc={b ?? (o.id === "appeal" ? `${naira(appealCost(p))} · ` : "") + T(o.subEn, o.subPcm)} wrap disabled={Boolean(b)} onClick={() => run({ t: "prison", op: o.id })} />;
+        return <ListRow key={o.id} emoji={o.id === "work" ? "🔨" : o.id === "study" ? "📚" : o.id === "appeal" ? "⚖️" : "🏃"} tile="bg-rose-100" name={T(o.en, o.pcm)} desc={b ?? (o.id === "appeal" ? `${naira(appealCost(p))} · ` : "") + T(o.subEn, o.subPcm)} wrap disabled={Boolean(b)} onClick={() => (o.id === "escape" ? mini({ kind: "maze", onDone: (s) => run(s === null ? { t: "prison", op: "escape" } : { t: "prison", op: "escape", score: s }) }) : run({ t: "prison", op: o.id }))} />;
       })}
     </ListGroup>
   );

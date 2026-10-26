@@ -7,6 +7,7 @@ import { ActionSheet, Bar, ListGroup, ListRow } from "./ui";
 import { I } from "./helpers";
 import type { Player } from "./types";
 import { T, naira } from "./util";
+import { useMini, useRunMsg } from "./mini/Host";
 
 type Run = (a: Action) => void;
 
@@ -44,10 +45,13 @@ export function PetsCard({ p, run }: { p: Player; run: Run }) {
 }
 
 export function LotteryCard({ p, run }: { p: Player; run: Run }) {
+  const mini = useMini();
+  const runMsg = useRunMsg();
+  void run;
   if (p.age < 18) return <ListGroup title={T("Lottery", "Lottery")}><ListRow emoji="🔒" tile="bg-slate-100" name={T("Adults only (18+)", "Na only adult (18+)")} /></ListGroup>;
   return (
     <ListGroup title={T("Lottery and scratch cards", "Lottery and scratch cards")} sub={T(`${ticketsLeft(p)} plays left this year. The house always wins, mostly.`, `${ticketsLeft(p)} plays remain this year. The house dey win, mostly.`)}>
-      {TICKETS.map((t) => <ListRow key={t.id} emoji={t.emoji} tile="bg-amber-100" name={T(t.en, t.pcm)} desc={T(t.blurb[0], t.blurb[1])} right={naira(I(p, t.cost))} disabled={ticketsLeft(p) <= 0 || p.money < I(p, t.cost)} onClick={() => run({ t: "bl", op: "lotto", id: t.id })} wrap />)}
+      {TICKETS.map((t) => <ListRow key={t.id} emoji={t.emoji} tile="bg-amber-100" name={T(t.en, t.pcm)} desc={T(t.blurb[0], t.blurb[1])} right={naira(I(p, t.cost))} disabled={ticketsLeft(p) <= 0 || p.money < I(p, t.cost)} onClick={() => { const msg = runMsg({ t: "bl", op: "lotto", id: t.id }, true); mini({ kind: "scratch", reveal: msg, onDone: () => undefined }); }} wrap />)}
     </ListGroup>
   );
 }
@@ -64,6 +68,7 @@ export function StyleCard({ p, run }: { p: Player; run: Run }) {
 }
 
 export function TalentCard({ p, run }: { p: Player; run: Run }) {
+  const mini = useMini();
   const t = talentOf(p);
   const def = TALENTS.find((x) => x.id === t.kind);
   if (p.age < 6) return null;
@@ -77,7 +82,7 @@ export function TalentCard({ p, run }: { p: Player; run: Run }) {
   return (
     <ListGroup title={`${def.emoji} ${T(def.en, def.pcm)}`} sub={p.flags.bigBreak ? T("You have had your big break. Keep it going.", "You don get your big break. Keep am going.") : T("Practise, audition, and hit level 70 for a big break.", "Practise, audition, and reach level 70 for big break.")}>
       <div className="px-3.5 py-3"><Bar label={T("Skill", "Skill")} value={t.level} tone="blue" /></div>
-      <ListRow emoji="🏋🏾" tile="bg-emerald-100" name={T("Practise", "Practise")} desc={T(`${practiceLeft(p)} sessions left this year`, `${practiceLeft(p)} sessions remain this year`)} right={p.age >= 16 ? naira(I(p, 20_000)) : undefined} disabled={practiceLeft(p) <= 0} onClick={() => run({ t: "bl", op: "practice" })} />
+      <ListRow emoji="🏋🏾" tile="bg-emerald-100" name={T("Practise", "Practise")} desc={T(`${practiceLeft(p)} sessions left this year`, `${practiceLeft(p)} sessions remain this year`)} right={p.age >= 16 ? naira(I(p, 20_000)) : undefined} disabled={practiceLeft(p) <= 0} onClick={() => mini({ kind: t.kind === "football" ? "penalty" : "rhythm", onDone: (s) => run(s === null ? { t: "bl", op: "practice" } : { t: "bl", op: "practice", score: s }) })} />
     </ListGroup>
   );
 }

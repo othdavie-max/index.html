@@ -27,6 +27,7 @@ import { applyDaily } from "./daily";
 import { LEGACY_EVENTS, inheritLegacy, legacyYear } from "./legacy";
 import { RIVAL_EVENTS, callFavour, npcFortunes, rivalYear, type FavourKind } from "./rival";
 import { QUEST_EVENTS, milestonesYear, questsYear } from "./quests";
+import { businessShift } from "./business";
 import { INV2_EVENTS, buyPosition, inv2Year, sellPosition, type PosKind } from "./invest2";
 import { SUPPORT_EVENTS, yearlyPromises } from "./support";
 import { PRISON_EVENTS, fugitiveYear, prisonBlock, prisonOp } from "./prison";
@@ -778,7 +779,7 @@ export type Action =
   | { t: "sell"; id: string }
   | { t: "use"; id: string; use: HouseUse }
   | { t: "send"; amount: number }
-  | { t: "activity"; id: string }
+  | { t: "activity"; id: string; score?: number }
   | { t: "japa" }
   | { t: "luxury"; id: string }
   | { t: "invest"; kind: HoldingKind; amount: number }
@@ -799,14 +800,14 @@ export type Action =
   | { t: "insure"; plan: "none" | "basic" | "premium" }
   | { t: "checkup" }
   | { t: "treat"; cond: string; facility: string }
-  | { t: "yahoo"; op: "hunt" | "work" | "cash" | "drop" | "kit" | "low" | "launder" | "settle" | "quit"; id?: string; how?: Approach }
-  | { t: "bl"; op: "pet" | "petcare" | "rehome" | "lotto" | "style" | "talent" | "practice" | "dna"; id?: string; care?: "play" | "feed" | "vet" }
+  | { t: "yahoo"; op: "hunt" | "work" | "cash" | "drop" | "kit" | "low" | "launder" | "settle" | "quit"; id?: string; how?: Approach; score?: number }
+  | { t: "bl"; op: "pet" | "petcare" | "rehome" | "lotto" | "style" | "talent" | "practice" | "dna"; id?: string; care?: "play" | "feed" | "vet"; score?: number }
   | { t: "inv2"; op: "buy" | "sell"; kind?: PosKind; id?: string; amount?: number }
   | { t: "favour"; npc: string; kind: FavourKind }
   | { t: "daily"; id: string; day: string }
   | { t: "dating"; op: "profile" | "swipe" | "chat" | "date" | "spend" | "official" | "breakup" | "night" | "marry" | "propose" | "meet" | "hookup" | "movein" | "planb" | "divorce"; npc?: string; like?: boolean; tone?: ChatTone; plan?: DatePlan; prot?: Protection; bio?: string; interests?: string[]; looking?: "men" | "women" | "everyone" }
   | { t: "realtor"; op: "show" | "find"; client?: string; listing?: string }
-  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "levers" | "act"; id: string; sets?: Record<string, number>; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
+  | { t: "biz"; op: "start" | "upgrade" | "hire" | "fire" | "manager" | "sell" | "close" | "recruit" | "pick" | "dismiss" | "raise" | "train" | "price" | "ads" | "stock" | "accept" | "haggle" | "decline" | "lever" | "levers" | "act" | "shift"; id: string; score?: number; sets?: Record<string, number>; key?: string; role?: string; name?: string; offer?: string; worker?: string; idx?: number; v?: number }
   | { t: "bet"; kind: BetKind; stake: number }
   | { t: "social"; op: "account" | "post" | "collab" | "gear"; platform?: Platform; content?: ContentKind }
   | { t: "crime"; id: string }
@@ -814,7 +815,7 @@ export type Action =
   | { t: "learn"; id: string; mode?: "course" | "practice" | "mentor" }
   | { t: "growth"; id: string }
   | { t: "gym" }
-  | { t: "prison"; op: "work" | "study" | "appeal" | "escape" }
+  | { t: "prison"; op: "work" | "study" | "appeal" | "escape"; score?: number }
   | { t: "enlist"; branch?: "army" | "navy" | "airforce" }
   | { t: "mortgage"; kind: HouseKind; years: number }
   | { t: "trade"; id: string }
@@ -822,7 +823,7 @@ export type Action =
   | { t: "adopt" }
   | { t: "interact"; npc: string; id: string }
   | { t: "friend" }
-  | { t: "jamb"; cheat?: boolean }
+  | { t: "jamb"; cheat?: boolean; quiz?: number }
   | { t: "enrol"; uni: string; major: string; pay: "family" | "self" | "aid" }
   | { t: "campus"; op: string; arg?: string }
   | { t: "advisor"; op: "hire" | "fire"; tier?: 1 | 2 | 3 }
@@ -1033,14 +1034,14 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       bump(p, "happiness", 6);
       return out(T(`You built a ${HOUSE_KINDS[a.kind].label.toLowerCase()} in ${st.name} for ${naira(cost)}.`, `You build ${HOUSE_KINDS[a.kind].label.toLowerCase()} for ${st.name} for ${naira(cost)}.`));
     }
-    case "prison": return out(prisonOp(p, a.op));
+    case "prison": return out(prisonOp(p, a.op, a.score));
     case "mortgage": { if (p.prison > 0) return { g: g0, msg: "" }; const m = takeMortgage(p, a.kind, a.years); return out(m); }
     case "trade": return out(enrollTrade(p, a.id));
     case "postgrad": return out(enrollPostgrad(p, a.id));
     case "adopt": return out(adoptChild(p));
     case "interact": return out(interact(p, a.npc, a.id));
     case "friend": return out(makeFriend(p));
-    case "jamb": return out(writeJamb(p, Boolean(a.cheat)));
+    case "jamb": return out(writeJamb(p, Boolean(a.cheat), a.quiz));
     case "enrol": { const m = enrol(p, a.uni, a.major, a.pay); if (p.campus) fillClassmates(p); return out(m); }
     case "campus": return out(campusDo(p, a.op, a.arg));
     case "advisor": return out(a.op === "hire" ? hireAdvisor(p, a.tier ?? 1) : fireAdvisor(p));
@@ -1091,13 +1092,14 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
       if (!def || activityBlock(p, def)) return { g: g0, msg: activityBlock(p, def ?? ACTIVITIES[0]) ?? "" };
       p.actionsLeft -= 1;
       p.money -= I(p, def.cost);
+      const sc = typeof a.score === "number" && Number.isFinite(a.score) ? Math.max(0, Math.min(1, a.score)) : null;
       switch (def.id) {
-        case "study": bump(p, "smarts", 3); bump(p, "stress", 2); return out(T("You studied hard. Knowledge is power.", "You read book well well. Knowledge na power."));
-        case "gym": bump(p, "health", 5); bump(p, "happiness", 2); return out(T("You worked out. You feel stronger.", "You do exercise. Your body don strong."));
+        case "study": { const gain = sc === null ? 3 : 1 + Math.round(sc * 4); bump(p, "smarts", gain); bump(p, "stress", 2); return out(sc === null ? T("You studied hard. Knowledge is power.", "You read book well well. Knowledge na power.") : T(`You studied and scored ${Math.round(sc * 100)}% on your practice test. Smarts +${gain}.`, `You read book and score ${Math.round(sc * 100)}% for practice test. Smarts +${gain}.`)); }
+        case "gym": bump(p, "health", sc === null ? 5 : 3 + Math.round(sc * 5)); bump(p, "happiness", sc === null ? 2 : 1 + Math.round(sc * 4)); return out(T("You worked out. You feel stronger.", "You do exercise. Your body don strong."));
         case "worship": bump(p, "happiness", 3); bump(p, "reputation", 2); return out(T(`You went to ${p.religion === "Muslim" ? "the mosque" : "church"}. Peace of mind.`, `You go ${p.religion === "Muslim" ? "mosque" : "church"}. Your mind don calm.`));
-        case "hawk": { const g2 = I(p, rand(3_000, 9_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 3); bump(p, "health", -1); return out(T(`You hawked on the street and made ${naira(g2)}.`, `You hawk for street and make ${naira(g2)}.`)); }
-        case "network": bump(p, "connections", 4); return out(T("You networked at an owambe and exchanged numbers.", "You do network for owambe and swap numbers."));
-        case "gig": { const g2 = I(p, rand(8_000, 40_000)) * (0.5 + st.opp / 10); p.money += g2; bump(p, "stress", 2); return out(T(`You did odd jobs and earned ${naira(g2)}.`, `You do some small small jobs and collect ${naira(g2)}.`)); }
+        case "hawk": { const g2 = I(p, rand(3_000, 9_000)) * (0.5 + st.opp / 10) * (sc === null ? 1 : 0.6 + sc * 0.9); p.money += g2; bump(p, "stress", 3); bump(p, "health", -1); return out(T(`You hawked on the street and made ${naira(g2)}.`, `You hawk for street and make ${naira(g2)}.`)); }
+        case "network": bump(p, "connections", sc === null ? 4 : 2 + Math.round(sc * 5)); if (sc !== null) bump(p, "reputation", Math.round(sc * 2)); return out(T("You networked at an owambe and exchanged numbers.", "You do network for owambe and swap numbers."));
+        case "gig": { const g2 = I(p, rand(8_000, 40_000)) * (0.5 + st.opp / 10) * (sc === null ? 1 : 0.6 + sc * 0.9); p.money += g2; bump(p, "stress", 2); return out(T(`You did odd jobs and earned ${naira(g2)}.`, `You do some small small jobs and collect ${naira(g2)}.`)); }
         case "date": g.queue.unshift({ kind: "event", id: "love", data: EVENT_DEFS.love.init ? EVENT_DEFS.love.init(p) : {} }); return out(T("You went out looking for love...", "You go out go find love..."));
         case "godfather":
           if (chance(0.25)) return out(T("A 'godfather' collected your money and disappeared. You were scammed.", "One 'godfather' collect your money and disappear. Dem don scam you."));
@@ -1259,7 +1261,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "lotto": return out(playTicket(p, (a.id ?? "scratch") as Ticket));
             case "style": return out(doStyle(p, a.id ?? ""));
             case "talent": return out(pickTalent(p, a.id ?? ""));
-            case "practice": return out(practice(p));
+            case "practice": return out(practice(p, a.score));
             case "dna": return out(dnaTest(p));
           }
           return { g: g0, msg: "" };
@@ -1267,7 +1269,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
         case "yahoo": {
           switch (a.op) {
             case "hunt": return out(hunt(p));
-            case "work": return out(yahooWork(p, a.id ?? "", a.how ?? "chat"));
+            case "work": return out(yahooWork(p, a.id ?? "", a.how ?? "chat", a.score));
             case "cash": return out(cashOut(p, a.id ?? ""));
             case "drop": return out(dropMark(p, a.id ?? ""));
             case "kit": return out(upgradeKit(p));
@@ -1289,6 +1291,7 @@ export function act(g0: Game, a: Action): { g: Game; msg: string } {
             case "lever": return out(setLever(p, a.id, a.key ?? "", a.v ?? 0));
             case "levers": return out(setLevers(p, a.id, a.sets ?? {}));
             case "act": return out(businessAct(p, a.id, a.key ?? ""));
+            case "shift": return out(businessShift(p, a.id, a.score ?? 0.5));
             case "pick": return out(hirePick(p, a.id, a.idx ?? 0));
             case "dismiss": return out(dismiss(p, a.id, a.worker));
             case "raise": return out(raisePay(p, a.id, a.worker ?? ""));

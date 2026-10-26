@@ -199,7 +199,7 @@ export function pickTalent(p: Player, kind: string): string {
   p.flags.talentKind = kind; p.flags.talentLvl = 6;
   return T(`You decide to chase ${t.en.toLowerCase()}.`, `You decide to chase ${t.pcm.toLowerCase()}.`);
 }
-export function practice(p: Player): string {
+export function practice(p: Player, score?: number): string {
   const { kind, level } = talentOf(p);
   if (!kind) return "";
   if (p.prison > 0) return T("Not from prison", "No fit from prison");
@@ -208,7 +208,8 @@ export function practice(p: Player): string {
   if (p.money < cost) return T("You cannot afford studio time.", "You no get money for studio time.");
   takeOne(p, "practice", 5);
   if (cost) spend(p, cost, T("Practice and studio time", "Practice and studio time"));
-  const g = clamp(Math.round(rand(2, 6) + p.stats.smarts / 40 + p.stats.fitness / 60 + luckBonus(p)), 1, 9);
+  const sc = typeof score === "number" && Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : null;
+  const g = clamp(Math.round((rand(2, 6) + p.stats.smarts / 40 + p.stats.fitness / 60 + luckBonus(p)) * (sc === null ? 1 : 0.6 + sc * 0.9)), 1, 12);
   p.flags.talentLvl = Math.min(100, level + g);
   bump(p, "stress", 1);
   return T(`Hours of work pay off: skill +${g}.`, `Hours of work pay: skill +${g}.`);

@@ -551,3 +551,24 @@ export const BIZ_EVENTS: EventDef[] = [
   },
 ];
 
+
+/** Work a busy shift yourself. The rush-hour mini-game decides how well it goes. */
+export function shiftBlock(p: Player, id: string): string | null {
+  const b = find(p, id);
+  if (!b || b.status !== "open") return T("Not open", "E no open");
+  if (p.prison > 0) return T("Not from prison", "No fit from prison");
+  if (p.actionsLeft <= 0) return T("No actions left this year", "No action remain this year");
+  return null;
+}
+export function businessShift(p: Player, id: string, score: number): string {
+  const block = shiftBlock(p, id);
+  if (block) return block;
+  const b = find(p, id)!;
+  const s = Math.max(0, Math.min(1, Number.isFinite(score) ? score : 0.5));
+  p.actionsLeft -= 1;
+  const bonus = Math.round(Math.max(I(p, 30_000), Math.abs(b.lastMonthProfit || 0)) * (0.15 + s * 0.85));
+  transact(p, { amount: bonus, reason: T(`${b.name}: you worked the rush hour`, `${b.name}: you work the rush hour`), category: "business" });
+  b.quality = clamp(b.quality + Math.round(s * 4) - (s < 0.3 ? 2 : 0));
+  p.stats.stress = clamp(p.stats.stress + 2);
+  return s >= 0.7 ? T(`A smooth rush hour at ${b.name}: ${naira(bonus)} extra and happy customers.`, `Rush hour for ${b.name} go well: ${naira(bonus)} extra and customers happy.`) : s >= 0.35 ? T(`A busy shift at ${b.name}: ${naira(bonus)} extra, a few complaints.`, `Busy shift for ${b.name}: ${naira(bonus)} extra, small complaint.`) : T(`Chaos at ${b.name}. Orders mixed up, customers walked out. Only ${naira(bonus)} extra.`, `Wahala for ${b.name}. Order scatter, customers waka. Only ${naira(bonus)} extra.`);
+}

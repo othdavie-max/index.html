@@ -71,7 +71,7 @@ export function hunt(p: Player): string {
 
 export type Approach = "chat" | "story" | "pressure";
 
-export function work(p: Player, id: string, how: Approach): string {
+export function work(p: Player, id: string, how: Approach, score?: number): string {
   const b = yahooBlock(p);
   if (b) return b;
   const ms = marksOf(p);
@@ -81,7 +81,8 @@ export function work(p: Player, id: string, how: Approach): string {
   m.rounds += 1;
   const sk = skillOf(p) + kitLevel(p) * 6 + p.stats.smarts / 5;
   const base = how === "chat" ? 0.62 : how === "story" ? 0.5 : 0.36;
-  const win = chance(clamp(base + (sk - m.wary) / 200 + luckBonus(p), 0.1, 0.92));
+  const chat = typeof score === "number" && Number.isFinite(score) ? Math.max(0, Math.min(1, score)) - 0.5 : 0;
+  const win = chance(clamp(base + (sk - m.wary) / 200 + luckBonus(p) + chat * 0.3, 0.1, 0.92));
   const gain = how === "chat" ? randInt(8, 16) : how === "story" ? randInt(14, 26) : randInt(20, 36);
   if (win) {
     m.trust = clamp(m.trust + gain);

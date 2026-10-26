@@ -36,7 +36,7 @@ export function prisonBlockOp(p: Player, op: string): string | null {
   return null;
 }
 
-export function prisonOp(p: Player, op: string): string {
+export function prisonOp(p: Player, op: string, score?: number): string {
   const block = prisonBlockOp(p, op);
   if (block) return block;
   p.actionsLeft -= 1;
@@ -73,7 +73,8 @@ export function prisonOp(p: Player, op: string): string {
       return T("The appeal is dismissed. The lawyer takes his fee anyway.", "Dem throw out the appeal. Lawyer still collect him money.");
     }
     case "escape": {
-      if (chance(0.12 + p.stats.fitness / 450 + luckBonus(p))) {
+      const maze = typeof score === "number" && Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : null;
+      if (chance((maze === null ? 0.12 : 0.04 + maze * 0.42) + p.stats.fitness / 450 + luckBonus(p))) {
         p.prison = 0;
         p.flags.fugitive = true;
         p.crime.heat = 100;

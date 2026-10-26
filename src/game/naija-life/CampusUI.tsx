@@ -8,6 +8,7 @@ import { STATE_BY_ID } from "./data";
 import type { Player } from "./types";
 import { Badge, Btn, H, ListGroup, ListRow, Sheet, cx } from "./ui";
 import { T, naira } from "./util";
+import { useMini } from "./mini/Host";
 
 type Run = (a: Action) => void;
 
@@ -146,6 +147,7 @@ export function CampusCard({ p, run }: { p: Player; run: Run }) {
 
 /** What is on your degree after graduation, plus the JAMB button. */
 export function DegreeCard({ p, run }: { p: Player; run: Run }) {
+  const mini = useMini();
   const c = p.campus;
   const b = jambBlock(p);
   return (
@@ -155,7 +157,7 @@ export function DegreeCard({ p, run }: { p: Player; run: Run }) {
       )}
       {p.edu === "secondary" && !p.school && !p.flags.admOpen && p.age >= 16 && p.age <= 40 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
-          <Btn small tone="gold" disabled={Boolean(b)} onClick={() => run({ t: "jamb" })}>{T("Write JAMB", "Write JAMB")}</Btn>
+          <Btn small tone="gold" disabled={Boolean(b)} onClick={() => mini({ kind: "quiz", onDone: (s) => run(s === null ? { t: "jamb" } : { t: "jamb", quiz: s }) })}>{T("Write JAMB", "Write JAMB")} 🎮</Btn>
           <Btn small tone="ghost" disabled={Boolean(b)} onClick={() => run({ t: "jamb", cheat: true })}>{T("Buy 'expo'", "Buy 'expo'")}</Btn>
           {b && <span className="self-center text-[11px] text-slate-500">{b}</span>}
         </div>

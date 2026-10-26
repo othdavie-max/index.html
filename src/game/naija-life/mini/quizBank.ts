@@ -1,0 +1,28 @@
+/** Question bank for the quick test. Facts are about Nigeria and everyday school knowledge. */
+export interface Q { q: [string, string]; a: string; wrong: string[] }
+export const BANK: Q[] = [
+  { q: ["What is the capital of Nigeria?", "Wetin be Nigeria capital?"], a: "Abuja", wrong: ["Lagos", "Kano", "Ibadan"] },
+  { q: ["In what year did Nigeria become independent?", "Which year Nigeria get independence?"], a: "1960", wrong: ["1957", "1963", "1970"] },
+  { q: ["How many states does Nigeria have?", "How many states Nigeria get?"], a: "36", wrong: ["30", "37", "40"] },
+  { q: ["Who wrote 'Things Fall Apart'?", "Who write 'Things Fall Apart'?"], a: "Chinua Achebe", wrong: ["Wole Soyinka", "Chimamanda Adichie", "Ben Okri"] },
+  { q: ["Which Nigerian won the Nobel Prize for Literature in 1986?", "Which Nigerian win Nobel Prize for Literature for 1986?"], a: "Wole Soyinka", wrong: ["Chinua Achebe", "Flora Nwapa", "Ken Saro-Wiwa"] },
+  { q: ["The Niger and Benue rivers meet at...", "River Niger and Benue meet for..."], a: "Lokoja", wrong: ["Onitsha", "Jebba", "Makurdi"] },
+  { q: ["What is the nickname of Nigeria's men's football team?", "Wetin dem dey call Nigeria men football team?"], a: "Super Eagles", wrong: ["Black Stars", "Super Falcons", "Flying Eagles"] },
+  { q: ["How long is NYSC service?", "How long NYSC dey last?"], a: "One year", wrong: ["Six months", "Two years", "Three months"] },
+  { q: ["What colours are on the Nigerian flag?", "Which colour dey Nigerian flag?"], a: "Green and white", wrong: ["Green and yellow", "Red and white", "Green, white and red"] },
+  { q: ["How many geopolitical zones does Nigeria have?", "How many geopolitical zones Nigeria get?"], a: "6", wrong: ["4", "5", "8"] },
+  { q: ["Which exam do you write to get into a Nigerian university?", "Which exam you go write to enter university for Naija?"], a: "JAMB (UTME)", wrong: ["NYSC", "TOEFL", "BECE"] },
+  { q: ["What is the smaller unit of the naira?", "Wetin be the small money for naira?"], a: "Kobo", wrong: ["Cent", "Pesewa", "Shilling"] },
+  { q: ["Nigeria's highest mountain is...", "Nigeria highest mountain na..."], a: "Chappal Waddi", wrong: ["Olumo Rock", "Zuma Rock", "Mount Patti"] },
+  { q: ["Which is Nigeria's largest city by population?", "Which city get pass people for Nigeria?"], a: "Lagos", wrong: ["Abuja", "Port Harcourt", "Enugu"] },
+  { q: ["Water boils at what temperature at sea level?", "Water dey boil for which temperature?"], a: "100°C", wrong: ["50°C", "90°C", "120°C"] },
+  { q: ["What is H₂O?", "Wetin be H₂O?"], a: "Water", wrong: ["Salt", "Oxygen", "Sugar"] },
+  { q: ["How many planets are in our solar system?", "How many planets dey our solar system?"], a: "8", wrong: ["7", "9", "10"] },
+  { q: ["The opposite of 'generous' is...", "Opposite of 'generous' na..."], a: "Stingy", wrong: ["Kind", "Rich", "Happy"] },
+  { q: ["The plural of 'child' is...", "Plural of 'child' na..."], a: "Children", wrong: ["Childs", "Childrens", "Childes"] },
+  { q: ["Which organ pumps blood around the body?", "Which part of body dey pump blood?"], a: "Heart", wrong: ["Liver", "Lungs", "Kidney"] },
+  { q: ["What do plants need from sunlight to make food?", "Wetin plant dey use sunlight do?"], a: "Photosynthesis", wrong: ["Digestion", "Respiration", "Evaporation"] },
+  { q: ["A synonym for 'happy' is...", "Another word for 'happy' na..."], a: "Glad", wrong: ["Angry", "Tired", "Hungry"] },
+  { q: ["Which country is Nigeria's 'jollof rival'?", "Which country be Nigeria jollof rival?"], a: "Ghana", wrong: ["Senegal", "Kenya", "Egypt"] },
+  { q: ["Which is the most populous country in Africa?", "Which country for Africa get pass people?"], a: "Nigeria", wrong: ["Egypt", "Ethiopia", "South Africa"] },
+];

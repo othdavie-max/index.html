@@ -2078,3 +2078,25 @@ test("legacy, calendar seasons, daily pick, score codes and policy choices", asy
   assert.ok(pol.weight(p) > 0);
   for (let i = 0; i < pol.choices(p, {}).length; i++) { const q = structuredClone(p); q.world = q.world ?? { until: {}, news: [] }; assert.ok(typeof pol.choices(q, {})[i].run(q) === "string"); }
 });
+
+test("mini-game scores feed into actions, and skipping keeps the old behaviour", async () => {
+  const { BIZ_KINDS } = await import("../business");
+  const g = aliveAt(20);
+  g.queue = []; g.p.prison = 0; g.p.actionsLeft = 3;
+  const s0 = g.p.stats.smarts;
+  const hi = act(structuredClone(g), { t: "activity", id: "study", score: 1 }).g;
+  const lo = act(structuredClone(g), { t: "activity", id: "study", score: 0 }).g;
+  const skip = act(structuredClone(g), { t: "activity", id: "study" }).g;
+  assert.ok(hi.p.stats.smarts - s0 > lo.p.stats.smarts - s0, "a better quiz score teaches more");
+  assert.equal(Math.min(100, s0 + 3), skip.p.stats.smarts, "skipping keeps the original +3");
+  // hawk earnings scale with the haggle score
+  const m0 = g.p.money;
+  const hh = act(structuredClone(g), { t: "activity", id: "hawk", score: 1 }).g.p.money - m0;
+  const hl = act(structuredClone(g), { t: "activity", id: "hawk", score: 0 }).g.p.money - m0;
+  assert.ok(hh > 0 && hl > 0);
+  // business shift
+  const q = structuredClone(g); q.p.money = 1e9; q.p.age = 25;
+  let r = act(q, { t: "biz", op: "start", id: BIZ_KINDS[0].id, name: "Test" } as never).g;
+  const bz = r.p.businesses[0];
+  if (bz) { r.p.actionsLeft = 2; const before = r.p.money; r = act(r, { t: "biz", op: "shift", id: bz.id, score: 1 }).g; assert.ok(r.p.money > before, "a good rush hour pays"); }
+});

@@ -15,6 +15,7 @@ import { HOUSE_KINDS } from "./data";
 import { LOCATION_BY_ID } from "./locations";
 import type { Player } from "./types";
 import { T, naira } from "./util";
+import { useMini } from "./mini/Host";
 
 type Run = (a: Action) => void;
 
@@ -197,6 +198,7 @@ export function NyscPanel({ p }: { p: Player }) {
 
 /** The Yahoo hustle as a game: find clients, build trust, cash out, keep EFCC away. */
 export function YahooPanel({ p, run }: { p: Player; run: Run }) {
+  const mini = useMini();
   const [openId, setOpenId] = useState<string | null>(null);
   const marks = marksOf(p);
   const m = marks.find((x) => x.id === openId) ?? null;
@@ -228,9 +230,9 @@ export function YahooPanel({ p, run }: { p: Player; run: Run }) {
       {m && (
         <ActionSheet emoji={MARK_KINDS[m.kind].emoji} tile="bg-violet-100" title={`${m.name} · ${T(MARK_KINDS[m.kind].en, MARK_KINDS[m.kind].pcm)}`} sub={T(`Trust ${Math.round(m.trust)}% · suspicion ${Math.round(m.wary)}% · worked ${m.rounds} time${m.rounds === 1 ? "" : "s"}`, `Trust ${Math.round(m.trust)}% · suspicion ${Math.round(m.wary)}% · worked ${m.rounds} time${m.rounds === 1 ? "" : "s"}`)} onClose={() => setOpenId(null)}>
           <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100">
-            <ListRow emoji="💬" tile="bg-sky-100" name={T("Chat them up", "Gist am up")} desc={T("Slow and safe. Builds a little trust.", "Slow and safe. Build small trust.")} disabled={left <= 0} onClick={() => run({ t: "yahoo", op: "work", id: m.id, how: "chat" })} />
-            <ListRow emoji="📖" tile="bg-amber-100" name={T("Tell a story", "Tell story")} desc={T("Builds more trust, a bit riskier.", "Build more trust, small risk.")} disabled={left <= 0} onClick={() => run({ t: "yahoo", op: "work", id: m.id, how: "story" })} />
-            <ListRow emoji="⚡" tile="bg-rose-100" name={T("Push hard", "Push hard")} desc={T("Fast trust, but they may run and report.", "Fast trust, but dem fit run and report.")} disabled={left <= 0} onClick={() => run({ t: "yahoo", op: "work", id: m.id, how: "pressure" })} />
+            <ListRow emoji="💬" tile="bg-sky-100" name={T("Chat them up", "Gist am up")} desc={T("Slow and safe. Builds a little trust.", "Slow and safe. Build small trust.")} disabled={left <= 0} onClick={() => mini({ kind: "yahoo", label: m.name, onDone: (s) => run({ t: "yahoo", op: "work", id: m.id, how: "chat", ...(s === null ? {} : { score: s }) }) })} />
+            <ListRow emoji="📖" tile="bg-amber-100" name={T("Tell a story", "Tell story")} desc={T("Builds more trust, a bit riskier.", "Build more trust, small risk.")} disabled={left <= 0} onClick={() => mini({ kind: "yahoo", label: m.name, onDone: (s) => run({ t: "yahoo", op: "work", id: m.id, how: "story", ...(s === null ? {} : { score: s }) }) })} />
+            <ListRow emoji="⚡" tile="bg-rose-100" name={T("Push hard", "Push hard")} desc={T("Fast trust, but they may run and report.", "Fast trust, but dem fit run and report.")} disabled={left <= 0} onClick={() => mini({ kind: "yahoo", label: m.name, onDone: (s) => run({ t: "yahoo", op: "work", id: m.id, how: "pressure", ...(s === null ? {} : { score: s }) }) })} />
             <ListRow emoji="💰" tile="bg-emerald-100" name={T("Ask for the money", "Ask for the money")} desc={T(`Chance rises with trust (now ${Math.round(m.trust)}%).`, `Chance rise with trust (now ${Math.round(m.trust)}%).`)} disabled={left <= 0} onClick={() => { run({ t: "yahoo", op: "cash", id: m.id }); setOpenId(null); }} />
             <ListRow emoji="🗑️" tile="bg-slate-100" name={T("Drop this client", "Drop this client")} onClick={() => { run({ t: "yahoo", op: "drop", id: m.id }); setOpenId(null); }} />
           </div>
