@@ -66,10 +66,26 @@ class IndexedDbBackend implements StorageBackend {
   async remove(k: string) { await this.tx("readwrite", (s) => s.delete(k)); }
 }
 
+/** Tries each backend in turn and permanently falls back to the next one if storage is blocked (e.g. sandboxed frames). */
+class ResilientBackend implements StorageBackend {
+  private chain: StorageBackend[];
+  constructor(chain: StorageBackend[]) { this.chain = chain; }
+  private async run<T>(fn: (b: StorageBackend) => Promise<T>): Promise<T> {
+    for (;;) {
+      try { return await fn(this.chain[0]); } catch (e) { if (this.chain.length === 1) throw e; this.chain.shift(); }
+    }
+  }
+  get(k: string) { return this.run((b) => b.get(k)); }
+  set(k: string, v: string) { return this.run((b) => b.set(k, v)); }
+  remove(k: string) { return this.run((b) => b.remove(k)); }
+}
+
 export function defaultBackend(): StorageBackend {
-  if (typeof indexedDB !== "undefined") return new IndexedDbBackend();
-  if (typeof localStorage !== "undefined") return new LocalStorageBackend();
-  return new MemoryBackend();
+  const chain: StorageBackend[] = [];
+  try { if (typeof indexedDB !== "undefined") chain.push(new IndexedDbBackend()); } catch { /* blocked */ }
+  try { if (typeof localStorage !== "undefined") chain.push(new LocalStorageBackend()); } catch { /* blocked */ }
+  chain.push(new MemoryBackend());
+  return new ResilientBackend(chain);
 }
 
 const key = (slot: SlotId) => `save:${slot}`;
