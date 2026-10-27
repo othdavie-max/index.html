@@ -9,6 +9,7 @@ import type { Rng } from "../../game/engine/rng";
 import type { Effects, Faction, FixState, Minister, Portfolio } from "./types";
 import { addMod, clamp, clamp100, infraScore, pushNews, pushReport, removeMods } from "./util";
 import { addCronies } from "./dayone";
+import { ripple } from "./ripples";
 import { hireMood, moodAll } from "./backers";
 
 export const PORTFOLIOS: { id: Portfolio; title: string; area: string }[] = [
@@ -115,6 +116,7 @@ export function sack(s: FixState, portfolio: Portfolio, reason = "sacked"): CabR
   const m = s.cabinet.members[portfolio];
   if (!m) return { ok: false, message: "That post is already vacant." };
   delete s.cabinet.members[portfolio];
+  if (reason !== "resigned" && s.month > 2 && (m.faction === "crony" || m.faction === "loyalist" || m.faction === "heavyweight")) ripple(s, "sacked", { name: m.name });
   if (s.backers && (m.faction === "crony" || m.faction === "loyalist")) moodAll(s, -6);
   applyMinister(s, portfolio);
   pushNews(s, { source: `sack:${portfolio}`, headline: `${m.name} ${reason === "resigned" ? "resigns as" : "removed as"} ${PORTFOLIO_BY_ID[portfolio].title}`, body: "The post is vacant until a replacement is named.", tone: "bad" });

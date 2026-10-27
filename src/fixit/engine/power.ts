@@ -13,6 +13,7 @@ import { addMod, calMonth, clamp, clamp100, nb, pushNews, pushReport, removeMods
 import { createEvent } from "./events";
 import { finishTerm } from "./legacy";
 import { staffCoup } from "./dayone";
+import { ripple } from "./ripples";
 
 // ---------------------------------------------------------------- the law ladder
 export interface LawDef { level: 0 | 1 | 2 | 3 | 4; name: string; short: string; blurb: string; icon: string }
@@ -115,6 +116,7 @@ export function punish(s: FixState, lm: Lawmaker, why: "case" | "arrest" | "cour
     act(s, "politicalArrest", { democracy: -8, intl: 6, anger: 3, elite: -2, press: -3 });
     s.gov.trust = clamp100(s.gov.trust - 2);
     lm.status = "jailed";
+    ripple(s, "wrongful", { name: lm.name, stateId: lm.stateId, lmId: lm.id });
     lines.push(`${lm.name} was locked up on thin evidence. Critics call it a political arrest.`);
   } else if (level === 0) {
     lm.loyalty = clamp100(lm.loyalty - 5); lm.evidence = 0;
@@ -132,6 +134,7 @@ export function punish(s: FixState, lm: Lawmaker, why: "case" | "arrest" | "cour
     else {
       lm.status = level === 4 ? "executed" : "jailed";
       lines.push(level === 2 ? `${lm.name} was sentenced to prison and lost the seat; ${nb(back)} was recovered.` : level === 3 ? `${lm.name} was sentenced to life in prison; ${nb(back)} was recovered.` : `${lm.name} was sentenced to death for grand corruption. ${nb(back)} was recovered.`);
+      ripple(s, level === 4 ? "execute" : "jail", { name: lm.name, stateId: lm.stateId, lmId: lm.id });
       if (level === 4) { s.rule.executions++; act(s, "execution", { intl: 8, anger: rng.chance(0.4) ? 4 : -2, democracy: -2, elite: -3 }); s.sec.humanRights = clamp100(s.sec.humanRights - 6); }
       if (level === 3) act(s, "lifeSentence", { intl: 2, elite: -2 });
       if (level === 2) act(s, "prison", { elite: -1 });
@@ -302,6 +305,7 @@ export function applyTool(s: FixState, id: string): PResult {
     }
     case "press": {
       act(s, "pressCrackdown", { democracy: -10, press: -30, anger: 6, intl: 6, trust: -3 });
+      ripple(s, "press");
       s.groupMood.youth = clamp(s.groupMood.youth - 6, -40, 40);
       pushNews(s, { source: `press:${s.month}`, headline: "Newspaper offices raided; journalists detained", body: "Press groups call it the worst attack on media freedom in years.", tone: "bad" });
       return { ok: true, message: "The press has been muzzled. Fewer scandals will leak, at a price." };
@@ -317,6 +321,7 @@ export function applyTool(s: FixState, id: string): PResult {
       s.rival.popularity = clamp100(s.rival.popularity - 18);
       act(s, "arrestRival", { democracy: -15, intl: 10, anger: 8, elite: -2 });
       s.flags.rivalMartyr = s.month;
+      ripple(s, "rival");
       pushNews(s, { source: `rival:${s.month}`, headline: `${s.rival.name} arrested`, body: "Supporters say the charges are political.", tone: "bad" });
       return { ok: true, message: `${s.rival.name} is in custody. Their supporters are furious; a martyr may be more dangerous than a rival.` };
     }
@@ -329,6 +334,7 @@ export function applyTool(s: FixState, id: string): PResult {
       act(s, "purge", { coup: -18, elite: -3, intl: 1, anger: 1 });
       s.groupMood.military = clamp(s.groupMood.military - 8, -40, 40);
       s.flags.purgeEcho = s.month + 6;
+      ripple(s, "purge");
       return { ok: true, message: "Suspected plotters are out. Coup risk falls now, but the army will remember." };
     }
     case "governors": {

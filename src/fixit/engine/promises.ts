@@ -61,6 +61,12 @@ const ACH: AchDef[] = [
   { id: "subsidyEnd", label: "Brave reformer: fuel subsidy ended", test: (s) => s.fuel.coverage < 0.05 },
   { id: "happy60", label: "Loved: public happiness above 60", test: (s) => s.gov.happiness >= 60 },
   { id: "year1", label: "Survivor: one year in office", test: (s) => s.month >= 12 },
+  { id: "dreamWorldCup", label: "Dream delivered: Nigeria hosts the World Cup", test: (s) => s.projects.some((p) => p.defId === "dreamWorldCup" && p.status === "done") },
+  { id: "dreamRail", label: "Dream delivered: the Lagos–Calabar railway", test: (s) => s.projects.some((p) => p.defId === "dreamRailCalabar" && p.status === "done") },
+  { id: "dreamPower", label: "Dream delivered: 24-hour electricity", test: (s) => s.projects.some((p) => p.defId === "dreamPower24" && p.status === "done") },
+  { id: "dreamTech", label: "Dream delivered: Africa's tech capital", test: (s) => s.projects.some((p) => p.defId === "dreamTechCity" && p.status === "done") },
+  { id: "dreamPeace", label: "Dream delivered: peace in the north-east", test: (s) => s.projects.some((p) => p.defId === "dreamPeace" && p.status === "done") },
+  { id: "dreamSpace", label: "Dream delivered: a Nigerian astronaut", test: (s) => s.projects.some((p) => p.defId === "dreamSpace" && p.status === "done") },
   { id: "builder5", label: "Builder: five projects completed", test: (s) => s.projects.filter((p) => p.status === "done").length >= 5 },
 ];
 export function checkAchievements(s: FixState): string[] {

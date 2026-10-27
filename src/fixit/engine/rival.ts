@@ -3,6 +3,7 @@
  * the national vote AND at least 25% in two-thirds of the states (24 of 37), as in Nigeria's rules for president.
  * Party and candidate names are fictional.
  */
+import { ripple } from "./ripples";
 import type { Rng } from "../../game/engine/rng";
 import { subRng } from "../../game/engine/rng";
 import { STATES, STATE_BY_ID } from "../../game/data/states";
@@ -84,6 +85,7 @@ export function runElection(s: FixState): ElectionResult {
     s.rule.rigged = true;
     if (stolen) {
       s.rule.stolenElection = true; s.flags.stolenAt = s.month;
+      ripple(s, "rigged");
       powerAct(s, "stolenElection", { democracy: -20, anger: 24, intl: 15, coup: 8, elite: -3, trust: -6 });
       s.me.scandals += 1;
       pushNews(s, { source: `stolen:${s.month}`, headline: "Observers: election was stolen", body: `Official count says ${v.national}% for the President; independent estimates put it near ${honestV.national}%.`, tone: "bad" });

@@ -128,6 +128,10 @@ export interface Minister { id: string; name: string; portfolio: Portfolio; skil
 export type AideKind = "friend" | "technocrat" | "chieftain" | "general" | "cleric" | "regional" | "loyalist" | "defector";
 export interface Aide { id: string; kind: AideKind; name: string; bio: string; skill: number; loyalty: number; integrity: number; portrait: Portrait; revealed: boolean; since: number }
 export interface Backer { id: string; name: string; title: string; zone: string; power: number; bio: string; mood: number; owed: number }
+export interface Deal { id: string; name: string; sector: string; stateId: string; capex: number; jobs: number; start: number; months: number; progress: number; status: "building" | "open" | "stalled"; terms: "generous" | "fair"; benefit: string; effects: Effects; revenue: number; opened?: number }
+export type EnemyPlan = "protests" | "leaks" | "rival" | "bandits" | "coup";
+export interface Enemy { id: string; name: string; reason: string; portrait: Portrait; plan: EnemyPlan; power: number; grudge: number; zone: string; status: "active" | "bought" | "crushed" | "reconciled"; since: number; note?: string }
+export interface TimelineItem { month: number; title: string; text: string; tone: "good" | "bad" | "neutral"; chain?: string }
 export interface Staff { cos: Aide | null; vp?: Aide | null; picked: boolean }
 export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number; honest?: number; rigged?: boolean; stolen?: boolean }
 export type Difficulty = "easy" | "normal" | "hard";
@@ -187,7 +191,9 @@ export interface FixState {
     fx: number; reserves: number; inflation: number; foodInflation: number; emaDrift: number; priceLevel: number; foodPriceIdx: number;
     wageIdx: number; growth: number; gdpIdx: number; investor: number; oilPrice: number; oilTrend: number; fxGap: number; fxDefence: number;
   };
-  oil: { crude: number; theft: number; production: number; refinery: number; refineryNameplate: number; demand: number; revenueUsd: number };
+  oil: { crude: number; theft: number; production: number; refinery: number; refineryNameplate: number; demand: number; revenueUsd: number;
+    /** refinery uptime 0..100: it decays unless maintained, theft and corruption hurt it */
+    uptime: number; refined: number; scarcity: number };
   fuel: { coverage: number; targeting: number; transfers: boolean; pump: number; parity: number; costMonthly: number; leak: number; importShare: number; history: number[] };
   agri: { inputs: number; irrigation: number; storage: number; processing: number; weather: number; supply: number; demand: number; loss: number; imports: number };
   power: { installed: number; available: number; demand: number; grid: number; gas: number; losses: number; renew: number };
@@ -224,6 +230,9 @@ export interface FixState {
   rule: PowerState;
   staff: Staff;
   backers: Backer[];
+  deals: Deal[];
+  enemies: Enemy[];
+  timeline: TimelineItem[];
   assembly: { support: number; lobby: Record<string, number>; passed: number; defeats: number };
   governors: Governor[];
   groups: Record<GroupId, number>;

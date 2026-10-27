@@ -91,6 +91,7 @@ export function projectCost(s: FixState, defId: string, funding: Funding): numbe
 export function canStartProject(s: FixState, defId: string, stateId: string, funding: Funding): string | null {
   const d = PROJECT_BY_ID[defId];
   if (!d) return "Unknown project.";
+  const locked = d.unlock?.(s); if (locked) return locked;
   if (!STATE_BY_ID[stateId]) return "Choose a state for the site.";
   if (d.sites && !d.sites.includes(stateId)) return `${d.name} can only be sited in ${d.sites.map((x) => STATE_BY_ID[x]?.name).join(", ")}.`;
   if (!d.funding.includes(funding)) return "That funding source is not available for this project.";

@@ -8,7 +8,7 @@ import { Rng, subRng } from "../../game/engine/rng";
 import { STATES } from "../../game/data/states";
 import { PROJECT_BY_ID } from "../data/catalogue";
 import { TERM_MONTHS, type FixState, type Project } from "./types";
-import { addMod, calMonth, clamp, clamp100, debtServiceRatio, delivery, foodAffordIdx, infraScore, isFloodSeason, isHarvest, isLeanSeason, lever, powerRatio, pushNews, pushReport, realWage, round, snap, debtTotalNgn, nb, annualGdpNgn } from "./util";
+import { addMod, removeMods, calMonth, clamp, clamp100, debtServiceRatio, delivery, foodAffordIdx, infraScore, isFloodSeason, isHarvest, isLeanSeason, lever, powerRatio, pushNews, pushReport, realWage, round, snap, debtTotalNgn, nb, annualGdpNgn } from "./util";
 import { generateEvents, resolveExpired } from "./events";
 import { resolveEchoes } from "./echoes";
 import { checkAchievements, midtermCheck } from "./promises";
@@ -21,6 +21,9 @@ import { backersMonthly } from "./backers";
 import { staffMonthly } from "./dayone";
 import { bigMonthly, pegAfter, pegBefore } from "./bigmoves";
 import { checkRecords } from "./history";
+import { investorsMonthly } from "./investors";
+import { ripplesMonthly } from "./ripples";
+import { deskMonthly } from "./desk";
 import { createEvent } from "./events";
 import { makeNews } from "./news";
 import { evaluateTermEnd } from "./legacy";
@@ -47,6 +50,9 @@ export function advanceMonth(s: FixState): boolean {
   backersMonthly(s, subRng(s.meta.seed, "backers", m));
   staffMonthly(s, subRng(s.meta.seed, "staff", m));
   bigMonthly(s, subRng(s.meta.seed, "big", m));
+  investorsMonthly(s, subRng(s.meta.seed, "investors", m));
+  ripplesMonthly(s, subRng(s.meta.seed, "ripples", m));
+  deskMonthly(s, subRng(s.meta.seed, "desk", m));
   resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));
@@ -159,8 +165,17 @@ function phase2(s: FixState, rng: Rng) {
   const theftTarget = clamp(2 + 0.17 * corr + 0.12 * avgRegion(s, SS_OIL, "insecurity") + L("oilTheft"), 3, 45);
   s.oil.theft += 0.12 * (theftTarget - s.oil.theft);
   s.oil.production = (s.oil.crude + L("crude")) * (1 - s.oil.theft / 100);
-  const refined = clamp(s.oil.refinery + L("refinery"), 0, s.oil.refineryNameplate);
+  // refineries: capacity from projects, output set by uptime, which decays unless maintained
+  const maintOil = clamp100(s.infra.maint + L("maint"));
+  const upTarget = clamp(18 + 0.62 * maintOil + 0.22 * (100 - corr) - 0.35 * s.oil.theft - 0.12 * Math.max(0, s.sec.index - 50), 15, 96);
+  const old = s.oil.uptime;
+  s.oil.uptime = clamp(old + (upTarget > old ? 0.08 : 0.16) * (upTarget - old), 12, 98);
+  const capacity = Math.max(20, s.oil.refinery + L("refinery"));
+  const refined = clamp(capacity * (s.oil.uptime / 70), 0, s.oil.refineryNameplate * 1.05);
+  s.oil.refined = refined;
   s.fuel.importShare = clamp(1 - refined / s.oil.demand, 0, 1);
+  if (old >= 40 && s.oil.uptime < 40 && capacity > 120) pushNews(s, { source: `refoutage:${s.month}`, headline: "Refineries run at a fraction of capacity: breakdowns and no maintenance", body: "Engineers say turnaround maintenance was skipped. Imports fill the gap, at a price.", tone: "bad" });
+  if (old < 70 && s.oil.uptime >= 70 && capacity > 120) pushNews(s, { source: `refgood:${s.month}`, headline: "Refineries hit 70% utilisation for the first time in years", body: "Regular maintenance is paying off. Import bills are falling.", tone: "good" });
   const exportK = Math.max(0, s.oil.production - refined);
   const exportUsd = (exportK * 30 * e.oilPrice) / 1e6; // $bn per month
   s.oil.revenueUsd = exportUsd * 0.21;
@@ -291,10 +306,16 @@ function phase3(s: FixState, rng: Rng) {
 
   // fuel price
   const old = fu.pump;
-  fu.parity = (e.oilPrice * e.fx) / 159 * 1.35;
+  const importParity = (e.oilPrice * e.fx) / 159 * 1.35;
+  fu.parity = importParity * (1 - 0.24 * (1 - fu.importShare)); // fuel made at home skips freight, margins and the import queue
   const target = fu.parity * (1 - 0.5 * fu.coverage);
   fu.pump = old + 0.55 * (target - old);
   fu.history.push(fu.pump); if (fu.history.length > 6) fu.history.shift();
+  // queues and scarcity: imports, thin reserves and an unpaid subsidy bill all cause them
+  const scTarget = clamp100(14 + 62 * fu.importShare ** 1.4 + (e.reserves < 15 ? 22 : 0) + (fu.coverage > 0.1 && s.fin.treasury < 80 ? 12 : 0) + 0.2 * s.oil.theft - 0.12 * Math.max(0, s.oil.uptime - 70));
+  s.oil.scarcity = clamp100(s.oil.scarcity + 0.25 * (scTarget - s.oil.scarcity));
+  removeMods(s, "fuelqueue");
+  addMod(s, "fuelqueue", "Fuel queues", { happiness: clamp(-0.035 * (s.oil.scarcity - 30), -1.6, 1.0) }, { duration: null, ramp: 1 });
   s.why.fuel = [
     `Import-parity price is ${Math.round(fu.parity)} per litre (oil $${round(e.oilPrice)}, naira ${Math.round(e.fx)} per dollar)`,
     fu.coverage > 0.02 ? `Subsidy covers about ${Math.round(fu.coverage * 50)}% of that price, so pumps charge ${Math.round(fu.pump)}` : "No subsidy: pumps charge close to the full market price",

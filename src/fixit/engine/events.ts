@@ -15,6 +15,9 @@ import { setSpawn } from "./spawn";
 import { BACKER_TEMPLATES } from "./backers";
 import { STAFF_TEMPLATES } from "./dayone";
 import { BIG_TEMPLATES, BIG_TRIGGERS } from "./bigmoves";
+import { INVESTOR_TEMPLATES } from "./investors";
+import { ENEMY_TEMPLATES, ripple } from "./ripples";
+import { DESK_TEMPLATES } from "./desk";
 import { earn, groupPressure, relate } from "./society";
 import { eventRate } from "./setup";
 import type { GroupId } from "./types";
@@ -232,7 +235,7 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[])].map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
   return t.options.map((o) => {
@@ -381,7 +384,7 @@ function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string): string | undef
     if (fx.inec) P.inecControl = clamp100(P.inecControl + fx.inec);
     if (fx.judiciary) P.judiciary = clamp100(P.judiciary + fx.judiciary);
     if (fx.democracy) { P.democracy = clamp100(P.democracy + fx.democracy); if (fx.democracy < 0) s.flags.lastActMonth = s.month; }
-    if (fx.actTag) { P.acts.push(fx.actTag); if (P.acts.length > 60) P.acts.shift(); }
+    if (fx.actTag) { P.acts.push(fx.actTag); if (P.acts.length > 60) P.acts.shift(); if (fx.actTag === "crackdown") ripple(s, "crackdown"); }
   }
   if (fx.assembly) s.assembly.support = clamp100(s.assembly.support + fx.assembly);
   if (fx.lmLoyalty) for (const l of s.lawmakers ?? []) if (l.status === "active") l.loyalty = clamp100(l.loyalty + fx.lmLoyalty);
