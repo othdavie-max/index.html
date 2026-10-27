@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { PC_COST } from "../engine/meta";
 import { Gavel, Landmark, Megaphone, Users2, Wallet } from "lucide-react";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, Card, Modal } from "../../game/ui/kit";
@@ -76,7 +77,7 @@ export function VoteModal({ bill, exec, onClose }: { bill: string; exec: (s: Fix
           <div><div className="g-row g-between g-small"><span>Chance it passes</span><b>{Math.round(p * 100)}%</b></div><Bar value={p} tone={p < 0.4 ? "red" : p < 0.6 ? "amber" : undefined} label="Chance of passing" /></div>
           <div className="g-section-title">Before the vote, you can lobby</div>
           {(Object.keys(LOBBY) as LobbyKind[]).map((k) => (
-            <div key={k} className="g-list-row"><div className="g-grow"><b className="g-small">{LOBBY[k].label}</b><div className="g-tiny g-muted">{LOBBY[k].explain}{k === "projects" ? ` (about ${nb(40 * (0.6 + 0.4 * s.eco.priceLevel / 100))})` : ""}</div></div><Button size="sm" disabled={!!s.flags[`lobby:${bill}:${k}:${s.month}`]} onClick={() => act((x) => lobby(x, bill, k))}>{s.flags[`lobby:${bill}:${k}:${s.month}`] ? "Done" : "Try"}</Button></div>
+            <div key={k} className="g-list-row"><div className="g-grow"><b className="g-small">{LOBBY[k].label}</b><div className="g-tiny g-muted">{LOBBY[k].explain}{k === "projects" ? ` (about ${nb(40 * (0.6 + 0.4 * s.eco.priceLevel / 100))})` : ""}</div></div><Button size="sm" disabled={!!s.flags[`lobby:${bill}:${k}:${s.month}`]} onClick={() => act((x) => lobby(x, bill, k))}>{s.flags[`lobby:${bill}:${k}:${s.month}`] ? "Done" : `Try ⚡${PC_COST.lobby}`}</Button></div>
           ))}
           <div className="g-tiny g-muted">If it fails, nothing changes except a small loss of trust. Loyalist ministers, friendly governors and popularity all raise your support.</div>
         </div>
@@ -139,7 +140,7 @@ export function SpeechButton() {
           <div className="g-col">
             {s.speech.moment && <Callout tone="info">The country is waiting to hear from you about the {s.speech.moment === "fuel" ? "fuel price changes" : s.speech.moment === "security" ? "security situation" : "national crisis"}.</Callout>}
             <div className="g-small g-muted">Choose your tone. The same words land differently depending on the moment.</div>
-            {SPEECH_TONES.map((t) => <button key={t.id} className="g-card-flat" style={{ textAlign: "left", cursor: "pointer" }} onClick={() => { act((x) => giveSpeech(x, t.id as Tone)); setOpen(false); }}><b>{t.label}</b><div className="g-tiny g-muted">{t.blurb}</div></button>)}
+            {SPEECH_TONES.map((t) => <button key={t.id} className="g-card-flat" style={{ textAlign: "left", cursor: "pointer" }} onClick={() => { act((x) => giveSpeech(x, t.id as Tone)); setOpen(false); }}><b>{t.label} ⚡{PC_COST.speech}</b><div className="g-tiny g-muted">{t.blurb}</div></button>)}
           </div>
         </Modal>
       )}

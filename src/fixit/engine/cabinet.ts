@@ -4,6 +4,7 @@
  * keep the party behind you, regional heavyweights deliver their zone's votes. All names are fictional.
  */
 import { subRng } from "../../game/engine/rng";
+import { payPc, PC_COST } from "./meta";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { Rng } from "../../game/engine/rng";
 import type { Effects, Faction, FixState, Minister, Portfolio } from "./types";
@@ -126,6 +127,7 @@ export function warnMinister(s: FixState, portfolio: Portfolio): CabResult {
   const m = s.cabinet.members[portfolio];
   if (!m) return { ok: false, message: "That post is vacant." };
   if (m.warned !== undefined) return { ok: false, message: `${m.name} has already been warned.` };
+  const pcE = payPc(s, PC_COST.warn, "give a warning"); if (pcE) return { ok: false, message: pcE };
   m.warned = s.month;
   if (m.faction === "crony" || m.faction === "loyalist") { m.mood = clamp100(m.mood - 12); for (const b of s.backers ?? []) b.mood = clamp100(b.mood - 2); }
   return { ok: true, message: `${m.name} has been told: work, do not eat. ${m.faction === "crony" || m.faction === "loyalist" ? "He is offended: he expected a different kind of job." : ""}` };

@@ -4,6 +4,7 @@
  * face and a plan, and you can buy them off, crush them or make peace. All people are fictional.
  */
 import { subRng, type Rng } from "../../game/engine/rng";
+import { payPc, PC_COST } from "./meta";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { Enemy, FixState, GroupId } from "./types";
 import { clamp100, nb, pushNews } from "./util";
@@ -161,6 +162,7 @@ export function dealWithEnemy(s: FixState, id: string, how: "buy" | "peace" | "c
   const def = ENEMY_ACTIONS.find((a) => a.id === how)!;
   const cost = def.cost(en) * (0.6 + 0.4 * s.eco.priceLevel / 100);
   if (cost > s.fin.treasury) return { ok: false, message: `You need ${nb(cost)}.` };
+  const pcE = payPc(s, how === "crush" ? PC_COST.enemyCrush : how === "buy" ? PC_COST.enemyBuy : PC_COST.enemyPeace, "deal with an enemy"); if (pcE) return { ok: false, message: pcE };
   s.fin.treasury -= cost;
   const roll = subRng(s.meta.seed, "enemy", en.id, how, s.month).next();
   const P = s.rule;

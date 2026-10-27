@@ -29,6 +29,8 @@ import { STATE_TEMPLATES } from "./newstates";
 import { LEDGER_TEMPLATES } from "./ledger";
 import { earn, groupPressure, relate } from "./society";
 import { eventRate } from "./setup";
+import { flavour } from "./variety";
+import { earnPc } from "./meta";
 import type { GroupId } from "./types";
 import { sack, PORTFOLIO_BY_ID } from "./cabinet";
 import type { Portfolio } from "./types";
@@ -323,7 +325,9 @@ export function generateEvents(s: FixState, rng: Rng) {
   for (const cand of cands) {
     if (made >= 2 || open + made >= 6) break;
     if (cand.p <= 0) continue;
-    const p = cand.p * rate * (pressure[cand.tpl] ? groupPressure(s, pressure[cand.tpl]) : 1);
+    const lastT = s.flags[`cdt:${cand.tpl}`];
+    const damp = typeof lastT === "number" && s.month - lastT < 3 && TEMPLATE_BY_ID[cand.tpl]?.kind !== "story" ? 0.4 : 1;
+    const p = cand.p * rate * damp * (pressure[cand.tpl] ? groupPressure(s, pressure[cand.tpl]) : 1);
     // each candidate gets its own deterministic draw
     const draw = subRng(s.meta.seed, "ev", cand.tpl, s.month).next();
     if (draw >= p) continue;
@@ -350,6 +354,10 @@ export function createEvent(s: FixState, tpl: string, stateId: string): GameEven
   if (t.kind === "story") s.speech.moment = "story";
   if (t.kind === "insecurity") s.speech.moment = "security";
   if (t.onCreate) { ev.cause = t.cause(s, st); ev.title = t.title(s, st); }
+  const fl = flavour(s, tpl, st);
+  if (fl.intro) ev.cause = `${fl.intro} ${ev.cause}`;
+  if (fl.rep >= 1) { ev.cause += ` ${fl.line}`; ev.title += fl.rep >= 2 ? " (again)" : " (second time)"; }
+  if (fl.rep >= 2) ev.scale = clamp(ev.scale + 1, 1, 5) as 1 | 2 | 3 | 4 | 5;
   s.events.push(ev);
   s.flags[`cd:${tpl}:${stateId}`] = s.month;
   s.flags[`cdt:${tpl}`] = s.month;
@@ -437,6 +445,7 @@ export function resolveEvent(s: FixState, eventId: string, optionId: string, for
   if (e.tpl === "investigation" && o.id === "obstruct") s.me.acts.push("obstructed");
   plantForEvent(s, e.tpl, o.id, ok, o.label, e.stateId);
   earn(s, `event:${e.tpl}:${o.id}`);
+  if (ok && e.scale >= 3) earnPc(s, 2);
   if (t.kind !== "request" && t.kind !== "scandal") relate(s, e.stateId, ok ? 1.5 : 0.5);
   queueNext(s, t, e, o.id, ok);
   pushReport(s, {

@@ -1,7 +1,7 @@
 "use client";
 /** What ordinary Nigerians see: the market board and the social feed. */
 import { Heart } from "lucide-react";
-import { useS } from "./store";
+import { useFix, useS } from "./store";
 import { Card } from "../../game/ui/kit";
 import { feed, marketBoard } from "../engine/street";
 import { faceOf } from "../engine/families";
@@ -11,6 +11,7 @@ import { Initials } from "../../game/ui/kit";
 
 export function StreetPanel() {
   const s = useS();
+  const { tx } = useFix();
   const rows = marketBoard(s);
   const posts = feed(s);
   return (
@@ -48,7 +49,7 @@ export function StreetPanel() {
           {posts.map((p, i) => (
             <div key={i} className="fx-post">
               <Initials name={p.name} size={36} color={p.tone === "bad" ? "#9f1239" : p.tone === "good" ? "#047857" : "#0b1f36"} />
-              <div className="g-grow"><div className="g-small"><b>{p.name}</b>{p.verified && <span title="Verified"> ✅</span>} <span className="g-muted">{p.handle}</span></div><div className="g-small">{p.text}</div><div className="g-tiny g-muted"><Heart size={11} style={{ verticalAlign: "-1px" }} /> {p.likes.toLocaleString()}</div></div>
+              <div className="g-grow"><div className="g-small"><b>{p.name}</b>{p.verified && <span title="Verified"> ✅</span>} <span className="g-muted">{p.handle}</span></div><div className="g-small">{tx(p.text)}</div><div className="g-tiny g-muted"><Heart size={11} style={{ verticalAlign: "-1px" }} /> {p.likes.toLocaleString()}</div></div>
             </div>
           ))}
         </div>

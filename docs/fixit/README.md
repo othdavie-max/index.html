@@ -108,3 +108,18 @@ Run tests: `npx vitest run src/fixit`.
 - `engine/ledger.ts`: every amount stolen by lawmakers, ministers and governors is counted; every prosecution (any law level, for lawmakers, ministers and governors) recovers a share (60%, 40% or 30% depending on how harsh the law is) into a waiting pool. A "recovered loot" card lets you send it to schools, clinics, roads, local debt, the savings fund (or treasury) or cash; each does something real. If ignored it is swept into the treasury after four months. A "+₦X recovered" pop-up shows on the map, the Debt screen has a stolen/recovered ledger, and the year review reports it.
 - Fixed: jailing or executing ministers and governors used to recover no money at all.
 - Tests: `src/fixit/tests/ledger.test.ts`.
+
+## Focus and depth update (designer pass)
+
+- **Systems unlock** (`engine/meta.ts`, `UNLOCKS`): the game opens with the map, desk, policies and projects. Big Moves, Investors, Assembly, Seat of Power, Foreign, Party, Enemies, Military and Lending open on a schedule (or sooner when trouble starts). Locked tabs show 🔒 and when they open; opening one shows a toast. Quick games open them twice as fast. Old saves keep everything open.
+- **Political capital** (`PC_COST`, `payPc`, `pcIncome`): ⚡ 0–100. Power tools, lawmaker actions, warnings, lobbying, gifts, enemy deals, big moves and speeches cost it; it refills monthly (more with approval, trust, Assembly support, and the "capital" perk) and from finished projects, big wins and kept agendas. A move you cannot afford is refused, and nothing is charged for a move that is blocked for another reason.
+- **Yearly agenda** (`AGENDA`): pick up to two of four seeded cards each year (Feed the Nation, War on Corruption, Power for All, Defend the Naira, and others). Each gives a 12-month boost and a measurable goal; the year-end review pays +12 ⚡ and approval for a kept agenda and costs trust for a missed one.
+- **Why-chain** (`whyChain`): tap any HUD number to see what drives it, the modifiers in play and your recent big moves.
+- **Pacing director** (`directorMonthly`): tension rises after crises and decays; it sets an event-rate multiplier (0.4–2): breathing room after a storm, a harder turn after a calm spell and when you are doing well, and a slow ramp over the years. Shown as the country's mood in the capital screen.
+- **Inner circle** (`cast`): eight recurring faces (Chief of Staff, VP, rival, godfather, Mama Nkechi, the general, a journalist, a governor) with portraits, a feelings meter, emotion and a line that reacts to the state of play.
+- **Variety** (`engine/variety.ts`): ten crises have three openers each (never the same one twice in a row); repeats within a year say so, and the third repeat is escalated one level. Recent repeats of the same crisis are damped.
+- **Meta-progression** (`persistence.ts`): finished games earn legacy points (more for strong results, a new ending and each dynasty generation); spend them on seven perks, equip two. President types and challenge starts unlock as games are finished (with an unlock-all link). **Dynasty**: after any ending, pass the baton and your successor inherits the exchange rate, inflation, corruption, democracy, law level and debt you left.
+- **Naija Pidgin** (`engine/pidgin.ts`): toggle EN/PCM in the top bar or on the title screen; a rule-based pass for street voices, the X feed, adviser lines, the inner circle and breaking news.
+- **Quick term**: one four-year term, two months a turn, no re-election or overstay, ending in a verdict. About 20 minutes.
+- **Merged tabs**: Sectors now sits under Policies, Lending under Debt, "What I caused" under "Nigeria today" (the Street tab).
+- Tests: `src/fixit/tests/meta.test.ts`.

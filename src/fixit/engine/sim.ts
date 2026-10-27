@@ -5,6 +5,7 @@
  * never double-roll and results do not depend on call order.
  */
 import { Rng, subRng } from "../../game/engine/rng";
+import { directorMonthly, earnPc, metaTurn } from "./meta";
 import { STATES } from "../../game/data/states";
 import { PROJECT_BY_ID } from "../data/catalogue";
 import { TERM_MONTHS, type FixState, type Project } from "./types";
@@ -63,6 +64,7 @@ export function advanceMonth(s: FixState): boolean {
   bigMonthly(s, subRng(s.meta.seed, "big", m));
   investorsMonthly(s, subRng(s.meta.seed, "investors", m));
   ripplesMonthly(s, subRng(s.meta.seed, "ripples", m));
+  directorMonthly(s);
   deskMonthly(s, subRng(s.meta.seed, "desk", m));
   officialsMonthly(s);
   familiesMonthly(s, subRng(s.meta.seed, "families", m));
@@ -82,6 +84,7 @@ export function advanceMonth(s: FixState): boolean {
   s.month = m + 1;
   midtermCheck(s);
   if (s.month > 0 && s.month % 12 === 0) s.flags.reviewDue = s.month / 12;
+  metaTurn(s);
   if (typeof s.flags.coach === "number" && s.flags.coach < 4 && s.month >= [1, 2, 4, 7][s.flags.coach as number]) s.flags.coach = (s.flags.coach as number) + 1;
   checkAchievements(s);
   checkRecords(s);
@@ -168,6 +171,7 @@ function completeProject(s: FixState, p: Project) {
   p.done = s.month;
   p.benefitScale = round(scale, 2);
   relate(s, p.stateId, 6);
+  earnPc(s, 3);
   addMod(s, `project:${p.id}`, `${p.name} (completed)`, def.benefit, { ramp: 6, scale });
   const pctOfPromise = Math.round(scale * 100);
   pushReport(s, { title: `${p.name} completed`, tone: scale >= 0.85 ? "good" : "neutral", lines: [`Built in ${s.month - p.start + 1} months against ${p.months} planned.`, `Cost ${nb(p.cost)} (budget ${nb(p.baseCost)}); about ${nb(p.leaked)} was lost to leakage.`, `Delivering about ${pctOfPromise}% of the promised benefit: ${def.benefitText}.`] });

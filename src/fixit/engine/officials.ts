@@ -4,6 +4,7 @@
  * Your backers also expect something for their money, and there are ways around them. All people are fictional.
  */
 import type { Rng } from "../../game/engine/rng";
+import { payPc, PC_COST } from "./meta";
 import { subRng } from "../../game/engine/rng";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { Backer, FixState, Governor, Portfolio } from "./types";
@@ -125,6 +126,7 @@ export function giveGift(s: FixState, backerId: string, id: string): { ok: boole
   const b = s.backers.find((x) => x.id === backerId), g = BACKER_GIFTS.find((x) => x.id === id);
   if (!b || !g) return { ok: false, message: "Unknown." };
   const block = giftBlock(s, b, id); if (block) return { ok: false, message: block };
+  const pcE = payPc(s, PC_COST.gift, "give a gift"); if (pcE) return { ok: false, message: pcE };
   s.fin.treasury -= g.cost * (0.6 + 0.4 * s.eco.priceLevel / 100);
   b.mood = clamp100(b.mood + g.mood); b.owed = Math.max(0, b.owed - g.mood);
   s.gov.corruption = clamp100(s.gov.corruption + g.corruption); s.me.evidence = clamp100(s.me.evidence + g.evidence);

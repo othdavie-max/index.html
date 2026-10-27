@@ -264,3 +264,26 @@
 .gm .fx-breaking[data-tone="good"] .fx-breaking-tag { background: #047857; }
 .gm .fx-breaking b { display: block; font-size: 15px; padding-top: 8px; } .gm .fx-breaking-body { font-size: 12.5px; color: #cfe0ee; margin-top: 2px; } .gm .fx-breaking-react { font-size: 12px; color: #f5d57a; padding: 4px 0 8px; font-style: italic; }
 @keyframes fx-rise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------------------------------------------------------------- meta layer: why-chain, agenda, inner circle, perks, locks */
+.gm .fx-why-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.gm .fx-chain { list-style: none; margin: 6px 0 0; padding: 0 0 0 14px; border-left: 3px solid #c8a24a; display: flex; flex-direction: column; gap: 6px; }
+.gm .fx-chain li { font-size: 14px; position: relative; } .gm .fx-chain li::before { content: "↳"; position: absolute; left: -22px; color: #7a5b12; font-weight: 900; background: #fff; }
+.gm .fx-chain-b li { display: flex; flex-direction: column; } .gm .fx-chain-b li span { font-size: 12.5px; color: #64748b; } .gm .fx-chain-b li[data-good="1"] b { color: #047857; } .gm .fx-chain-b li[data-good="0"] b { color: #be123c; }
+.gm .fx-chain-c { border-left-color: #94a3b8; }
+.gm .fx-agenda-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } @media (max-width: 560px) { .gm .fx-agenda-grid { grid-template-columns: minmax(0, 1fr); } }
+.gm .fx-agenda { text-align: left; display: flex; flex-direction: column; gap: 3px; background: #fff; border: 2px solid #cbd5e1; border-radius: 14px; padding: 10px 12px; cursor: pointer; color: #0b1f36; font-size: 14px; }
+.gm .fx-agenda:hover { border-color: #c8a24a; } .gm .fx-agenda[aria-pressed="true"] { border-color: #047857; background: #ecfdf5; box-shadow: 0 0 0 2px #a7f3d0; }
+.gm .fx-agenda i { font-style: normal; font-size: 13px; color: #475569; } .gm .fx-agenda-ic { font-size: 28px; }
+.gm .fx-cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.gm .fx-face { display: flex; gap: 10px; border: 1px solid var(--g-border); border-left: 5px solid #94a3b8; border-radius: 12px; padding: 8px 10px; background: #fff; }
+.gm .fx-face[data-mood="good"] { border-left-color: #00c875; } .gm .fx-face[data-mood="bad"] { border-left-color: #e11d48; } .gm .fx-face[data-mood="mid"] { border-left-color: #f59e0b; }
+.gm .fx-face-pic { position: relative; flex: 0 0 auto; } .gm .fx-face-em { position: absolute; right: -6px; bottom: -4px; font-size: 20px; background: #fff; border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.3); line-height: 1; padding: 1px; }
+.gm .fx-face-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .gm .fx-face-body q { font-size: 13px; font-style: italic; color: #334155; quotes: "“" "”"; }
+.gm .fx-face-bar { height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; } .gm .fx-face-bar span { display: block; height: 100%; background: #f59e0b; } .gm .fx-face[data-mood="good"] .fx-face-bar span { background: #00c875; } .gm .fx-face[data-mood="bad"] .fx-face-bar span { background: #e11d48; }
+.gm .fx-perks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+.gm .fx-tool[data-locked="1"] { opacity: .45; } .gm .fx-subtab[data-locked="1"] { opacity: .55; border-style: dashed; }
+.gm .fx-unlock { position: absolute; left: 50%; top: 70px; transform: translateX(-50%); z-index: 9; background: #0b1f36; color: #fff; border: 2px solid #00c875; border-radius: 14px; padding: 10px 16px; max-width: min(420px, calc(100% - 24px)); box-shadow: 0 10px 30px rgba(0,0,0,.45); animation: fx-slide .4s ease-out; cursor: pointer; text-align: left; }
+.gm .fx-unlock b { color: #86efac; display: block; } .gm .fx-unlock span { font-size: 13px; color: #cfe0ee; }
+.gm .fx-res[data-cap] { border-color: #c8a24a; }
+.gm .fx-cap-bar { display: block; width: 100%; height: 3px; background: rgba(255,255,255,.18); border-radius: 2px; margin-top: 2px; } .gm .fx-cap-bar span { display: block; height: 100%; background: #ffd873; border-radius: 2px; }

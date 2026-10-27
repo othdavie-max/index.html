@@ -190,6 +190,24 @@ export interface TermResult {
   ending?: string;
 }
 
+export interface AgendaPick { id: string; from: number; start: number }
+export interface Inherit { name: string; fx: number; inflation: number; corruption: number; democracy: number; lawLevel: number; domesticDebt: number; foreignDebt: number; trust: number; approval: number; gen: number }
+/** the meta layer: unlocks, political capital, yearly agenda, pacing director, and run options */
+export interface Cap {
+  pc: number;
+  unlocked: string[];
+  agenda: AgendaPick[];
+  agendaDue: boolean;
+  offer: string[];
+  agendaLog: { year: number; id: string; ok: boolean; text: string }[];
+  /** pacing director: how hot the last months were (0..100), calm streak, and the event-rate multiplier it set */
+  tension: number; calm: number; rate: number;
+  quick: boolean;
+  perks: string[];
+  dynasty: number;
+  castPrev: Record<string, number>;
+}
+
 export interface FixState {
   version: number;
   meta: { seed: number; id: string; president: string; hard: boolean; scenario: string; difficulty: Difficulty; portrait: Portrait; archetype?: string; start?: string; daily?: string };
@@ -263,5 +281,6 @@ export interface FixState {
   terms: TermResult[];
   baseline: Snap;
   flags: Record<string, number | string | boolean>;
+  cap: Cap;
   settings: { autosave: boolean; reducedMotion: boolean };
 }

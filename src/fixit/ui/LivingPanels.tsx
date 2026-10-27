@@ -1,6 +1,7 @@
 "use client";
 /** Panels that make the country feel alive: fuel and refineries, investor deals, enemies, and what your decisions caused. */
 import { useFix, useS } from "./store";
+import { PC_COST } from "../engine/meta";
 import { Badge, Bar, Button, Callout, Card, EmptyState, Portrait } from "../../game/ui/kit";
 import { STATE_BY_ID } from "../../game/data/states";
 import { dealsBuilding, dealsOpen } from "../engine/investors";
@@ -82,7 +83,7 @@ export function EnemiesPanel() {
             </div>
           </div>
           <div className="g-row g-wrap" style={{ gap: 6, marginTop: 8 }}>
-            {ENEMY_ACTIONS.map((a) => <Button key={a.id} size="sm" variant={a.id === "crush" ? "danger" : "default"} title={a.explain} onClick={() => { const r = act((x) => dealWithEnemy(x, e.id, a.id)); sfx(r.ok ? "good" : "bad"); }}>{a.label} · {nb(a.cost(e))}</Button>)}
+            {ENEMY_ACTIONS.map((a) => <Button key={a.id} size="sm" variant={a.id === "crush" ? "danger" : "default"} title={a.explain} onClick={() => { const r = act((x) => dealWithEnemy(x, e.id, a.id)); sfx(r.ok ? "good" : "bad"); }}>{a.label} · {nb(a.cost(e))} · ⚡{a.id === "crush" ? PC_COST.enemyCrush : a.id === "buy" ? PC_COST.enemyBuy : PC_COST.enemyPeace}</Button>)}
           </div>
         </Card>
       ))}

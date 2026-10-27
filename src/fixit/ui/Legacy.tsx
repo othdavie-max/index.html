@@ -6,7 +6,9 @@ import { buildLegacy, chooseExit, refuseToLeave } from "../engine/legacy";
 import { computeEnding } from "../engine/endings";
 import { democracyLabel } from "../engine/power";
 import { sfx } from "./sound";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { inheritFrom } from "../engine/meta";
+import { legacyAward } from "../persistence";
 import { presidentName, snap } from "../engine/util";
 import type { TermResult } from "../engine/types";
 import { ShareButton } from "./ShareCard";
@@ -14,13 +16,28 @@ import { Portrait } from "../../game/ui/kit";
 import { hallEntry } from "../persistence";
 import { GROUPS, TRAITS, dominantTrait } from "../engine/society";
 
+const AWARDED = new Set<string>();
 export function Legacy() {
   const s = useS();
   const { continueTerm, startNew, quit, act, saves, toast } = useFix();
   const last: TermResult | undefined = s.terms[s.terms.length - 1];
   const choosing = !!s.ended?.choice;
   const ending = s.done && !choosing ? computeEnding(s) : null;
-  useEffect(() => { if (ending) void saves.addEnding(ending.id).catch(() => undefined); }, [ending?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [award, setAward] = useState<number | null>(typeof s.flags.awarded === "number" ? s.flags.awarded : null);
+  useEffect(() => {
+    if (!ending) return;
+    const key = `${s.meta.id}:${s.meta.seed}:${s.terms.length}:${s.month}`;
+    if (AWARDED.has(key) || s.flags.awarded !== undefined) return;
+    AWARDED.add(key);
+    (async () => {
+      const [m, ends] = await Promise.all([saves.legacy(), saves.endings()]);
+      let n = 0, gen = 1;
+      act((x) => { n = legacyAward(x, !ends.includes(ending.id)); gen = (x.cap.dynasty ?? 0) + 1; x.flags.awarded = n; return { ok: true, message: "" }; }, { silent: true });
+      await saves.saveLegacy({ ...m, points: m.points + n, games: m.games + 1, bestDynasty: Math.max(m.bestDynasty, gen), lastAward: n });
+      await saves.addEnding(ending.id);
+      setAward(n);
+    })().catch(() => undefined);
+  }, [ending?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (choosing) sfx("doom"); else if (ending) sfx(ending.tone === "good" ? "fanfare" : ending.tone === "bad" ? "doom" : "gavel"); }, [choosing, ending?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!last || !s.ended) return null;
   if (choosing) {
@@ -58,6 +75,7 @@ export function Legacy() {
             <div className="g-tiny" style={{ letterSpacing: ".16em", fontWeight: 800 }}>YOUR ENDING</div>
             <h2 style={{ fontSize: "clamp(28px,6vw,44px)", fontWeight: 900, lineHeight: 1.05 }}>{ending.name}</h2>
             <p style={{ marginTop: 8, maxWidth: 640 }}>{ending.epilogue}</p>
+            {award !== null && <div style={{ marginTop: 6, fontWeight: 800, color: "#ffd873" }}>🏅 +{award} legacy points{s.cap.dynasty > 0 ? ` (dynasty generation ${s.cap.dynasty + 1})` : ""}: spend them on perks at the title screen.</div>}
             <div className="g-tiny" style={{ marginTop: 6, opacity: .8 }}>{democracyLabel(s)} · {s.rule.executions ? `${s.rule.executions} executed · ` : ""}{s.rule.wrongful ? `${s.rule.wrongful} wrongly convicted · ` : ""}{s.rule.stolenElection ? "A stolen election · " : ""}Wealth ₦{Math.round(s.me.wealth).toLocaleString()}m</div>
           </div>
         )}
@@ -102,6 +120,7 @@ export function Legacy() {
           {won && <Button variant="primary" onClick={continueTerm}><Play size={16} /> Begin your second term</Button>}
           <ShareButton s={s} title={lg.title} a={last.start} b={last.end} verdict={lg.titleWhy} />
           <Button variant={won ? "default" : "primary"} onClick={() => startNew(s.meta.seed)}><RotateCcw size={16} /> Replay this same world</Button>
+          {ending && <Button variant="primary" onClick={() => { void saves.legacy().then((m) => startNew(undefined, s.promises, { difficulty: s.meta.difficulty, portrait: s.meta.portrait, president: "Madam/Mr President", archetype: "career", start: "normal", quick: s.cap.quick, perks: m.equipped, inherit: inheritFrom(s) })); }}>👑 Pass the baton: your successor inherits this Nigeria</Button>}
           <Button onClick={() => startNew()}>New presidency</Button>
           <Button variant="light" onClick={quit} style={{ background: "#12304f", color: "#fff" }}>Back to title</Button>
         </div>

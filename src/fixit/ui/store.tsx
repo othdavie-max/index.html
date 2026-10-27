@@ -10,6 +10,7 @@ import type { SetupOptions } from "../engine/setup";
 import { hallEntry } from "../persistence";
 import { monthLabel, snap } from "../engine/util";
 import { FixSaves, FixSaveError, type Slot } from "../persistence";
+import { pidgin } from "../engine/pidgin";
 
 export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet" | "moves" | "street" | "advisers" | "oil" | "deals" | "enemies" | "timeline" | "foreign" | "party" | "sectors" | "debt" | "lending" | "military";
 export interface Change { label: string; from: string; to: string; tone: "good" | "bad" | "neutral" }
@@ -40,6 +41,10 @@ interface Ctx {
   lastSaved: number | null;
   error: string | null;
   clearError: () => void;
+  /** Naija Pidgin for flavour text */
+  lang: "en" | "pcm";
+  setLang: (l: "en" | "pcm") => void;
+  tx: (text: string) => string;
 }
 const C = createContext<Ctx | null>(null);
 export const useFix = () => { const c = useContext(C); if (!c) throw new Error("useFix outside provider"); return c; };
@@ -76,6 +81,9 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const [lastSaved, setLastSaved] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasAuto, setHasAuto] = useState(false);
+  const [lang, setLangState] = useState<"en" | "pcm">(() => { try { return typeof window !== "undefined" && window.localStorage.getItem("fix:lang") === "pcm" ? "pcm" : "en"; } catch { return "en"; } });
+  const setLang = useCallback((l: "en" | "pcm") => { setLangState(l); try { window.localStorage.setItem("fix:lang", l); } catch { /* ignore */ } }, []);
+  const tx = useCallback((text: string) => (lang === "pcm" ? pidgin(text) : text), [lang]);
   const saves = useMemo(() => new FixSaves(), []);
   const gameRef = useRef<FixState | null>(null);
   useEffect(() => { gameRef.current = game; }, [game]);
@@ -137,7 +145,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const startNew = useCallback((seed?: number, promises?: string[], setup?: SetupOptions) => {
     const prev = gameRef.current?.promises;
     const pm = gameRef.current?.meta;
-    const opts: SetupOptions = setup ?? (pm ? { difficulty: pm.difficulty, portrait: pm.portrait, president: pm.president } : {});
+    const opts: SetupOptions = setup ?? (pm ? { difficulty: pm.difficulty, portrait: pm.portrait, president: pm.president, quick: gameRef.current?.cap.quick, perks: gameRef.current?.cap.perks } : {});
     const g = newGame(seed ?? Math.floor(Math.random() * 1e6) + 1, opts.president ?? "Madam/Mr President", opts);
     setPromises(g, promises ?? prev ?? []);
     setGame(g); setScreen("play"); setTab("world"); setSummary(null); setSelect({ state: null, lga: null }); bump();
@@ -171,7 +179,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
 
   const value: Ctx = {
     state: game, version, screen, tab, setTab, act, advance, summary, closeSummary: () => setSummary(null), startNew, continueTerm, loadSlot, saveSlot, saves, hasAuto, quit,
-    toast, toasts, select, setSelect, lastSaved, error, clearError: () => setError(null),
+    toast, toasts, select, setSelect, lastSaved, error, clearError: () => setError(null), lang, setLang, tx,
   };
   return <C.Provider value={value}>{children}</C.Provider>;
 }

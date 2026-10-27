@@ -5,7 +5,7 @@
  */
 import type { Rng } from "../../game/engine/rng";
 import { subRng } from "../../game/engine/rng";
-import type { Difficulty, FixState, Portrait } from "./types";
+import type { Difficulty, FixState, Inherit, Portrait } from "./types";
 import { clamp, clamp100 } from "./util";
 
 export interface Issue {
@@ -91,7 +91,7 @@ export const DIFFICULTY: Record<Difficulty, { label: string; blurb: string; cash
   hard: { label: "Hard", blurb: "Less money, more crises, tougher voters.", cash: 0.6, events: 1.3, vote: -2.5 },
 };
 
-export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[]; archetype?: string; start?: string; daily?: string }
+export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[]; archetype?: string; start?: string; daily?: string; quick?: boolean; perks?: string[]; inherit?: Inherit }
 
 /** Who you are before you are president: a perk and a weakness each. */
 export const PRESIDENTS = [
@@ -101,6 +101,9 @@ export const PRESIDENTS = [
   { id: "market", icon: "🛍️", name: "Market leader", perk: "Traders and farmers are your people.", weak: "The treasury starts thinner and the state machine is new to you." },
   { id: "cleric", icon: "🙏", name: "Pastor or Imam", perk: "Faith communities are devoted, and your image is clean.", weak: "Youth find you preachy, and the business class is cool." },
 ] as const;
+/** how many endings (or finished games) you need before a president type or a start unlocks */
+export const ARCH_NEED: Record<string, number> = { career: 0, market: 0, general: 1, tech: 2, cleric: 3 };
+export const START_NEED: Record<string, number> = { normal: 0, recession: 1, coup: 2 };
 export const STARTS = [
   { id: "normal", icon: "🏁", name: "A normal handover", blurb: "A civilian handover. Whatever mess the dice give you." },
   { id: "coup", icon: "🪖", name: "After a coup", blurb: "The army hands you power after a coup. Legitimacy is thin, generals are watching, and the world is wary." },
@@ -136,5 +139,5 @@ export function applySetup(s: FixState, o: SetupOptions) {
 }
 export const issuesOf = (s: { meta: { scenario: string } }) => (s.meta.scenario || "").split(",").filter((x) => ISSUE_BY_ID[x]).map((x) => ISSUE_BY_ID[x]);
 export const issuesLabel = (scenario: string) => scenario.split(",").filter((x) => ISSUE_BY_ID[x]).map((x) => ISSUE_BY_ID[x].name).join(" · ") || "The inherited mess";
-export const eventRate = (s: FixState) => DIFFICULTY[s.meta.difficulty ?? "normal"]?.events ?? 1;
+export const eventRate = (s: FixState) => (DIFFICULTY[s.meta.difficulty ?? "normal"]?.events ?? 1) * (s.cap?.rate ?? 1) * (s.cap?.quick ? 1.15 : 1);
 export const voteBonus = (s: FixState) => DIFFICULTY[s.meta.difficulty ?? "normal"]?.vote ?? 0;

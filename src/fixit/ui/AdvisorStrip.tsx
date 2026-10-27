@@ -2,7 +2,7 @@
 /** Adviser comments: portraits, a stance chip and what they think. Used on events, big moves, laws and strongman tools. */
 import { useState } from "react";
 import { Portrait } from "../../game/ui/kit";
-import { useS } from "./store";
+import { useFix, useS } from "./store";
 import { adviceFor, briefing, eventAdvice, type Advice } from "../engine/advice";
 import { AIDE_KINDS } from "../engine/dayone";
 import type { GameEvent } from "../engine/types";
@@ -10,13 +10,14 @@ import type { GameEvent } from "../engine/types";
 const STANCE = { go: { t: "Go for it", c: "#047857", bg: "#ecfdf5" }, caution: { t: "Careful", c: "#92400e", bg: "#fffbeb" }, stop: { t: "Advises against", c: "#9f1239", bg: "#fff1f2" } };
 
 export function AdviceLine({ a, role }: { a: Advice; role?: string }) {
+  const { tx } = useFix();
   const st = STANCE[a.stance];
   return (
     <div className="fx-advice" style={{ background: st.bg, borderColor: st.c }}>
       <Portrait p={a.by.portrait} size={34} name={a.by.name} />
       <div className="g-grow">
         <div className="g-row g-wrap" style={{ gap: 6 }}><b className="g-small">{a.by.name}</b><span className="g-tiny g-muted">{role ?? AIDE_KINDS[a.by.kind].tag}</span><span className="g-tiny" style={{ color: st.c, fontWeight: 800 }}>{st.t}</span></div>
-        <div className="g-small" style={{ color: "#0f172a" }}>{a.text}</div>
+        <div className="g-small" style={{ color: "#0f172a" }}>{tx(a.text)}</div>
       </div>
     </div>
   );

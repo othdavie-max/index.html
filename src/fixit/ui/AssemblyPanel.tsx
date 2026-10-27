@@ -1,6 +1,7 @@
 "use client";
 /** The National Assembly as a hemicycle: tap a seat to open a lawmaker's dossier and deal with them. */
 import { useState } from "react";
+import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, Portrait } from "../../game/ui/kit";
 import { STATE_BY_ID } from "../../game/data/states";
@@ -70,7 +71,7 @@ function Dossier({ lm }: { lm: Lawmaker }) {
           return (
             <div key={a.id} className="g-row" style={{ gap: 8 }}>
               <div className="g-grow"><b className="g-small">{a.label}</b>{a.cost > 0 && <span className="g-tiny g-muted"> · {nb(a.cost)}</span>}<div className="g-tiny g-muted">{block ?? a.explain}</div></div>
-              <Button size="sm" variant={a.id === "arrest" || a.id === "expose" ? "danger" : "default"} disabled={!!block} onClick={() => { const r = act((x) => lawmakerAction(x, lm.id, a.id)); sfx(r.ok ? (a.id === "arrest" ? "gavel" : "good") : "bad"); if (!r.ok) toast(r.message, true); }}>Do it</Button>
+              <Button size="sm" variant={a.id === "arrest" || a.id === "expose" ? "danger" : "default"} disabled={!!block} onClick={() => { const r = act((x) => lawmakerAction(x, lm.id, a.id)); sfx(r.ok ? (a.id === "arrest" ? "gavel" : "good") : "bad"); if (!r.ok) toast(r.message, true); }}>Do it ⚡{PC_COST.lawmaker}</Button>
             </div>
           );
         })}

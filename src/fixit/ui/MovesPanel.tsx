@@ -1,6 +1,7 @@
 "use client";
 /** "When I become president, I will…": big promises you can actually do, and what really happens. */
 import { useState } from "react";
+import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
 import { Button, Callout, ConfirmDialog, Modal } from "../../game/ui/kit";
 import { MOVES, moveBlock, doMove, pegged, shadowFx, type Move } from "../engine/bigmoves";
@@ -31,7 +32,7 @@ export function MovesPanel() {
               <div className="g-tiny" style={{ color: "#9f1239", marginTop: 2 }}>Risk: {m.risk}</div>
               {block && <div className="g-tiny g-muted">⛔ {block}</div>}
               <AskAdvisers k={`move:${m.id}`} />
-              {!block && m.cost > 0 && <div className="g-tiny g-muted">Cost: {nb(m.cost)}</div>}
+              {!block && <div className="g-tiny g-muted">Cost: {m.cost > 0 ? `${nb(m.cost)} and ` : ""}⚡{PC_COST.move} political capital</div>}
             </div>
             <Button size="sm" variant="primary" disabled={!!block} onClick={() => { if (m.ask) { setVal(m.ask.def(s)); setAsk(m); } else setOk(m); }}>Do it</Button>
           </div>

@@ -49,11 +49,12 @@ export function TurnChips() {
 
 // ---------------------------------------------------------------- TV breaking news
 export function BreakingBanner({ item, onDone }: { item: NewsItem; onDone: () => void }) {
+  const { tx } = useFix();
   useEffect(() => { const t = setTimeout(onDone, 7500); return () => clearTimeout(t); }, [item.id, onDone]);
   return (
     <div className="fx-breaking" data-tone={item.tone} role="status" onClick={onDone}>
       <div className="fx-breaking-tag"><span aria-hidden>🎙️</span> BREAKING</div>
-      <div className="g-grow"><b>{item.headline}</b>{item.body && <div className="fx-breaking-body">{item.body.length > 150 ? `${item.body.slice(0, 147)}…` : item.body}</div>}<div className="fx-breaking-react">💬 {reaction(item.headline, item.tone === "good" ? "good" : "bad")}</div></div>
+      <div className="g-grow"><b>{tx(item.headline)}</b>{item.body && <div className="fx-breaking-body">{tx(item.body.length > 150 ? `${item.body.slice(0, 147)}…` : item.body)}</div>}<div className="fx-breaking-react">💬 {tx(reaction(item.headline, item.tone === "good" ? "good" : "bad"))}</div></div>
     </div>
   );
 }

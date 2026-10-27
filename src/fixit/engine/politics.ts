@@ -4,6 +4,7 @@
  * simulations and tests can bypass it.
  */
 import { staffAssembly } from "./dayone";
+import { payPc, PC_COST } from "./meta";
 import { backerSupport } from "./backers";
 import { subRng } from "../../game/engine/rng";
 import { POLICY_BY_ID } from "../data/catalogue";
@@ -67,6 +68,7 @@ export const LOBBY: Record<LobbyKind, { label: string; explain: string }> = {
 export function lobby(s: FixState, bill: string, kind: LobbyKind): { ok: boolean; message: string } {
   const key = `lobby:${bill}:${kind}:${s.month}`;
   if (s.flags[key]) return { ok: false, message: "You already tried that this month." };
+  const pcE = payPc(s, PC_COST.lobby, "lobby"); if (pcE) return { ok: false, message: pcE };
   s.flags[key] = true;
   let gain = 0;
   if (kind === "projects") {
@@ -162,6 +164,7 @@ export const speechReady = (s: FixState) => s.month - s.speech.last >= 3;
 export function setMoment(s: FixState, moment: string) { s.speech.moment = moment; }
 export function giveSpeech(s: FixState, tone: Tone): { ok: boolean; message: string } {
   if (!speechReady(s)) return { ok: false, message: `Your next address can be in ${monthLabel(s.speech.last + 3)}; too many speeches lose their power.` };
+  const pcE = payPc(s, PC_COST.speech, "give an address"); if (pcE) return { ok: false, message: pcE };
   const h = s.history, a = h[Math.max(0, h.length - 4)], b = h[h.length - 1];
   const improving = b.inflation < a.inflation - 0.3 || b.happiness > a.happiness + 1;
   const crisis = s.sec.index > 58 || s.speech.moment === "security";

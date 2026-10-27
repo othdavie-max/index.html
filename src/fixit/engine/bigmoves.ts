@@ -4,6 +4,7 @@
  * All numbers are simulated game values.
  */
 import type { Rng } from "../../game/engine/rng";
+import { payPc, PC_COST } from "./meta";
 import type { Effects, FixState, GroupId } from "./types";
 import { addMod, clamp100, nb, pushNews, removeMods } from "./util";
 import { createEvent } from "./spawn";
@@ -88,6 +89,7 @@ export function moveBlock(s: FixState, m: Move): string | null {
 export function doMove(s: FixState, id: string, arg?: number): { ok: boolean; message: string } {
   const m = MOVE_BY_ID[id]; if (!m) return { ok: false, message: "Unknown move." };
   const block = moveBlock(s, m); if (block) return { ok: false, message: block };
+  const pcE = payPc(s, PC_COST.move, "make that move"); if (pcE) return { ok: false, message: pcE };
   s.fin.treasury -= m.cost * (0.6 + 0.4 * s.eco.priceLevel / 100);
   s.flags[`move:${id}`] = s.month + 1;
   const message = m.run(s, arg);

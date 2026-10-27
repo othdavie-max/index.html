@@ -1,6 +1,7 @@
 "use client";
 /** Day One: you have just been sworn in. Pick your Chief of Staff and your ministers, and see who is pleased and who is not. */
 import { useState } from "react";
+import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, Portrait } from "../../game/ui/kit";
 import { AIDE_KINDS, cosCandidates, finishDayOne, pickChiefOfStaff, pickVice, vpCandidates } from "../engine/dayone";
@@ -25,7 +26,7 @@ export function BackerRow({ gifts }: { gifts?: boolean }) {
             <div className="g-row g-between g-small"><b>{b.name}</b><span className="g-muted">{b.title}</span></div>
             <Bar value={b.mood / 100} tone={b.mood < 30 ? "red" : b.mood < 50 ? "amber" : undefined} label={`${b.name}: ${backerLabel(b)}`} />
             <div className="g-tiny g-muted">{backerLabel(b)}{b.owed > 10 ? ` · spent about ₦${Math.round(b.owed)}bn on your campaign` : ""}</div>
-            {gifts && <div className="g-row g-wrap" style={{ gap: 4, marginTop: 4 }}>{BACKER_GIFTS.map((g) => { const block = giftBlock(s, b, g.id); return <Button key={g.id} size="sm" disabled={!!block} title={block ?? g.explain} onClick={() => act((x) => giveGift(x, b.id, g.id))}>{g.label}</Button>; })}</div>}
+            {gifts && <div className="g-row g-wrap" style={{ gap: 4, marginTop: 4 }}>{BACKER_GIFTS.map((g) => { const block = giftBlock(s, b, g.id); return <Button key={g.id} size="sm" disabled={!!block} title={block ?? g.explain} onClick={() => act((x) => giveGift(x, b.id, g.id))}>{g.label} ⚡{PC_COST.gift}</Button>; })}</div>}
           </div>
         </div>
       ))}

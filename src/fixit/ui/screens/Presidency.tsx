@@ -107,6 +107,7 @@ function ComingUp() {
 
 function Voices() {
   const s = useS();
+  const { tx } = useFix();
   const v = streetVoices(s, 3);
   const face = (m: string) => (m === "bad" ? "😟" : m === "good" ? "🙂" : "😐");
   return (
@@ -114,7 +115,7 @@ function Voices() {
       {v.map((x) => (
         <div key={x.who} className="fx-voice">
           <span className="fx-voice-av" style={{ background: x.mood === "bad" ? "#ffe4ea" : x.mood === "good" ? "#e3faf0" : "#eef2f6" }} aria-label={x.mood === "bad" ? "unhappy" : x.mood === "good" ? "happy" : "neutral"}>{face(x.mood)}</span>
-          <div><div className="g-small" style={{ color: "#0f172a" }}>“{x.quote}”</div><div className="g-tiny g-muted">{x.who}, {x.place}</div></div>
+          <div><div className="g-small" style={{ color: "#0f172a" }}>“{tx(x.quote)}”</div><div className="g-tiny g-muted">{x.who}, {x.place}</div></div>
         </div>
       ))}
       <div className="g-tiny g-muted" style={{ marginTop: 4 }}>Fictional people, reacting to this month&apos;s real numbers.</div>

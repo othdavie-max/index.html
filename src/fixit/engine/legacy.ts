@@ -26,7 +26,7 @@ export function reelectionChance(s: FixState): number {
   return winChance(s);
 }
 
-export const termCap = (s: FixState) => Math.min(s.rule?.maxTerms ?? 2, HARD_CAP_TERMS);
+export const termCap = (s: FixState) => (s.cap?.quick ? 1 : Math.min(s.rule?.maxTerms ?? 2, HARD_CAP_TERMS));
 
 /** Called after every processed month. */
 export function evaluateTermEnd(s: FixState) {
@@ -41,7 +41,7 @@ export function evaluateTermEnd(s: FixState) {
   if (s.rule.uprising >= 4) { overthrow(s, "uprising"); return; }
   if (s.flags.courtObeyed !== undefined && s.flags.illegitimate !== undefined) { delete s.flags.courtObeyed; delete s.flags.illegitimate; s.rule.termExtra = 0; finishTerm(s, "completed", "The Supreme Court ruled and you obeyed. You left the villa that evening, and some people say that was the bravest thing you did."); return; }
   if (s.month >= s.termStart + TERM_MONTHS + s.rule.termExtra) {
-    if (s.term >= termCap(s)) { finishTerm(s, "completed", s.term >= HARD_CAP_TERMS ? "You have ruled for sixteen years. History will decide what that was." : "You completed your final term. The constitution allows no more."); const e2 = (s as FixState).ended; if (e2 && s.term < HARD_CAP_TERMS) e2.overstay = true; return; }
+    if (s.term >= termCap(s)) { finishTerm(s, "completed", s.cap?.quick ? "Your quick term is over. The country, and history, will now give its verdict." : s.term >= HARD_CAP_TERMS ? "You have ruled for sixteen years. History will decide what that was." : "You completed your final term. The constitution allows no more."); const e2 = (s as FixState).ended; if (e2 && s.term < HARD_CAP_TERMS && !s.cap?.quick) e2.overstay = true; return; }
     const r = runElection(s);
     electionReport(s, r);
     const nth = s.term + 1;

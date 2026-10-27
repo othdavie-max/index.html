@@ -1,17 +1,23 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Play, FolderOpen, Info, RotateCcw } from "lucide-react";
 import { useFix } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { SaveSlots } from "./Menu";
 import { DEFAULT_PROMISES, PROMISES } from "../engine/promises";
-import { DIFFICULTY, PRESIDENTS, STARTS } from "../engine/setup";
+import { ARCH_NEED, DIFFICULTY, PRESIDENTS, START_NEED, STARTS } from "../engine/setup";
+import { PerksCard } from "./Meta";
 import type { Difficulty, Portrait as PortraitT } from "../engine/types";
 import { Portrait, PORTRAIT_OPTIONS } from "../../game/ui/kit";
 import { Hall } from "./Hall";
 
 export function Title() {
-  const { startNew, hasAuto, loadSlot } = useFix();
+  const { startNew, hasAuto, loadSlot, saves, lang, setLang } = useFix();
+  const [progress, setProgress] = useState(0);
+  const [quick, setQuick] = useState(false);
+  const [perks, setPerks] = useState<string[]>([]);
+  const [all, setAll] = useState(false);
+  useEffect(() => { Promise.all([saves.endings(), saves.hall(), saves.legacy()]).then(([e, h, m]) => { setProgress(m.unlockAll ? 99 : Math.max(e.length, h.length)); setAll(!!m.unlockAll); }).catch(() => undefined); }, [saves]);
   const [slots, setSlots] = useState(false);
   const [about, setAbout] = useState(false);
   const [step, setStep] = useState<"intro" | "setup" | "promises">("intro");
@@ -47,9 +53,20 @@ export function Title() {
         </div>
         <div className="g-col" style={{ gap: 6 }}>
           <div className="g-small" style={{ fontWeight: 700 }}>Who were you before the villa?</div>
-          <div className="fx-cand-grid fx-cand-5" role="group" aria-label="President type">{PRESIDENTS.map((p) => <button key={p.id} className="fx-pp" style={{ padding: "8px 10px", alignItems: "flex-start" }} aria-pressed={archetype === p.id} onClick={() => setArchetype(p.id)}><span><b>{p.icon} {p.name}</b><div className="g-tiny" style={{ color: "#a7f3d0" }}>+ {p.perk}</div><div className="g-tiny" style={{ color: "#fecaca" }}>− {p.weak}</div></span></button>)}</div>
+          <div className="fx-cand-grid fx-cand-5" role="group" aria-label="President type">{PRESIDENTS.map((p) => { const need = ARCH_NEED[p.id] ?? 0, lock = progress < need; return <button key={p.id} className="fx-pp" style={{ padding: "8px 10px", alignItems: "flex-start", opacity: lock ? 0.55 : 1 }} aria-pressed={archetype === p.id} disabled={lock} onClick={() => setArchetype(p.id)}><span><b>{lock ? "🔒" : p.icon} {p.name}</b>{lock ? <div className="g-tiny" style={{ color: "#fde68a" }}>Finish {need - progress} more {need - progress === 1 ? "game" : "games"} to unlock</div> : <><div className="g-tiny" style={{ color: "#a7f3d0" }}>+ {p.perk}</div><div className="g-tiny" style={{ color: "#fecaca" }}>− {p.weak}</div></>}</span></button>; })}</div>
+          {!all && progress < 3 && <button className="g-btn g-btn-ghost g-tiny" style={{ color: "#9db3c9", alignSelf: "flex-start", textDecoration: "underline" }} onClick={() => { setProgress(99); setAll(true); void saves.legacy().then((m) => saves.saveLegacy({ ...m, unlockAll: true })).catch(() => undefined); }}>Know the game already? Unlock every president and start.</button>}
           <div className="g-small" style={{ fontWeight: 700, marginTop: 4 }}>How do you take over?</div>
-          <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Starting situation">{STARTS.map((x) => <button key={x.id} className="fx-pp" style={{ padding: "8px 12px" }} aria-pressed={start === x.id} onClick={() => setStart(x.id)}><span><b>{x.icon} {x.name}</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>{x.blurb}</div></span></button>)}</div>
+          <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Starting situation">{STARTS.map((x) => { const need = START_NEED[x.id] ?? 0, lock = progress < need; return <button key={x.id} className="fx-pp" style={{ padding: "8px 12px", opacity: lock ? 0.55 : 1 }} aria-pressed={start === x.id} disabled={lock} onClick={() => setStart(x.id)}><span><b>{lock ? "🔒" : x.icon} {x.name}</b><div className="g-tiny" style={{ color: lock ? "#fde68a" : "#cfe0ee" }}>{lock ? `Finish ${need - progress} more ${need - progress === 1 ? "game" : "games"} to unlock` : x.blurb}</div></span></button>; })}</div>
+        </div>
+        <div className="g-col" style={{ gap: 6 }}>
+          <div className="g-small" style={{ fontWeight: 700 }}>How long do you want to play?</div>
+          <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Game length">
+            <button className="fx-pp" style={{ padding: "8px 12px" }} aria-pressed={!quick} onClick={() => setQuick(false)}><span><b>🏛️ Full campaign</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>Up to two terms, re-election, every system. 2 to 4 hours.</div></span></button>
+            <button className="fx-pp" style={{ padding: "8px 12px" }} aria-pressed={quick} onClick={() => setQuick(true)}><span><b>⚡ Quick term</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>One four-year term, two months a turn, systems open faster. About 20 minutes.</div></span></button>
+          </div>
+          <div className="g-small" style={{ fontWeight: 700, marginTop: 4 }}>Legacy perks from your past games</div>
+          <PerksCard onChange={setPerks} />
+          <div className="g-row g-wrap" style={{ gap: 6, alignItems: "center" }}><span className="g-small" style={{ fontWeight: 700 }}>Street voices in</span><button className="fx-pp" style={{ padding: "6px 10px" }} aria-pressed={lang === "en"} onClick={() => setLang("en")}><b>English</b></button><button className="fx-pp" style={{ padding: "6px 10px" }} aria-pressed={lang === "pcm"} onClick={() => setLang("pcm")}><b>Naija Pidgin</b></button></div>
         </div>
         <div className="fx-intro" style={{ fontSize: 14 }}>
           <div><b>🎲 A different Nigeria every time.</b> When you take the oath, the game rolls what you inherit: maybe a collapsing naira and a looming strike, maybe banditry in the North West, a looted treasury or a bumper harvest. You will only find out on day one.</div>
@@ -78,7 +95,7 @@ export function Title() {
           ))}
         </div>
         <div className="g-row g-wrap" style={{ gap: 12 }}>
-          <button className="fx-big-btn" disabled={picked.length !== 3} onClick={() => startNew(undefined, picked, { difficulty, portrait, president: name.trim() || "Madam/Mr President", archetype, start })}><Play size={22} /> Take the oath ({picked.length}/3)</button>
+          <button className="fx-big-btn" disabled={picked.length !== 3} onClick={() => startNew(undefined, picked, { difficulty, portrait, president: name.trim() || "Madam/Mr President", archetype, start, quick, perks })}><Play size={22} /> Take the oath ({picked.length}/3)</button>
           <Button variant="light" onClick={() => setStep("setup")}>Back</Button>
         </div>
       </div>

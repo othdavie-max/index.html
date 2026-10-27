@@ -6,6 +6,7 @@
  * All names are fictional.
  */
 import type { Rng } from "../../game/engine/rng";
+import { payPc, PC_COST } from "./meta";
 import { subRng } from "../../game/engine/rng";
 import { STATE_BY_ID, STATES } from "../../game/data/states";
 import type { FixState, Lawmaker, LmStatus, Portrait } from "./types";
@@ -183,6 +184,7 @@ export function lawmakerAction(s: FixState, id: string, action: LmAction["id"]):
   const def = LM_ACTIONS.find((x) => x.id === action);
   if (!lm || !def) return fail("Unknown lawmaker or action.");
   const block = lmActionBlock(s, lm, def); if (block) return fail(block);
+  const pcE = payPc(s, PC_COST.lawmaker, "move against a lawmaker"); if (pcE) return fail(pcE);
   const err = def.cost ? pay(s, def.cost) : null; if (err) return fail(err);
   const rng = subRng(s.meta.seed, "lm-act", lm.id, action, s.month);
   switch (action) {
@@ -268,6 +270,7 @@ export function toolBlock(s: FixState, t: Tool): string | null {
 export function applyTool(s: FixState, id: string): PResult {
   const t = TOOLS.find((x) => x.id === id); if (!t) return fail("Unknown tool.");
   const block = toolBlock(s, t); if (block) return fail(block);
+  const pcE = payPc(s, PC_COST.tool, "use that tool"); if (pcE) return fail(pcE);
   if (id === "decree") return decreeLaw(s);
   const err = t.cost ? pay(s, t.cost) : null; if (err) return fail(err);
   const P = s.rule;

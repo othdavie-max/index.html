@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { PC_COST } from "../engine/meta";
 import { Users } from "lucide-react";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Card, Initials, Modal } from "../../game/ui/kit";
@@ -69,7 +70,7 @@ function CabinetModal({ start, onClose }: { start: Portfolio | "all"; onClose: (
       <div className="g-small g-muted">{PORTFOLIO_BY_ID[p].area}. {free ? "Changes are free during your first three months." : "Each reshuffle costs a little trust; sacking a loyalist strengthens the opposition, sacking a heavyweight angers their zone."}</div>
       <div className="g-section-title">In office</div>
       {cur ? <>
-        <MinisterRow m={cur} inOffice action={<div className="g-col" style={{ gap: 4 }}><Button size="sm" variant="ghost" disabled={cur.warned !== undefined} title="Tell him: you are here to work, not to eat" onClick={() => act((x) => warnMinister(x, p))}>{cur.warned !== undefined ? "Warned" : "Warn"}</Button><Button size="sm" variant="ghost" onClick={() => act((x) => sack(x, p))}>Sack</Button></div>} />
+        <MinisterRow m={cur} inOffice action={<div className="g-col" style={{ gap: 4 }}><Button size="sm" variant="ghost" disabled={cur.warned !== undefined} title="Tell him: you are here to work, not to eat" onClick={() => act((x) => warnMinister(x, p))}>{cur.warned !== undefined ? "Warned" : `Warn ⚡${PC_COST.warn}`}</Button><Button size="sm" variant="ghost" onClick={() => act((x) => sack(x, p))}>Sack</Button></div>} />
         {cur.warned === undefined && <div className="g-tiny g-muted">"Warn" tells him: <i>you are here to work, not to eat; steal and you answer for it.</i> He steals less, but if he steals anyway and you do nothing, every minister learns your warnings mean nothing. Your own people will resent it.</div>}
         <Chips chips={chips(ministerEffects(cur, p))} label="Effect" />
       </> : <div className="g-small" style={{ color: "#9f1239" }}>Vacant. Their area suffers until you appoint someone.</div>}

@@ -1,6 +1,7 @@
 "use client";
 /** The seat of power: danger meters, the anti-corruption law ladder and the strongman toolkit. */
 import { useState } from "react";
+import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, ConfirmDialog } from "../../game/ui/kit";
 import { LAWS, TOOLS, amendConstitution, applyTool, democracyLabel, deterrence, emergencyOn, enactLawNow, monthsLeft, nextLaw, shutdownOn, toolBlock, LAW_EFFECTS } from "../engine/power";
@@ -67,7 +68,7 @@ function Ladder() {
               {isNext && <AskAdvisers k={`law:${l.level}`} />}
               {isNext && <div className="g-tiny" style={{ marginTop: 4 }}>Chance the Assembly passes it: <b>{Math.round(billChance(s, `law:${l.level}`) * 100)}%</b>. {Object.keys(eff).length ? `Over time: corruption ${eff.corruption ?? 0}, trust +${eff.trust ?? 0}.` : ""}</div>}
             </div>
-            {isNext && <div className="g-col" style={{ gap: 4 }}><Button size="sm" variant="primary" onClick={() => setVote(`law:${l.level}`)}>Send to Assembly</Button><Button size="sm" onClick={() => { const r = act((x) => applyTool(x, "decree")); sfx(r.ok ? "gavel" : "bad"); }}>Decree it</Button></div>}
+            {isNext && <div className="g-col" style={{ gap: 4 }}><Button size="sm" variant="primary" onClick={() => setVote(`law:${l.level}`)}>Send to Assembly</Button><Button size="sm" onClick={() => { const r = act((x) => applyTool(x, "decree")); sfx(r.ok ? "gavel" : "bad"); }}>Decree it ⚡{PC_COST.tool}</Button></div>}
           </div>
         );
       })}
@@ -100,7 +101,7 @@ function Toolkit() {
           </div>
         );
       })}
-      {t && <ConfirmDialog title={t.name} body={<><p className="g-small">{t.explain}</p><p className="g-small" style={{ color: "#9f1239", marginTop: 6 }}><b>Risk:</b> {t.risk}</p></>} confirmLabel="Use my power" tone="danger" onCancel={() => setConfirm(null)} onConfirm={() => { const r = act((x) => applyTool(x, t.id)); sfx(r.ok ? "doom" : "bad"); setConfirm(null); }} />}
+      {t && <ConfirmDialog title={t.name} body={<><p className="g-small">{t.explain}</p><p className="g-small" style={{ color: "#9f1239", marginTop: 6 }}><b>Risk:</b> {t.risk}</p><p className="g-small" style={{ marginTop: 6 }}>Costs ⚡{PC_COST.tool} political capital.</p></>} confirmLabel="Use my power" tone="danger" onCancel={() => setConfirm(null)} onConfirm={() => { const r = act((x) => applyTool(x, t.id)); sfx(r.ok ? "doom" : "bad"); setConfirm(null); }} />}
     </div>
   );
 }

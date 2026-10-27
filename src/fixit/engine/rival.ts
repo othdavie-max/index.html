@@ -30,7 +30,7 @@ export function initRival(s: FixState) {
 
 const electionMonth = (s: FixState) => s.termStart + TERM_MONTHS + (s.rule?.termExtra ?? 0);
 export const monthsToElection = (s: FixState) => electionMonth(s) - s.month;
-export const campaignOpen = (s: FixState) => s.term < Math.min(s.rule?.maxTerms ?? 2, HARD_CAP_TERMS) && monthsToElection(s) <= 6 && monthsToElection(s) > 0;
+export const campaignOpen = (s: FixState) => !s.cap?.quick && s.term < Math.min(s.rule?.maxTerms ?? 2, HARD_CAP_TERMS) && monthsToElection(s) <= 6 && monthsToElection(s) > 0;
 
 // ---------------------------------------------------------------- vote model
 function nationalBase(s: FixState): number {
