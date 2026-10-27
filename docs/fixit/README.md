@@ -94,3 +94,11 @@ Run tests: `npx vitest run src/fixit`.
 - **Replay**: five president types with perks and weaknesses, challenge starts (after a coup, deep recession), a date-seeded daily challenge with a copyable result, and an endings gallery.
 - **Feel**: a coach for the first turns, "what changed" chips, TV-style breaking-news banner with a street reaction, generative music that turns tense when the danger meters rise, crowd sounds and vibration, and a 12-month review of your biggest decisions and what is now permanent.
 - Tests: `src/fixit/tests/world2.test.ts`.
+
+## Debt, lending, military and new states
+
+- **Debt** (`engine/debt.ts`, `ui/DebtMilitary.tsx`): Economy → Debt shows debt as a share of the economy, local versus foreign, interest, the credit rating, a chart, an estimate of years to debt-free and borrow/repay controls (including repaying foreign debt). A debt chip is in the top bar. Debt-free is 5% of the economy or less; there are record cards for low debt and debt traps, and an annual debt review in the news. Inflation erodes naira debt on its own (about 50% to about 20% over four idle years); dollar debt must be repaid.
+- **Lending** (`engine/lending.ts`): opens below 10% of the economy. A savings fund earns about 4% a year. Neighbours ask for three-year loans at 4–9%, with an optional harder deal (higher rate plus a vote at the AU). Loans earn monthly interest, may default (forgive, restructure or seize collateral), and repay at the end.
+- **Military** (`engine/military.ts`): strength 0–100 with four programmes (recruit, buy abroad, local arms industry, veterans' welfare) costing money every month. Neighbours (fictional) arm in response, strength above 55 adds coup risk unless veterans are looked after, and border clashes and peacekeeping calls test it.
+- **New states** (`engine/newstates.ts`): event-only. Regions petition; creating one costs about ₦14bn a month, pleases the region and invites the next petition. The map is unchanged.
+- Tests: `src/fixit/tests/debtmil.test.ts`.

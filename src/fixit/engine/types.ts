@@ -139,6 +139,10 @@ export interface Family { id: string; name: string; role: string; stateId: strin
 export interface Foreign { rel: { imf: number; china: number; usa: number; ecowas: number }; imf: null | { since: number; tranches: number; breach: number; suspended: boolean }; china: null | { since: number }; usaAid: null | { since: number; suspended: boolean }; log: { month: number; text: string }[] }
 export interface Party { north: number; south: number; youth: number; oldguard: number; vpAmbition: number; vpStage: number }
 export interface Home { spouse: { name: string; portrait: Portrait }; kids: number; health: number; illness: null | { since: number; hidden: boolean; acting: boolean }; abroad: number }
+export interface Neighbour { id: string; name: string; strength: number; mood: number; stability: number }
+export interface Military { strength: number; neighbours: Neighbour[]; peace: number }
+export interface Loan { id: string; borrower: string; amountUsd: number; rate: number; start: number; term: number; status: "performing" | "defaulted" | "repaid" | "forgiven"; strings: string; earned: number }
+export interface Lending { loans: Loan[]; fund: number }
 export interface Staff { cos: Aide | null; vp?: Aide | null; picked: boolean }
 export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number; honest?: number; rigged?: boolean; stolen?: boolean }
 export type Difficulty = "easy" | "normal" | "hard";
@@ -244,6 +248,8 @@ export interface FixState {
   foreign: Foreign;
   party: Party;
   home: Home;
+  mil: Military;
+  lend: Lending;
   timeline: TimelineItem[];
   assembly: { support: number; lobby: Record<string, number>; passed: number; defeats: number };
   governors: Governor[];

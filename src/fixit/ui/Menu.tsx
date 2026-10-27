@@ -34,6 +34,9 @@ export function SaveSlots({ mode, onDone }: { mode: "load" | "both"; onDone: () 
 
 export function HowTo({ onClose }: { onClose: () => void }) {
   const steps = [
+    ["Debt, savings and lending", "Economy then Debt shows what Nigeria owes, whether it is falling and how long until you are debt-free (5% of the economy). Repay local and foreign debt there. Once debt is under 10%, Lending opens: a savings fund, and neighbours asking for loans that earn interest and influence, and can default."],
+    ["The armed forces", "Power then Military: recruit, buy jets from abroad, build a local arms industry, look after veterans. A stronger army is safer and wins respect, but it costs money every month, raises coup risk if you neglect your generals, and your neighbours arm in response. Border clashes and peacekeeping calls test it."],
+    ["New states", "Regions sometimes petition for their own state. Creating one pleases its people and costs about ₦14bn a month in governor and civil service, and invites the next petition."],
     ["Play it out", "Some crises have a 🎮 button: haggle with a union, audit a padded budget, decide who to trust on coup night. At rallies you tap to pump up the crowd, and the presidential debate is timed. Your skill, not a dice roll, decides these."],
     ["Follow five families", "Open Economy then Street to follow Mama Nkechi, a nurse, an okada rider, a farmer and a graduate through the years. Their lives follow your decisions, and once a year one of them writes to you."],
     ["Foreign relations, your party, your family", "Govern then Foreign: the IMF, China, the US and ECOWAS offer help with strings. People then Party: four factions, a primary, and a vice president whose ambition grows. People then Cabinet & backers shows your family and your health, and a secret illness is a real risk."],

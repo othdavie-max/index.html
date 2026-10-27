@@ -15,7 +15,9 @@ export interface RecordDef {
   test: (s: FixState) => boolean;
 }
 
+import { annualGdpNgn, debtServiceRatio, debtTotalNgn } from "./util";
 const fx = (s: FixState) => s.eco.fx;
+const dgdp = (s: FixState) => (debtTotalNgn(s) / annualGdpNgn(s)) * 100;
 const pump = (s: FixState) => s.fuel.pump;
 
 export const RECORDS: RecordDef[] = [
@@ -53,6 +55,13 @@ export const RECORDS: RecordDef[] = [
   { id: "r45", icon: "🏦", tone: "good", big: "FIRST TIME SINCE 2019", title: "Reserves above $45bn", body: "Nigeria's reserves last stood this high in 2019.", test: (s) => s.eco.reserves >= 45 },
   { id: "r62", icon: "🏆", tone: "good", big: "ALL-TIME RESERVES RECORD", title: "Reserves above $62bn", body: "The previous record was about $62bn in 2008, under Yar'Adua. Nigeria has never had this much in the bank.", test: (s) => s.eco.reserves >= 62.1 },
   { id: "rLow15", icon: "🏦", tone: "bad", big: "RESERVES RUNNING DRY", title: "Reserves below $15bn", body: "Nigeria's reserves have not been this low in about twenty years. The naira has nothing left to defend it.", test: (s) => s.eco.reserves < 15 },
+  // ---------------------------------------------------------------- debt
+  { id: "d30", icon: "💳", tone: "good", big: "DEBT UNDER CONTROL", title: "Debt below 30% of the economy", body: "Nigeria's debt was over 50% of the economy when you started. It is now a manageable load.", test: (s) => dgdp(s) < 30 },
+  { id: "d15", icon: "💳", tone: "good", big: "LOW-DEBT NATION", title: "Debt below 15% of the economy", body: "Lenders now compete to lend to Nigeria on good terms. Interest payments are a small part of the budget.", test: (s) => dgdp(s) < 15 },
+  { id: "dfree", icon: "🏆", tone: "good", big: "DEBT-FREE NIGERIA", title: "Nigeria owes almost nothing", body: "Not since independence has Nigeria been this free of debt. The country can now save, invest, and even lend to others.", test: (s) => dgdp(s) <= 5 },
+  { id: "ds15", icon: "💳", tone: "good", big: "ROOM TO BREATHE", title: "Debt payments below 15% of revenue", body: "More of every naira collected can now go to schools, roads and clinics.", test: (s) => debtServiceRatio(s) < 0.15 },
+  { id: "dbad70", icon: "💥", tone: "bad", big: "DEBT TRAP", title: "Debt payments take over 70% of revenue", body: "Almost everything the government collects now goes to lenders. There is hardly any money left to govern.", test: (s) => debtServiceRatio(s) > 0.7 },
+  { id: "dbad80", icon: "💥", tone: "bad", big: "RECORD DEBT", title: "Debt above 80% of the economy", body: "The country owes almost as much as it earns in a year. Lenders are demanding punishing rates.", test: (s) => dgdp(s) > 80 },
   // ---------------------------------------------------------------- jobs
   { id: "u10", icon: "👷", tone: "good", big: "JOBS, JOBS, JOBS", title: "Unemployment below 10%", body: "Fewer young Nigerians are at home with certificates and no work. The japa queue at the embassies is shorter.", test: (s) => s.jobs.unemployment < 10 },
 ];

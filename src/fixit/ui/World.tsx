@@ -40,6 +40,8 @@ import type { NewsItem } from "../engine/types";
 import { RECORD_BY_ID } from "../engine/history";
 import { EnemiesPanel, FuelPanel, InvestorsPanel, TimelinePanel } from "./LivingPanels";
 import { FirstFamilyCard, ForeignPanel, PartyPanel, SectorsPanel } from "./WorldPanels";
+import { DebtPanel, LendingPanel, MilitaryPanel } from "./DebtMilitary";
+import { debtView } from "../engine/debt";
 import { activeEnemies } from "../engine/ripples";
 import { briefing, topIssue } from "../engine/advice";
 import { pegged } from "../engine/bigmoves";
@@ -169,9 +171,9 @@ export function World() {
   // seven buttons; everything else is a tab inside them
   const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
     { id: "govern", label: "Govern", icon: <Landmark size={22} />, wide: true, tabs: [{ id: "presidency", label: "Presidency" }, { id: "policies", label: "Policies" }, { id: "projects", label: "Projects" }, { id: "moves", label: "Big Moves" }, { id: "foreign", label: "Foreign" }] },
-    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "sectors", label: "Sectors" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }, { id: "street", label: "Street" }] },
+    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt" }, { id: "lending", label: "Lending" }, { id: "sectors", label: "Sectors" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }, { id: "street", label: "Street" }] },
     { id: "assembly", label: "Assembly", icon: <Scale size={22} />, tabs: [{ id: "assembly", label: "Assembly" }] },
-    { id: "power", label: "Power", icon: <Crown size={22} />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "Seat of power" }, { id: "timeline", label: "What I caused" }] },
+    { id: "power", label: "Power", icon: <Crown size={22} />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "Seat of power" }, { id: "military", label: "Military" }, { id: "timeline", label: "What I caused" }] },
     { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "Cabinet & backers" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
     { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }] },
   ];
@@ -185,6 +187,7 @@ export function World() {
         <div className="fx-hud-res">
           <Res icon="💰" label="Cash" v={nb(s.fin.treasury)} bad={s.fin.treasury < 30} onClick={() => setTab("nation")} />
           <Res icon="💵" label={pegged(s) ? "Official / black" : "Naira"} v={pegged(s) ? `₦${Math.round(s.eco.fx).toLocaleString()} / ${Math.round(Number(s.flags.blackFx ?? s.eco.fx)).toLocaleString()}` : `₦${Math.round(s.eco.fx).toLocaleString()}`} bad={pegged(s)} onClick={() => setTab("nation")} />
+          <Res icon="💳" label="Debt" v={`${debtView(s).pctGdp.toFixed(0)}%`} bad={debtView(s).pctGdp > 60} onClick={() => setTab("debt")} />
           <Res icon="📈" label="Inflation" v={`${s.eco.inflation.toFixed(0)}%`} bad={s.eco.inflation > 25} onClick={() => setTab("nation")} />
           <Res icon="👷" label="Jobless" v={`${s.jobs.unemployment.toFixed(0)}%`} bad={s.jobs.unemployment > 30} onClick={() => setTab("nation")} />
           <Res icon={face(100 - s.gov.happiness)} label="Mood" v={`${Math.round(s.gov.happiness)}`} bad={s.gov.happiness < 35} onClick={() => setTab("presidency")} />
@@ -251,6 +254,9 @@ export function World() {
           {drawer === "foreign" && <ForeignPanel />}
           {drawer === "party" && <PartyPanel />}
           {drawer === "nation" && <Nation />}
+          {drawer === "debt" && <DebtPanel />}
+          {drawer === "lending" && <LendingPanel />}
+          {drawer === "military" && <MilitaryPanel />}
           {drawer === "sectors" && <SectorsPanel />}
           {drawer === "oil" && <FuelPanel />}
           {drawer === "deals" && <InvestorsPanel />}
