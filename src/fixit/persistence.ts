@@ -1,4 +1,5 @@
 /** Local, offline saves. IndexedDB with localStorage and memory fallbacks (reuses the backend from the first game, keys are namespaced). */
+import { initFamilies } from "./engine/families";
 import { initBackers } from "./engine/backers";
 import { defaultBackend, MemoryBackend, type StorageBackend } from "../game/persistence/saveSystem";
 import { FIX_VERSION, type FixState } from "./engine/types";
@@ -35,7 +36,7 @@ export function validate(x: unknown): FixState {
   if (!s.power || !s.lawmakers) initPower(s);
   if (!s.backers || !s.backers.length) initBackers(s);
   s.staff ??= { cos: null, picked: true };
-  s.deals ??= []; s.enemies ??= []; s.gone ??= []; s.timeline ??= [];
+  s.deals ??= []; s.enemies ??= []; s.gone ??= []; s.foreign ??= { rel: { imf: 45, china: 50, usa: 50, ecowas: 55 }, imf: null, china: null, usaAid: null, log: [] }; s.party ??= { north: 55, south: 55, youth: 50, oldguard: 55, vpAmbition: 20, vpStage: 0 }; s.home ??= { spouse: { name: "First Lady/Gentleman", portrait: { skin: 3, hair: 1, style: 1, accent: 2 } }, kids: 3, health: 85, illness: null, abroad: 0 }; if (!s.families || !s.families.length) initFamilies(s); s.timeline ??= [];
   s.oil.uptime ??= 70; s.oil.refined ??= s.oil.refinery; s.oil.scarcity ??= 45;
   s.meta.scenario ??= "standard"; s.meta.difficulty ??= "normal"; s.meta.portrait ??= { skin: 2, hair: 0, style: 0, accent: 0 };
   return s;

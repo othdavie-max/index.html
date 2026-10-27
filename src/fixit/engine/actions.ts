@@ -269,8 +269,8 @@ export function setFxDefence(s: FixState, level: number): Result {
 }
 
 // ------------------------------------------------------------------ events and time
-export function respond(s: FixState, eventId: string, optionId: string): Result {
-  const r = resolveEvent(s, eventId, optionId);
+export function respond(s: FixState, eventId: string, optionId: string, force?: boolean): Result {
+  const r = resolveEvent(s, eventId, optionId, force);
   if ("error" in r) return fail(r.error);
   return { ok: r.ok, message: r.text, lines: [`Chance of success was about ${Math.round(r.chance * 100)}%.`] };
 }

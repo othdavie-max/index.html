@@ -13,6 +13,7 @@ import { nb, monthLabel } from "../engine/util";
 import { SymbolIcon } from "./MapView";
 import { Chips, UncBadge } from "./parts";
 import { EventAdvisers } from "./AdvisorStrip";
+import { EVENT_MINIS, MiniHost } from "./Minigames";
 import { billFor } from "../engine/politics";
 import { VoteModal } from "./Politics";
 import { decorate } from "../engine/challenge";
@@ -74,6 +75,8 @@ export function ChallengePanel({ ch }: { ch: Challenge }) {
 
 export function EventCard({ e, compact }: { e: GameEvent; compact?: boolean }) {
   const { act, state } = useFix();
+  const [mini, setMini] = useState(false);
+  const mg = EVENT_MINIS[e.tpl];
   if (!state) return null;
   const left = e.deadline - state.month;
   return (
@@ -86,6 +89,8 @@ export function EventCard({ e, compact }: { e: GameEvent; compact?: boolean }) {
         <Badge><MapPin size={12} /> {STATE_BY_ID[e.stateId]?.name}</Badge>
       </div>
       <div className="g-small" style={{ color: "#334155" }}>{e.cause}</div>
+      {!compact && e.status === "open" && mg && <button className="fx-play" onClick={() => setMini(true)}>🎮 {mg.label}<span>{mg.blurb}</span></button>}
+      {mini && mg && <MiniHost game={mg.game} seed={e.id} onClose={() => setMini(false)} onDone={(ok) => { setMini(false); act((s) => respond(s, e.id, mg.opt, ok)); }} />}
       {!compact && e.status === "open" && <EventAdvisers e={e} />}
       {!compact && (
         <div className="fx-actions" style={{ marginTop: 2 }}>

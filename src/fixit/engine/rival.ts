@@ -44,7 +44,7 @@ export function stateShare(s: FixState, id: string, noise = 0, honest = false): 
   const hw = heavyweightZones(s).filter((z) => z === st.zone).length;
   const gov = s.governors?.find((g) => g.zone === st.zone);
   const govFx = gov ? (gov.relation - 50) / 12 + (gov.party === "NPP" ? 1 : -1) : 0;
-  return clamp(nationalBase(s) + 0.15 * (45 - stateLayerValue(s, id, "overview")) + (s.campaign.rallies[st.zone] ?? 0) + 3 * hw + govFx + 1.5 * Math.min(3, done) - (st.zone === s.rival.zone ? 6 : 0) + (honest ? 0 : riggingBonus(s)) + noise, 5, 95);
+  return clamp(nationalBase(s) - Number(s.flags.primaryHit ?? 0) + 0.15 * (45 - stateLayerValue(s, id, "overview")) + (s.campaign.rallies[st.zone] ?? 0) + 3 * hw + govFx + 1.5 * Math.min(3, done) - (st.zone === s.rival.zone ? 6 : 0) + (honest ? 0 : riggingBonus(s)) + noise, 5, 95);
 }
 export function projectVote(s: FixState, rng?: Rng, honest = false): Omit<ElectionResult, "month" | "chance"> {
   const shock = rng ? rng.normal(0, 2.5) : 0;
@@ -107,13 +107,13 @@ function campaignSlot(s: FixState): string | null {
   return null;
 }
 const mult = (s: FixState) => 0.6 + 0.4 * (s.eco.priceLevel / 100);
-export function rally(s: FixState, zone: string): CampResult {
+export function rally(s: FixState, zone: string, boost = 1): CampResult {
   const err = campaignSlot(s); if (err) return { ok: false, message: err };
   const cost = 25 * mult(s);
   if (cost > s.fin.treasury) return { ok: false, message: "Not enough party and state funds." };
   s.fin.treasury -= cost;
   const before = s.campaign.rallies[zone] ?? 0;
-  const gain = Math.max(0.6, 3 - before * 0.6);
+  const gain = Math.round(Math.max(0.6, 3 - before * 0.6) * Math.min(1.6, Math.max(0.6, boost)) * 10) / 10;
   s.campaign.rallies[zone] = before + gain;
   s.campaign.actionsThisMonth++;
   pushNews(s, { source: `rally:${zone}:${s.month}`, headline: `Huge crowds at presidential rally in the ${ZONE_NAME[zone]}`, body: `Support in the zone rises about ${gain.toFixed(1)} points.`, tone: "good" });
@@ -150,7 +150,7 @@ export const DEBATE_ANSWERS = [
   { id: "promise", label: "Promise bold relief", blurb: "Popular now; voters may doubt you if trust is low." },
   { id: "attack", label: "Turn it on your rival", blurb: "Can land a blow or look evasive." },
 ] as const;
-export function answerDebate(s: FixState, qid: string, aid: string): CampResult {
+export function answerDebate(s: FixState, qid: string, aid: string, bonus = 0): CampResult {
   if (!campaignOpen(s)) return { ok: false, message: "The debate happens during the campaign." };
   const key = `debate:${qid}`;
   if (s.flags[key]) return { ok: false, message: "You already answered that question." };
@@ -160,7 +160,7 @@ export function answerDebate(s: FixState, qid: string, aid: string): CampResult 
   if (aid === "record") shift = clamp(record * 0.6, -2, 2.5) + rng.normal(0, 0.4);
   if (aid === "promise") shift = clamp(0.8 + (s.gov.trust - 40) / 25, -1.5, 2) + rng.normal(0, 0.6);
   if (aid === "attack") shift = (rng.chance(0.5) ? 1.6 : -1.2) + (s.rival.popularity > 55 ? 0.5 : 0);
-  shift = Math.round(shift * 10) / 10;
+  shift = Math.round((shift + bonus) * 10) / 10;
   s.flags[key] = aid;
   s.campaign.debateShift += shift;
   const verdict = shift >= 1 ? "Commentators say you won that exchange." : shift > 0 ? "A narrow edge to you on that one." : shift > -1 ? "That answer fell flat." : "Your rival clearly won that exchange.";

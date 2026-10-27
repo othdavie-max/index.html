@@ -19,6 +19,10 @@ import { INVESTOR_TEMPLATES } from "./investors";
 import { ENEMY_TEMPLATES, ripple } from "./ripples";
 import { DESK_TEMPLATES } from "./desk";
 import { ALL_OFFICIAL, OFFICIAL_TRIGGERS, prosecuteMinister } from "./officials";
+import { FAMILY_TEMPLATES } from "./families";
+import { FOREIGN_TEMPLATES } from "./foreign";
+import { PARTY_TEMPLATES } from "./party";
+import { HOME_TEMPLATES } from "./home";
 import { earn, groupPressure, relate } from "./society";
 import { eventRate } from "./setup";
 import type { GroupId } from "./types";
@@ -238,7 +242,7 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[])].map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
   return t.options.map((o) => {
@@ -400,7 +404,7 @@ function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string): string | undef
 export interface EventResult { ok: boolean; text: string; chance: number }
 
 /** Resolve an open event with a chosen response. Cost is paid from the treasury; the outcome is rolled from the live situation. */
-export function resolveEvent(s: FixState, eventId: string, optionId: string): EventResult | { error: string } {
+export function resolveEvent(s: FixState, eventId: string, optionId: string, force?: boolean): EventResult | { error: string } {
   const e = s.events.find((x) => x.id === eventId);
   if (!e) return { error: "That event no longer exists." };
   if (e.status !== "open") return { error: "That situation has already been dealt with." };
@@ -414,7 +418,7 @@ export function resolveEvent(s: FixState, eventId: string, optionId: string): Ev
   s.fin.treasury -= pay;
   const chance = clamp(o.chance(s, e), 0.05, 0.97);
   const roll = subRng(s.meta.seed, "resolve", e.id, o.id).next();
-  const ok = roll < chance;
+  const ok = force !== undefined ? force : roll < chance;
   const fx = ok ? o.win : o.lose;
   const wp = s.flags[`ev:${e.id}:portfolio`] as Portfolio | undefined;
   const wasWarned = !!wp && s.cabinet.members[wp]?.warned !== undefined;

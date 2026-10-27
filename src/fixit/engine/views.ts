@@ -2,6 +2,8 @@
 import { hashString } from "../../game/engine/rng";
 import { LGA_BY_ID } from "../../game/engine/admin";
 import type { FixState, Snap } from "./types";
+import { PROJECT_BY_ID } from "../data/catalogue";
+import { STATE_BY_ID } from "../../game/data/states";
 import { clamp100, debtServiceRatio, foodAffordIdx, infraScore, lever, powerRatio, realWage, round } from "./util";
 
 export type Tone = "good" | "ok" | "warn" | "bad";
@@ -90,3 +92,37 @@ export function headline(s: FixState) {
   };
 }
 export const monthsLeftInTerm = (s: FixState) => Math.max(0, s.termStart + 48 + (s.rule?.termExtra ?? 0) - s.month);
+
+// ---------------------------------------------------------------- a map that shows what you did
+export interface Landmark { stateId: string; glyph: string; label: string; k: string }
+const CAT_GLYPH: Record<string, string> = { "Oil & fuel": "🛢️", Electricity: "⚡", Food: "🌾", Industry: "🏭", "Roads & rail": "🚆", Security: "🛡️", People: "🏫", "National dreams": "🌟" };
+const DEAL_GLYPH: Record<string, string> = { "Oil & fuel": "🛢️", Power: "☀️", Manufacturing: "🏭", Technology: "💾", Agriculture: "🌱", Transport: "🚆" };
+export function landmarks(s: FixState): Landmark[] {
+  const out: Landmark[] = [];
+  for (const p of s.projects) if (p.status === "done") { const d = PROJECT_BY_ID[p.defId]; out.push({ stateId: p.stateId, glyph: CAT_GLYPH[d?.cat ?? ""] ?? "🏗️", label: `${p.name} (open)`, k: `p${p.id}` }); }
+  for (const d of s.deals ?? []) if (d.status === "open") out.push({ stateId: d.stateId, glyph: DEAL_GLYPH[d.sector] ?? "🏭", label: `${d.name} (investor project)`, k: `d${d.id}` });
+  for (const [id, r] of Object.entries(s.regions)) {
+    if (r.unrest >= 72) out.push({ stateId: id, glyph: "🔥", label: `Burning tyres and angry crowds in ${STATE_BY_ID[id]?.name ?? id}`, k: `f${id}` });
+    if (r.flood >= 70 && isFloodNow(s)) out.push({ stateId: id, glyph: "🌊", label: `Flooding in ${STATE_BY_ID[id]?.name ?? id}`, k: `w${id}` });
+  }
+  return out.slice(0, 80);
+}
+const isFloodNow = (s: FixState) => { const m = s.month % 12; return m >= 7 && m <= 10; };
+
+/** a short story about a place, written from what is actually true there */
+export function stateStory(s: FixState, id: string): string {
+  const r = s.regions[id], name = STATE_BY_ID[id]?.name ?? id;
+  if (!r) return "";
+  const bits: string[] = [];
+  const worst = ([["food", r.food, "families are skipping meals"], ["insecurity", r.insecurity, "people are afraid to travel at night"], ["jobless", r.jobless, "young people are idle in the streets"], ["power", r.power, "the light comes for a few hours a day"], ["unrest", r.unrest, "tempers are very short"]] as [string, number, string][]).sort((a, b) => b[1] - a[1])[0];
+  bits.push(worst[1] >= 65 ? `In ${name}, ${worst[2]}.` : worst[1] >= 45 ? `${name} is under strain: ${worst[2]}.` : `${name} is relatively calm.`);
+  const done = s.projects.filter((p) => p.stateId === id && p.status === "done");
+  const going = s.projects.filter((p) => p.stateId === id && (p.status === "active" || p.status === "stalled"));
+  if (done.length) bits.push(`The ${done[done.length - 1].name.toLowerCase()} you finished here is changing daily life.`);
+  else if (going.length) bits.push(`People are waiting for the ${going[0].name.toLowerCase()}${going[0].status === "stalled" ? ", which has stalled" : ""}.`);
+  const f = (s.families ?? []).filter((x) => x.stateId === id)[0];
+  if (f) bits.push(f.status === "left" ? `${f.name} used to live here before leaving.` : `${f.name} (${f.role}) lives here and is ${f.mood >= 55 ? "doing alright" : f.mood < 38 ? "struggling" : "coping"}.`);
+  const g = s.governors.find((x) => x.zone === STATE_BY_ID[id]?.zone);
+  if (g) bits.push(g.relation < 30 ? `The governor, ${g.name}, is openly against you.` : g.relation > 65 ? `The governor, ${g.name}, is on your side.` : "");
+  return bits.filter(Boolean).join(" ");
+}

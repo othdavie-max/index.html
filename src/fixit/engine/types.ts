@@ -135,6 +135,10 @@ export type EnemyPlan = "protests" | "leaks" | "rival" | "bandits" | "coup";
 export interface Enemy { id: string; name: string; reason: string; portrait: Portrait; plan: EnemyPlan; power: number; grudge: number; zone: string; status: "active" | "bought" | "crushed" | "reconciled"; since: number; note?: string }
 export interface TimelineItem { month: number; title: string; text: string; tone: "good" | "bad" | "neutral"; chain?: string }
 export interface Gone { id: string; name: string; role: string; how: "executed" | "jailed" | "released"; month: number; releaseAt?: number; stateId?: string }
+export interface Family { id: string; name: string; role: string; stateId: string; place: string; portrait: Portrait; mood: number; status: "thriving" | "ok" | "struggling" | "left"; high: number; low: number; stage: number; log: { month: number; text: string }[]; helped?: number }
+export interface Foreign { rel: { imf: number; china: number; usa: number; ecowas: number }; imf: null | { since: number; tranches: number; breach: number; suspended: boolean }; china: null | { since: number }; usaAid: null | { since: number; suspended: boolean }; log: { month: number; text: string }[] }
+export interface Party { north: number; south: number; youth: number; oldguard: number; vpAmbition: number; vpStage: number }
+export interface Home { spouse: { name: string; portrait: Portrait }; kids: number; health: number; illness: null | { since: number; hidden: boolean; acting: boolean }; abroad: number }
 export interface Staff { cos: Aide | null; vp?: Aide | null; picked: boolean }
 export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number; honest?: number; rigged?: boolean; stolen?: boolean }
 export type Difficulty = "easy" | "normal" | "hard";
@@ -236,6 +240,10 @@ export interface FixState {
   deals: Deal[];
   enemies: Enemy[];
   gone: Gone[];
+  families: Family[];
+  foreign: Foreign;
+  party: Party;
+  home: Home;
   timeline: TimelineItem[];
   assembly: { support: number; lobby: Record<string, number>; passed: number; defeats: number };
   governors: Governor[];

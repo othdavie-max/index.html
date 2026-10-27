@@ -5,7 +5,7 @@ import { useFix, useS } from "../store";
 import { Badge, Bar, Button, Card, EmptyState, Field, Modal } from "../../../game/ui/kit";
 import { STATE_BY_ID, STATES, ZONES } from "../../../game/data/states";
 import { LGA_BY_ID, searchPlaces } from "../../../game/engine/admin";
-import { LAYERS, lgaLayerValue, stateLayerValue, stressWord, type Layer } from "../../engine/views";
+import { LAYERS, lgaLayerValue, stateLayerValue, stateStory, stressWord, type Layer } from "../../engine/views";
 import { PROJECTS, PROJECT_BY_ID } from "../../data/catalogue";
 import { performRef } from "../../engine/actions";
 import { monthLabel } from "../../engine/util";
@@ -55,6 +55,7 @@ export function StatePanel({ s, id, lga }: { s: FixState; id: string; lga: strin
         {lg && <div className="g-tiny g-muted">Local conditions are simulated around the state picture.</div>}
         {(() => { const g = s.governors.find((x) => x.zone === meta.zone); return g ? <div className="g-small" style={{ marginTop: 4 }}>Zone governor: <b>{g.name}</b> ({g.party}) · {g.relation >= 65 ? "an ally" : g.relation >= 45 ? "neutral" : g.relation >= 25 ? "cool towards you" : "hostile"} ({Math.round(g.relation)}/100)</div> : null; })()}
       </div>
+      {!lga && <div className="fx-story">📖 {stateStory(s, id)}</div>}
       <div className="g-col" style={{ gap: 8 }}>{vals.map((x) => <Gauge key={x.k} label={METRICS.find((m) => m.id === x.k)!.label} v={x.v} />)}</div>
       <div className="g-small"><b>Biggest pressure here:</b> {METRICS.find((m) => m.id === worst.k)!.label.toLowerCase()}. <span className="g-muted">{cause[worst.k]}</span></div>
       {events.length > 0 && <div className="g-col" style={{ gap: 6 }}><div className="g-section-title">Happening now</div>{events.map((e) => <div key={e.id} className="g-row"><SymbolIcon k={e.kind} size={20} /><span className="g-small g-grow"><b>{e.title}</b></span><Button size="sm" variant="primary" onClick={() => setRespond(e.id)}>Respond</Button></div>)}</div>}

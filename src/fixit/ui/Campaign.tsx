@@ -4,6 +4,7 @@ import { useFix, useS } from "./store";
 import { Bar, Button, Card } from "../../game/ui/kit";
 import { DEBATE_ANSWERS, DEBATE_QUESTIONS, RIVAL_PARTY, YOUR_PARTY, ZONE_NAME, answerDebate, attackAd, campaignOpen, mobilise, monthsToElection, projectVote, rally } from "../engine/rival";
 import { MapView } from "./MapView";
+import { RallyTap, TimedDebate } from "./Minigames";
 import { useState } from "react";
 
 export function voteColor(share: number): string {
@@ -29,6 +30,8 @@ export function CampaignPanel() {
   const s = useS();
   const { act } = useFix();
   const [debate, setDebate] = useState(false);
+  const [rallyZone, setRallyZone] = useState<string | null>(null);
+  const [timed, setTimed] = useState(false);
   if (!campaignOpen(s)) return null;
   const v = projectVote(s);
   const left = monthsToElection(s);
@@ -47,7 +50,7 @@ export function CampaignPanel() {
         <div className="g-col" style={{ gap: 10 }}>
           <div className="g-small"><b>Campaign activities this month: {used}/2</b></div>
           <div><div className="g-tiny g-muted" style={{ marginBottom: 4 }}><Megaphone size={13} /> Hold a rally (repeat visits gain less)</div>
-            <div className="g-grid g-grid-3 g-grid-keep2" style={{ gap: 6 }}>{Object.entries(ZONE_NAME).map(([z, name]) => <Button key={z} size="sm" disabled={used >= 2} onClick={() => act((x) => rally(x, z))}>{name}{s.campaign.rallies[z] ? ` (+${s.campaign.rallies[z].toFixed(1)})` : ""}</Button>)}</div>
+            <div className="g-grid g-grid-3 g-grid-keep2" style={{ gap: 6 }}>{Object.entries(ZONE_NAME).map(([z, name]) => <Button key={z} size="sm" disabled={used >= 2} onClick={() => setRallyZone(z)}>{name}{s.campaign.rallies[z] ? ` (+${s.campaign.rallies[z].toFixed(1)})` : ""}</Button>)}</div>
           </div>
           <div className="g-row g-wrap" style={{ gap: 6 }}>
             <Button size="sm" disabled={used >= 2 || s.campaign.mobilise >= 3} onClick={() => act((x) => mobilise(x))}>Door-to-door drive ({s.campaign.mobilise}/3)</Button>
@@ -59,6 +62,9 @@ export function CampaignPanel() {
           </div>
         </div>
       </div>
+      {rallyZone && <RallyTap place={ZONE_NAME[rallyZone]} onClose={() => setRallyZone(null)} onDone={(boost) => { const z = rallyZone; setRallyZone(null); act((x) => rally(x, z, boost)); }} />}
+      {timed && <TimedDebate answered={new Set(DEBATE_QUESTIONS.filter((q) => s.flags[`debate:${q.id}`]).map((q) => q.id))} onClose={() => setTimed(false)} onAnswer={(qid, aid, bonus) => act((x) => answerDebate(x, qid, aid, bonus), { silent: true })} />}
+      {debate && debateOpen && !DEBATE_QUESTIONS.every((q) => s.flags[`debate:${q.id}`]) && <div><Button size="sm" variant="primary" onClick={() => setTimed(true)}>🎤 Start the live debate (timed)</Button></div>}
       {debate && debateOpen && (
         <div className="g-col" style={{ gap: 10, marginTop: 12 }}>
           {DEBATE_QUESTIONS.map((q) => {

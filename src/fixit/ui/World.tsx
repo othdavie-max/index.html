@@ -35,9 +35,11 @@ import { BriefingPanel } from "./AdvisorStrip";
 import { RecordCard } from "./RecordCard";
 import { RECORD_BY_ID } from "../engine/history";
 import { EnemiesPanel, FuelPanel, InvestorsPanel, TimelinePanel } from "./LivingPanels";
+import { FirstFamilyCard, ForeignPanel, PartyPanel } from "./WorldPanels";
 import { activeEnemies } from "../engine/ripples";
 import { briefing, topIssue } from "../engine/advice";
 import { pegged } from "../engine/bigmoves";
+import { landmarks } from "../engine/views";
 import { Portrait } from "../../game/ui/kit";
 import { isMuted, setMuted, sfx } from "./sound";
 import type { FixState } from "../engine/types";
@@ -149,11 +151,11 @@ export function World() {
 
   // seven buttons; everything else is a tab inside them
   const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
-    { id: "govern", label: "Govern", icon: <Landmark size={22} />, wide: true, tabs: [{ id: "presidency", label: "Presidency" }, { id: "policies", label: "Policies" }, { id: "projects", label: "Projects" }, { id: "moves", label: "Big Moves" }] },
+    { id: "govern", label: "Govern", icon: <Landmark size={22} />, wide: true, tabs: [{ id: "presidency", label: "Presidency" }, { id: "policies", label: "Policies" }, { id: "projects", label: "Projects" }, { id: "moves", label: "Big Moves" }, { id: "foreign", label: "Foreign" }] },
     { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }, { id: "street", label: "Street" }] },
     { id: "assembly", label: "Assembly", icon: <Scale size={22} />, tabs: [{ id: "assembly", label: "Assembly" }] },
     { id: "power", label: "Power", icon: <Crown size={22} />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "Seat of power" }, { id: "timeline", label: "What I caused" }] },
-    { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "Cabinet & backers" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
+    { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "Cabinet & backers" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
     { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }] },
   ];
   const group = GROUPS.find((g) => g.tabs.some((x) => x.id === drawer));
@@ -180,7 +182,7 @@ export function World() {
       </header>
 
       <div className="fx-stage">
-        <MapView s={s} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={faces} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels />
+        <MapView s={s} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels />
         <div className="fx-lens" role="group" aria-label="Map lens">{LENSES.map((l) => <button key={l.id} className="fx-chip" aria-pressed={lens === l.id} onClick={() => setLens(l.id)}>{l.label}</button>)}</div>
         <div className="fx-notes" aria-label="Notifications">
           {all.slice(0, 5).map((e) => (
@@ -225,6 +227,8 @@ export function World() {
           {drawer === "policies" && <Policies />}
           {drawer === "projects" && <Projects />}
           {drawer === "moves" && <MovesPanel />}
+          {drawer === "foreign" && <ForeignPanel />}
+          {drawer === "party" && <PartyPanel />}
           {drawer === "nation" && <Nation />}
           {drawer === "oil" && <FuelPanel />}
           {drawer === "deals" && <InvestorsPanel />}
@@ -232,7 +236,7 @@ export function World() {
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}
           {drawer === "power" && <PowerPanel />}
           {drawer === "timeline" && <TimelinePanel />}
-          {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><StaffCard /><CabinetCard /><GroupsCard /></div>}
+          {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><StaffCard /><FirstFamilyCard /><CabinetCard /><GroupsCard /></div>}
           {drawer === "advisers" && <BriefingPanel />}
           {drawer === "enemies" && <EnemiesPanel />}
           {drawer === "news" && <News />}
