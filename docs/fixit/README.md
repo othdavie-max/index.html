@@ -102,3 +102,9 @@ Run tests: `npx vitest run src/fixit`.
 - **Military** (`engine/military.ts`): strength 0–100 with four programmes (recruit, buy abroad, local arms industry, veterans' welfare) costing money every month. Neighbours (fictional) arm in response, strength above 55 adds coup risk unless veterans are looked after, and border clashes and peacekeeping calls test it.
 - **New states** (`engine/newstates.ts`): event-only. Regions petition; creating one costs about ₦14bn a month, pleases the region and invites the next petition. The map is unchanged.
 - Tests: `src/fixit/tests/debtmil.test.ts`.
+
+## Loot ledger
+
+- `engine/ledger.ts`: every amount stolen by lawmakers, ministers and governors is counted; every prosecution (any law level, for lawmakers, ministers and governors) recovers a share (60%, 40% or 30% depending on how harsh the law is) into a waiting pool. A "recovered loot" card lets you send it to schools, clinics, roads, local debt, the savings fund (or treasury) or cash; each does something real. If ignored it is swept into the treasury after four months. A "+₦X recovered" pop-up shows on the map, the Debt screen has a stolen/recovered ledger, and the year review reports it.
+- Fixed: jailing or executing ministers and governors used to recover no money at all.
+- Tests: `src/fixit/tests/ledger.test.ts`.

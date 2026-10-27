@@ -26,6 +26,7 @@ import { HOME_TEMPLATES } from "./home";
 import { MIL_TEMPLATES } from "./military";
 import { LEND_TEMPLATES } from "./lending";
 import { STATE_TEMPLATES } from "./newstates";
+import { LEDGER_TEMPLATES } from "./ledger";
 import { earn, groupPressure, relate } from "./society";
 import { eventRate } from "./setup";
 import type { GroupId } from "./types";
@@ -245,7 +246,7 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[]), ...(MIL_TEMPLATES as unknown as Tpl[]), ...(LEND_TEMPLATES as unknown as Tpl[]), ...(STATE_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[]), ...(MIL_TEMPLATES as unknown as Tpl[]), ...(LEND_TEMPLATES as unknown as Tpl[]), ...(STATE_TEMPLATES as unknown as Tpl[]), ...(LEDGER_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
   return t.options.map((o) => {

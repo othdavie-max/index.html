@@ -8,6 +8,7 @@ import { borrow } from "../engine/actions";
 import { LEND_OPEN_AT, depositFund, earnedTotal, lendingOpen, outstanding, withdrawFund } from "../engine/lending";
 import { MIL_PROGRAMMES, milLeak, milOn, regionalRank, strongestNeighbour, toggleMil } from "../engine/military";
 import { statesCost, statesCreated } from "../engine/newstates";
+import { DESTS, allocate } from "../engine/ledger";
 import { monthLabel, monthShort, nb } from "../engine/util";
 import { chips } from "../engine/forecast";
 import { Chips } from "./parts";
@@ -26,6 +27,16 @@ export function DebtPanel() {
         <div className="g-row g-between g-wrap"><div><div style={{ fontSize: 30, fontWeight: 900 }}>{d.pctGdp.toFixed(1)}%</div><div className="g-small g-muted">of the whole economy</div></div><Badge tone={d.tone === "good" ? "green" : d.tone === "bad" ? "red" : "amber"}>{d.label}</Badge></div>
         <div style={{ marginTop: 8 }}><div className="g-row g-between g-tiny"><span>Road to debt-free ({DEBT_FREE_AT}% of the economy)</span><b>{d.pctGdp <= DEBT_FREE_AT ? "Done" : `${Math.max(0, Math.round(((s.baseline.debtGdp - d.pctGdp) / Math.max(1, s.baseline.debtGdp - DEBT_FREE_AT)) * 100))}% of the way`}</b></div><Bar value={Math.max(0, Math.min(1, (s.baseline.debtGdp - d.pctGdp) / Math.max(1, s.baseline.debtGdp - DEBT_FREE_AT)))} label="Progress to debt-free" /></div>
         <div className="g-small" style={{ marginTop: 8 }}>{d.pctGdp <= DEBT_FREE_AT ? "🏆 You are debt-free. You can save the surplus, and lend to other countries." : d.yearsLeft ? `At this pace you will be debt-free in about ${d.yearsLeft} year${d.yearsLeft > 1 ? "s" : ""}.` : "Debt is not falling fast enough to give an estimate. Repay or borrow less."}</div>
+      </Card>
+      <Card title="Stolen and recovered" icon={<span aria-hidden>🔎</span>}>
+        <div className="g-grid g-grid-2 g-grid-keep2" style={{ gap: 10 }}>
+          <div><div className="g-tiny g-muted">Stolen so far</div><b style={{ fontSize: 22, color: "#b91c1c" }}>{nb(s.ledger.stolen)}</b></div>
+          <div><div className="g-tiny g-muted">Recovered</div><b style={{ fontSize: 22, color: "#047857" }}>{nb(s.ledger.recovered)}</b></div>
+        </div>
+        <Bar value={s.ledger.stolen > 0 ? Math.min(1, s.ledger.recovered / s.ledger.stolen) : 0} label="Share of stolen money recovered" />
+        {s.ledger.pending > 0 && <div className="g-card-flat" style={{ marginTop: 8, background: "#fffaf0", borderColor: "#f1d28a" }}><b>{nb(s.ledger.pending)} is waiting for your decision.</b><div className="g-tiny g-muted">Where should it go? If you do nothing, it goes to the treasury.</div><div className="g-row g-wrap" style={{ gap: 6, marginTop: 6 }}>{DESTS.map((x) => <Button key={x.id} size="sm" title={x.explain} onClick={() => { const r = act((st) => allocate(st, x.id)); sfx(r.ok ? "good" : "bad"); }}>{x.icon} {x.label}</Button>)}</div></div>}
+        {s.ledger.log.length > 0 && <div className="g-col" style={{ gap: 4, marginTop: 8 }}>{[...s.ledger.log].reverse().slice(0, 5).map((l, i) => <div key={i} className="g-small"><span className="g-tiny g-muted">{monthLabel(l.month)}</span> {l.text} <b style={{ color: l.amount > 0 ? "#047857" : "#475569" }}>{l.amount > 0 ? "+" : "−"}{nb(Math.abs(l.amount))}</b></div>)}</div>}
+        <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Lawmakers, ministers and governors who steal are counted here. Prosecute them under a strong law and the money comes back. You choose where it goes.</div>
       </Card>
       <Card title="What is owed">
         <div className="g-col" style={{ gap: 0 }}>

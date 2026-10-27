@@ -40,7 +40,7 @@ describe("lawmakers", () => {
 
 describe("punishment under the law ladder", () => {
   it("reprimand, seizure, prison, life and death are different", () => {
-    const run = (lvl: 0 | 1 | 2 | 3 | 4) => { const s = newGame(83); s.rule.lawLevel = lvl; const lm = s.lawmakers[0]; lm.stolen = 100; lm.evidence = 80; const t0 = s.fin.treasury; punish(s, lm, "case"); return { s, lm, gain: s.fin.treasury - t0 }; };
+    const run = (lvl: 0 | 1 | 2 | 3 | 4) => { const s = newGame(83); s.rule.lawLevel = lvl; const lm = s.lawmakers[0]; lm.stolen = 100; lm.evidence = 80; punish(s, lm, "case"); return { s, lm, gain: s.ledger.recovered }; };
     const l0 = run(0), l1 = run(1), l2 = run(2), l3 = run(3), l4 = run(4);
     expect(l0.lm.status).toBe("active"); expect(l1.lm.status).toBe("active");
     expect(l1.gain).toBeGreaterThan(l0.gain + 40);

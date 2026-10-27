@@ -33,6 +33,8 @@ import { militaryMonthly } from "./military";
 import { lendingMonthly } from "./lending";
 import { newStatesMonthly } from "./newstates";
 import { debtMonthly } from "./debt";
+import { ledgerMonthly } from "./ledger";
+import { noteStolen } from "./ledger";
 import { createEvent } from "./events";
 import { makeNews } from "./news";
 import { evaluateTermEnd } from "./legacy";
@@ -51,7 +53,7 @@ export function advanceMonth(s: FixState): boolean {
   phase2(s, subRng(s.meta.seed, "flows", m));
   phase3(s, subRng(s.meta.seed, "prices", m));
   phase4(s, subRng(s.meta.seed, "people", m));
-  cabinetMonthly(s, subRng(s.meta.seed, "cabinet", m), (p) => { s.flags.scandalMinister = p; createEvent(s, "ministerScandal", "NG-FC"); });
+  cabinetMonthly(s, subRng(s.meta.seed, "cabinet", m), (p) => { const mm = s.cabinet.members[p]; if (mm) noteStolen(s, Math.round(40 + (60 - mm.integrity) * 1.5)); s.flags.scandalMinister = p; createEvent(s, "ministerScandal", "NG-FC"); });
   rivalMonthly(s, subRng(s.meta.seed, "rival", m));
   societyMonthly(s, subRng(s.meta.seed, "society", m));
   assemblyMonthly(s);
@@ -71,6 +73,7 @@ export function advanceMonth(s: FixState): boolean {
   lendingMonthly(s, subRng(s.meta.seed, "lending", m));
   newStatesMonthly(s, subRng(s.meta.seed, "newstates", m));
   debtMonthly(s);
+  ledgerMonthly(s);
   resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));

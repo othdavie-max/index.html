@@ -15,6 +15,7 @@ import { finishTerm } from "./legacy";
 import { staffCoup } from "./dayone";
 import { act } from "./act";
 import { milCoup } from "./military";
+import { noteStolen, recoverLoot } from "./ledger";
 import { ripple } from "./ripples";
 
 // ---------------------------------------------------------------- the law ladder
@@ -109,14 +110,14 @@ export function punish(s: FixState, lm: Lawmaker, why: "case" | "arrest" | "cour
     lines.push(`${lm.name} was locked up on thin evidence. Critics call it a political arrest.`);
   } else if (level === 0) {
     lm.loyalty = clamp100(lm.loyalty - 5); lm.evidence = 0;
-    s.fin.treasury += lm.stolen * 0.05;
+    recoverLoot(s, lm.stolen * 0.05, lm.name);
     lines.push(`The law only allows a reprimand and a small fine. ${lm.name} laughs it off and keeps the loot.`);
     s.rule.deterrence = clamp100(s.rule.deterrence + 0.5);
     lm.stolen *= 0.9;
     return lines.join(" ");
   } else {
     const back = lm.stolen * (level === 1 ? 0.6 : level === 2 ? 0.4 : 0.3);
-    s.fin.treasury += back;
+    recoverLoot(s, back, lm.name);
     s.rule.convicted++;
     s.rule.deterrence = clamp100(s.rule.deterrence + [0, 4, 9, 14, 22][level]);
     if (level === 1) { lm.stolen = 0; lm.evidence = 0; lm.loyalty = clamp100(lm.loyalty - 10); lines.push(`${lm.name} was ordered to hand back ${nb(back)} and pay a heavy fine.`); }
@@ -403,7 +404,7 @@ export function powerMonthly(s: FixState, rng: Rng) {
     const p = (lm.greed / 100) * 0.024 * (1 - lawD) * (controlled ? 1.3 : 1);
     if (!rng.chance(p)) continue;
     const amount = Math.round(rng.range(15, 110) * (0.6 + lm.greed / 80));
-    lm.stolen += amount;
+    lm.stolen += amount; noteStolen(s, amount);
     s.gov.corruption = clamp100(s.gov.corruption + 0.12);
     s.fin.treasury = Math.max(0, s.fin.treasury - amount * 0.25);
     const caught = !controlled && openCases < 2 && rng.chance(0.28 + 0.4 * press + 0.002 * s.gov.transparency);

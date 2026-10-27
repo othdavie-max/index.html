@@ -143,6 +143,7 @@ export interface Neighbour { id: string; name: string; strength: number; mood: n
 export interface Military { strength: number; neighbours: Neighbour[]; peace: number }
 export interface Loan { id: string; borrower: string; amountUsd: number; rate: number; start: number; term: number; status: "performing" | "defaulted" | "repaid" | "forgiven"; strings: string; earned: number }
 export interface Lending { loans: Loan[]; fund: number }
+export interface Ledger { stolen: number; recovered: number; pending: number; used: Record<string, number>; log: { month: number; text: string; amount: number }[] }
 export interface Staff { cos: Aide | null; vp?: Aide | null; picked: boolean }
 export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number; honest?: number; rigged?: boolean; stolen?: boolean }
 export type Difficulty = "easy" | "normal" | "hard";
@@ -250,6 +251,7 @@ export interface FixState {
   home: Home;
   mil: Military;
   lend: Lending;
+  ledger: Ledger;
   timeline: TimelineItem[];
   assembly: { support: number; lobby: Record<string, number>; passed: number; defeats: number };
   governors: Governor[];

@@ -34,6 +34,7 @@ export function SaveSlots({ mode, onDone }: { mode: "load" | "both"; onDone: () 
 
 export function HowTo({ onClose }: { onClose: () => void }) {
   const steps = [
+    ["Recovered loot is yours to direct", "Everything lawmakers, ministers and governors steal is counted (Economy then Debt). When you prosecute them under a strong law the money comes back, and you choose where it goes: schools, clinics, roads, paying down debt, the savings fund or plain cash. If you do nothing it goes to the treasury."],
     ["Debt, savings and lending", "Economy then Debt shows what Nigeria owes, whether it is falling and how long until you are debt-free (5% of the economy). Repay local and foreign debt there. Once debt is under 10%, Lending opens: a savings fund, and neighbours asking for loans that earn interest and influence, and can default."],
     ["The armed forces", "Power then Military: recruit, buy jets from abroad, build a local arms industry, look after veterans. A stronger army is safer and wins respect, but it costs money every month, raises coup risk if you neglect your generals, and your neighbours arm in response. Border clashes and peacekeeping calls test it."],
     ["New states", "Regions sometimes petition for their own state. Creating one pleases its people and costs about ₦14bn a month in governor and civil service, and invites the next petition."],

@@ -99,7 +99,8 @@ function advisor(s: FixState, open: number): { text: string; label: string; go: 
 
 export function World() {
   const s = useS();
-  const { tab, setTab, advance, select, setSelect, summary, version, act } = useFix();
+  const { tab, setTab, advance, select, setSelect, summary, version, act, toast } = useFix();
+  const lootSeen = useRef(String(s.flags.lootToast ?? ""));
   const [lens, setLens] = useState<Lens>("mood");
   const [how, setHow] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -151,6 +152,11 @@ export function World() {
   }, [s.news.length, version]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { setMusicMood(s.rule.streetAnger >= 55 || s.rule.coupRisk >= 45 ? "tense" : "calm"); }, [s.rule.streetAnger, s.rule.coupRisk]);
   useEffect(() => { const h = () => startMusic(); window.addEventListener("pointerdown", h, { once: true }); return () => window.removeEventListener("pointerdown", h); }, []);
+  useEffect(() => {
+    const t = String(s.flags.lootToast ?? "");
+    if (t && t !== lootSeen.current) { lootSeen.current = t; try { const j = JSON.parse(t) as { amt: number; from: string }; toast(`+₦${Math.round(j.amt)}bn recovered from ${j.from}`); sfx("good"); } catch { /* ignore */ } }
+    else lootSeen.current = t;
+  }, [s.flags.lootToast, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const cstep = coachStep(s.flags);
   const fill = useMemo(() => lensFill(s, lens), [s, lens, s.month, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const faces = useMemo(() => (id: string) => face(stateLayerValue(s, id, "overview")), [s, s.month, version]); // eslint-disable-line react-hooks/exhaustive-deps

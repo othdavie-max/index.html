@@ -27,6 +27,7 @@ export function yearReview(s: FixState, year = Math.floor(s.month / 12)): Review
   if (total) permanent.push(`Promises: ${kept} of ${total} on track.`);
   const lost = s.families.filter((f) => f.status === "left");
   if (lost.length) permanent.push(`${lost.map((f) => f.name).join(", ")} ${lost.length > 1 ? "have" : "has"} left your Nigeria.`);
+  if (s.ledger.stolen > 0 || s.ledger.recovered > 0) permanent.push(`Stolen so far: ₦${Math.round(s.ledger.stolen)}bn. Recovered: ₦${Math.round(s.ledger.recovered)}bn${s.ledger.pending > 0 ? ` (₦${Math.round(s.ledger.pending)}bn waiting for you)` : ""}.`);
   const done = s.projects.filter((p) => p.status === "done").length;
   if (done) permanent.push(`${done} project${done > 1 ? "s" : ""} built and standing.`);
   const line = s.gov.happiness >= 60 ? "A year Nigerians will remember kindly." : s.gov.happiness >= 42 ? "A year of progress and pain." : "A hard year. People are tired.";

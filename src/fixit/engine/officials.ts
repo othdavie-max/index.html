@@ -12,6 +12,7 @@ import { createEvent } from "./spawn";
 import { removeMinister, sack } from "./cabinet";
 import { ripple } from "./ripples";
 import { act } from "./act";
+import { recoverLoot, noteStolen } from "./ledger";
 
 const ZONE: Record<string, string> = { NC: "North-Central", NE: "North-East", NW: "North-West", SE: "South-East", SS: "South-South", SW: "South-West" };
 const FIRST = ["Aminu", "Kayode", "Ifeanyi", "Hassan", "Bassey", "Tamuno", "Yakubu", "Chiedu", "Sadiq", "Olumide", "Ngozi", "Hadiza"];
@@ -31,8 +32,10 @@ export function prosecuteMinister(s: FixState, portfolio: Portfolio): string {
   if (level === 0) { m.integrity = Math.min(100, m.integrity + 3); m.mood = clamp100(m.mood - 6); return `${m.name} was reprimanded. The law is too weak to do more. Everyone noticed.`; }
   s.rule.convicted++;
   s.rule.deterrence = clamp100(s.rule.deterrence + [0, 3, 8, 12, 20][level]);
-  const text = `${m.name} was ${VERB[level]}.`;
-  if (level === 1) { s.fin.treasury += 12; sack(s, portfolio); }
+  const loot = Math.round(40 + (60 - m.integrity) * 1.5);
+  const back = recoverLoot(s, loot * (level === 1 ? 0.6 : level === 2 ? 0.4 : 0.3), m.name);
+  const text = `${m.name} was ${VERB[level]}. ${back > 0 ? `${nb(back)} was recovered.` : ""}`;
+  if (level === 1) { sack(s, portfolio); }
   else if (level === 4) {
     removeMinister(s, portfolio, "executed");
     s.rule.executions++; act(s, "execution", { intl: 8, anger: 3, democracy: -2, elite: -3 });
@@ -64,8 +67,10 @@ export function prosecuteGovernor(s: FixState, zone: string): string {
   const stateId = stateOfZone(zone);
   if (level === 0) { g.relation = clamp100(g.relation - 8); return `Governor ${g.name} was reprimanded. He laughed it off.`; }
   s.rule.convicted++; s.rule.deterrence = clamp100(s.rule.deterrence + [0, 4, 9, 14, 22][level]);
-  const text = `Governor ${g.name} was ${VERB[level]}.`;
-  if (level === 1) { s.fin.treasury += 25; g.relation = clamp100(g.relation - 14); return `${text} He stays in office, humiliated and hostile.`; }
+  const loot = Number(s.flags.lootAmt ?? 80);
+  const back = recoverLoot(s, loot * (level === 1 ? 0.6 : level === 2 ? 0.4 : 0.3), `Governor ${g.name}`);
+  const text = `Governor ${g.name} was ${VERB[level]}. ${nb(back)} was recovered.`;
+  if (level === 1) { g.relation = clamp100(g.relation - 14); return `${text} He stays in office, humiliated and hostile.`; }
   s.gone.push({ id: `gov-${g.name}`, name: `Gov. ${g.name}`, role: `Governor, ${ZONE[zone]}`, how: level === 4 ? "executed" : "jailed", month: s.month, releaseAt: level === 2 ? s.month + 30 : undefined, stateId });
   s.governors[i] = newGovernor(s, g, rng);
   for (const [id, r] of Object.entries(s.regions)) if (STATE_BY_ID[id]?.zone === zone) r.unrest = clamp100(r.unrest + 6);
@@ -136,7 +141,7 @@ const prosecuteLabel = (s: FixState) => (s.rule.lawLevel === 0 ? "Prosecute (the
 export const OFFICIAL_TEMPLATES: unknown[] = [
   {
     id: "governorLoot", kind: "case" as const, urgency: 2,
-    onCreate: (s: FixState) => { const g = s.governors[(s.month * 7 + s.me.scandals) % s.governors.length]; s.flags.lootZone = g.zone; s.flags.lootAmt = 40 + ((s.month * 13) % 90); },
+    onCreate: (s: FixState) => { const g = s.governors[(s.month * 7 + s.me.scandals) % s.governors.length]; s.flags.lootZone = g.zone; s.flags.lootAmt = 40 + ((s.month * 13) % 90); noteStolen(s, Number(s.flags.lootAmt)); },
     title: (s: FixState) => { const g = govOf(s); return g ? `Governor ${g.name} caught diverting ${nb(Number(s.flags.lootAmt ?? 60))}` : "A governor is caught stealing"; },
     cause: (s: FixState) => { const g = govOf(s); return `${g ? `Governor ${g.name} (${g.party}, ${ZONE[g.zone]})` : "A governor"} allegedly diverted ${nb(Number(s.flags.lootAmt ?? 60))} meant for schools and roads. He is popular at home and has the zone's lawmakers in his pocket. Under today's law the punishment is: ${["a reprimand", "seizing the loot", "prison", "life in prison", "death"][s.rule.lawLevel]}. Other governors are watching what you do.`; },
     options: [
