@@ -187,7 +187,7 @@ export interface TermResult {
 
 export interface FixState {
   version: number;
-  meta: { seed: number; id: string; president: string; hard: boolean; scenario: string; difficulty: Difficulty; portrait: Portrait };
+  meta: { seed: number; id: string; president: string; hard: boolean; scenario: string; difficulty: Difficulty; portrait: Portrait; archetype?: string; start?: string; daily?: string };
   month: number; // months elapsed since inauguration
   processed: number; // last month index fully processed (idempotency)
   term: number;

@@ -81,3 +81,16 @@ Run tests: `npx vitest run src/fixit`.
 - **Backers**: in the first month after Day One, an ultimatum arrives if your cabinet leaves them unhappy. Options: appease them (cost, corruption), give their nominees deputy posts (a way around it, but those deputies steal quietly and your ministers resent them), promise jobs in eight months (checked later), or hold the line, which has immediate effects: the Assembly turns against you, the budget is blocked for eight months, and a chain starts (the party chairman, senators staying away, a dossier, an enforcer who joins your opponents). You can also give a backer gifts at any time: a board seat, an ambassadorship, an oil-lifting licence, public praise.
 - **Overstaying**: scrapping term limits now needs two thirds of the Assembly firmly on your side plus lobbying, and sets off a chain (opposition walk-out, a Supreme Court challenge, ECOWAS alarm, governors splitting, generals "neutral"). At the end of your last legal term you can refuse to leave: no vote, only consequences (ECOWAS suspension, a ruling against you, governors refusing to recognise you, officers meeting, a general strike). Each repeat is worse. Obeying the court ends the story.
 - Tests: `src/fixit/tests/accountability.test.ts`.
+
+## "Interesting and interactive" update
+
+- **Mini-games** (`ui/Minigames.tsx`): haggle with the union, audit the padded budget, coup night (10-second decision), rally tapping, timed debate. They replace the dice roll via a forced outcome (`respond(..., force)`), or scale a rally or debate answer.
+- **Families** (`engine/families.ts`): five named families whose mood follows your decisions, yearly letters, and milestones (a shop opens or closes, a nurse leaves for Canada). Shown on the Street tab.
+- **Living map** (`engine/views.ts`, `ui/MapView.tsx`): landmarks for finished projects and investor deals, fire for unrest, flood icons in the rains, and a short state story when you tap a state.
+- **Foreign relations** (`engine/foreign.ts`): IMF programme with tranches and conditions (a floating naira, no subsidy after a year), Chinese rail-for-oil, American security help that needs clean hands, ECOWAS summits.
+- **Party** (`engine/party.ts`): four factions, demands, a primary, and a vice president whose ambition can lead to defection.
+- **Family and health** (`engine/home.ts`): spouse cards, a child scandal, a secret illness (hide it, disclose it, hand power to the VP), money abroad that can leak.
+- **Sectors** (`engine/sectors.ts`): three programmes each for agriculture, oil and gas, technology and manufacturing, with monthly costs and corruption leakage.
+- **Replay**: five president types with perks and weaknesses, challenge starts (after a coup, deep recession), a date-seeded daily challenge with a copyable result, and an endings gallery.
+- **Feel**: a coach for the first turns, "what changed" chips, TV-style breaking-news banner with a street reaction, generative music that turns tense when the danger meters rise, crowd sounds and vibration, and a 12-month review of your biggest decisions and what is now permanent.
+- Tests: `src/fixit/tests/world2.test.ts`.

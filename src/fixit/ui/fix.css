@@ -246,3 +246,21 @@
 .gm .fx-play span { font-weight: 500; font-size: 12.5px; color: #6b5200; }
 .gm .fx-play:hover { filter: brightness(1.04); }
 .gm .fx-story { background: #fffaf0; border: 1px solid #f1d28a; border-left: 5px solid #c8a24a; border-radius: 10px; padding: 8px 12px; font-size: 14px; color: #3a2a00; }
+.gm .fx-cand-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } @media (max-width: 980px) { .gm .fx-cand-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 520px) { .gm .fx-cand-5 { grid-template-columns: minmax(0, 1fr); } }
+.gm .fx-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.gm .fx-end { border: 1px solid var(--g-border); border-radius: 12px; padding: 8px 10px; background: #fff; text-align: center; } .gm .fx-end[data-lock="1"] { background: #f1f5f9; color: #94a3b8; }
+
+/* ---------------------------------------------------------------- coach, chips, breaking news */
+.gm .fx-coach { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); width: min(520px, calc(100% - 24px)); z-index: 7; display: flex; gap: 10px; background: #fffdf5; color: #0b1f36; border: 3px solid #c8a24a; border-radius: 16px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.4); animation: fx-slide .4s ease-out; }
+.gm .fx-coach p { font-size: 14px; margin: 3px 0 8px; line-height: 1.35; } .gm .fx-coach-face { font-size: 34px; }
+.gm .fx-coach-hl { outline: 3px solid #ffd873; outline-offset: 3px; animation: fx-glow 1.2s ease-in-out infinite; border-radius: 12px; }
+@keyframes fx-glow { 50% { outline-color: rgba(255,216,115,.25); } }
+.gm .fx-turnchips { position: absolute; top: 52px; right: 12px; z-index: 3; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-width: min(360px, 55vw); }
+.gm .fx-chip2 { background: rgba(11,31,54,.92); color: #fff; border: 1px solid #c8a24a; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; animation: fx-slide .3s ease-out; }
+.gm .fx-chip2[data-tone="good"] { border-color: #34d399; color: #a7f3d0; } .gm .fx-chip2[data-tone="bad"] { border-color: #fb7185; color: #fecdd3; }
+.gm .fx-breaking { position: absolute; left: 12px; right: 12px; bottom: 8px; z-index: 8; display: flex; gap: 12px; align-items: stretch; background: #0b1f36; color: #fff; border: 2px solid #c8a24a; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,.5); animation: fx-rise .4s ease-out; cursor: pointer; }
+.gm .fx-breaking[data-tone="bad"] { border-color: #e11d48; } .gm .fx-breaking[data-tone="good"] { border-color: #00c875; }
+.gm .fx-breaking-tag { background: #e11d48; color: #fff; font-weight: 900; letter-spacing: .1em; font-size: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 6px; }
+.gm .fx-breaking[data-tone="good"] .fx-breaking-tag { background: #047857; }
+.gm .fx-breaking b { display: block; font-size: 15px; padding-top: 8px; } .gm .fx-breaking-body { font-size: 12.5px; color: #cfe0ee; margin-top: 2px; } .gm .fx-breaking-react { font-size: 12px; color: #f5d57a; padding: 4px 0 8px; font-style: italic; }
+@keyframes fx-rise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }

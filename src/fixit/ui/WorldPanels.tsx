@@ -1,6 +1,11 @@
 "use client";
 /** Foreign relations, your party, and the first family. */
-import { useS } from "./store";
+import { useFix, useS } from "./store";
+import { SECTORS, leakage, programmeOn, sectorStats, toggleProgramme } from "../engine/sectors";
+import { Button } from "../../game/ui/kit";
+import { chips } from "../engine/forecast";
+import { Chips } from "./parts";
+import { nb } from "../engine/util";
 import { Badge, Bar, Callout, Card, EmptyState, Portrait } from "../../game/ui/kit";
 import { PARTNERS, relWord } from "../engine/foreign";
 import { FACTIONS } from "../engine/party";
@@ -74,5 +79,32 @@ export function FirstFamilyCard() {
       {H.illness && <div className="g-small" style={{ marginTop: 6, color: "#9f1239" }}>{H.illness.acting ? "You are being treated abroad; the VP is acting president." : H.illness.hidden ? "You are seriously ill and hiding it. It will leak." : "You are recovering from a serious illness."}</div>}
       {H.abroad > 0 && <div className="g-small" style={{ marginTop: 4 }}>About ₦{Math.round(H.abroad).toLocaleString()}m held abroad. If it leaks, so does your reputation.</div>}
     </Card>
+  );
+}
+
+export function SectorsPanel() {
+  const s = useS();
+  const { act } = useFix();
+  const lk = leakage(s);
+  return (
+    <div className="g-col" style={{ gap: 12 }}>
+      <Callout tone="info">Four sectors you can steer. Switch on programmes that suit your plan. They cost money every month and take months to work. {lk < 0.8 ? <b>Corruption and weak capacity are leaking about {Math.round((1 - lk) * 100)}% of their benefit.</b> : "Government is capable enough that most of the benefit arrives."}</Callout>
+      {SECTORS.map((sec) => (
+        <Card key={sec.id} title={`${sec.icon} ${sec.name}`}>
+          <div className="g-row g-wrap" style={{ gap: 14, marginBottom: 8 }}>{sectorStats(s, sec.id).map((x) => <div key={x.label}><div className="g-tiny g-muted">{x.label}</div><b style={{ color: x.good ? "#047857" : "#b45309" }}>{x.value}</b></div>)}</div>
+          <div className="g-col" style={{ gap: 8 }}>
+            {sec.programmes.map((p) => {
+              const on = programmeOn(s, sec.id, p.id);
+              return (
+                <div key={p.id} className="fx-rung" data-state={on ? "done" : "tool"}>
+                  <div className="g-grow"><b>{p.name}</b> <span className="g-tiny g-muted">· {nb(p.cost)} a month</span><div className="g-tiny g-muted">{p.blurb}</div><Chips chips={chips(p.effects, 4)} label="Effect" /></div>
+                  <Button size="sm" variant={on ? "default" : "primary"} onClick={() => act((x) => toggleProgramme(x, sec.id, p.id))}>{on ? "Switch off" : "Switch on"}</Button>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 }

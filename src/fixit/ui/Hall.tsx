@@ -5,13 +5,22 @@ import { useFix } from "./store";
 import { Badge, Button, EmptyState, Modal } from "../../game/ui/kit";
 import type { HallEntry } from "../persistence";
 import { issuesLabel, DIFFICULTY } from "../engine/setup";
+import { ENDINGS } from "../engine/endings";
 
 export function Hall({ onClose }: { onClose: () => void }) {
   const { saves } = useFix();
   const [list, setList] = useState<HallEntry[] | null>(null);
-  useEffect(() => { saves.hall().then(setList).catch(() => setList([])); }, [saves]);
+  const [unlocked, setUnlocked] = useState<string[]>([]);
+  useEffect(() => { saves.hall().then(setList).catch(() => setList([])); saves.endings().then(setUnlocked).catch(() => undefined); }, [saves]);
+  const d = new Date(); const today = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  const dailyBest = (list ?? []).filter((h) => h.daily === today)[0];
   return (
     <Modal title="🏛️ Hall of Presidents" wide onClose={onClose} footer={<Button variant="primary" onClick={onClose}>Close</Button>}>
+      <div className="g-section-title">Endings you have found ({unlocked.length}/{ENDINGS.length})</div>
+      <div className="fx-gallery" style={{ marginBottom: 12 }}>
+        {ENDINGS.map((e) => { const on = unlocked.includes(e.id); return <div key={e.id} className="fx-end" data-lock={on ? undefined : "1"}><div style={{ fontSize: 26 }} aria-hidden>{on ? e.icon : "❓"}</div><b className="g-small">{on ? e.name : "???"}</b><div className="g-tiny">{on ? e.blurb : "Not found yet"}</div></div>; })}
+      </div>
+      {dailyBest && <div className="g-card-flat" style={{ marginBottom: 10 }}>📅 <b>Today's daily challenge:</b> your best score on this device is <b>{dailyBest.score}</b> ({dailyBest.ending ?? dailyBest.title}).</div>}
       {!list ? <div className="g-small">Loading…</div> : list.length === 0 ? <EmptyState title="No terms finished yet" body="Finish a term and it will be recorded here, with your title and results. Records stay on this device." /> : (
         <div className="g-col" style={{ gap: 0 }}>
           {list.map((h, i) => (

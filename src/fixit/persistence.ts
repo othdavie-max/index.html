@@ -53,13 +53,13 @@ export function deserialise(text: string): { state: FixState; summary: Summary }
   return { state: validate(env.state), summary: env.summary };
 }
 
-export interface HallEntry { id: string; president: string; scenario: string; difficulty: string; term: number; title: string; ending?: string; result: string; vote: number | null; approval: number; inflation: [number, number]; fx: [number, number]; projects: number; date: number; score: number }
+export interface HallEntry { daily?: string; archetype?: string; id: string; president: string; scenario: string; difficulty: string; term: number; title: string; ending?: string; result: string; vote: number | null; approval: number; inflation: [number, number]; fx: [number, number]; projects: number; date: number; score: number }
 export function hallEntry(s: FixState): HallEntry | null {
   const t = s.terms[s.terms.length - 1];
   if (!t) return null;
   const done = s.projects.filter((p) => p.status === "done").length;
   const score = Math.round(t.end.approval + (t.start.inflation - t.end.inflation) + (t.start.fx - t.end.fx) / 50 + done * 2 + (t.result === "won" || t.result === "completed" ? 15 : 0) - (s.me.acts.filter((a) => a === "kickback").length * 5));
-  return { id: `${s.meta.id}:${t.term}:${s.meta.seed}`, president: s.meta.president, scenario: s.meta.scenario, difficulty: s.meta.difficulty, term: t.term, title: t.title, ending: s.done ? t.ending ?? computeEnding(s).name : undefined, result: t.result, vote: s.election && s.election.month === s.month ? s.election.national : null, approval: Math.round(t.end.approval), inflation: [t.start.inflation, t.end.inflation], fx: [t.start.fx, t.end.fx], projects: done, date: Date.now(), score };
+  return { daily: s.meta.daily, archetype: s.meta.archetype, id: `${s.meta.id}:${t.term}:${s.meta.seed}`, president: s.meta.president, scenario: s.meta.scenario, difficulty: s.meta.difficulty, term: t.term, title: t.title, ending: s.done ? t.ending ?? computeEnding(s).name : undefined, result: t.result, vote: s.election && s.election.month === s.month ? s.election.national : null, approval: Math.round(t.end.approval), inflation: [t.start.inflation, t.end.inflation], fx: [t.start.fx, t.end.fx], projects: done, date: Date.now(), score };
 }
 export class FixSaves {
   constructor(private backend: StorageBackend = defaultBackend()) {}
@@ -72,6 +72,8 @@ export class FixSaves {
   }
   async hall(): Promise<HallEntry[]> { try { const t = await this.backend.get("fix:hall"); return t ? (JSON.parse(t) as HallEntry[]) : []; } catch { return []; } }
   async addHall(e: HallEntry) { const list = (await this.hall()).filter((x) => x.id !== e.id); list.push(e); list.sort((a, b) => b.score - a.score); await this.backend.set("fix:hall", JSON.stringify(list.slice(0, 50))); }
+  async endings(): Promise<string[]> { try { const t = await this.backend.get("fix:endings"); return t ? (JSON.parse(t) as string[]) : []; } catch { return []; } }
+  async addEnding(id: string) { const list = await this.endings(); if (list.includes(id)) return; list.push(id); await this.backend.set("fix:endings", JSON.stringify(list)); }
   async remove(slot: Slot) { await this.backend.remove(`fix:save:${slot}`); await this.backend.remove(`fix:meta:${slot}`); }
 }
 export { MemoryBackend };

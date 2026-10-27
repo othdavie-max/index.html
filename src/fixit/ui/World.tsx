@@ -33,9 +33,13 @@ import { MovesPanel } from "./MovesPanel";
 import { StreetPanel } from "./StreetPanel";
 import { BriefingPanel } from "./AdvisorStrip";
 import { RecordCard } from "./RecordCard";
+import { BreakingBanner, Coach, TurnChips, YearReview, coachStep, COACH } from "./Feel";
+import { BIG_NEWS } from "../engine/street";
+import { isMusicOn, setMusicOn, setMusicMood, startMusic, crowd, buzz } from "./sound";
+import type { NewsItem } from "../engine/types";
 import { RECORD_BY_ID } from "../engine/history";
 import { EnemiesPanel, FuelPanel, InvestorsPanel, TimelinePanel } from "./LivingPanels";
-import { FirstFamilyCard, ForeignPanel, PartyPanel } from "./WorldPanels";
+import { FirstFamilyCard, ForeignPanel, PartyPanel, SectorsPanel } from "./WorldPanels";
 import { activeEnemies } from "../engine/ripples";
 import { briefing, topIssue } from "../engine/advice";
 import { pegged } from "../engine/bigmoves";
@@ -93,7 +97,7 @@ function advisor(s: FixState, open: number): { text: string; label: string; go: 
 
 export function World() {
   const s = useS();
-  const { tab, setTab, advance, select, setSelect, summary, version } = useFix();
+  const { tab, setTab, advance, select, setSelect, summary, version, act } = useFix();
   const [lens, setLens] = useState<Lens>("mood");
   const [how, setHow] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -106,6 +110,9 @@ export function World() {
   const [shake, setShake] = useState(false);
   const seenAch = useRef(s.achievements.length);
   const [cards, setCards] = useState<string[]>([]);
+  const [bq, setBq] = useState<NewsItem[]>([]);
+  const newsSeen = useRef(s.news.length);
+  const [music, setMusic] = useState(isMusicOn());
 
   const decisions = s.events.filter((e) => e.status === "open" && e.kind !== "opportunity");
   const opps = s.events.filter((e) => e.status === "open" && e.kind === "opportunity");
@@ -133,6 +140,16 @@ export function World() {
       if (fresh.length) setTimeout(() => setCards((c) => [...c, ...fresh]), 600);
     } else seenAch.current = s.achievements.length;
   }, [s.achievements.length, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (s.news.length > newsSeen.current) {
+      const fresh = s.news.slice(newsSeen.current).filter((n) => BIG_NEWS.test(n.source) && !n.source.startsWith("ach:") ).slice(-2);
+      newsSeen.current = s.news.length;
+      if (fresh.length) { setTimeout(() => setBq((q) => [...q, ...fresh].slice(-3)), 400); if (fresh.some((n) => n.tone === "bad")) { crowd("hush"); buzz(180); } else crowd("roar"); }
+    } else newsSeen.current = s.news.length;
+  }, [s.news.length, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setMusicMood(s.rule.streetAnger >= 55 || s.rule.coupRisk >= 45 ? "tense" : "calm"); }, [s.rule.streetAnger, s.rule.coupRisk]);
+  useEffect(() => { const h = () => startMusic(); window.addEventListener("pointerdown", h, { once: true }); return () => window.removeEventListener("pointerdown", h); }, []);
+  const cstep = coachStep(s.flags);
   const fill = useMemo(() => lensFill(s, lens), [s, lens, s.month, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const faces = useMemo(() => (id: string) => face(stateLayerValue(s, id, "overview")), [s, s.month, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const tip = advisor(s, decisions.length);
@@ -152,7 +169,7 @@ export function World() {
   // seven buttons; everything else is a tab inside them
   const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
     { id: "govern", label: "Govern", icon: <Landmark size={22} />, wide: true, tabs: [{ id: "presidency", label: "Presidency" }, { id: "policies", label: "Policies" }, { id: "projects", label: "Projects" }, { id: "moves", label: "Big Moves" }, { id: "foreign", label: "Foreign" }] },
-    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }, { id: "street", label: "Street" }] },
+    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "sectors", label: "Sectors" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }, { id: "street", label: "Street" }] },
     { id: "assembly", label: "Assembly", icon: <Scale size={22} />, tabs: [{ id: "assembly", label: "Assembly" }] },
     { id: "power", label: "Power", icon: <Crown size={22} />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "Seat of power" }, { id: "timeline", label: "What I caused" }] },
     { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "Cabinet & backers" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
@@ -173,9 +190,10 @@ export function World() {
           <Res icon={face(100 - s.gov.happiness)} label="Mood" v={`${Math.round(s.gov.happiness)}`} bad={s.gov.happiness < 35} onClick={() => setTab("presidency")} />
           <Res icon="🗳️" label="Approval" v={`${Math.round(s.gov.approval)}%`} bad={s.gov.approval < 35} onClick={() => setTab("presidency")} />
         </div>
-        <button className="fx-hud-danger" onClick={() => setTab("power")} aria-label="Open the seat of power: danger meters"><Meters compact /></button>
+        <button className={`fx-hud-danger ${cstep >= 0 && COACH[cstep].target === "danger" ? "fx-coach-hl" : ""}`} onClick={() => setTab("power")} aria-label="Open the seat of power: danger meters"><Meters compact /></button>
         <div className="fx-hud-tools">
           <button className="fx-icon-btn" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
+          <button className="fx-icon-btn" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music">{music ? "🎵" : "🔇"}</button>
           <button className="fx-icon-btn" onClick={() => setHow(true)} aria-label="How to play"><HelpCircle size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setMenu(true)} aria-label="Menu and saves"><MenuIcon size={18} /></button>
         </div>
@@ -184,7 +202,7 @@ export function World() {
       <div className="fx-stage">
         <MapView s={s} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels />
         <div className="fx-lens" role="group" aria-label="Map lens">{LENSES.map((l) => <button key={l.id} className="fx-chip" aria-pressed={lens === l.id} onClick={() => setLens(l.id)}>{l.label}</button>)}</div>
-        <div className="fx-notes" aria-label="Notifications">
+        <div className={`fx-notes ${cstep >= 0 && COACH[cstep].target === "notes" ? "fx-coach-hl" : ""}`} aria-label="Notifications">
           {all.slice(0, 5).map((e) => (
             <button key={e.id} className="fx-note" data-kind={e.kind} onClick={() => { sfx("tap"); setPick(e.id); }} aria-label={`${EVENT_SYMBOL[e.kind].label}: ${e.title}`}>
               <SymbolIcon k={e.kind} size={26} /><span><b>{e.title}</b><i>{EVENT_SYMBOL[e.kind].label}</i></span>
@@ -193,13 +211,16 @@ export function World() {
           {all.length > 5 && <button className="fx-note fx-note-more" onClick={() => setQueue(true)}>+{all.length - 5} more</button>}
         </div>
         {banner && <div className="fx-turn-banner" aria-hidden><span>{banner}</span></div>}
-        {say && !blocked && cos && (
+        <TurnChips />
+        {cstep >= 0 && !s.ended && !drawer && <Coach step={cstep} />}
+        {bq[0] && <BreakingBanner item={bq[0]} onDone={() => setBq((q) => q.slice(1))} />}
+        {say && !blocked && cos && cstep < 0 && (
           <div className="fx-advisor" role="status">
             <Portrait p={cos.portrait} size={42} name={cos.name} />
             <div><b>{cos.name}</b><p>{say.text.length > 190 ? `${say.text.slice(0, 187)}…` : say.text}</p><Button size="sm" variant="primary" onClick={() => { sfx("tap"); setTab(sayGo ?? "advisers"); }}>{sayGo ? "Take me there" : "All advisers"}</Button></div>
           </div>
         )}
-        {tip && !blocked && (
+        {tip && !blocked && cstep < 0 && (
           <div className="fx-advisor" role="status">
             <div className="fx-advisor-face" aria-hidden>🧑🏾‍💼</div>
             <div><b>Chief of Staff</b><p>{tip.text}</p><Button size="sm" variant="primary" onClick={() => { sfx("tap"); if (tip.go === "events") setQueue(true); else setTab(tip.go); }}>{tip.label}</Button></div>
@@ -207,7 +228,7 @@ export function World() {
         )}
         <div className="fx-turn">
           <button className="fx-skip" disabled={blocked} onClick={() => { sfx("tap"); advance(3); }} aria-label="Skip up to three months; stops early if something needs a decision" title="Skip up to 3 months"><FastForward size={18} /> +3</button>
-          <button className="fx-next" disabled={blocked} onClick={nextTurn} aria-label={decisions.length ? `${decisions.length} decisions waiting` : "Next turn: move on one month"}>
+          <button className={`fx-next ${cstep >= 0 && COACH[cstep].target === "next" ? "fx-coach-hl" : ""}`} disabled={blocked} onClick={nextTurn} aria-label={decisions.length ? `${decisions.length} decisions waiting` : "Next turn: move on one month"}>
             {decisions.length > 0 ? <><ShieldAlert size={22} /> <span>{decisions.length} to decide</span></> : <><span>NEXT TURN</span> <small>{monthLabel(s.month + 1)}</small></>}
           </button>
         </div>
@@ -216,7 +237,7 @@ export function World() {
       <Ticker />
       <nav className="fx-toolbar" aria-label="Government">
         <button className="fx-tool" onClick={() => { sfx("tap"); setQueue(true); }}><ShieldAlert size={22} /><span>Desk</span>{decisions.length > 0 && <i className="fx-dot-red" aria-label="decisions waiting" />}</button>
-        {GROUPS.map((b) => <button key={b.id} className="fx-tool" aria-pressed={group?.id === b.id} onClick={() => { sfx("tap"); setTab(group?.id === b.id ? "world" : b.tabs[0].id); }}>{b.icon}<span>{b.label}</span>{!!b.badge && <i className="fx-dot-red" aria-label="needs attention" />}</button>)}
+        {GROUPS.map((b) => <button key={b.id} className={`fx-tool ${cstep >= 0 && COACH[cstep].target === "govern" && b.id === "govern" ? "fx-coach-hl" : ""}`} aria-pressed={group?.id === b.id} onClick={() => { sfx("tap"); setTab(group?.id === b.id ? "world" : b.tabs[0].id); }}>{b.icon}<span>{b.label}</span>{!!b.badge && <i className="fx-dot-red" aria-label="needs attention" />}</button>)}
       </nav>
 
       {select.state && <Drawer title="Location" onClose={() => setSelect({ state: null, lga: null })}><StatePanel s={s} id={select.state} lga={select.lga} /></Drawer>}
@@ -230,6 +251,7 @@ export function World() {
           {drawer === "foreign" && <ForeignPanel />}
           {drawer === "party" && <PartyPanel />}
           {drawer === "nation" && <Nation />}
+          {drawer === "sectors" && <SectorsPanel />}
           {drawer === "oil" && <FuelPanel />}
           {drawer === "deals" && <InvestorsPanel />}
           {drawer === "street" && <StreetPanel />}
@@ -257,7 +279,8 @@ export function World() {
       {!s.staff.picked && <DayOne />}
       {menu && <MenuModal onClose={() => setMenu(false)} />}
       {how && <HowTo onClose={() => setHow(false)} />}
-      {!summary ? null : <MonthSummaryModal />}
+      {summary && (summary.echoes.length > 0 || summary.achievements.length > 0 || summary.months > 1) ? <MonthSummaryModal /> : null}
+      {!s.ended && s.flags.reviewDue !== undefined && s.flags.reviewDue !== s.flags.reviewSeen && !summary && <YearReview onClose={() => act((x) => { x.flags.reviewSeen = x.flags.reviewDue; return { ok: true, message: "" }; }, { silent: true })} />}
       {s.ended && (s.election && s.election.month === s.month && !s.flags[`electionSeen:${s.month}`] ? <ElectionNight /> : <Legacy />)}
     </div>
   );

@@ -106,7 +106,7 @@ export function pickChiefOfStaff(s: FixState, id: string): { ok: boolean; messag
   pushNews(s, { source: `cos:${s.month}`, headline: `${a.name} named Chief of Staff`, body: `${AIDE_KINDS[a.kind].tag}. ${AIDE_KINDS[a.kind].perk}`, tone: "neutral" });
   return { ok: true, message: `${a.name} is your Chief of Staff.` };
 }
-export function finishDayOne(s: FixState) { s.staff.picked = true; if (!s.staff.cos) applyStaff(s); }
+export function finishDayOne(s: FixState) { s.staff.picked = true; if (s.flags.coach === undefined) s.flags.coach = 0; if (!s.staff.cos) applyStaff(s); }
 export const advisers = (s: FixState): Aide[] => [s.staff?.cos, s.staff?.vp].filter(Boolean) as Aide[];
 
 /** Monthly: your people show their true colours. */

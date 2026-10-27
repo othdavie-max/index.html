@@ -11,14 +11,16 @@ import { presidentName, snap } from "../engine/util";
 import type { TermResult } from "../engine/types";
 import { ShareButton } from "./ShareCard";
 import { Portrait } from "../../game/ui/kit";
+import { hallEntry } from "../persistence";
 import { GROUPS, TRAITS, dominantTrait } from "../engine/society";
 
 export function Legacy() {
   const s = useS();
-  const { continueTerm, startNew, quit, act } = useFix();
+  const { continueTerm, startNew, quit, act, saves, toast } = useFix();
   const last: TermResult | undefined = s.terms[s.terms.length - 1];
   const choosing = !!s.ended?.choice;
   const ending = s.done && !choosing ? computeEnding(s) : null;
+  useEffect(() => { if (ending) void saves.addEnding(ending.id).catch(() => undefined); }, [ending?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (choosing) sfx("doom"); else if (ending) sfx(ending.tone === "good" ? "fanfare" : ending.tone === "bad" ? "doom" : "gavel"); }, [choosing, ending?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!last || !s.ended) return null;
   if (choosing) {
@@ -45,6 +47,11 @@ export function Legacy() {
   return (
     <div role="dialog" aria-modal="true" aria-label="Legacy report" style={{ position: "fixed", inset: 0, zIndex: 110, background: "rgba(8,20,36,.86)", overflow: "auto", padding: "20px 12px" }}>
       <div style={{ maxWidth: 900, margin: "0 auto" }} className="g-col">
+        {ending && s.meta.daily && (() => {
+          const h = hallEntry(s);
+          const text = `Nigeria: Can You Fix It? Daily ${s.meta.daily.slice(0, 4)}-${s.meta.daily.slice(4, 6)}-${s.meta.daily.slice(6)}: ${ending.name} · score ${h?.score ?? 0} · approval ${h?.approval ?? 0}%`;
+          return <div className="g-card-flat" style={{ background: "#0b1f36", color: "#fff", borderColor: "#c8a24a" }}><b>📅 Daily challenge result</b><div className="g-small" style={{ color: "#cfe0ee", marginTop: 4 }}>{text}</div><Button size="sm" variant="primary" style={{ marginTop: 6 }} onClick={() => { try { void navigator.clipboard.writeText(text); toast("Result copied. Paste it to challenge a friend."); } catch { toast("Could not copy. Select the text above.", true); } }}>Copy result to share</Button></div>;
+        })()}
         {ending && (
           <div className="g-card fx-ending" data-tone={ending.tone}>
             <div style={{ fontSize: 56 }} aria-hidden>{ending.icon}</div>

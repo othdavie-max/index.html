@@ -91,7 +91,33 @@ export const DIFFICULTY: Record<Difficulty, { label: string; blurb: string; cash
   hard: { label: "Hard", blurb: "Less money, more crises, tougher voters.", cash: 0.6, events: 1.3, vote: -2.5 },
 };
 
-export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[] }
+export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[]; archetype?: string; start?: string; daily?: string }
+
+/** Who you are before you are president: a perk and a weakness each. */
+export const PRESIDENTS = [
+  { id: "career", icon: "🧑🏾‍💼", name: "Career politician", perk: "Knows how the system works: a bit more Assembly support.", weak: "Everyone has a file on you: slightly more distrust." },
+  { id: "general", icon: "🎖️", name: "Former general", perk: "The army is with you and coup risk starts low.", weak: "The world and the young are uneasy about a soldier in the villa." },
+  { id: "tech", icon: "💻", name: "Tech founder", perk: "Young people and investors are excited.", weak: "The party old guard and the barracks do not trust you." },
+  { id: "market", icon: "🛍️", name: "Market leader", perk: "Traders and farmers are your people.", weak: "The treasury starts thinner and the state machine is new to you." },
+  { id: "cleric", icon: "🙏", name: "Pastor or Imam", perk: "Faith communities are devoted, and your image is clean.", weak: "Youth find you preachy, and the business class is cool." },
+] as const;
+export const STARTS = [
+  { id: "normal", icon: "🏁", name: "A normal handover", blurb: "A civilian handover. Whatever mess the dice give you." },
+  { id: "coup", icon: "🪖", name: "After a coup", blurb: "The army hands you power after a coup. Legitimacy is thin, generals are watching, and the world is wary." },
+  { id: "recession", icon: "📉", name: "Deep recession", blurb: "Inflation is raging, reserves are nearly gone and the naira is crashing from day one." },
+] as const;
+function applyArchetype(s: FixState, id: string) {
+  const g = (k: keyof FixState["groupMood"], d: number) => { s.groupMood[k] = clamp(s.groupMood[k] + d, -40, 40); };
+  if (id === "general") { g("military", 12); g("youth", -8); s.rule.coupRisk = Math.max(2, s.rule.coupRisk - 8); s.rule.intlPressure += 8; s.rule.democracy -= 6; }
+  else if (id === "tech") { g("youth", 10); g("business", 8); s.eco.investor += 4; g("military", -8); s.party.oldguard -= 12; for (const b of s.backers) b.mood = clamp100(b.mood - 8); }
+  else if (id === "market") { g("traders", 12); g("farmers", 5); s.fin.treasury *= 0.82; s.gov.capacity = clamp100(s.gov.capacity - 5); }
+  else if (id === "cleric") { g("faith", 14); s.gov.trust = clamp100(s.gov.trust + 4); g("youth", -5); g("business", -4); }
+  else { s.assembly.support = clamp100(s.assembly.support + 5); s.gov.trust = clamp100(s.gov.trust - 3); }
+}
+function applyStart(s: FixState, id: string) {
+  if (id === "coup") { s.rule.coupRisk = 38; s.rule.democracy = 50; s.rule.intlPressure = 20; s.assembly.support = clamp100(s.assembly.support - 8); s.groupMood.military = clamp(s.groupMood.military + 6, -40, 40); s.groupMood.youth = clamp(s.groupMood.youth - 6, -40, 40); s.eco.investor = clamp100(s.eco.investor - 8); s.gov.trust = clamp100(s.gov.trust - 8); }
+  else if (id === "recession") { s.eco.inflation += 10; s.eco.foodInflation += 8; s.eco.reserves = Math.max(8, s.eco.reserves - 18); s.eco.fx *= 1.22; s.eco.growth -= 2.8; s.eco.investor = clamp100(s.eco.investor - 10); s.jobs.unemployment += 3; }
+}
 export function applySetup(s: FixState, o: SetupOptions) {
   const rng = subRng(s.meta.seed, "issues");
   const ids = (o.issues ?? pickIssues(rng)).filter((x) => ISSUE_BY_ID[x]);
@@ -103,6 +129,9 @@ export function applySetup(s: FixState, o: SetupOptions) {
   jitter(s, rng);
   for (const id of ids) ISSUE_BY_ID[id].apply(s, rng.range(0.7, 1.3));
   s.fin.treasury *= DIFFICULTY[s.meta.difficulty].cash;
+  s.meta.archetype = o.archetype ?? "career"; s.meta.start = o.start ?? "normal"; if (o.daily) s.meta.daily = o.daily;
+  applyArchetype(s, s.meta.archetype);
+  applyStart(s, s.meta.start);
   tidy(s);
 }
 export const issuesOf = (s: { meta: { scenario: string } }) => (s.meta.scenario || "").split(",").filter((x) => ISSUE_BY_ID[x]).map((x) => ISSUE_BY_ID[x]);

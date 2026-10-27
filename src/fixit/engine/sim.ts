@@ -70,6 +70,8 @@ export function advanceMonth(s: FixState): boolean {
   s.processed = m;
   s.month = m + 1;
   midtermCheck(s);
+  if (s.month > 0 && s.month % 12 === 0) s.flags.reviewDue = s.month / 12;
+  if (typeof s.flags.coach === "number" && s.flags.coach < 4 && s.month >= [1, 2, 4, 7][s.flags.coach as number]) s.flags.coach = (s.flags.coach as number) + 1;
   checkAchievements(s);
   checkRecords(s);
   evaluateTermEnd(s);

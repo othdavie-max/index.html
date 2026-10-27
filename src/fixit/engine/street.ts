@@ -64,3 +64,13 @@ export function feed(s: FixState, n = 7): Post[] {
   }
   return out;
 }
+
+const GOOD_R = ["Chidi, okada rider: 'Na so! God dey for Naija today.'", "Mama Nkechi: 'My customers are smiling. I am smiling.'", "Tolu, developer: 'First good news in a long time. Do not jinx it.'", "Aisha, graduate: 'I might even stay for this.'", "Terver, farmer: 'If this is true, the harvest will be sweet.'", "Femi, importer: 'My accountant just called me with good news. That never happens.'"];
+const BAD_R = ["Chidi, okada rider: 'Na wa o. We are the ones who suffer.'", "Mama Nkechi: 'Customers are asking me what is happening. I have no answer.'", "Tolu, developer: 'Another headline, another reason to look at flights.'", "Aisha, graduate: 'It is not even surprising anymore.'", "Terver, farmer: 'They sit in Abuja and decide, we sit here and bear.'", "Femi, importer: 'Please let this be fake news.'"];
+/** a short street reaction to a big headline */
+export function reaction(headline: string, tone: "good" | "bad" | "neutral"): string {
+  const list = tone === "good" ? GOOD_R : BAD_R;
+  let h = 0; for (const c of headline) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return list[h % list.length];
+}
+export const BIG_NEWS = /^(ripple:|punish:|backer:|pegbreak|pegsus|vpdefect|enemy:|pm:|pg:|rel:|relg:|fam:|deal:|dealopen:|amend:|imfsus|usasus|ach:rec:|memjobs|memroad|rumour:|refoutage|refgood|expect:)/;
