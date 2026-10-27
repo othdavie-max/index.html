@@ -7,6 +7,7 @@ import { initCabinet } from "./cabinet";
 import { initRival } from "./rival";
 import { initAssembly, initBudget, initSpeech } from "./politics";
 import { computeGroups, initSociety } from "./society";
+import { initPower } from "./power";
 import { applySetup, issuesOf, type SetupOptions } from "./setup";
 
 export const START = {
@@ -49,7 +50,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
     gov: { corruption: 65, procurement: 38, capacity: 42, transparency: 38, trust: 40, approval: 52, opposition: 45, happiness: 48 },
     me: { wealth: 250, evidence: 0, scandals: 0, acts: [] },
     why: {},
-    regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [], cabinet: { members: {}, pool: [], reshuffles: 0 }, rival: { name: "", party: "", zone: "", popularity: 45 }, campaign: { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 }, election: null, assembly: { support: 55, lobby: {}, passed: 0, defeats: 0 }, governors: [], groups: {} as never, groupMood: {} as never, reputation: {} as never, budget: {} as never, speech: { last: -9, moment: null },
+    regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [], cabinet: { members: {}, pool: [], reshuffles: 0 }, rival: { name: "", party: "", zone: "", popularity: 45 }, campaign: { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 }, election: null, lawmakers: [], rule: {} as never, assembly: { support: 55, lobby: {}, passed: 0, defeats: 0 }, governors: [], groups: {} as never, groupMood: {} as never, reputation: {} as never, budget: {} as never, speech: { last: -9, moment: null },
     baseline: undefined as never,
     flags: {}, settings: { autosave: true, reducedMotion: false },
   };
@@ -59,6 +60,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
   initBudget(s);
   initSpeech(s);
   initSociety(s);
+  initPower(s);
   applySetup(s, { ...setup, president: setup.president ?? president });
   computeGroups(s);
   // initial fuel numbers so the dashboard is truthful on day one

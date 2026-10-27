@@ -10,6 +10,7 @@ import { STATE_BY_ID } from "../../game/data/states";
 import type { Effects, EventKind, EventOption, FixState, GameEvent } from "./types";
 import { plantForEvent } from "./echoes";
 import { STORY_TEMPLATES, STORY_TRIGGERS } from "./stories";
+import { POWER_TEMPLATES, MOMENT_TRIGGERS } from "./powerEvents";
 import { earn, groupPressure, relate } from "./society";
 import { eventRate } from "./setup";
 import type { GroupId } from "./types";
@@ -23,10 +24,16 @@ export interface Fx {
   mods?: Effects; dur?: number | null; unrest?: number; trust?: number; wealth?: number; evidence?: number; humanRights?: number;
   insecurity?: number; scandal?: number; sackMinister?: boolean; ministerIntegrity?: number; coverage?: number; treasury?: number; reserves?: number; opposition?: number; foreign?: number; corruption?: number;
   oilPrice?: number; health?: number; groups?: Partial<Record<GroupId, number>>; governors?: number; govRel?: number;
+  /** power and corruption */
+  anger?: number; coup?: number; intl?: number; elite?: number; democracy?: number; press?: number; inec?: number; assembly?: number; lmLoyalty?: number; judiciary?: number; actTag?: string;
+  /** custom effect; may return a sentence that replaces the generic outcome text */
+  run?: (s: FixState, e: GameEvent) => string | void;
 }
 export interface Opt {
   id: string; label: string; explain: string; cost: number | ((s: FixState) => number); tradeoff: string; unc: "low" | "medium" | "high";
   chance: (s: FixState, e: GameEvent) => number; win: Fx; lose: Fx; winText: string; loseText: string;
+  /** label / explanation that depend on the state (e.g. the current anti-corruption law) */
+  dyn?: (s: FixState) => Partial<{ label: string; explain: string; tradeoff: string }>;
 }
 export interface Tpl {
   id: string; kind: EventKind; urgency: number;
@@ -221,12 +228,13 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES].map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES].map((t) => [t.id, t]));
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
-  return t.options.map((o) => ({
-    id: o.id, label: o.label, explain: o.explain, cost: typeof o.cost === "function" ? o.cost(s) : o.cost, tradeoff: o.tradeoff, uncertainty: o.unc,
-  }));
+  return t.options.map((o) => {
+    const d = o.dyn?.(s) ?? {};
+    return { id: o.id, label: d.label ?? o.label, explain: d.explain ?? o.explain, cost: typeof o.cost === "function" ? o.cost(s) : o.cost, tradeoff: d.tradeoff ?? o.tradeoff, uncertainty: o.unc };
+  });
 }
 
 function openOf(s: FixState, tpl: string, stateId?: string) { return s.events.some((e) => e.status === "open" && e.tpl === tpl && (!stateId || e.stateId === stateId)); }
@@ -261,7 +269,7 @@ function candidates(s: FixState, rng: Rng): Cand[] {
   c.push({ tpl: "oilWindfall", p: s.eco.oilPrice > 95 ? 0.4 : 0, place: () => (openOf(s, "oilWindfall") || cooling(s, "oilWindfall", "NG-FC", 8) ? null : "NG-FC") });
   c.push({ tpl: "kickback", p: s.month >= 3 ? 0.05 : 0, place: () => (openOf(s, "kickback") || cooling(s, "kickback", "NG-FC", 5) ? null : "NG-FC") });
   const ev = s.me.evidence;
-  c.push({ tpl: "investigation", p: ev > 12 ? clamp((ev / 100) * (0.1 + 0.55 * (s.gov.transparency + lever(s, "transparency")) / 100), 0, 0.3) : 0, place: () => (openOf(s, "investigation") || cooling(s, "investigation", "NG-FC", 5) ? null : "NG-FC") });
+  c.push({ tpl: "investigation", p: ev > 12 ? clamp((ev / 100) * (0.1 + 0.55 * (s.gov.transparency + lever(s, "transparency")) / 100) * (0.3 + 0.7 * ((s.rule?.pressFreedom ?? 60) / 100)), 0, 0.3) : 0, place: () => (openOf(s, "investigation") || cooling(s, "investigation", "NG-FC", 5) ? null : "NG-FC") });
   return c;
 }
 
@@ -289,6 +297,10 @@ export function generateEvents(s: FixState, rng: Rng) {
     for (const tr of STORY_TRIGGERS) if (!s.flags[`arc:${tr.tpl}`]) cands.unshift({ tpl: tr.tpl, p: tr.p(s), place: () => { s.flags[`arc:${tr.tpl}`] = s.month; return tr.place(s, (a) => rng.pick(a)); } });
   }
   cands.push({ tpl: "govRequest", p: s.events.some((x) => x.tpl === "govRequest" && x.status === "open") ? 0 : 0.05, place: () => { const g = rng.pick(s.governors); const ids = Object.keys(s.regions).filter((id) => STATE_BY_ID[id]?.zone === g.zone && !cooling(s, "govRequest", id, 8)); return ids.length ? rng.pick(ids) : null; } });
+  for (const m of MOMENT_TRIGGERS) {
+    const p = m.p(s);
+    if (p > 0 && !(typeof s.flags[`cdt:${m.tpl}`] === "number" && s.month - (s.flags[`cdt:${m.tpl}`] as number) < (m.gap ?? 10)) && !s.events.some((x) => x.tpl === m.tpl && x.status === "open")) cands.push({ tpl: m.tpl, p, place: () => m.place(s, (a) => rng.pick(a)) });
+  }
   const pressure: Record<string, GroupId> = { foodProtest: "traders", fuelProtest: "workers", labourStrike: "workers", youthProtest: "youth" };
   for (const cand of cands) {
     if (made >= 2 || open + made >= 6) break;
@@ -322,13 +334,15 @@ export function createEvent(s: FixState, tpl: string, stateId: string): GameEven
   if (t.onCreate) { ev.cause = t.cause(s, st); ev.title = t.title(s, st); }
   s.events.push(ev);
   s.flags[`cd:${tpl}:${stateId}`] = s.month;
+  s.flags[`cdt:${tpl}`] = s.month;
   if (tpl === "ministerScandal" && s.flags.scandalMinister) s.flags[`ev:${id}:portfolio`] = s.flags.scandalMinister;
+  if (tpl === "lmCase" && s.flags.caseLm) { s.flags[`ev:${id}:lm`] = s.flags.caseLm; s.flags[`ev:${id}:amt`] = s.flags.caseAmount as number; }
   if (s.events.length > 120) s.events = s.events.filter((e, i) => e.status === "open" || i > s.events.length - 80);
   pushNews(s, { source: `event:${id}`, headline: ev.title, body: ev.cause, tone: t.kind === "opportunity" ? "good" : "bad", stateId });
   return ev;
 }
 
-function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string) {
+function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string): string | undefined {
   const r = s.regions[e.stateId];
   if (fx.mods) addMod(s, `event:${e.id}:${tag}`, e.title, fx.mods, { duration: fx.dur === undefined ? 3 : fx.dur, ramp: 1 });
   if (fx.unrest && r) r.unrest = clamp100(r.unrest + fx.unrest);
@@ -353,6 +367,21 @@ function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string) {
   const port = s.flags[`ev:${e.id}:portfolio`] as Portfolio | undefined;
   if (port && fx.sackMinister) sack(s, port);
   if (port && fx.ministerIntegrity && s.cabinet.members[port]) s.cabinet.members[port]!.integrity = clamp100(s.cabinet.members[port]!.integrity + fx.ministerIntegrity);
+  const P = s.rule;
+  if (P) {
+    if (fx.anger) P.streetAnger = clamp100(P.streetAnger + fx.anger);
+    if (fx.coup) P.coupRisk = clamp100(P.coupRisk + fx.coup);
+    if (fx.intl) P.intlPressure = clamp100(P.intlPressure + fx.intl);
+    if (fx.elite) P.eliteLoyalty = clamp100(P.eliteLoyalty + fx.elite);
+    if (fx.press) P.pressFreedom = clamp100(P.pressFreedom + fx.press);
+    if (fx.inec) P.inecControl = clamp100(P.inecControl + fx.inec);
+    if (fx.judiciary) P.judiciary = clamp100(P.judiciary + fx.judiciary);
+    if (fx.democracy) { P.democracy = clamp100(P.democracy + fx.democracy); if (fx.democracy < 0) s.flags.lastActMonth = s.month; }
+    if (fx.actTag) { P.acts.push(fx.actTag); if (P.acts.length > 60) P.acts.shift(); }
+  }
+  if (fx.assembly) s.assembly.support = clamp100(s.assembly.support + fx.assembly);
+  if (fx.lmLoyalty) for (const l of s.lawmakers ?? []) if (l.status === "active") l.loyalty = clamp100(l.loyalty + fx.lmLoyalty);
+  return fx.run?.(s, e) ?? undefined;
 }
 
 export interface EventResult { ok: boolean; text: string; chance: number }
@@ -374,10 +403,10 @@ export function resolveEvent(s: FixState, eventId: string, optionId: string): Ev
   const roll = subRng(s.meta.seed, "resolve", e.id, o.id).next();
   const ok = roll < chance;
   const fx = ok ? o.win : o.lose;
-  applyFx(s, e, fx, o.id);
+  const custom = applyFx(s, e, fx, o.id);
   e.status = "resolved";
   e.chosen = o.id;
-  e.outcome = ok ? o.winText : o.loseText || o.winText;
+  e.outcome = custom ?? (ok ? o.winText : o.loseText || o.winText);
   s.me.acts = s.me.acts.slice(-30);
   if (e.tpl === "kickback" && o.id === "accept") s.me.acts.push("kickback");
   if (e.tpl === "kickback" && o.id === "report") s.me.acts.push("reported");
@@ -390,11 +419,11 @@ export function resolveEvent(s: FixState, eventId: string, optionId: string): Ev
     title: `${e.title}: ${o.label}`, tone: ok ? "good" : "bad",
     lines: [
       `You chose: ${o.label}${pay > 0 ? ` (cost ${nb(pay)})` : ""}.`,
-      `${ok ? "It worked" : "It did not work as hoped"}: ${ok ? o.winText : o.loseText || o.winText}`,
+      `${ok ? "It worked" : "It did not work as hoped"}: ${e.outcome}`,
       `Chance of success was about ${Math.round(chance * 100)}%, based on trust (${Math.round(s.gov.trust)}), government capacity and the situation on the ground.`,
     ],
   });
-  pushNews(s, { source: `event-res:${e.id}`, headline: ok ? `${e.title}: ${o.winText}` : `${e.title}: response falls short`, body: ok ? o.winText : o.loseText || o.winText, tone: ok ? "good" : "bad", stateId: e.stateId });
+  pushNews(s, { source: `event-res:${e.id}`, headline: ok ? `${e.title}: ${o.winText}` : `${e.title}: response falls short`, body: e.outcome ?? o.winText, tone: ok ? "good" : "bad", stateId: e.stateId });
   return { ok, text: e.outcome, chance };
 }
 
@@ -408,7 +437,8 @@ export function resolveExpired(s: FixState) {
     if (s.month >= e.deadline) {
       e.status = "expired";
       e.outcome = t.expireText(sname(e.stateId));
-      applyFx(s, e, t.expire, "expire");
+      const exp = applyFx(s, e, t.expire, "expire");
+      if (exp) e.outcome = exp;
       if (t.kind !== "request" && t.kind !== "opportunity") relate(s, e.stateId, -3);
       queueNext(s, t, e, null, false);
       pushNews(s, { source: `event-exp:${e.id}`, headline: `${e.title}: unanswered`, body: e.outcome, tone: t.kind === "opportunity" ? "neutral" : "bad", stateId: e.stateId });

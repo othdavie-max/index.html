@@ -1,8 +1,10 @@
 /** Term end: re-election, early removal, legacy report and a title earned from real outcomes (not from labels the player picked). */
-import { TERM_MONTHS, MAX_TERMS, type FixState, type Snap, type TermResult } from "./types";
+import { TERM_MONTHS, HARD_CAP_TERMS, type FixState, type Snap, type TermResult } from "./types";
 import { round, snap } from "./util";
 import { PROMISE_BY_ID, promiseScore } from "./promises";
 import { electionReport, runElection, winChance } from "./rival";
+import { overthrow } from "./power";
+import { computeEnding, isDirty } from "./endings";
 
 export interface LegacyRow { label: string; start: string; end: string; delta: string; better: boolean | null }
 export interface Legacy {
@@ -21,31 +23,48 @@ export function reelectionChance(s: FixState): number {
   return winChance(s);
 }
 
+export const termCap = (s: FixState) => Math.min(s.rule?.maxTerms ?? 2, HARD_CAP_TERMS);
+
 /** Called after every processed month. */
 export function evaluateTermEnd(s: FixState) {
   if (s.ended || s.done) return;
-  // early loss: sustained collapse of support ends the presidency
+  // a free country can impeach a president whose support has collapsed; a dictator faces a coup or an uprising instead
   const low = (s.flags.lowApproval as number | undefined) ?? 0;
-  s.flags.lowApproval = s.gov.approval < 15 ? low + 1 : 0;
+  s.flags.lowApproval = s.gov.approval < 15 && s.rule.democracy >= 50 ? low + 1 : 0;
   if ((s.flags.lowApproval as number) >= 5) {
-    finishTerm(s, "removed", "Your support collapsed. After months of crisis, parliament voted to remove you from office.");
+    finishTerm(s, "removed", "Your support collapsed. After months of crisis, parliament voted to remove you from office.", "impeached");
     return;
   }
-  if (s.month - s.termStart >= TERM_MONTHS) {
-    if (s.term >= MAX_TERMS) { finishTerm(s, "completed", "You completed your final term. The constitution allows no more."); return; }
+  if (s.rule.uprising >= 4) { overthrow(s, "uprising"); return; }
+  if (s.month >= s.termStart + TERM_MONTHS + s.rule.termExtra) {
+    if (s.term >= termCap(s)) { finishTerm(s, "completed", s.term >= HARD_CAP_TERMS ? "You have ruled for sixteen years. History will decide what that was." : "You completed your final term. The constitution allows no more."); return; }
     const r = runElection(s);
     electionReport(s, r);
-    if (r.won) finishTerm(s, "won", `You won re-election with ${r.national}% of the vote${r.runoff ? " after a run-off" : ""} (about ${Math.round(r.chance * 100)}% chance going in). A second and final term begins.`);
+    const nth = s.term + 1;
+    if (r.won) finishTerm(s, "won", `You won ${r.stolen ? "(by official count)" : "re-election"} with ${r.national}% of the vote${r.runoff ? " after a run-off" : ""} (about ${Math.round(r.chance * 100)}% chance going in). ${nth >= termCap(s) ? "A final term begins." : "A new term begins."}`);
     else finishTerm(s, "lost", `Voters turned you out: ${r.national}% of the vote, and at least 25% in ${r.statesOver25} of 37 states${r.national > 50 ? " (the run-off went to your rival)" : ""}. You had about a ${Math.round(r.chance * 100)}% chance.`);
   }
 }
 
-function finishTerm(s: FixState, result: TermResult["result"], text: string) {
+export function finishTerm(s: FixState, result: TermResult["result"], text: string, cause?: "impeached" | "coup" | "uprising") {
+  if (s.ended) return;
   const end = snap(s);
   const lg = buildLegacy(s, s.baseline, end, result);
+  s.rule.termExtra = 0;
+  const needChoice = (result === "lost" || result === "removed") && !s.flags.exit && (s.me.wealth >= 300 && (isDirty(s) || s.me.wealth >= 800));
   s.terms.push({ term: s.term, result, start: s.baseline, end, title: lg.title, months: s.month - s.termStart });
-  s.ended = { kind: result === "removed" ? "removed" : "term", text };
+  s.ended = { kind: result === "removed" ? "removed" : "term", text, cause, choice: needChoice };
   s.done = result !== "won";
+  if (s.done && !needChoice) s.terms[s.terms.length - 1].ending = computeEnding(s).name;
+}
+
+/** The player's last choice after a fall: run with the money, or stay and face the consequences. */
+export function chooseExit(s: FixState, how: "flee" | "stay"): boolean {
+  if (!s.ended?.choice) return false;
+  s.flags.exit = how;
+  s.ended.choice = false;
+  s.terms[s.terms.length - 1].ending = computeEnding(s).name;
+  return true;
 }
 
 /** After a won election the player confirms and the second term begins from the current state. */
@@ -56,6 +75,9 @@ export function continueNextTerm(s: FixState): boolean {
   s.baseline = snap(s);
   s.ended = null;
   s.flags.lowApproval = 0;
+  s.rule.termExtra = 0;
+  s.campaign = { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 };
+  for (const k of Object.keys(s.flags)) if (k.startsWith("debate:")) delete s.flags[k];
   return true;
 }
 

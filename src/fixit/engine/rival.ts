@@ -7,12 +7,14 @@ import type { Rng } from "../../game/engine/rng";
 import { subRng } from "../../game/engine/rng";
 import { STATES, STATE_BY_ID } from "../../game/data/states";
 import type { ElectionResult, FixState } from "./types";
-import { TERM_MONTHS } from "./types";
+import { TERM_MONTHS, HARD_CAP_TERMS } from "./types";
 import { clamp, clamp100, nb, pushNews, pushReport } from "./util";
 import { stateLayerValue } from "./views";
 import { promiseScore } from "./promises";
 import { heavyweightZones, loyalistCount } from "./cabinet";
 import { voteBonus } from "./setup";
+import { act as powerAct, riggingBonus } from "./power";
+import { createEvent } from "./events";
 
 export const YOUR_PARTY = { name: "National Progress Party", abbr: "NPP" };
 const RIVAL_NAMES = ["Chief Babatunde Adeleke-Ross", "Alhaji Umaru Kwankwaso-Bida", "Dr Chinedu Okonkwo-Hart", "Senator Ebiye Tonye-Briggs", "Mrs Aisha Garba-Lamido", "Prof Remi Akinwale"];
@@ -25,8 +27,9 @@ export function initRival(s: FixState) {
   s.election = null;
 }
 
-export const campaignOpen = (s: FixState) => s.term === 1 && s.month >= s.termStart + TERM_MONTHS - 6 && s.month < s.termStart + TERM_MONTHS;
-export const monthsToElection = (s: FixState) => s.termStart + TERM_MONTHS - s.month;
+const electionMonth = (s: FixState) => s.termStart + TERM_MONTHS + (s.rule?.termExtra ?? 0);
+export const monthsToElection = (s: FixState) => electionMonth(s) - s.month;
+export const campaignOpen = (s: FixState) => s.term < Math.min(s.rule?.maxTerms ?? 2, HARD_CAP_TERMS) && monthsToElection(s) <= 6 && monthsToElection(s) > 0;
 
 // ---------------------------------------------------------------- vote model
 function nationalBase(s: FixState): number {
@@ -34,20 +37,20 @@ function nationalBase(s: FixState): number {
   return 50 + 0.33 * (s.gov.approval - 50) + 0.08 * (s.gov.trust - 40) + 1.6 * kept - (monthsToElection(s) <= 12 ? 1.3 * (total - kept) : 0)
     - 0.06 * (s.rival.popularity - 45) + 0.7 * loyalistCount(s) - 3 + s.campaign.debateShift + s.campaign.mobilise + voteBonus(s) - (s.me.scandals > 1 ? 2.5 : 0);
 }
-export function stateShare(s: FixState, id: string, noise = 0): number {
+export function stateShare(s: FixState, id: string, noise = 0, honest = false): number {
   const st = STATE_BY_ID[id];
   const done = s.projects.filter((p) => p.status === "done" && p.stateId === id).length;
   const hw = heavyweightZones(s).filter((z) => z === st.zone).length;
   const gov = s.governors?.find((g) => g.zone === st.zone);
   const govFx = gov ? (gov.relation - 50) / 12 + (gov.party === "NPP" ? 1 : -1) : 0;
-  return clamp(nationalBase(s) + 0.15 * (45 - stateLayerValue(s, id, "overview")) + (s.campaign.rallies[st.zone] ?? 0) + 3 * hw + govFx + 1.5 * Math.min(3, done) - (st.zone === s.rival.zone ? 6 : 0) + noise, 5, 95);
+  return clamp(nationalBase(s) + 0.15 * (45 - stateLayerValue(s, id, "overview")) + (s.campaign.rallies[st.zone] ?? 0) + 3 * hw + govFx + 1.5 * Math.min(3, done) - (st.zone === s.rival.zone ? 6 : 0) + (honest ? 0 : riggingBonus(s)) + noise, 5, 95);
 }
-export function projectVote(s: FixState, rng?: Rng): Omit<ElectionResult, "month" | "chance"> {
+export function projectVote(s: FixState, rng?: Rng, honest = false): Omit<ElectionResult, "month" | "chance"> {
   const shock = rng ? rng.normal(0, 2.5) : 0;
   const states: Record<string, number> = {};
   let num = 0, den = 0, over25 = 0;
   for (const st of STATES) {
-    const v = stateShare(s, st.id, shock + (rng ? rng.normal(0, 3) : 0));
+    const v = stateShare(s, st.id, shock + (rng ? rng.normal(0, 3) : 0), honest);
     states[st.id] = Math.round(v * 10) / 10;
     num += v * st.pop2006m; den += st.pop2006m;
     if (v >= 25) over25++;
@@ -67,12 +70,29 @@ function phi(z: number) { return 1 / (1 + Math.exp(-1.702 * z)); }
 
 export function runElection(s: FixState): ElectionResult {
   const chance = winChance(s);
-  const rng = subRng(s.meta.seed, "election", s.term);
-  const v = projectVote(s, rng);
-  let won = v.won;
-  if (v.runoff) won = rng.chance(0.55); // second round between the top two
-  const res: ElectionResult = { ...v, won, month: s.month, chance };
+  const rig = riggingBonus(s);
+  const v = projectVote(s, subRng(s.meta.seed, "election", s.term));
+  const honestV = projectVote(s, subRng(s.meta.seed, "election", s.term), true); // same randomness, no INEC help
+  const coin = subRng(s.meta.seed, "runoff", s.term).next();
+  const decide = (x: { won: boolean; runoff: boolean }) => (x.runoff ? coin < 0.55 : x.won); // a run-off between the top two
+  const won = decide(v), honestWon = decide(honestV);
+  const rigged = rig >= 3;
+  const stolen = rigged && won && !honestWon;
+  const res: ElectionResult = { ...v, won, month: s.month, chance, honest: honestV.national, rigged, stolen };
   s.election = res;
+  if (rigged) {
+    s.rule.rigged = true;
+    if (stolen) {
+      s.rule.stolenElection = true; s.flags.stolenAt = s.month;
+      powerAct(s, "stolenElection", { democracy: -20, anger: 24, intl: 15, coup: 8, elite: -3, trust: -6 });
+      s.me.scandals += 1;
+      pushNews(s, { source: `stolen:${s.month}`, headline: "Observers: election was stolen", body: `Official count says ${v.national}% for the President; independent estimates put it near ${honestV.national}%.`, tone: "bad" });
+      for (const c of ["NG-LA", "NG-KN", "NG-FC"]) createEvent(s, "megaProtest", c);
+    } else if (won) {
+      powerAct(s, "irregularities", { democracy: -4, anger: 5, intl: 3 });
+      pushNews(s, { source: `irreg:${s.month}`, headline: "Observers cite irregularities in the vote", body: "The result stands, but rival parties allege INEC officials were bought.", tone: "bad" });
+    }
+  }
   return res;
 }
 

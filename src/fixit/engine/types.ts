@@ -6,6 +6,8 @@
 export const FIX_VERSION = 1;
 export const TERM_MONTHS = 48;
 export const MAX_TERMS = 2;
+/** even with no term limits, the story ends after this many terms (16 years) */
+export const HARD_CAP_TERMS = 4;
 
 /** Every long-lived effect of a policy, measure or project is expressed as an additive "lever". */
 export type Lever =
@@ -64,7 +66,7 @@ export interface Project {
   benefitScale?: number;
 }
 
-export type EventKind = "protest" | "strike" | "insecurity" | "flood" | "foodcrisis" | "grid" | "oilattack" | "opportunity" | "scandal" | "global" | "story" | "request";
+export type EventKind = "protest" | "strike" | "insecurity" | "flood" | "foodcrisis" | "grid" | "oilattack" | "opportunity" | "scandal" | "global" | "story" | "request" | "case" | "power" | "moment";
 export interface EventOption {
   id: string; label: string; explain: string; cost: number; tradeoff: string; uncertainty: "low" | "medium" | "high";
 }
@@ -121,13 +123,37 @@ export interface Echo {
 export type Portfolio = "finance" | "agriculture" | "power" | "security" | "cbn" | "works";
 export type Faction = "technocrat" | "loyalist" | "heavyweight";
 export interface Minister { id: string; name: string; portfolio: Portfolio; skill: number; integrity: number; faction: Faction; trait: string; zone: string; since: number; mood: number }
-export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number }
+export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number; honest?: number; rigged?: boolean; stolen?: boolean }
 export type Difficulty = "easy" | "normal" | "hard";
 export interface Portrait { skin: number; hair: number; style: number; accent: number }
 export type GroupId = "traders" | "farmers" | "youth" | "workers" | "business" | "military" | "faith";
 export type Trait = "reformer" | "populist" | "strongman" | "clean" | "builder" | "borrower";
 export type BudgetHead = "education" | "health" | "security" | "infrastructure" | "social";
 export interface Governor { zone: string; name: string; party: "NPP" | "PRA"; relation: number; ambition: number }
+export type Chamber = "senate" | "reps";
+export type LmStatus = "active" | "exposed" | "jailed" | "executed" | "controlled" | "protected";
+export interface Lawmaker {
+  id: string; name: string; chamber: Chamber; stateId: string; party: "NPP" | "PRA"; loyalty: number; greed: number;
+  /** ₦bn stolen so far (you may not know) */
+  stolen: number;
+  /** how much proof you hold (0-100) */
+  evidence: number;
+  status: LmStatus; portrait: Portrait; trait: string; since: number; note?: string;
+}
+export interface PowerState {
+  lawLevel: 0 | 1 | 2 | 3 | 4;
+  deterrence: number;
+  streetAnger: number; coupRisk: number; intlPressure: number; eliteLoyalty: number;
+  pressFreedom: number; judiciary: number; inecControl: number; democracy: number;
+  emergencyUntil: number; shutdownUntil: number;
+  termExtra: number; maxTerms: number;
+  acts: string[]; executions: number; convicted: number; wrongful: number;
+  rigged: boolean; stolenElection: boolean; inecExposed: number;
+  /** months in a row anger has been at revolutionary levels */
+  uprising: number;
+  /** recent abuse of power: rises with every authoritarian act, fades slowly; feeds anger and coup risk */
+  abuse: number;
+}
 export interface Achievement { id: string; label: string; month: number }
 
 export interface Report { id: string; month: number; title: string; lines: string[]; tone: "good" | "bad" | "neutral" }
@@ -139,6 +165,7 @@ export interface TermResult {
   end: Snap;
   title: string;
   months: number;
+  ending?: string;
 }
 
 export interface FixState {
@@ -148,7 +175,7 @@ export interface FixState {
   processed: number; // last month index fully processed (idempotency)
   term: number;
   termStart: number;
-  ended: null | { kind: "term" | "removed"; text: string };
+  ended: null | { kind: "term" | "removed"; text: string; cause?: "impeached" | "coup" | "uprising"; choice?: boolean };
   done: boolean; // whole game finished (legacy shown)
   eco: {
     fx: number; reserves: number; inflation: number; foodInflation: number; emaDrift: number; priceLevel: number; foodPriceIdx: number;
@@ -186,6 +213,9 @@ export interface FixState {
   rival: { name: string; party: string; zone: string; popularity: number };
   campaign: { rallies: Record<string, number>; debateShift: number; mobilise: number; attacks: number; actionsThisMonth: number; month: number };
   election: ElectionResult | null;
+  lawmakers: Lawmaker[];
+  /** power, corruption and the danger meters (named `rule` because `power` is electricity) */
+  rule: PowerState;
   assembly: { support: number; lobby: Record<string, number>; passed: number; defeats: number };
   governors: Governor[];
   groups: Record<GroupId, number>;

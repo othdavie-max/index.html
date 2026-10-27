@@ -9,6 +9,7 @@ import type { BudgetHead, Effects, FixState } from "./types";
 import { addMod, calYear, clamp, clamp100, monthLabel, nb, pushNews, pushReport, removeMods } from "./util";
 import { loyalistCount } from "./cabinet";
 import { earn, governorAssembly, nudgeGroups, relate } from "./society";
+import { LAWS, LAW_DIFFICULTY, lawmakerLoyalty, sitting } from "./power";
 
 // ---------------------------------------------------------------- Assembly
 export const SEATS = 469; // 109 senators + 360 representatives (fictional party split)
@@ -27,13 +28,15 @@ export function billLabel(bill: string, year?: number): string {
   if (bill === "fuel:remove") return "Fuel Subsidy (Removal) Bill";
   if (bill === "fuel:reduce") return "Fuel Subsidy (Reduction) Bill";
   if (bill === "fuel:reform") return "Targeted Transfers Bill";
+  if (bill.startsWith("law:")) return LAWS[Number(bill.slice(4))]?.name ?? bill;
+  if (bill === "amendment") return "Constitution (Term Limits) Amendment Bill";
   if (bill === "budget") return `Appropriation Bill${year ? ` ${year}` : ""}`;
   return bill;
 }
 
 export function initAssembly(s: FixState) { s.assembly = { support: 55, lobby: {}, passed: 0, defeats: 0 }; }
 export function assemblyMonthly(s: FixState) {
-  const target = clamp100(50 + 3 * loyalistCount(s) + governorAssembly(s) + 0.25 * (s.gov.approval - 50) - 0.1 * (s.rival.popularity - 45) - 2 * s.me.scandals);
+  const target = clamp100(50 + 3 * loyalistCount(s) + governorAssembly(s) + lawmakerLoyalty(s) + 0.25 * (s.gov.approval - 50) - 0.1 * (s.rival.popularity - 45) - 2 * s.me.scandals);
   s.assembly.support = clamp100(s.assembly.support + 0.1 * (target - s.assembly.support));
 }
 function budgetDifficulty(s: FixState): number {
@@ -43,7 +46,8 @@ function budgetDifficulty(s: FixState): number {
   return 2 + 3 * cuts - 0.5 * raises;
 }
 export function billChance(s: FixState, bill: string): number {
-  const diff = bill === "budget" ? budgetDifficulty(s) : BILL_DIFFICULTY[bill] ?? 0;
+  const greedy = sitting(s).length ? sitting(s).filter((l) => l.greed > 60).length / sitting(s).length : 0;
+  const diff = bill === "budget" ? budgetDifficulty(s) : bill.startsWith("law:") ? (LAW_DIFFICULTY[Number(bill.slice(4))] ?? 10) + 14 * greedy : bill === "amendment" ? 28 : BILL_DIFFICULTY[bill] ?? 0;
   const z = (s.assembly.support + (s.assembly.lobby[bill] ?? 0) - 50 - diff) / 7;
   return clamp(1 / (1 + Math.exp(-z)), 0.03, 0.97);
 }

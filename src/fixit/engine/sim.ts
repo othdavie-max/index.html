@@ -16,6 +16,7 @@ import { cabinetMonthly } from "./cabinet";
 import { rivalMonthly } from "./rival";
 import { governorSpeed, relate, societyMonthly } from "./society";
 import { assemblyMonthly } from "./politics";
+import { powerMonthly } from "./power";
 import { createEvent } from "./events";
 import { makeNews } from "./news";
 import { evaluateTermEnd } from "./legacy";
@@ -38,6 +39,7 @@ export function advanceMonth(s: FixState): boolean {
   rivalMonthly(s, subRng(s.meta.seed, "rival", m));
   societyMonthly(s, subRng(s.meta.seed, "society", m));
   assemblyMonthly(s);
+  powerMonthly(s, subRng(s.meta.seed, "power", m));
   resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));

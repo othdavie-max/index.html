@@ -89,4 +89,4 @@ export function headline(s: FixState) {
     infra: infraScore(s),
   };
 }
-export const monthsLeftInTerm = (s: FixState) => Math.max(0, s.termStart + 48 - s.month);
+export const monthsLeftInTerm = (s: FixState) => Math.max(0, s.termStart + 48 + (s.rule?.termExtra ?? 0) - s.month);
