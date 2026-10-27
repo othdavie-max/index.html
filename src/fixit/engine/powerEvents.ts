@@ -6,7 +6,7 @@
 import type { Opt, Tpl } from "./events";
 import type { FixState } from "./types";
 import { clamp100, nb } from "./util";
-import { LAWS, lmById, lawmakerAction, punish, overthrow, emergencyOn, shutdownOn } from "./power";
+import { LAWS, lmById, lawmakerAction, punish, overthrow } from "./power";
 import { STATE_BY_ID } from "../../game/data/states";
 
 const sname = (id: string) => STATE_BY_ID[id]?.name ?? id;
@@ -214,5 +214,4 @@ export const MOMENT_TRIGGERS: MomentTrigger[] = [
   { tpl: "asuuStrike", gap: 14, p: () => 0.03, place: (_s, pick) => mid(["NG-LA", "NG-OY", "NG-EN", "NG-KD"], pick) },
 ];
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
-void emergencyOn; void shutdownOn;
 export type { Opt };

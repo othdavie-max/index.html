@@ -7,6 +7,8 @@ import { STATES, STATE_BY_ID } from "../../game/data/states";
 import { RIVAL_PARTY, YOUR_PARTY } from "../engine/rival";
 import { MapView } from "./MapView";
 import { voteColor } from "./Campaign";
+import { annulChance, annulElection, canAnnul } from "../engine/power";
+import { sfx } from "./sound";
 
 export function ElectionNight() {
   const s = useS();
@@ -46,10 +48,25 @@ export function ElectionNight() {
           <div className="g-card" style={{ background: r.won ? "#04432d" : "#4c0519", borderColor: "transparent", color: "#fff" }}>
             <div style={{ fontWeight: 800, fontSize: 18 }}>Final: {r.national}% nationally; at least 25% in {r.statesOver25} of 37 states (24 needed){r.runoff ? ". The spread rule was not met, so a run-off decided it" : ""}.</div>
             <div className="g-small" style={{ color: "#dbe6f1", marginTop: 4 }}>Going in, you had about a {Math.round(r.chance * 100)}% chance.</div>
+            {(r.honest !== undefined && r.stolen) && <div className="g-small" style={{ color: "#fecdd3", marginTop: 6 }}>Rumours say the count was bought: you would have lost without INEC&apos;s help. The streets know it.</div>}
+            {!r.won && <AnnulBox />}
             <div style={{ marginTop: 10 }}><Button variant="primary" onClick={() => act((x) => { x.flags[`electionSeen:${r.month}`] = true; return { ok: true, message: "" }; }, { silent: true })}>See your legacy report</Button></div>
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function AnnulBox() {
+  const s = useS();
+  const { act } = useFix();
+  const block = canAnnul(s);
+  return (
+    <div className="g-card-flat" style={{ marginTop: 10, background: "rgba(255,255,255,.08)", borderColor: "#c8a24a", color: "#fff" }}>
+      <b>⚖️ Refuse to leave?</b>
+      <div className="g-small" style={{ color: "#dbe6f1", marginTop: 2 }}>{block ?? `Annul the result and stay in office. The army decides: about a ${Math.round(annulChance(s) * 100)}% chance it backs you. If it does not, you are overthrown.`}</div>
+      <Button variant="danger" size="sm" disabled={!!block} style={{ marginTop: 6 }} onClick={() => { sfx("doom"); act((x) => annulElection(x)); }}>Annul the election</Button>
     </div>
   );
 }

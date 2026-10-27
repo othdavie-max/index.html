@@ -11,7 +11,7 @@ import { hallEntry } from "../persistence";
 import { monthLabel, snap } from "../engine/util";
 import { FixSaves, FixSaveError, type Slot } from "../persistence";
 
-export type Tab = "presidency" | "map" | "policies" | "projects" | "nation" | "news";
+export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet";
 export interface Change { label: string; from: string; to: string; tone: "good" | "bad" | "neutral" }
 export interface MonthSummary { from: string; to: string; months: number; changes: Change[]; events: GameEvent[]; news: NewsItem[]; echoes: Echo[]; achievements: Achievement[]; headline?: NewsItem }
 export interface Toast { id: number; text: string; bad: boolean }
@@ -69,7 +69,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const [game, setGame] = useState<FixState | null>(null);
   const [version, setVersion] = useState(0);
   const [screen, setScreen] = useState<"title" | "play">("title");
-  const [tab, setTab] = useState<Tab>("presidency");
+  const [tab, setTab] = useState<Tab>("world");
   const [summary, setSummary] = useState<MonthSummary | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [select, setSelect] = useState<{ state: string | null; lga: string | null }>({ state: null, lga: null });
@@ -140,7 +140,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     const opts: SetupOptions = setup ?? (pm ? { difficulty: pm.difficulty, portrait: pm.portrait, president: pm.president } : {});
     const g = newGame(seed ?? Math.floor(Math.random() * 1e6) + 1, opts.president ?? "Madam/Mr President", opts);
     setPromises(g, promises ?? prev ?? []);
-    setGame(g); setScreen("play"); setTab("presidency"); setSummary(null); setSelect({ state: null, lga: null }); bump();
+    setGame(g); setScreen("play"); setTab("world"); setSummary(null); setSelect({ state: null, lga: null }); bump();
     void saves.save("auto", g).then(() => setLastSaved(Date.now())).catch(() => undefined);
   }, [bump, saves]);
 
@@ -153,7 +153,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const loadSlot = useCallback(async (slot: Slot) => {
     try {
       const g = await saves.load(slot);
-      setGame(g); setScreen("play"); setTab("presidency"); setSummary(null); setSelect({ state: null, lga: null }); bump();
+      setGame(g); setScreen("play"); setTab("world"); setSummary(null); setSelect({ state: null, lga: null }); bump();
       return true;
     } catch (e) {
       setError(e instanceof FixSaveError ? e.message : "That save could not be loaded."); return false;

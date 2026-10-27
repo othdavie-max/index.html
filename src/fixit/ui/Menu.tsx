@@ -34,10 +34,16 @@ export function SaveSlots({ mode, onDone }: { mode: "load" | "both"; onDone: () 
 
 export function HowTo({ onClose }: { onClose: () => void }) {
   const steps = [
-    ["Read the red card", "The Presidency screen shows the country's biggest problem right now, and why."],
+    ["Tap the map", "Every state wears a face: happy or angry. Tap a state to see what is wrong there and act. Use the lenses on top (Mood, Politics, Food…) to see the country differently. Symbols mark protests, attacks, floods and corruption cases."],
+    ["Clear your desk, then NEXT TURN", "Notices stack on the left. Tap one to decide. The big gold button ends the month; if something still needs you it turns red and shows how many."],
+    ["Rule the Assembly", "Open Assembly: tap any lawmaker. Investigate, arrest, leak, blackmail, protect or take your cut. Lawmakers steal, and the stronger your anti-corruption law, the less they dare."],
+    ["Climb the law ladder", "Open Power. Weak laws, asset recovery, prison, life sentences, then the death penalty. Each rung needs an Assembly vote, or you can decree it at democracy's expense. Harsh laws can punish the innocent and anger the world."],
+    ["Democrat or strongman", "Power also holds the strongman toolkit: buy INEC, silence the press, arrest your rival, postpone the election, pay or purge the generals. It can win elections and it can end in a coup, an uprising or a trial. Watch Street anger, Coup risk and World pressure at the top."],
+    ["Many endings", "Father or Mother of the Nation, Respected Statesman, Iron-Fist Builder, President for Life, Kleptocrat in Exile, Overthrown, Toppled by the People, On Trial and more. Lose an election you rigged? You can try to annul it, with the army deciding."],
+    ["Read the red card", "The Presidency panel shows the country's biggest problem right now, and why."],
     ["Pick an action", "Green chips show what gets better, red what gets worse. Each choice shows its cost and how uncertain it is."],
     ["Watch the yellow “Later” box", "Most decisions plant a consequence that arrives months later: silos run empty, unions copy a pay deal, open contracting starts saving money. “Coming up” on the Presidency screen lists them, and what you do before then decides how they turn out."],
-    ["End the month", "Prices, the naira, jobs and security all move. Read what changed and what your choice did."],
+    ["Watch the news", "Prices, the naira, jobs and security all move. Read what changed and what your choice did."],
     ["Pick your team", "Your cabinet's skill makes policies work better; honesty decides how much money leaks. Technocrats are skilled, loyalists keep the party behind you, regional heavyweights bring votes. Reshuffles are free for three months."],
     ["Work with the system", "Big changes such as fuel subsidy reform need the National Assembly: lobby, then call the vote. Keep governors and groups (traders, farmers, youth, workers, business, military, faith leaders) on side, set the yearly budget, and address the nation at key moments."],
     ["Win the election", "Six months before election day the campaign opens: hold rallies by zone, run a door-to-door drive, face your rival in a debate. You need over 50% nationally and 25% in 24 of 37 states. Then watch election night state by state."],

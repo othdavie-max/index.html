@@ -30,7 +30,7 @@ function Gauge({ label, v }: { label: string; v: number }) {
   );
 }
 
-function StatePanel({ s, id, lga }: { s: FixState; id: string; lga: string | null }) {
+export function StatePanel({ s, id, lga }: { s: FixState; id: string; lga: string | null }) {
   const { act, setSelect } = useFix();
   const meta = STATE_BY_ID[id];
   const [picker, setPicker] = useState(false);

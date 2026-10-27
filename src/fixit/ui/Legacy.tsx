@@ -2,7 +2,11 @@
 import { Award, RotateCcw, Play } from "lucide-react";
 import { useFix, useS } from "./store";
 import { Button, Card } from "../../game/ui/kit";
-import { buildLegacy } from "../engine/legacy";
+import { buildLegacy, chooseExit } from "../engine/legacy";
+import { computeEnding } from "../engine/endings";
+import { democracyLabel } from "../engine/power";
+import { sfx } from "./sound";
+import { useEffect } from "react";
 import { presidentName, snap } from "../engine/util";
 import type { TermResult } from "../engine/types";
 import { ShareButton } from "./ShareCard";
@@ -11,14 +15,45 @@ import { GROUPS, TRAITS, dominantTrait } from "../engine/society";
 
 export function Legacy() {
   const s = useS();
-  const { continueTerm, startNew, quit } = useFix();
+  const { continueTerm, startNew, quit, act } = useFix();
   const last: TermResult | undefined = s.terms[s.terms.length - 1];
+  const choosing = !!s.ended?.choice;
+  const ending = s.done && !choosing ? computeEnding(s) : null;
+  useEffect(() => { if (choosing) sfx("doom"); else if (ending) sfx(ending.tone === "good" ? "fanfare" : ending.tone === "bad" ? "doom" : "gavel"); }, [choosing, ending?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!last || !s.ended) return null;
+  if (choosing) {
+    return (
+      <div role="dialog" aria-modal="true" aria-label="Your fall" style={{ position: "fixed", inset: 0, zIndex: 120, background: "rgba(8,12,24,.94)", overflow: "auto", padding: "24px 12px", display: "grid", placeItems: "center" }}>
+        <div className="g-col" style={{ maxWidth: 560, gap: 14, color: "#fff", textAlign: "center" }}>
+          <div style={{ fontSize: 54 }} aria-hidden>{s.ended.cause === "coup" ? "🪖" : s.ended.cause === "uprising" ? "✊" : "🗳️"}</div>
+          <h2 style={{ fontSize: "clamp(26px,5vw,38px)", fontWeight: 900 }}>You have fallen.</h2>
+          <div style={{ color: "#cfe0ee" }}>{s.ended.text}</div>
+          <div className="g-card" style={{ background: "#12304f", color: "#fff", borderColor: "#c8a24a" }}>
+            <div>Your accounts abroad hold about <b>₦{Math.round(s.me.wealth).toLocaleString()}m</b>. A jet is fuelled at the airport.<br />Your record: {s.me.evidence >= 35 ? "a paper trail of corruption" : "abuses of power"}.</div>
+          </div>
+          <div className="g-row g-wrap" style={{ justifyContent: "center", gap: 10 }}>
+            <Button variant="danger" onClick={() => { sfx("doom"); act((x) => ({ ok: chooseExit(x, "flee"), message: "You boarded the plane." }), { silent: true }); }}>✈️ Flee with the money</Button>
+            <Button variant="primary" onClick={() => { sfx("gavel"); act((x) => ({ ok: chooseExit(x, "stay"), message: "You stayed." }), { silent: true }); }}>🏠 Stay and face the music</Button>
+          </div>
+          <div className="g-tiny" style={{ color: "#9db3c9" }}>Fleeing keeps your fortune and ends your name in this country. Staying risks the courts but leaves the door open for history to be kinder.</div>
+        </div>
+      </div>
+    );
+  }
   const lg = buildLegacy(s, last.start, last.end, last.result);
   const won = last.result === "won";
   return (
     <div role="dialog" aria-modal="true" aria-label="Legacy report" style={{ position: "fixed", inset: 0, zIndex: 110, background: "rgba(8,20,36,.86)", overflow: "auto", padding: "20px 12px" }}>
       <div style={{ maxWidth: 900, margin: "0 auto" }} className="g-col">
+        {ending && (
+          <div className="g-card fx-ending" data-tone={ending.tone}>
+            <div style={{ fontSize: 56 }} aria-hidden>{ending.icon}</div>
+            <div className="g-tiny" style={{ letterSpacing: ".16em", fontWeight: 800 }}>YOUR ENDING</div>
+            <h2 style={{ fontSize: "clamp(28px,6vw,44px)", fontWeight: 900, lineHeight: 1.05 }}>{ending.name}</h2>
+            <p style={{ marginTop: 8, maxWidth: 640 }}>{ending.epilogue}</p>
+            <div className="g-tiny" style={{ marginTop: 6, opacity: .8 }}>{democracyLabel(s)} · {s.rule.executions ? `${s.rule.executions} executed · ` : ""}{s.rule.wrongful ? `${s.rule.wrongful} wrongly convicted · ` : ""}{s.rule.stolenElection ? "A stolen election · " : ""}Wealth ₦{Math.round(s.me.wealth).toLocaleString()}m</div>
+          </div>
+        )}
         <div className="g-card-dark g-card" style={{ background: "#0b1f36", color: "#fff" }}>
           <div className="g-tiny" style={{ letterSpacing: ".14em", color: "#9db3c9", fontWeight: 800 }}>{s.done ? "YOUR LEGACY" : `END OF TERM ${last.term}`}</div>
           <div className="g-row" style={{ gap: 14, marginTop: 6, alignItems: "flex-start" }}>
