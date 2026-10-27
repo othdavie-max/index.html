@@ -8,6 +8,7 @@ import { billChance } from "../engine/politics";
 import { monthLabel, nb } from "../engine/util";
 import { VoteModal } from "./Politics";
 import { sfx } from "./sound";
+import { AskAdvisers } from "./AdvisorStrip";
 
 export function Meters({ compact }: { compact?: boolean }) {
   const s = useS();
@@ -63,6 +64,7 @@ function Ladder() {
             <div className="g-grow">
               <div className="g-row g-wrap" style={{ gap: 6 }}><b>{l.name}</b>{done && <Badge tone="green">In force</Badge>}{isNext && <Badge tone="amber">Next</Badge>}</div>
               <div className="g-tiny g-muted">{l.blurb}</div>
+              {isNext && <AskAdvisers k={`law:${l.level}`} />}
               {isNext && <div className="g-tiny" style={{ marginTop: 4 }}>Chance the Assembly passes it: <b>{Math.round(billChance(s, `law:${l.level}`) * 100)}%</b>. {Object.keys(eff).length ? `Over time: corruption ${eff.corruption ?? 0}, trust +${eff.trust ?? 0}.` : ""}</div>}
             </div>
             {isNext && <div className="g-col" style={{ gap: 4 }}><Button size="sm" variant="primary" onClick={() => setVote(`law:${l.level}`)}>Send to Assembly</Button><Button size="sm" onClick={() => { const r = act((x) => applyTool(x, "decree")); sfx(r.ok ? "gavel" : "bad"); }}>Decree it</Button></div>}
@@ -92,6 +94,7 @@ function Toolkit() {
               <div className="g-tiny g-muted">{tool.explain}</div>
               <div className="g-tiny" style={{ color: "#9f1239" }}>Risk: {tool.risk}</div>
               {block && <div className="g-tiny g-muted">⛔ {block}</div>}
+              <AskAdvisers k={`tool:${tool.id}`} />
             </div>
             <Button size="sm" variant="danger" disabled={!!block} onClick={() => setConfirm(tool.id)}>Do it</Button>
           </div>
@@ -121,7 +124,7 @@ export function PowerPanel() {
       {P.streetAnger >= 65 && <Callout tone="bad">The streets are close to boiling over. A single spark could bring millions out.</Callout>}
       <div><div className="g-section-title">Anti-corruption law ladder</div><Ladder /></div>
       <div><div className="g-section-title">Constitution</div>
-        {P.maxTerms >= 99 ? <div className="g-small g-muted">Term limits have been scrapped.</div> : <div className="fx-rung" data-state="tool"><div className="fx-rung-ic" aria-hidden>📜</div><div className="g-grow"><b>Scrap presidential term limits</b><div className="g-tiny g-muted">Needs a two-thirds vote. You can run again and again, and the world will say what it thinks.</div><div className="g-tiny">Chance: <b>{Math.round(billChance(s, "amendment") * 100)}%</b></div></div><Button size="sm" variant="danger" onClick={() => setAmend(true)}>Call the vote</Button></div>}
+        {P.maxTerms >= 99 ? <div className="g-small g-muted">Term limits have been scrapped.</div> : <div className="fx-rung" data-state="tool"><div className="fx-rung-ic" aria-hidden>📜</div><div className="g-grow"><b>Scrap presidential term limits</b><div className="g-tiny g-muted">Needs a two-thirds vote. You can run again and again, and the world will say what it thinks.</div><div className="g-tiny">Chance: <b>{Math.round(billChance(s, "amendment") * 100)}%</b></div><AskAdvisers k="amendment" /></div><Button size="sm" variant="danger" onClick={() => setAmend(true)}>Call the vote</Button></div>}
       </div>
       <div><div className="g-section-title">Strongman toolkit</div><Toolkit /></div>
       {amend && <VoteModal bill="amendment" exec={(x) => amendConstitution(x)} onClose={() => setAmend(false)} />}

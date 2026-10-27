@@ -11,7 +11,7 @@ import { hallEntry } from "../persistence";
 import { monthLabel, snap } from "../engine/util";
 import { FixSaves, FixSaveError, type Slot } from "../persistence";
 
-export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet";
+export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet" | "moves" | "street" | "advisers";
 export interface Change { label: string; from: string; to: string; tone: "good" | "bad" | "neutral" }
 export interface MonthSummary { from: string; to: string; months: number; changes: Change[]; events: GameEvent[]; news: NewsItem[]; echoes: Echo[]; achievements: Achievement[]; headline?: NewsItem }
 export interface Toast { id: number; text: string; bad: boolean }

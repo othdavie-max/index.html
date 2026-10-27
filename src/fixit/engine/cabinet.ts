@@ -8,6 +8,8 @@ import { STATE_BY_ID } from "../../game/data/states";
 import type { Rng } from "../../game/engine/rng";
 import type { Effects, Faction, FixState, Minister, Portfolio } from "./types";
 import { addMod, clamp, clamp100, infraScore, pushNews, pushReport, removeMods } from "./util";
+import { addCronies } from "./dayone";
+import { hireMood, moodAll } from "./backers";
 
 export const PORTFOLIOS: { id: Portfolio; title: string; area: string }[] = [
   { id: "finance", title: "Finance Minister", area: "Revenue, taxes and the budget" },
@@ -22,6 +24,7 @@ export const FACTION_LABEL: Record<Faction, { label: string; blurb: string }> = 
   technocrat: { label: "Technocrat", blurb: "Highly skilled, but has no political base. Investors like them." },
   loyalist: { label: "Party loyalist", blurb: "Keeps the party behind you and weakens the opposition. Often less skilled." },
   heavyweight: { label: "Regional heavyweight", blurb: "Brings votes from their home zone. Medium skill." },
+  crony: { label: "Your own person", blurb: "A friend, relative or donor. Fiercely loyal, rarely qualified, and you will not know how honest they are until something happens. Backers love it." },
 };
 
 const FIRST = ["Adebayo", "Folake", "Tunde", "Funmilayo", "Kunle", "Chukwuemeka", "Ngozi", "Obinna", "Adaeze", "Ifeanyi", "Aminu", "Hadiza", "Sani", "Zainab", "Bello", "Ebiere", "Tamuno", "Ene", "Oghenekaro", "Nenpin", "Terver", "Halima", "Yakubu", "Chiamaka", "Kayode", "Amina", "Emeka", "Ronke", "Musa", "Ifeoma"];
@@ -49,6 +52,7 @@ export function initCabinet(s: FixState) {
     members[p.id] = pool.find((m) => m.portfolio === p.id && m.faction === "loyalist");
   }
   s.cabinet = { members, pool: pool.filter((m) => !Object.values(members).includes(m)), reshuffles: 0 };
+  addCronies(s, rng, PORTFOLIOS.map((p) => p.id), () => `${rng.pick(TITLES)} ${rng.pick(FIRST)} ${rng.pick(LAST)}`);
   for (const p of PORTFOLIOS) applyMinister(s, p.id);
 }
 
@@ -95,6 +99,7 @@ export function appoint(s: FixState, portfolio: Portfolio, candidateId: string):
     }
   }
   s.cabinet.members[portfolio] = { ...cand, since: s.month, mood: 65 };
+  if (s.backers) { moodAll(s, hireMood(cand.faction, true)); if (old) moodAll(s, hireMood(old.faction, false) * 0.5); }
   s.cabinet.reshuffles += early ? 0 : 1;
   applyMinister(s, portfolio);
   const lines = [
@@ -110,6 +115,7 @@ export function sack(s: FixState, portfolio: Portfolio, reason = "sacked"): CabR
   const m = s.cabinet.members[portfolio];
   if (!m) return { ok: false, message: "That post is already vacant." };
   delete s.cabinet.members[portfolio];
+  if (s.backers && (m.faction === "crony" || m.faction === "loyalist")) moodAll(s, -6);
   applyMinister(s, portfolio);
   pushNews(s, { source: `sack:${portfolio}`, headline: `${m.name} ${reason === "resigned" ? "resigns as" : "removed as"} ${PORTFOLIO_BY_ID[portfolio].title}`, body: "The post is vacant until a replacement is named.", tone: "bad" });
   return { ok: true, message: `${m.name} is out. Appoint a replacement soon: a vacant post hurts.` };

@@ -11,6 +11,10 @@ import type { Effects, EventKind, EventOption, FixState, GameEvent } from "./typ
 import { plantForEvent } from "./echoes";
 import { STORY_TEMPLATES, STORY_TRIGGERS } from "./stories";
 import { POWER_TEMPLATES, MOMENT_TRIGGERS } from "./powerEvents";
+import { setSpawn } from "./spawn";
+import { BACKER_TEMPLATES } from "./backers";
+import { STAFF_TEMPLATES } from "./dayone";
+import { BIG_TEMPLATES, BIG_TRIGGERS } from "./bigmoves";
 import { earn, groupPressure, relate } from "./society";
 import { eventRate } from "./setup";
 import type { GroupId } from "./types";
@@ -228,7 +232,7 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES].map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[])].map((t) => [t.id, t]));
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
   return t.options.map((o) => {
@@ -297,7 +301,7 @@ export function generateEvents(s: FixState, rng: Rng) {
     for (const tr of STORY_TRIGGERS) if (!s.flags[`arc:${tr.tpl}`]) cands.unshift({ tpl: tr.tpl, p: tr.p(s), place: () => { s.flags[`arc:${tr.tpl}`] = s.month; return tr.place(s, (a) => rng.pick(a)); } });
   }
   cands.push({ tpl: "govRequest", p: s.events.some((x) => x.tpl === "govRequest" && x.status === "open") ? 0 : 0.05, place: () => { const g = rng.pick(s.governors); const ids = Object.keys(s.regions).filter((id) => STATE_BY_ID[id]?.zone === g.zone && !cooling(s, "govRequest", id, 8)); return ids.length ? rng.pick(ids) : null; } });
-  for (const m of MOMENT_TRIGGERS) {
+  for (const m of [...MOMENT_TRIGGERS, ...BIG_TRIGGERS]) {
     const p = m.p(s);
     if (p > 0 && !(typeof s.flags[`cdt:${m.tpl}`] === "number" && s.month - (s.flags[`cdt:${m.tpl}`] as number) < (m.gap ?? 10)) && !s.events.some((x) => x.tpl === m.tpl && x.status === "open")) cands.push({ tpl: m.tpl, p, place: () => m.place(s, (a) => rng.pick(a)) });
   }
@@ -448,3 +452,4 @@ export function resolveExpired(s: FixState) {
 
 export const openEvents = (s: FixState) => s.events.filter((e) => e.status === "open").sort((a, b) => a.deadline - b.deadline || b.scale - a.scale);
 export { uid };
+setSpawn(createEvent);

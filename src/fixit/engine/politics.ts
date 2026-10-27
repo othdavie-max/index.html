@@ -3,6 +3,8 @@
  * The Assembly gate applies to the player's commands (performRef / UI); engine actions stay callable directly so
  * simulations and tests can bypass it.
  */
+import { staffAssembly } from "./dayone";
+import { backerSupport } from "./backers";
 import { subRng } from "../../game/engine/rng";
 import { POLICY_BY_ID } from "../data/catalogue";
 import type { BudgetHead, Effects, FixState } from "./types";
@@ -36,7 +38,7 @@ export function billLabel(bill: string, year?: number): string {
 
 export function initAssembly(s: FixState) { s.assembly = { support: 55, lobby: {}, passed: 0, defeats: 0 }; }
 export function assemblyMonthly(s: FixState) {
-  const target = clamp100(50 + 3 * loyalistCount(s) + governorAssembly(s) + lawmakerLoyalty(s) + 0.25 * (s.gov.approval - 50) - 0.1 * (s.rival.popularity - 45) - 2 * s.me.scandals);
+  const target = clamp100(50 + 3 * loyalistCount(s) + governorAssembly(s) + lawmakerLoyalty(s) + 0.25 * (s.gov.approval - 50) - 0.1 * (s.rival.popularity - 45) - 2 * s.me.scandals + staffAssembly(s) + backerSupport(s));
   s.assembly.support = clamp100(s.assembly.support + 0.1 * (target - s.assembly.support));
 }
 function budgetDifficulty(s: FixState): number {

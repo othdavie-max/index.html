@@ -12,6 +12,7 @@ import type { ActionRef, Challenge, ChallengeAction } from "../engine/challenge"
 import { nb, monthLabel } from "../engine/util";
 import { SymbolIcon } from "./MapView";
 import { Chips, UncBadge } from "./parts";
+import { EventAdvisers } from "./AdvisorStrip";
 import { billFor } from "../engine/politics";
 import { VoteModal } from "./Politics";
 import { decorate } from "../engine/challenge";
@@ -85,6 +86,7 @@ export function EventCard({ e, compact }: { e: GameEvent; compact?: boolean }) {
         <Badge><MapPin size={12} /> {STATE_BY_ID[e.stateId]?.name}</Badge>
       </div>
       <div className="g-small" style={{ color: "#334155" }}>{e.cause}</div>
+      {!compact && e.status === "open" && <EventAdvisers e={e} />}
       {!compact && (
         <div className="fx-actions" style={{ marginTop: 2 }}>
           {e.options.map((o) => {

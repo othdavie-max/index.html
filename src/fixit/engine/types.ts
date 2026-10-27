@@ -121,8 +121,14 @@ export interface Echo {
   outTone?: "good" | "bad" | "neutral";
 }
 export type Portfolio = "finance" | "agriculture" | "power" | "security" | "cbn" | "works";
-export type Faction = "technocrat" | "loyalist" | "heavyweight";
-export interface Minister { id: string; name: string; portfolio: Portfolio; skill: number; integrity: number; faction: Faction; trait: string; zone: string; since: number; mood: number }
+export type Faction = "technocrat" | "loyalist" | "heavyweight" | "crony";
+export interface Minister { id: string; name: string; portfolio: Portfolio; skill: number; integrity: number; faction: Faction; trait: string; zone: string; since: number; mood: number;
+  /** cronies: honesty is unknown until something happens */
+  hidden?: boolean; bio?: string }
+export type AideKind = "friend" | "technocrat" | "chieftain" | "general" | "cleric" | "regional" | "loyalist" | "defector";
+export interface Aide { id: string; kind: AideKind; name: string; bio: string; skill: number; loyalty: number; integrity: number; portrait: Portrait; revealed: boolean; since: number }
+export interface Backer { id: string; name: string; title: string; zone: string; power: number; bio: string; mood: number; owed: number }
+export interface Staff { cos: Aide | null; vp?: Aide | null; picked: boolean }
 export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number; honest?: number; rigged?: boolean; stolen?: boolean }
 export type Difficulty = "easy" | "normal" | "hard";
 export interface Portrait { skin: number; hair: number; style: number; accent: number }
@@ -216,6 +222,8 @@ export interface FixState {
   lawmakers: Lawmaker[];
   /** power, corruption and the danger meters (named `rule` because `power` is electricity) */
   rule: PowerState;
+  staff: Staff;
+  backers: Backer[];
   assembly: { support: number; lobby: Record<string, number>; passed: number; defeats: number };
   governors: Governor[];
   groups: Record<GroupId, number>;

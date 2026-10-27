@@ -13,10 +13,10 @@ import type { FixState } from "../engine/types";
 const toCampaign = (s: FixState) => { s.month = s.termStart + 42; s.processed = s.month - 1; };
 
 describe("cabinet", () => {
-  it("starts with six inherited loyalists and candidates for each post", () => {
+  it("starts with six inherited loyalists and four candidates for each post, one of them your own person", () => {
     const s = newGame(41);
     expect(Object.values(s.cabinet.members).every((m) => m?.faction === "loyalist")).toBe(true);
-    for (const p of PORTFOLIOS) expect(s.cabinet.pool.filter((m) => m.portfolio === p.id).length).toBe(3);
+    for (const p of PORTFOLIOS) expect(s.cabinet.pool.filter((m) => m.portfolio === p.id).length).toBe(4);
   });
   it("a skilled minister improves their area; a vacancy hurts it", () => {
     const a = newGame(42), b = newGame(42), c = newGame(42);

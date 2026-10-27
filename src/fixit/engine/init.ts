@@ -1,3 +1,4 @@
+import { initBackers } from "./backers";
 import { STATES } from "../../game/data/states";
 import { hashString, subRng } from "../../game/engine/rng";
 import { REGION_OVERRIDES, ZONE_PRIORS } from "../data/catalogue";
@@ -52,7 +53,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
     why: {},
     regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [], cabinet: { members: {}, pool: [], reshuffles: 0 }, rival: { name: "", party: "", zone: "", popularity: 45 }, campaign: { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 }, election: null, lawmakers: [], rule: {} as never, assembly: { support: 55, lobby: {}, passed: 0, defeats: 0 }, governors: [], groups: {} as never, groupMood: {} as never, reputation: {} as never, budget: {} as never, speech: { last: -9, moment: null },
     baseline: undefined as never,
-    flags: {}, settings: { autosave: true, reducedMotion: false },
+    flags: {}, staff: { cos: null, picked: false }, backers: [], settings: { autosave: true, reducedMotion: false },
   };
   initCabinet(s);
   initRival(s);
@@ -61,6 +62,8 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
   initSpeech(s);
   initSociety(s);
   initPower(s);
+  initBackers(s);
+  s.staff = { cos: null, picked: false };
   applySetup(s, { ...setup, president: setup.president ?? president });
   computeGroups(s);
   // initial fuel numbers so the dashboard is truthful on day one

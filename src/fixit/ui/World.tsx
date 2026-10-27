@@ -2,7 +2,7 @@
 /** The Civilization-style main screen: a living map, a HUD of resources and danger meters, a notification stack,
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Crown, FastForward, HelpCircle, Landmark, Hammer, Menu as MenuIcon, Newspaper, ScrollText, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, Briefcase, Scale } from "lucide-react";
+import { Crown, FastForward, HelpCircle, Landmark, Hammer, Menu as MenuIcon, Newspaper, ScrollText, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, Briefcase, Scale, Megaphone, MessagesSquare, UserCheck } from "lucide-react";
 import { useFix, useS, type Tab } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { STATES } from "../../game/data/states";
@@ -27,6 +27,16 @@ import { HowTo, MenuModal } from "./Menu";
 import { Legacy } from "./Legacy";
 import { ElectionNight } from "./ElectionNight";
 import { MonthSummaryModal, Ticker } from "./Shell";
+import { DayOne } from "./DayOne";
+import { StaffCard } from "./StaffCard";
+import { MovesPanel } from "./MovesPanel";
+import { StreetPanel } from "./StreetPanel";
+import { BriefingPanel } from "./AdvisorStrip";
+import { RecordCard } from "./RecordCard";
+import { RECORD_BY_ID } from "../engine/history";
+import { briefing, topIssue } from "../engine/advice";
+import { pegged } from "../engine/bigmoves";
+import { Portrait } from "../../game/ui/kit";
 import { isMuted, setMuted, sfx } from "./sound";
 import type { FixState } from "../engine/types";
 
@@ -90,6 +100,8 @@ export function World() {
   const lastMonth = useRef(s.month);
   const lastOpen = useRef(-1);
   const [shake, setShake] = useState(false);
+  const seenAch = useRef(s.achievements.length);
+  const [cards, setCards] = useState<string[]>([]);
 
   const decisions = s.events.filter((e) => e.status === "open" && e.kind !== "opportunity");
   const opps = s.events.filter((e) => e.status === "open" && e.kind === "opportunity");
@@ -110,9 +122,19 @@ export function World() {
     lastOpen.current = decisions.length;
   }, [decisions.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (s.achievements.length > seenAch.current) {
+      const fresh = s.achievements.slice(seenAch.current).filter((a) => a.id.startsWith("rec:")).map((a) => a.id.slice(4));
+      seenAch.current = s.achievements.length;
+      if (fresh.length) setTimeout(() => setCards((c) => [...c, ...fresh]), 600);
+    } else seenAch.current = s.achievements.length;
+  }, [s.achievements.length, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const fill = useMemo(() => lensFill(s, lens), [s, lens, s.month, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const faces = useMemo(() => (id: string) => face(stateLayerValue(s, id, "overview")), [s, s.month, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const tip = advisor(s, decisions.length);
+  const cos = s.staff.cos;
+  const say = !tip && cos ? briefing(s).find((b) => b.by.id === cos.id) : null;
+  const sayGo = topIssue(s)?.go as Tab | undefined;
   const drawer = tab !== "world" && tab !== "map" ? tab : null;
   const close = () => setTab("world");
   const cur = pick ? s.events.find((e) => e.id === pick && e.status === "open") : null;
@@ -131,9 +153,12 @@ export function World() {
     { id: "assembly", label: "Assembly", icon: <Scale size={22} /> },
     { id: "power", label: "Power", icon: <Crown size={22} />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0 },
     { id: "cabinet", label: "Cabinet", icon: <Briefcase size={22} /> },
+    { id: "moves", label: "Big Moves", icon: <Megaphone size={22} /> },
+    { id: "street", label: "Street", icon: <MessagesSquare size={22} /> },
+    { id: "advisers", label: "Advisers", icon: <UserCheck size={22} /> },
     { id: "news", label: "News", icon: <Newspaper size={22} /> },
   ];
-  const title: Record<string, string> = { presidency: "The Presidency", policies: "Policies & budget", projects: "Projects", nation: "Nation & economy", assembly: "National Assembly", power: "Seat of power", cabinet: "Cabinet & society", news: "News" };
+  const title: Record<string, string> = { presidency: "The Presidency", policies: "Policies & budget", projects: "Projects", nation: "Nation & economy", assembly: "National Assembly", power: "Seat of power", cabinet: "Cabinet, advisers & backers", news: "News", moves: "When I become president…", street: "On the street", advisers: "Your advisers" };
 
   return (
     <div className={`fx-world ${shake ? "fx-shake" : ""}`} data-lens={lens}>
@@ -141,7 +166,7 @@ export function World() {
         <div className="fx-hud-date"><b>{monthLabel(s.month)}</b><span>Term {s.term} · {left} months to election</span><span className="fx-term" role="progressbar" aria-label="Progress through the term" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${pct}%` }} /></span></div>
         <div className="fx-hud-res">
           <Res icon="💰" label="Cash" v={nb(s.fin.treasury)} bad={s.fin.treasury < 30} onClick={() => setTab("nation")} />
-          <Res icon="💵" label="Naira" v={`₦${Math.round(s.eco.fx).toLocaleString()}`} onClick={() => setTab("nation")} />
+          <Res icon="💵" label={pegged(s) ? "Official / black" : "Naira"} v={pegged(s) ? `₦${Math.round(s.eco.fx).toLocaleString()} / ${Math.round(Number(s.flags.blackFx ?? s.eco.fx)).toLocaleString()}` : `₦${Math.round(s.eco.fx).toLocaleString()}`} bad={pegged(s)} onClick={() => setTab("nation")} />
           <Res icon="📈" label="Inflation" v={`${s.eco.inflation.toFixed(0)}%`} bad={s.eco.inflation > 25} onClick={() => setTab("nation")} />
           <Res icon="👷" label="Jobless" v={`${s.jobs.unemployment.toFixed(0)}%`} bad={s.jobs.unemployment > 30} onClick={() => setTab("nation")} />
           <Res icon={face(100 - s.gov.happiness)} label="Mood" v={`${Math.round(s.gov.happiness)}`} bad={s.gov.happiness < 35} onClick={() => setTab("presidency")} />
@@ -167,6 +192,12 @@ export function World() {
           {all.length > 5 && <button className="fx-note fx-note-more" onClick={() => setQueue(true)}>+{all.length - 5} more</button>}
         </div>
         {banner && <div className="fx-turn-banner" aria-hidden><span>{banner}</span></div>}
+        {say && !blocked && cos && (
+          <div className="fx-advisor" role="status">
+            <Portrait p={cos.portrait} size={42} name={cos.name} />
+            <div><b>{cos.name}</b><p>{say.text.length > 190 ? `${say.text.slice(0, 187)}…` : say.text}</p><Button size="sm" variant="primary" onClick={() => { sfx("tap"); setTab(sayGo ?? "advisers"); }}>{sayGo ? "Take me there" : "All advisers"}</Button></div>
+          </div>
+        )}
         {tip && !blocked && (
           <div className="fx-advisor" role="status">
             <div className="fx-advisor-face" aria-hidden>🧑🏾‍💼</div>
@@ -188,7 +219,7 @@ export function World() {
 
       {select.state && <Drawer title="Location" onClose={() => setSelect({ state: null, lga: null })}><StatePanel s={s} id={select.state} lga={select.lga} /></Drawer>}
       {drawer && (
-        <Drawer title={title[drawer]} onClose={close} wide={drawer !== "assembly" && drawer !== "power"}>
+        <Drawer title={title[drawer]} onClose={close} wide={drawer !== "assembly" && drawer !== "power" && drawer !== "moves" && drawer !== "street" && drawer !== "advisers"}>
           {drawer === "presidency" && <Presidency />}
           {drawer === "policies" && <Policies />}
           {drawer === "projects" && <Projects />}
@@ -196,7 +227,10 @@ export function World() {
           {drawer === "news" && <News />}
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}
           {drawer === "power" && <PowerPanel />}
-          {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><CabinetCard /><GroupsCard /></div>}
+          {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><StaffCard /><CabinetCard /><GroupsCard /></div>}
+          {drawer === "moves" && <MovesPanel />}
+          {drawer === "street" && <StreetPanel />}
+          {drawer === "advisers" && <BriefingPanel />}
         </Drawer>
       )}
 
@@ -210,6 +244,8 @@ export function World() {
           </div>
         </Modal>
       )}
+      {cards.length > 0 && RECORD_BY_ID[cards[0]] && <RecordCard r={RECORD_BY_ID[cards[0]]} label={pegged(s) ? "Official rate only: the black market tells a different story." : undefined} onClose={() => setCards((c) => c.slice(1))} />}
+      {!s.staff.picked && <DayOne />}
       {menu && <MenuModal onClose={() => setMenu(false)} />}
       {how && <HowTo onClose={() => setHow(false)} />}
       {!summary ? null : <MonthSummaryModal />}

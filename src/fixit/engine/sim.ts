@@ -17,6 +17,10 @@ import { rivalMonthly } from "./rival";
 import { governorSpeed, relate, societyMonthly } from "./society";
 import { assemblyMonthly } from "./politics";
 import { powerMonthly } from "./power";
+import { backersMonthly } from "./backers";
+import { staffMonthly } from "./dayone";
+import { bigMonthly, pegAfter, pegBefore } from "./bigmoves";
+import { checkRecords } from "./history";
 import { createEvent } from "./events";
 import { makeNews } from "./news";
 import { evaluateTermEnd } from "./legacy";
@@ -40,6 +44,9 @@ export function advanceMonth(s: FixState): boolean {
   societyMonthly(s, subRng(s.meta.seed, "society", m));
   assemblyMonthly(s);
   powerMonthly(s, subRng(s.meta.seed, "power", m));
+  backersMonthly(s, subRng(s.meta.seed, "backers", m));
+  staffMonthly(s, subRng(s.meta.seed, "staff", m));
+  bigMonthly(s, subRng(s.meta.seed, "big", m));
   resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));
@@ -48,6 +55,7 @@ export function advanceMonth(s: FixState): boolean {
   s.month = m + 1;
   midtermCheck(s);
   checkAchievements(s);
+  checkRecords(s);
   evaluateTermEnd(s);
   return true;
 }
@@ -261,6 +269,7 @@ function phase2(s: FixState, rng: Rng) {
 function phase3(s: FixState, rng: Rng) {
   const L = (n: Parameters<typeof lever>[1]) => lever(s, n);
   const e = s.eco, fu = s.fuel;
+  pegBefore(s);
   const supply = s.flags.fxSupplyUsd as number, gap = e.fxGap, sold = s.flags.fxSoldNow as number;
   const structural = 0.02 * (e.inflation - 5);
   const pressure = (4.5 * (gap - sold)) / Math.max(1, supply);
@@ -271,6 +280,7 @@ function phase3(s: FixState, rng: Rng) {
   if (gap < 0) drift = clamp(structural * 0.3 + pressure * 0.7 + sentiment + noise, -7, 9);
   e.fx = clamp(e.fx * (1 + drift / 100), 250, 6000);
   e.emaDrift = 0.7 * e.emaDrift + 0.3 * drift;
+  pegAfter(s);
   s.flags.fxDrift = round(drift, 2);
   s.why.fx = [
     gap > 0.15 ? `Dollar demand ($${round(s.flags.fxDemandUsd as number, 1)}bn) is above supply ($${round(supply, 1)}bn), pushing the naira weaker` : gap < -0.15 ? `Dollar supply ($${round(supply, 1)}bn) is above demand, so the naira gains` : `Dollar supply and demand are roughly balanced ($${round(supply, 1)}bn each way)`,

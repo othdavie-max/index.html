@@ -1,0 +1,68 @@
+"use client";
+/** Adviser comments: portraits, a stance chip and what they think. Used on events, big moves, laws and strongman tools. */
+import { useState } from "react";
+import { Portrait } from "../../game/ui/kit";
+import { useS } from "./store";
+import { adviceFor, briefing, eventAdvice, type Advice } from "../engine/advice";
+import { AIDE_KINDS } from "../engine/dayone";
+import type { GameEvent } from "../engine/types";
+
+const STANCE = { go: { t: "Go for it", c: "#047857", bg: "#ecfdf5" }, caution: { t: "Careful", c: "#92400e", bg: "#fffbeb" }, stop: { t: "Advises against", c: "#9f1239", bg: "#fff1f2" } };
+
+export function AdviceLine({ a, role }: { a: Advice; role?: string }) {
+  const st = STANCE[a.stance];
+  return (
+    <div className="fx-advice" style={{ background: st.bg, borderColor: st.c }}>
+      <Portrait p={a.by.portrait} size={34} name={a.by.name} />
+      <div className="g-grow">
+        <div className="g-row g-wrap" style={{ gap: 6 }}><b className="g-small">{a.by.name}</b><span className="g-tiny g-muted">{role ?? AIDE_KINDS[a.by.kind].tag}</span><span className="g-tiny" style={{ color: st.c, fontWeight: 800 }}>{st.t}</span></div>
+        <div className="g-small" style={{ color: "#0f172a" }}>{a.text}</div>
+      </div>
+    </div>
+  );
+}
+const roleOf = (s: ReturnType<typeof useS>, a: Advice) => (s.staff.vp?.id === a.by.id ? "Vice President" : "Chief of Staff");
+
+/** a small "Ask my advisers" toggle for an action */
+export function AskAdvisers({ k }: { k: string }) {
+  const s = useS();
+  const [open, setOpen] = useState(false);
+  const list = open ? adviceFor(s, k) : [];
+  if (!s.staff.cos && !s.staff.vp) return null;
+  return (
+    <div className="g-col" style={{ gap: 6, marginTop: 4 }}>
+      <button className="fx-ask" onClick={() => setOpen(!open)} aria-expanded={open}>🧑🏾‍💼 {open ? "Hide advisers" : "Ask my advisers"}</button>
+      {list.map((a) => <AdviceLine key={a.by.id} a={a} role={roleOf(s, a)} />)}
+    </div>
+  );
+}
+
+export function EventAdvisers({ e }: { e: GameEvent }) {
+  const s = useS();
+  const [open, setOpen] = useState(false);
+  if (!s.staff.cos && !s.staff.vp) return null;
+  const list = open ? eventAdvice(s, e) : [];
+  return (
+    <div className="g-col" style={{ gap: 6 }}>
+      <button className="fx-ask" onClick={() => setOpen(!open)} aria-expanded={open}>🧑🏾‍💼 {open ? "Hide advisers" : "What do my advisers say?"}</button>
+      {list.map((x) => (
+        <div key={x.by.id} className="fx-advice" style={{ background: "#f8fafc", borderColor: "#94a3b8" }}>
+          <Portrait p={x.by.portrait} size={34} name={x.by.name} />
+          <div className="g-grow"><div className="g-row g-wrap" style={{ gap: 6 }}><b className="g-small">{x.by.name}</b><span className="g-tiny g-muted">{roleOf(s, { by: x.by } as Advice)}</span></div><div className="g-small">{x.text}</div></div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function BriefingPanel() {
+  const s = useS();
+  const list = briefing(s);
+  return (
+    <div className="g-col" style={{ gap: 10 }}>
+      {list.length === 0 && <div className="g-small g-muted">You have no advisers. Pick a Chief of Staff and a Vice President to get briefings.</div>}
+      {list.map((a) => <AdviceLine key={a.by.id} a={a} role={roleOf(s, a)} />)}
+      <div className="g-tiny g-muted">Advisers are only as good as they are skilled and honest. A flatterer will tell you everything is fine. A clever one warns you with real numbers. Different people notice different problems, so a team with different strengths sees more.</div>
+    </div>
+  );
+}

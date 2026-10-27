@@ -12,6 +12,7 @@ import type { FixState, Lawmaker, LmStatus, Portrait } from "./types";
 import { addMod, calMonth, clamp, clamp100, nb, pushNews, pushReport, removeMods } from "./util";
 import { createEvent } from "./events";
 import { finishTerm } from "./legacy";
+import { staffCoup } from "./dayone";
 
 // ---------------------------------------------------------------- the law ladder
 export interface LawDef { level: 0 | 1 | 2 | 3 | 4; name: string; short: string; blurb: string; icon: string }
@@ -449,7 +450,7 @@ export function powerMonthly(s: FixState, rng: Rng) {
   s.flags.shutdownWas = shut;
 
   const purgeEcho = typeof s.flags.purgeEcho === "number" && s.month >= (s.flags.purgeEcho as number) && s.month < (s.flags.purgeEcho as number) + 6 ? 9 : 0;
-  const tC = clamp100(6 + 0.45 * Math.max(0, P.streetAnger - 35) + Math.max(-8, 0.5 * (50 - s.groups.military)) + Math.max(-8, 0.3 * (50 - P.eliteLoyalty)) + 0.2 * P.abuse + (P.democracy < 40 ? (40 - P.democracy) * 0.25 : 0) + 0.25 * Math.max(0, P.intlPressure - 60) + purgeEcho + (overstay > 0 ? 8 : 0));
+  const tC = clamp100(6 + 0.45 * Math.max(0, P.streetAnger - 35) + Math.max(-8, 0.5 * (50 - s.groups.military)) + Math.max(-8, 0.3 * (50 - P.eliteLoyalty)) + 0.2 * P.abuse + (P.democracy < 40 ? (40 - P.democracy) * 0.25 : 0) + 0.25 * Math.max(0, P.intlPressure - 60) + purgeEcho + staffCoup(s) + (overstay > 0 ? 8 : 0));
   P.coupRisk = clamp100(P.coupRisk + 0.13 * (tC - P.coupRisk));
   P.intlPressure = clamp100(P.intlPressure * 0.985 + (overstay > 0 ? 0.7 : 0));
   const eTarget = clamp100(0.5 * (s.governors.reduce((a, g) => a + g.relation, 0) / Math.max(1, s.governors.length)) + 0.3 * s.assembly.support + 0.2 * (50 + lawmakerLoyalty(s) * 2));

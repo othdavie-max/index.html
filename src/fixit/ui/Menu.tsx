@@ -34,6 +34,9 @@ export function SaveSlots({ mode, onDone }: { mode: "load" | "both"; onDone: () 
 
 export function HowTo({ onClose }: { onClose: () => void }) {
   const steps = [
+    ["Day One: pick your people", "You start by choosing a Chief of Staff, a Vice President and your ministers. Qualified strangers are skilled, but the people who paid for your campaign want jobs and contracts. Hire your own people and they steal. Freeze your backers out and they sabotage you with protests, bandits and a blocked Assembly."],
+    ["Listen to your advisers", "Tap “Ask my advisers” on any law, strongman tool or big move, and on every crisis. A skilled, honest adviser warns you with real numbers. A flatterer says everything is fine. A general wants force. The Advisers button gives a monthly briefing."],
+    ["Big moves and records", "Open Big Moves for the beer-parlour promises: fix the naira by decree, sell the jets, cut lawmakers' pay, close the borders. Hit a number Nigeria has not seen in years (petrol under ₦100, inflation in single digits) and you get a record card."],
     ["Tap the map", "Every state wears a face: happy or angry. Tap a state to see what is wrong there and act. Use the lenses on top (Mood, Politics, Food…) to see the country differently. Symbols mark protests, attacks, floods and corruption cases."],
     ["Clear your desk, then NEXT TURN", "Notices stack on the left. Tap one to decide. The big gold button ends the month; if something still needs you it turns red and shows how many."],
     ["Rule the Assembly", "Open Assembly: tap any lawmaker. Investigate, arrest, leak, blackmail, protect or take your cut. Lawmakers steal, and the stronger your anti-corruption law, the less they dare."],

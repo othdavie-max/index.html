@@ -1,4 +1,5 @@
 /** Local, offline saves. IndexedDB with localStorage and memory fallbacks (reuses the backend from the first game, keys are namespaced). */
+import { initBackers } from "./engine/backers";
 import { defaultBackend, MemoryBackend, type StorageBackend } from "../game/persistence/saveSystem";
 import { FIX_VERSION, type FixState } from "./engine/types";
 import { monthLabel } from "./engine/util";
@@ -32,6 +33,8 @@ export function validate(x: unknown): FixState {
   if (!s.speech) initSpeech(s);
   if (!s.groups || !s.governors) initSociety(s);
   if (!s.power || !s.lawmakers) initPower(s);
+  if (!s.backers || !s.backers.length) initBackers(s);
+  s.staff ??= { cos: null, picked: true };
   s.meta.scenario ??= "standard"; s.meta.difficulty ??= "normal"; s.meta.portrait ??= { skin: 2, hair: 0, style: 0, accent: 0 };
   return s;
 }
