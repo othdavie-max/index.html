@@ -4,6 +4,7 @@ import { STATE_BY_ID } from "../../game/data/states";
 import { FUNDING_LABEL, MEASURE_BY_ID, POLICY_BY_ID, PROJECT_BY_ID } from "../data/catalogue";
 import type { Funding, FixState } from "./types";
 import { advanceMonth } from "./sim";
+import { setBuilders } from "./spawn";
 import { resolveEvent } from "./events";
 import { continueNextTerm } from "./legacy";
 import { plantForMeasure, plantForPolicy, scheduleEcho } from "./echoes";
@@ -295,3 +296,5 @@ export function performRef(s: FixState, ref: import("./challenge").ActionRef): R
     case "project": return fail("Choose a site for the project first.");
   }
 }
+
+setBuilders({ startProject, canStartProject, enactPolicy });

@@ -207,3 +207,78 @@ describe("quick term, dynasty and legacy perks", () => {
     expect(run()).toBe(run());
   });
 });
+
+import { respond } from "../engine/actions";
+import { carryOut, handling, ideas, isAuto, makeProposal, propLog, proposalOf, proposalsMonthly, setAuto } from "../engine/proposals";
+import { subRng } from "../../game/engine/rng";
+import { PROJECT_BY_ID } from "../data/catalogue";
+import type { Aide } from "../engine/types";
+
+const aide = (o: Partial<Aide>): Aide => ({ id: "x", kind: "technocrat", name: "Test Aide", bio: "", skill: 70, loyalty: 70, integrity: 70, portrait: { skin: 1, hair: 0, style: 0, accent: 0 }, revealed: false, since: 0, ...o });
+const withTeam = (seed: number, a: Aide) => { const s = newGame(seed); s.fin.treasury = 1e5; s.staff.cos = a; s.staff.picked = true; return s; };
+
+describe("advisers bring ideas to your desk", () => {
+  it("a clever adviser proposes what the country needs most", () => {
+    const s = withTeam(3001, aide({ skill: 80 })); s.month = 6;
+    const top = ideas(s)[0];
+    const p = makeProposal(s, s.staff.cos!, subRng(1, "t"))!;
+    expect(p.id).toBe(top.id); expect(p.vanity).toBe(false);
+  });
+  it("a weak adviser sometimes proposes a vanity project instead", () => {
+    const s = withTeam(3002, aide({ skill: 20 })); s.month = 6;
+    let vanity = 0; for (let i = 0; i < 40; i++) { const p = makeProposal(s, s.staff.cos!, subRng(i, "v")); if (p?.vanity) vanity++; }
+    expect(vanity).toBeGreaterThan(3);
+  });
+  it("proposals reach the desk with four honest options, one at a time", () => {
+    const s = withTeam(3003, aide({ skill: 75 })); s.month = 5;
+    for (let i = 0; i < 12 && !s.events.some((e) => e.tpl === "adviserProposal"); i++) { s.month += 2; proposalsMonthly(s, subRng(3003, "p", i)); }
+    const e = s.events.find((x) => x.tpl === "adviserProposal")!; expect(e).toBeDefined();
+    expect(e.options.map((o) => o.id)).toEqual(["own", "deleg", "auto", "no"]);
+    expect(proposalOf(s, e.id)).not.toBeNull();
+    const n = s.events.filter((x) => x.tpl === "adviserProposal").length; s.month += 3; proposalsMonthly(s, subRng(1, "again")); expect(s.events.filter((x) => x.tpl === "adviserProposal").length).toBe(n);
+  });
+  it("saying yes builds it yourself with no meddling", () => {
+    const s = withTeam(3004, aide({ skill: 75 })); s.month = 5;
+    for (let i = 0; i < 12 && !s.events.some((e) => e.tpl === "adviserProposal"); i++) { s.month += 2; proposalsMonthly(s, subRng(3004, "p", i)); }
+    const e = s.events.find((x) => x.tpl === "adviserProposal")!; const p = proposalOf(s, e.id)!;
+    const before = s.projects.length, pol = Object.keys(s.policies).length; respond(s, e.id, "own");
+    expect(p.kind === "project" ? s.projects.length : Object.keys(s.policies).length).toBe((p.kind === "project" ? before : pol) + 1);
+    expect(propLog(s)[0].mode).toBe("own");
+  });
+  it("'not now' puts it off for months", () => {
+    const s = withTeam(3005, aide({})); s.month = 5;
+    for (let i = 0; i < 12 && !s.events.some((e) => e.tpl === "adviserProposal"); i++) { s.month += 2; proposalsMonthly(s, subRng(3005, "p", i)); }
+    const e = s.events.find((x) => x.tpl === "adviserProposal")!; const p = proposalOf(s, e.id)!;
+    respond(s, e.id, "no"); expect(ideas(s).some((i) => i.id === p.id && i.kind === p.kind)).toBe(false);
+  });
+  it("delegating to a good aide goes well; a corrupt, disloyal one wrecks it", () => {
+    const run = (a: Aide, seed: number) => {
+      const s = withTeam(seed, a); s.month = 6;
+      const proj = ideas(s).find((i) => i.kind === "project" && !PROJECT_BY_ID[i.id].sites)!;
+      const p = { kind: "project" as const, id: proj.id, name: proj.name, stateId: "NG-KN", funding: "treasury" as const, by: a.id, need: proj.need, vanity: false, padded: false, reason: "" };
+      const r = carryOut(s, p, "deleg", subRng(seed, "c"));
+      return { s, r, pr: s.projects[s.projects.length - 1] };
+    };
+    const good = run(aide({ skill: 90, integrity: 90, loyalty: 90 }), 3010), bad = run(aide({ skill: 25, integrity: 10, loyalty: 10 }), 3010);
+    expect(good.r.ok && bad.r.ok).toBe(true);
+    expect(bad.pr.quality).toBeLessThan(good.pr.quality);
+    expect(bad.pr.delay).toBeGreaterThan(good.pr.delay);
+    expect(bad.pr.cost).toBeGreaterThan(good.pr.cost);
+    expect(bad.s.ledger.stolen).toBeGreaterThan(good.s.ledger.stolen);
+    expect(bad.pr.notes.join(" ")).toMatch(/Handled by/);
+  });
+  it("skill, honesty and loyalty each matter on their own", () => {
+    const r = subRng(1, "h");
+    expect(handling(aide({ skill: 25 }), r).delay).toBeGreaterThan(0);
+    expect(handling(aide({ loyalty: 20 }), r).delay).toBeGreaterThanOrEqual(2);
+    expect(handling(aide({ integrity: 20 }), r).steal).toBeGreaterThan(0);
+    const best = handling(aide({ skill: 90, integrity: 90, loyalty: 90 }), r); expect(best.steal).toBe(0); expect(best.quality).toBeGreaterThan(0.15);
+  });
+  it("'handle it from now on' acts without asking and keeps a log", () => {
+    const s = withTeam(3020, aide({ skill: 80 })); s.month = 5;
+    setAuto(s, s.staff.cos!.id, true); expect(isAuto(s, s.staff.cos!.id)).toBe(true);
+    for (let i = 0; i < 20 && propLog(s).length === 0; i++) { s.month += 2; proposalsMonthly(s, subRng(3020, "a", i)); }
+    expect(propLog(s)[0].mode).toBe("auto"); expect(s.events.some((e) => e.tpl === "adviserProposal" && e.status === "open")).toBe(false);
+    expect(s.news.some((n) => n.source.startsWith("prop-auto"))).toBe(true);
+  });
+});

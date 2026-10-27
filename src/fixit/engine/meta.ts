@@ -125,7 +125,7 @@ export const AGENDA: AgendaDef[] = [
   { id: "feed", icon: "🌾", name: "Feed the Nation", blurb: "A year of farms, markets and cheaper food.", goal: "Food inflation down 3 points", gauge: (s) => s.eco.foodInflation, ok: dn(3), show: delta(" pts"), bonus: { foodPrice: -1.5, foodSupply: 1 }, bonusText: "Food prices ease and supply grows a little." },
   { id: "light", icon: "💡", name: "Power for All", blurb: "More light, fewer generators.", goal: "Electricity up 500 MW", gauge: (s) => s.power.available, ok: up(500), show: delta(" MW", 0), bonus: { power: 200, grid: 2 }, bonusText: "Extra megawatts and a steadier grid." },
   { id: "clean", icon: "🧹", name: "War on Corruption", blurb: "Tighter procurement and a cleaner state.", goal: "Corruption down 4 points", gauge: (s) => s.gov.corruption, ok: dn(4), show: delta(" pts"), bonus: { corruption: -2, procurement: 2 }, bonusText: "Less leakage in contracts." },
-  { id: "jobs", icon: "👷", name: "Jobs, Jobs, Jobs", blurb: "Workshops, small business and factories.", goal: "Unemployment down 1.2 points", gauge: (s) => s.jobs.unemployment, ok: dn(1.2), show: delta(" pts"), bonus: { jobs: 1.2, sme: 2 }, bonusText: "More hiring and a better climate for small business." },
+  { id: "jobs", icon: "👷", name: "Jobs, Jobs, Jobs", blurb: "Workshops, small business and factories.", goal: "Unemployment down 1.2 points", gauge: (s) => s.jobs.unemployment, ok: dn(1.2), show: delta(" pts"), bonus: { jobs: -1.2, sme: 2 }, bonusText: "More hiring and a better climate for small business." },
   { id: "naira", icon: "💵", name: "Defend the Naira", blurb: "Stop the slide.", goal: "Naira no weaker than +3% on the start of the year", gauge: (s) => s.eco.fx, ok: (f, n) => n <= f * 1.03, show: (f, n) => `${n >= f ? "+" : "−"}${Math.abs(((n - f) / f) * 100).toFixed(1)}%`, bonus: { fxSupply: 1.2, investor: 1 }, bonusText: "A little more dollar supply and investor confidence." },
   { id: "peace", icon: "🕊️", name: "A Year of Peace", blurb: "Quieter roads, safer farms.", goal: "Security risk down 4 points", gauge: (s) => s.sec.index, ok: dn(4), show: delta(" pts"), bonus: { security: 2, forces: 1 }, bonusText: "Forces do a little better on the ground." },
   { id: "popular", icon: "❤️", name: "Win Hearts", blurb: "Be the president the people feel.", goal: "Approval up 6 points", gauge: (s) => s.gov.approval, ok: up(6), show: delta(" pts"), bonus: { happiness: 1.2, trust: 1 }, bonusText: "Mood and trust get a small lift." },
@@ -228,7 +228,7 @@ export function whyChain(s: FixState, key: WhyKey): WhyChain {
       const v = (mod.effects as Record<string, number | undefined>)[L];
       if (v === undefined || Math.abs(v * mod.scale * st) < 0.2) continue;
       const lv = lever(s, L as never);
-      const good = L === "corruption" || L === "inflation" || L === "foodPrice" || L === "transport" ? v < 0 : v > 0;
+      const good = L === "corruption" || L === "inflation" || L === "foodPrice" || L === "transport" || L === "jobs" || L === "oilTheft" ? v < 0 : v > 0;
       levers.push({ label: mod.label.replace(/^(policy|project|measure):/, ""), text: `${L} ${v > 0 ? "+" : "−"}${Math.abs(v * mod.scale * st).toFixed(1)} (all sources ${lv >= 0 ? "+" : "−"}${Math.abs(lv).toFixed(1)})`, good });
     }
   }

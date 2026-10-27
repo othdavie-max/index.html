@@ -1,8 +1,10 @@
 "use client";
 /** Adviser comments: portraits, a stance chip and what they think. Used on events, big moves, laws and strongman tools. */
 import { useState } from "react";
-import { Portrait } from "../../game/ui/kit";
+import { Button, Portrait } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
+import { advisers } from "../engine/dayone";
+import { isAuto, propLog, setAuto } from "../engine/proposals";
 import { adviceFor, briefing, eventAdvice, type Advice } from "../engine/advice";
 import { AIDE_KINDS } from "../engine/dayone";
 import type { GameEvent } from "../engine/types";
@@ -63,7 +65,29 @@ export function BriefingPanel() {
     <div className="g-col" style={{ gap: 10 }}>
       {list.length === 0 && <div className="g-small g-muted">You have no advisers. Pick a Chief of Staff and a Vice President to get briefings.</div>}
       {list.map((a) => <AdviceLine key={a.by.id} a={a} role={roleOf(s, a)} />)}
+      <ProposalsCard />
       <div className="g-tiny g-muted">Advisers are only as good as they are skilled and honest. A flatterer will tell you everything is fine. A clever one warns you with real numbers. Different people notice different problems, so a team with different strengths sees more.</div>
+    </div>
+  );
+}
+
+function ProposalsCard() {
+  const s = useS();
+  const { act } = useFix();
+  const team = advisers(s);
+  const log = propLog(s).slice().reverse();
+  if (!team.length) return null;
+  return (
+    <div className="g-card-flat g-col" style={{ gap: 8 }}>
+      <b>Ideas from your advisers</b>
+      <div className="g-small g-muted">Every month or two a smart adviser may bring you something to build. Say yes and you run it; tell them to handle it and their skill, honesty and loyalty decide how it goes. Switch on &quot;acts on their own&quot; to stop being asked.</div>
+      {team.map((a) => (
+        <div key={a.id} className="g-row g-between g-wrap" style={{ gap: 8 }}>
+          <span className="g-small"><b>{a.name}</b> <span className="g-muted">{a.revealed || s.month - a.since >= 6 ? `skill ${a.skill}, honesty ${a.integrity}, loyalty ${a.loyalty}` : "(you do not know them well yet)"}</span></span>
+          <Button size="sm" variant={isAuto(s, a.id) ? "primary" : "default"} onClick={() => act((x) => { setAuto(x, a.id, !isAuto(x, a.id)); return { ok: true, message: isAuto(x, a.id) ? `${a.name} will now act on good ideas without asking.` : `${a.name} will ask you first.` }; })}>{isAuto(s, a.id) ? "Acts on their own: ON" : "Asks me first"}</Button>
+        </div>
+      ))}
+      {log.length > 0 && <div className="g-col" style={{ gap: 4 }}><div className="g-section-title">Recently</div>{log.slice(0, 6).map((l, i) => <div key={i} className="g-small">• <b>{l.by}</b> · {l.what} <span className="g-muted">({l.mode === "own" ? "you built it" : l.mode === "deleg" ? "you told them to handle it" : "on their own"})</span>: {l.text}</div>)}</div>}
     </div>
   );
 }

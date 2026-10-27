@@ -123,3 +123,11 @@ Run tests: `npx vitest run src/fixit`.
 - **Quick term**: one four-year term, two months a turn, no re-election or overstay, ending in a verdict. About 20 minutes.
 - **Merged tabs**: Sectors now sits under Policies, Lending under Debt, "What I caused" under "Nigeria today" (the Street tab).
 - Tests: `src/fixit/tests/meta.test.ts`.
+
+## Advisers bring ideas (proposals)
+
+- `engine/proposals.ts`: every month or two your Chief of Staff or VP may bring a project or policy to the desk. A clever adviser (skill 60+) proposes what the country needs most (scored against food, power, jobs, fx, corruption, security, health, schools and fuel); a middling one picks among the top three; a weak one often proposes a vanity project. Only one proposal is open at a time, and declined ideas are not raised again for eight months.
+- Four choices: **build it myself** (you start it, normal rules); **go and handle it yourself** (the aide runs it: skill sets quality, delays and overruns, honesty sets what is skimmed into the loot ledger and may reveal them, loyalty sets effort; a corrupt, disloyal aide can wreck it); **handle things like this from now on** (they act without asking; a log under People then Advisers, with a per-adviser switch); **not now**.
+- Delegated projects carry notes ("Handled by …") and a real quality, delay and cost penalty; delegated policies get a weaker or stronger modifier.
+- Also fixed: the "Jobs, Jobs, Jobs" agenda boost had the wrong sign for the jobs lever.
+- Tests: `src/fixit/tests/meta.test.ts` (advisers section).
