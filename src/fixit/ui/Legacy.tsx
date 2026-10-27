@@ -2,7 +2,7 @@
 import { Award, RotateCcw, Play } from "lucide-react";
 import { useFix, useS } from "./store";
 import { Button, Card } from "../../game/ui/kit";
-import { buildLegacy, chooseExit } from "../engine/legacy";
+import { buildLegacy, chooseExit, refuseToLeave } from "../engine/legacy";
 import { computeEnding } from "../engine/endings";
 import { democracyLabel } from "../engine/power";
 import { sfx } from "./sound";
@@ -91,6 +91,7 @@ export function Legacy() {
         </Card>
         {s.achievements.length > 0 && <Card title={`Milestones (${s.achievements.length})`}><div className="fx-pills">{s.achievements.map((a) => <span key={a.id} className="g-badge g-badge-green">🏅 {a.label}</span>)}</div></Card>}
         <div className="g-row g-wrap" style={{ gap: 10 }}>
+          {s.ended.overstay && <div className="g-card-flat" style={{ background: "#3b0a14", borderColor: "#e11d48", color: "#fff", flex: "1 1 100%" }}><b>⚖️ Refuse to leave office?</b><div className="g-small" style={{ color: "#fecdd3", marginTop: 4 }}>The constitution says your time is up. You can stay anyway. There is no vote and no law, only the army and your word. Expect: ECOWAS suspending Nigeria, a Supreme Court ruling against you, governors refusing to recognise you, officers meeting in secret, a general strike. Each time you do it, it gets worse.</div><Button variant="danger" size="sm" style={{ marginTop: 8 }} onClick={() => act((x) => refuseToLeave(x))}>Refuse to leave</Button></div>}
           {won && <Button variant="primary" onClick={continueTerm}><Play size={16} /> Begin your second term</Button>}
           <ShareButton s={s} title={lg.title} a={last.start} b={last.end} verdict={lg.titleWhy} />
           <Button variant={won ? "default" : "primary"} onClick={() => startNew(s.meta.seed)}><RotateCcw size={16} /> Replay this same world</Button>

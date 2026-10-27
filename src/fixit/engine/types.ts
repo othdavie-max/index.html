@@ -124,7 +124,9 @@ export type Portfolio = "finance" | "agriculture" | "power" | "security" | "cbn"
 export type Faction = "technocrat" | "loyalist" | "heavyweight" | "crony";
 export interface Minister { id: string; name: string; portfolio: Portfolio; skill: number; integrity: number; faction: Faction; trait: string; zone: string; since: number; mood: number;
   /** cronies: honesty is unknown until something happens */
-  hidden?: boolean; bio?: string }
+  hidden?: boolean; bio?: string;
+  /** month you warned them: "you are here to work, not to eat" */
+  warned?: number }
 export type AideKind = "friend" | "technocrat" | "chieftain" | "general" | "cleric" | "regional" | "loyalist" | "defector";
 export interface Aide { id: string; kind: AideKind; name: string; bio: string; skill: number; loyalty: number; integrity: number; portrait: Portrait; revealed: boolean; since: number }
 export interface Backer { id: string; name: string; title: string; zone: string; power: number; bio: string; mood: number; owed: number }
@@ -132,6 +134,7 @@ export interface Deal { id: string; name: string; sector: string; stateId: strin
 export type EnemyPlan = "protests" | "leaks" | "rival" | "bandits" | "coup";
 export interface Enemy { id: string; name: string; reason: string; portrait: Portrait; plan: EnemyPlan; power: number; grudge: number; zone: string; status: "active" | "bought" | "crushed" | "reconciled"; since: number; note?: string }
 export interface TimelineItem { month: number; title: string; text: string; tone: "good" | "bad" | "neutral"; chain?: string }
+export interface Gone { id: string; name: string; role: string; how: "executed" | "jailed" | "released"; month: number; releaseAt?: number; stateId?: string }
 export interface Staff { cos: Aide | null; vp?: Aide | null; picked: boolean }
 export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number; honest?: number; rigged?: boolean; stolen?: boolean }
 export type Difficulty = "easy" | "normal" | "hard";
@@ -141,14 +144,14 @@ export type Trait = "reformer" | "populist" | "strongman" | "clean" | "builder" 
 export type BudgetHead = "education" | "health" | "security" | "infrastructure" | "social";
 export interface Governor { zone: string; name: string; party: "NPP" | "PRA"; relation: number; ambition: number }
 export type Chamber = "senate" | "reps";
-export type LmStatus = "active" | "exposed" | "jailed" | "executed" | "controlled" | "protected";
+export type LmStatus = "active" | "exposed" | "jailed" | "executed" | "controlled" | "protected" | "released";
 export interface Lawmaker {
   id: string; name: string; chamber: Chamber; stateId: string; party: "NPP" | "PRA"; loyalty: number; greed: number;
   /** ₦bn stolen so far (you may not know) */
   stolen: number;
   /** how much proof you hold (0-100) */
   evidence: number;
-  status: LmStatus; portrait: Portrait; trait: string; since: number; note?: string;
+  status: LmStatus; portrait: Portrait; trait: string; since: number; note?: string; releaseAt?: number;
 }
 export interface PowerState {
   lawLevel: 0 | 1 | 2 | 3 | 4;
@@ -185,7 +188,7 @@ export interface FixState {
   processed: number; // last month index fully processed (idempotency)
   term: number;
   termStart: number;
-  ended: null | { kind: "term" | "removed"; text: string; cause?: "impeached" | "coup" | "uprising"; choice?: boolean };
+  ended: null | { kind: "term" | "removed"; text: string; cause?: "impeached" | "coup" | "uprising"; choice?: boolean; overstay?: boolean };
   done: boolean; // whole game finished (legacy shown)
   eco: {
     fx: number; reserves: number; inflation: number; foodInflation: number; emaDrift: number; priceLevel: number; foodPriceIdx: number;
@@ -232,6 +235,7 @@ export interface FixState {
   backers: Backer[];
   deals: Deal[];
   enemies: Enemy[];
+  gone: Gone[];
   timeline: TimelineItem[];
   assembly: { support: number; lobby: Record<string, number>; passed: number; defeats: number };
   governors: Governor[];

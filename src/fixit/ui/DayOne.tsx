@@ -6,13 +6,16 @@ import { Badge, Bar, Button, Callout, Portrait } from "../../game/ui/kit";
 import { AIDE_KINDS, cosCandidates, finishDayOne, pickChiefOfStaff, pickVice, vpCandidates } from "../engine/dayone";
 import { FACTION_LABEL, PORTFOLIOS, appoint } from "../engine/cabinet";
 import { backerLabel, cosMood, hireMood } from "../engine/backers";
+import { BACKER_GIFTS, giftBlock, giveGift } from "../engine/officials";
+import { warnMinister } from "../engine/cabinet";
 import type { Minister } from "../engine/types";
 import { sfx } from "./sound";
 
 const FACE = (v: number) => (v >= 75 ? "😍" : v >= 55 ? "🙂" : v >= 35 ? "😐" : v >= 20 ? "😠" : "🤬");
 
-export function BackerRow() {
+export function BackerRow({ gifts }: { gifts?: boolean }) {
   const s = useS();
+  const { act } = useFix();
   return (
     <div className="g-col" style={{ gap: 8 }}>
       {s.backers.map((b) => (
@@ -22,6 +25,7 @@ export function BackerRow() {
             <div className="g-row g-between g-small"><b>{b.name}</b><span className="g-muted">{b.title}</span></div>
             <Bar value={b.mood / 100} tone={b.mood < 30 ? "red" : b.mood < 50 ? "amber" : undefined} label={`${b.name}: ${backerLabel(b)}`} />
             <div className="g-tiny g-muted">{backerLabel(b)}{b.owed > 10 ? ` · spent about ₦${Math.round(b.owed)}bn on your campaign` : ""}</div>
+            {gifts && <div className="g-row g-wrap" style={{ gap: 4, marginTop: 4 }}>{BACKER_GIFTS.map((g) => { const block = giftBlock(s, b, g.id); return <Button key={g.id} size="sm" disabled={!!block} title={block ?? g.explain} onClick={() => act((x) => giveGift(x, b.id, g.id))}>{g.label}</Button>; })}</div>}
           </div>
         </div>
       ))}
@@ -66,6 +70,7 @@ export function DayOne() {
   const s = useS();
   const { act } = useFix();
   const [step, setStep] = useState(0);
+  const [charge, setCharge] = useState(false);
   const cands = cosCandidates(s);
   return (
     <div className="fx-dayone" role="dialog" aria-modal="true" aria-label="Day One">
@@ -97,6 +102,7 @@ export function DayOne() {
             <h2>Pick your ministers</h2>
             <p className="g-small" style={{ color: "#cfe0ee" }}>Qualified strangers run the economy well. Your own people are loyal and your backers love them, but nobody knows how honest they are. <b>Choose carefully: the people who funded you are watching.</b></p>
             <div className="fx-backers"><BackerRow /></div>
+            <label className="fx-charge"><input type="checkbox" checked={charge} onChange={(e) => setCharge(e.target.checked)} /> <span><b>Charge every appointee:</b> "You are not here to eat. You are here to work. Steal and you answer for it." <i>They steal less, but your own people will be offended, and you must act if one steals.</i></span></label>
             <div className="g-col" style={{ gap: 12 }}>
               {PORTFOLIOS.map((p) => {
                 const cur = s.cabinet.members[p.id];
@@ -117,8 +123,8 @@ export function DayOne() {
             <h2>The reaction</h2>
             <p className="g-small" style={{ color: "#cfe0ee" }}>Your backers have seen your list. Remember: you can change ministers later, but sacking someone costs you.</p>
             <div className="fx-backers"><BackerRow /></div>
-            {s.backers.some((b) => b.mood < 40) ? <Callout tone="warn">Some of the people who bankrolled you are not happy. Expect them to remind you how you got here.</Callout> : <Callout tone="info">Your backers are content, for now. They will come asking for contracts.</Callout>}
-            <div className="g-row g-between"><Button onClick={() => setStep(2)}>Back</Button><Button variant="primary" onClick={() => { sfx("fanfare"); act((x) => { finishDayOne(x); return { ok: true, message: "You have taken office." }; }, { silent: true }); }}>Take office, Mr/Madam President</Button></div>
+            {s.backers.some((b) => b.mood < 56) ? <Callout tone="warn"><b>Expect an ultimatum in your first month.</b> Some of the people who bankrolled you are not happy. You can appease them, give their people deputy posts as a way around it, promise them later, or hold the line and pay for it.</Callout> : <Callout tone="info">Your backers are content, for now. They will come asking for contracts.</Callout>}
+            <div className="g-row g-between"><Button onClick={() => setStep(2)}>Back</Button><Button variant="primary" onClick={() => { sfx("fanfare"); act((x) => { if (charge) for (const p of PORTFOLIOS) warnMinister(x, p.id); finishDayOne(x); return { ok: true, message: "You have taken office." }; }, { silent: true }); }}>Take office, Mr/Madam President</Button></div>
           </>
         )}
       </div>

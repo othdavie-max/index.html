@@ -112,6 +112,25 @@ export function appoint(s: FixState, portfolio: Portfolio, candidateId: string):
   pushNews(s, { source: `appoint:${portfolio}`, headline: `${cand.name} named ${PORTFOLIO_BY_ID[portfolio].title}`, body: FACTION_LABEL[cand.faction].blurb, tone: "neutral" });
   return { ok: true, message: `${cand.name} is the new ${PORTFOLIO_BY_ID[portfolio].title}.` };
 }
+/** a minister is jailed or executed: gone for good, never back in the pool */
+export function removeMinister(s: FixState, portfolio: Portfolio, how: "jailed" | "executed", releaseAt?: number): Minister | undefined {
+  const m = s.cabinet.members[portfolio];
+  if (!m) return undefined;
+  delete s.cabinet.members[portfolio];
+  applyMinister(s, portfolio);
+  s.gone.push({ id: m.id, name: m.name, role: PORTFOLIO_BY_ID[portfolio].title, how, month: s.month, releaseAt });
+  return m;
+}
+/** "You are here to work, not to eat": ministers you warned steal less, but cronies resent it */
+export function warnMinister(s: FixState, portfolio: Portfolio): CabResult {
+  const m = s.cabinet.members[portfolio];
+  if (!m) return { ok: false, message: "That post is vacant." };
+  if (m.warned !== undefined) return { ok: false, message: `${m.name} has already been warned.` };
+  m.warned = s.month;
+  if (m.faction === "crony" || m.faction === "loyalist") { m.mood = clamp100(m.mood - 12); for (const b of s.backers ?? []) b.mood = clamp100(b.mood - 2); }
+  return { ok: true, message: `${m.name} has been told: work, do not eat. ${m.faction === "crony" || m.faction === "loyalist" ? "He is offended: he expected a different kind of job." : ""}` };
+}
+export const warnMult = (s: FixState, m: Minister) => (m.warned === undefined ? 1 : s.flags.hollowWarn !== undefined && s.month - Number(s.flags.hollowWarn) < 24 ? 1 : Math.max(0.25, 0.72 - 0.1 * s.rule.lawLevel));
 export function sack(s: FixState, portfolio: Portfolio, reason = "sacked"): CabResult {
   const m = s.cabinet.members[portfolio];
   if (!m) return { ok: false, message: "That post is already vacant." };
@@ -141,7 +160,7 @@ export function cabinetMonthly(s: FixState, rng: Rng, createScandal: (p: Portfol
     m.mood = clamp100(m.mood + 1.5 * areaTrend(s, p.id) + (s.gov.approval - 45) * 0.03 + rng.normal(0, 1));
     if (m.faction === "technocrat" && s.me.acts.includes("kickback")) m.mood = clamp100(m.mood - 1.5);
     const corrupt = Math.max(0, (50 - m.integrity) / 50);
-    if (corrupt > 0 && s.month - m.since >= 3 && rng.chance(corrupt * 0.045)) { createScandal(p.id); continue; }
+    if (corrupt > 0 && s.month - m.since >= 3 && rng.chance(corrupt * 0.045 * warnMult(s, m))) { createScandal(p.id); continue; }
     if (m.mood < 18 && rng.chance(0.4)) {
       sack(s, p.id, "resigned");
       s.gov.trust = clamp100(s.gov.trust - 1);

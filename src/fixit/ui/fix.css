@@ -226,3 +226,5 @@
 .gm .fx-subtabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--g-border); }
 .gm .fx-subtab { background: #fff; border: 1px solid var(--g-border); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; color: #0f172a; }
 .gm .fx-subtab[aria-pressed="true"] { background: #0b1f36; color: #f5d57a; border-color: #0b1f36; }
+.gm .fx-charge { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; color: #fff; cursor: pointer; }
+.gm .fx-charge input { margin-top: 3px; width: 18px; height: 18px; flex: none; }

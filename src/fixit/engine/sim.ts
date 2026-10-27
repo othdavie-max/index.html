@@ -24,6 +24,7 @@ import { checkRecords } from "./history";
 import { investorsMonthly } from "./investors";
 import { ripplesMonthly } from "./ripples";
 import { deskMonthly } from "./desk";
+import { officialsMonthly } from "./officials";
 import { createEvent } from "./events";
 import { makeNews } from "./news";
 import { evaluateTermEnd } from "./legacy";
@@ -53,6 +54,7 @@ export function advanceMonth(s: FixState): boolean {
   investorsMonthly(s, subRng(s.meta.seed, "investors", m));
   ripplesMonthly(s, subRng(s.meta.seed, "ripples", m));
   deskMonthly(s, subRng(s.meta.seed, "desk", m));
+  officialsMonthly(s);
   resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));

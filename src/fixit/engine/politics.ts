@@ -49,9 +49,14 @@ function budgetDifficulty(s: FixState): number {
 }
 export function billChance(s: FixState, bill: string): number {
   const greedy = sitting(s).length ? sitting(s).filter((l) => l.greed > 60).length / sitting(s).length : 0;
-  const diff = bill === "budget" ? budgetDifficulty(s) : bill.startsWith("law:") ? (LAW_DIFFICULTY[Number(bill.slice(4))] ?? 10) + 14 * greedy : bill === "amendment" ? 28 : BILL_DIFFICULTY[bill] ?? 0;
+  const diff = bill === "budget" ? budgetDifficulty(s) + (Number(s.flags.budgetBlockUntil ?? -1) > s.month ? 25 : 0) : bill.startsWith("law:") ? (LAW_DIFFICULTY[Number(bill.slice(4))] ?? 10) + 14 * greedy : bill === "amendment" ? 42 : BILL_DIFFICULTY[bill] ?? 0;
   const z = (s.assembly.support + (s.assembly.lobby[bill] ?? 0) - 50 - diff) / 7;
-  return clamp(1 / (1 + Math.exp(-z)), 0.03, 0.97);
+  let p = clamp(1 / (1 + Math.exp(-z)), 0.03, 0.97);
+  if (bill === "amendment") { // two thirds of lawmakers must be firmly yours
+    const sit = sitting(s), share = sit.length ? sit.filter((l) => l.loyalty >= 55).length / sit.length : 0;
+    p *= share >= 0.66 ? 1 : share >= 0.5 ? 0.45 : 0.12;
+  }
+  return p;
 }
 export type LobbyKind = "projects" | "favours" | "people";
 export const LOBBY: Record<LobbyKind, { label: string; explain: string }> = {

@@ -23,7 +23,7 @@ export function StaffCard() {
         </div>
       </Card>
       <Card title="Your backers" icon={<Users size={16} />}>
-        <BackerRow />
+        <BackerRow gifts />
         <div className="g-tiny g-muted" style={{ marginTop: 8 }}>The people who paid for your campaign. Give them jobs and contracts and they steal and want more. Freeze them out and they will fight you: sponsored protests, bandits in their zone, a blocked Assembly.</div>
       </Card>
     </>

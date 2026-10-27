@@ -13,6 +13,7 @@ import { addMod, calMonth, clamp, clamp100, nb, pushNews, pushReport, removeMods
 import { createEvent } from "./events";
 import { finishTerm } from "./legacy";
 import { staffCoup } from "./dayone";
+import { act } from "./act";
 import { ripple } from "./ripples";
 
 // ---------------------------------------------------------------- the law ladder
@@ -81,20 +82,7 @@ export const authoritarian = (s: FixState) => s.rule.democracy < 50;
 export const dictator = (s: FixState) => s.rule.democracy < 38;
 export const democracyLabel = (s: FixState) => (s.rule.democracy >= 72 ? "Free" : s.rule.democracy >= 55 ? "Fragile democracy" : s.rule.democracy >= 38 ? "Strongman rule" : "Dictatorship");
 
-export function act(s: FixState, id: string, d: { democracy?: number; anger?: number; intl?: number; elite?: number; coup?: number; press?: number; judiciary?: number; trust?: number }) {
-  const p = s.rule;
-  p.acts.push(id); if (p.acts.length > 60) p.acts.shift();
-  p.abuse = clamp(p.abuse + Math.max(0, -(d.democracy ?? 0)), 0, 120);
-  p.democracy = clamp100(p.democracy + (d.democracy ?? 0));
-  p.streetAnger = clamp100(p.streetAnger + (d.anger ?? 0));
-  p.intlPressure = clamp100(p.intlPressure + (d.intl ?? 0));
-  p.eliteLoyalty = clamp100(p.eliteLoyalty + (d.elite ?? 0));
-  p.coupRisk = clamp100(p.coupRisk + (d.coup ?? 0));
-  p.pressFreedom = clamp100(p.pressFreedom + (d.press ?? 0));
-  p.judiciary = clamp100(p.judiciary + (d.judiciary ?? 0));
-  if (d.trust) s.gov.trust = clamp100(s.gov.trust + d.trust);
-  s.flags.lastActMonth = s.month;
-}
+export { act };
 export interface PResult { ok: boolean; message: string }
 const fail = (message: string): PResult => ({ ok: false, message });
 const mult = (s: FixState) => 0.6 + 0.4 * (s.eco.priceLevel / 100);
@@ -115,7 +103,7 @@ export function punish(s: FixState, lm: Lawmaker, why: "case" | "arrest" | "cour
     s.rule.wrongful++;
     act(s, "politicalArrest", { democracy: -8, intl: 6, anger: 3, elite: -2, press: -3 });
     s.gov.trust = clamp100(s.gov.trust - 2);
-    lm.status = "jailed";
+    lm.status = "jailed"; lm.releaseAt = s.month + 14;
     ripple(s, "wrongful", { name: lm.name, stateId: lm.stateId, lmId: lm.id });
     lines.push(`${lm.name} was locked up on thin evidence. Critics call it a political arrest.`);
   } else if (level === 0) {
@@ -133,6 +121,7 @@ export function punish(s: FixState, lm: Lawmaker, why: "case" | "arrest" | "cour
     if (level === 1) { lm.stolen = 0; lm.evidence = 0; lm.loyalty = clamp100(lm.loyalty - 10); lines.push(`${lm.name} was ordered to hand back ${nb(back)} and pay a heavy fine.`); }
     else {
       lm.status = level === 4 ? "executed" : "jailed";
+      if (level === 2) lm.releaseAt = s.month + 30;
       lines.push(level === 2 ? `${lm.name} was sentenced to prison and lost the seat; ${nb(back)} was recovered.` : level === 3 ? `${lm.name} was sentenced to life in prison; ${nb(back)} was recovered.` : `${lm.name} was sentenced to death for grand corruption. ${nb(back)} was recovered.`);
       ripple(s, level === 4 ? "execute" : "jail", { name: lm.name, stateId: lm.stateId, lmId: lm.id });
       if (level === 4) { s.rule.executions++; act(s, "execution", { intl: 8, anger: rng.chance(0.4) ? 4 : -2, democracy: -2, elite: -3 }); s.sec.humanRights = clamp100(s.sec.humanRights - 6); }
@@ -384,6 +373,7 @@ export function annulElection(s: FixState): PResult {
 export function amendConstitution(s: FixState): PResult {
   s.rule.maxTerms = 99;
   act(s, "noTermLimits", { democracy: -18, anger: 12, intl: 12, elite: -2 });
+  ripple(s, "amend");
   pushNews(s, { source: `amend:${s.month}`, headline: "Assembly scraps presidential term limits", body: "Lawmakers voted to allow the President to seek unlimited terms. Opposition leaders walked out.", tone: "bad" });
   return { ok: true, message: "Term limits are gone. You may stand again and again." };
 }
@@ -487,5 +477,5 @@ export function powerMonthly(s: FixState, rng: Rng) {
 }
 
 export function relationLabel(lm: Lawmaker): string { return lm.loyalty >= 75 ? "Devoted" : lm.loyalty >= 55 ? "Friendly" : lm.loyalty >= 38 ? "Wavering" : "Hostile"; }
-export const STATUS_LABEL: Record<LmStatus, string> = { active: "Sitting", exposed: "Exposed", jailed: "Jailed", executed: "Executed", controlled: "Under your thumb", protected: "Protected" };
+export const STATUS_LABEL: Record<LmStatus, string> = { released: "Released from prison", active: "Sitting", exposed: "Exposed", jailed: "Jailed", executed: "Executed", controlled: "Under your thumb", protected: "Protected" };
 export { TOWN };

@@ -9,6 +9,7 @@ import type { FixState } from "./types";
 import { addMod, clamp, clamp100, nb, pushNews, removeMods } from "./util";
 import { createEvent } from "./spawn";
 import { relate } from "./society";
+import { ripple } from "./ripples";
 
 const sname = (id: string) => STATE_BY_ID[id]?.name ?? id;
 const W = (s: FixState, k: string, m: number) => { void m; return typeof s.flags[`cdt:${k}`] === "number" && s.month - (s.flags[`cdt:${k}`] as number) < 10; };
@@ -55,7 +56,7 @@ export function deskMonthly(s: FixState, rng: Rng) {
 }
 
 // ---------------------------------------------------------------- promises that come back
-interface Mem { kind: "road"; stateId: string; due: number; asked: number }
+interface Mem { kind: "road" | "backerJobs"; stateId: string; due: number; asked: number }
 const mems = (s: FixState) => JSON.parse(String(s.flags.mems ?? "[]")) as Mem[];
 const saveMems = (s: FixState, m: Mem[]) => { s.flags.mems = JSON.stringify(m); };
 function checkPromises(s: FixState) {
@@ -64,6 +65,12 @@ function checkPromises(s: FixState) {
   const rest: Mem[] = [];
   for (const x of m) {
     if (s.month < x.due) { rest.push(x); continue; }
+    if (x.kind === "backerJobs") {
+      const own = Object.values(s.cabinet.members).filter((m) => m && (m.faction === "crony" || m.faction === "loyalist")).length;
+      if (own >= 2 || s.flags.deputies !== undefined) { for (const b of s.backers) b.mood = clamp100(b.mood + 6); pushNews(s, { source: `memjobs:${s.month}`, headline: "Backers say the president kept his word to them", body: "Their people got seats at the table.", tone: "neutral" }); }
+      else { for (const b of s.backers) b.mood = clamp100(b.mood - 22 * b.power); s.assembly.support = clamp100(s.assembly.support - 5); ripple(s, "snub"); pushNews(s, { source: `memjobsX:${s.month}`, headline: "Backers: 'he promised us, and he lied'", body: "The eight months are up. Nothing was done.", tone: "bad" }); }
+      continue;
+    }
     const kept = s.projects.some((p) => p.stateId === x.stateId && p.status === "done" && (p.done ?? 0) >= x.asked - 2);
     if (kept) { relate(s, x.stateId, 6); s.gov.trust = clamp100(s.gov.trust + 2.5); pushNews(s, { source: `memroad:${x.stateId}:${s.month}`, headline: `${sname(x.stateId)}: "the president kept his word"`, body: "A road promised more than a year ago was opened. Villagers danced at the ribbon cutting.", tone: "good", stateId: x.stateId }); }
     else { relate(s, x.stateId, -8); s.gov.trust = clamp100(s.gov.trust - 3); const r = s.regions[x.stateId]; if (r) r.unrest = clamp100(r.unrest + 6); pushNews(s, { source: `memroadX:${x.stateId}:${s.month}`, headline: `${sname(x.stateId)}: "you promised us a road"`, body: "Residents blocked the highway with a banner reading 'Mr President, remember us.'", tone: "bad", stateId: x.stateId }); }

@@ -3,23 +3,25 @@ import { useState } from "react";
 import { Users } from "lucide-react";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Card, Initials, Modal } from "../../game/ui/kit";
-import { FACTION_LABEL, PORTFOLIOS, PORTFOLIO_BY_ID, appoint, cabinetScore, sack, vacancies, ministerEffects } from "../engine/cabinet";
+import { FACTION_LABEL, PORTFOLIOS, PORTFOLIO_BY_ID, appoint, cabinetScore, sack, vacancies, ministerEffects, warnMinister } from "../engine/cabinet";
 import type { Minister, Portfolio } from "../engine/types";
 import { ZONE_NAME } from "../engine/rival";
 import { chips } from "../engine/forecast";
 import { Chips } from "./parts";
 
-const FACTION_COLOR: Record<string, string> = { technocrat: "#1d4ed8", loyalist: "#0b1f36", heavyweight: "#b45309" };
+const FACTION_COLOR: Record<string, string> = { technocrat: "#1d4ed8", loyalist: "#0b1f36", heavyweight: "#b45309", crony: "#9f1239" };
 
-function MinisterRow({ m, action }: { m: Minister; action?: React.ReactNode }) {
+function MinisterRow({ m, action, inOffice }: { m: Minister; action?: React.ReactNode; inOffice?: boolean }) {
+  const s = useS();
+  const veiled = !!m.hidden && (!inOffice || s.month - m.since < 6);
   return (
     <div className="g-row" style={{ alignItems: "flex-start", gap: 10 }}>
       <Initials name={m.name.split(" ").slice(1).join(" ")} size={40} color={FACTION_COLOR[m.faction]} />
       <div className="g-grow">
-        <div className="g-row g-wrap" style={{ gap: 6 }}><b className="g-small">{m.name}</b><Badge tone={m.faction === "technocrat" ? "blue" : m.faction === "heavyweight" ? "amber" : "navy"}>{FACTION_LABEL[m.faction].label}</Badge><span className="g-tiny g-muted">{m.trait} · from the {ZONE_NAME[m.zone]}</span></div>
+        <div className="g-row g-wrap" style={{ gap: 6 }}><b className="g-small">{m.name}</b><Badge tone={m.faction === "technocrat" ? "blue" : m.faction === "heavyweight" ? "amber" : m.faction === "crony" ? "red" : "navy"}>{FACTION_LABEL[m.faction].label}</Badge>{m.warned !== undefined && <Badge tone="amber">Warned</Badge>}<span className="g-tiny g-muted">{m.trait} · from the {ZONE_NAME[m.zone]}</span></div>
         <div className="g-grid g-grid-2 g-grid-keep2" style={{ gap: 6, marginTop: 4 }}>
-          <div><div className="g-tiny g-muted">Skill {m.skill}</div><Bar value={m.skill / 100} tone="blue" label={`Skill ${m.skill}`} /></div>
-          <div><div className="g-tiny g-muted">Honesty {m.integrity}</div><Bar value={m.integrity / 100} tone={m.integrity < 45 ? "red" : undefined} label={`Honesty ${m.integrity}`} /></div>
+          <div><div className="g-tiny g-muted">Skill {veiled ? "?" : m.skill}</div><Bar value={veiled ? 0 : m.skill / 100} tone="blue" label={veiled ? "Skill unknown" : `Skill ${m.skill}`} /></div>
+          <div><div className="g-tiny g-muted">Honesty {veiled ? "?" : m.integrity}</div><Bar value={veiled ? 0 : m.integrity / 100} tone={!veiled && m.integrity < 45 ? "red" : undefined} label={veiled ? "Honesty unknown" : `Honesty ${m.integrity}`} /></div>
         </div>
       </div>
       {action}
@@ -67,7 +69,8 @@ function CabinetModal({ start, onClose }: { start: Portfolio | "all"; onClose: (
       <div className="g-small g-muted">{PORTFOLIO_BY_ID[p].area}. {free ? "Changes are free during your first three months." : "Each reshuffle costs a little trust; sacking a loyalist strengthens the opposition, sacking a heavyweight angers their zone."}</div>
       <div className="g-section-title">In office</div>
       {cur ? <>
-        <MinisterRow m={cur} action={<Button size="sm" variant="ghost" onClick={() => act((x) => sack(x, p))}>Sack</Button>} />
+        <MinisterRow m={cur} inOffice action={<div className="g-col" style={{ gap: 4 }}><Button size="sm" variant="ghost" disabled={cur.warned !== undefined} title="Tell him: you are here to work, not to eat" onClick={() => act((x) => warnMinister(x, p))}>{cur.warned !== undefined ? "Warned" : "Warn"}</Button><Button size="sm" variant="ghost" onClick={() => act((x) => sack(x, p))}>Sack</Button></div>} />
+        {cur.warned === undefined && <div className="g-tiny g-muted">"Warn" tells him: <i>you are here to work, not to eat; steal and you answer for it.</i> He steals less, but if he steals anyway and you do nothing, every minister learns your warnings mean nothing. Your own people will resent it.</div>}
         <Chips chips={chips(ministerEffects(cur, p))} label="Effect" />
       </> : <div className="g-small" style={{ color: "#9f1239" }}>Vacant. Their area suffers until you appoint someone.</div>}
       <div className="g-section-title" style={{ marginTop: 6 }}>Available</div>

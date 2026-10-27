@@ -53,7 +53,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
     why: {},
     regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [], cabinet: { members: {}, pool: [], reshuffles: 0 }, rival: { name: "", party: "", zone: "", popularity: 45 }, campaign: { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 }, election: null, lawmakers: [], rule: {} as never, assembly: { support: 55, lobby: {}, passed: 0, defeats: 0 }, governors: [], groups: {} as never, groupMood: {} as never, reputation: {} as never, budget: {} as never, speech: { last: -9, moment: null },
     baseline: undefined as never,
-    flags: {}, staff: { cos: null, picked: false }, backers: [], deals: [], enemies: [], timeline: [], settings: { autosave: true, reducedMotion: false },
+    flags: {}, staff: { cos: null, picked: false }, backers: [], deals: [], enemies: [], timeline: [], gone: [], settings: { autosave: true, reducedMotion: false },
   };
   initCabinet(s);
   initRival(s);

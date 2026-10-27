@@ -86,6 +86,7 @@ export function EnemiesPanel() {
           </div>
         </Card>
       ))}
+      {s.gone.length > 0 && <Card title="Gone for good"><div className="g-col" style={{ gap: 6 }}>{s.gone.map((g) => <div key={g.id} className="g-row g-between g-small"><span><b>{g.name}</b> <span className="g-muted">· {g.role}</span></span><Badge tone={g.how === "executed" ? "red" : g.how === "released" ? "amber" : "navy"}>{g.how === "executed" ? `Executed ${monthLabel(g.month)}` : g.how === "released" ? "Released: now an enemy" : g.releaseAt ? `In prison until ${monthLabel(g.releaseAt)}` : "In prison for life"}</Badge></div>)}</div><div className="g-tiny g-muted" style={{ marginTop: 6 }}>Executed people never return. Jailed ones come out, with a grudge.</div></Card>}
       {off.length > 0 && <Card title="Dealt with"><div className="g-col" style={{ gap: 6 }}>{off.map((e) => <div key={e.id} className="g-row g-between g-small"><span>{e.name}</span><Badge tone={e.status === "reconciled" ? "green" : e.status === "crushed" ? "red" : "amber"}>{e.status === "reconciled" ? "Made peace" : e.status === "crushed" ? "Crushed" : "Bought off"}</Badge></div>)}</div></Card>}
     </div>
   );

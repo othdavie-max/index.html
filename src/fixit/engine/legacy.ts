@@ -4,6 +4,9 @@ import { round, snap } from "./util";
 import { PROMISE_BY_ID, promiseScore } from "./promises";
 import { electionReport, runElection, winChance } from "./rival";
 import { overthrow } from "./power";
+import { act } from "./act";
+import { ripple } from "./ripples";
+import { clamp100 } from "./util";
 import { computeEnding, isDirty } from "./endings";
 
 export interface LegacyRow { label: string; start: string; end: string; delta: string; better: boolean | null }
@@ -36,8 +39,9 @@ export function evaluateTermEnd(s: FixState) {
     return;
   }
   if (s.rule.uprising >= 4) { overthrow(s, "uprising"); return; }
+  if (s.flags.courtObeyed !== undefined && s.flags.illegitimate !== undefined) { delete s.flags.courtObeyed; delete s.flags.illegitimate; s.rule.termExtra = 0; finishTerm(s, "completed", "The Supreme Court ruled and you obeyed. You left the villa that evening, and some people say that was the bravest thing you did."); return; }
   if (s.month >= s.termStart + TERM_MONTHS + s.rule.termExtra) {
-    if (s.term >= termCap(s)) { finishTerm(s, "completed", s.term >= HARD_CAP_TERMS ? "You have ruled for sixteen years. History will decide what that was." : "You completed your final term. The constitution allows no more."); return; }
+    if (s.term >= termCap(s)) { finishTerm(s, "completed", s.term >= HARD_CAP_TERMS ? "You have ruled for sixteen years. History will decide what that was." : "You completed your final term. The constitution allows no more."); const e2 = (s as FixState).ended; if (e2 && s.term < HARD_CAP_TERMS) e2.overstay = true; return; }
     const r = runElection(s);
     electionReport(s, r);
     const nth = s.term + 1;
@@ -56,6 +60,19 @@ export function finishTerm(s: FixState, result: TermResult["result"], text: stri
   s.ended = { kind: result === "removed" ? "removed" : "term", text, cause, choice: needChoice };
   s.done = result !== "won";
   if (s.done && !needChoice) s.terms[s.terms.length - 1].ending = computeEnding(s).name;
+}
+
+/** At the end of the last legal term: refuse to leave. There is no vote, only consequences. */
+export function refuseToLeave(s: FixState): { ok: boolean; message: string } {
+  if (!s.ended?.overstay) return { ok: false, message: "Nothing to refuse." };
+  const n = Number(s.flags.overstays ?? 0) + 1;
+  s.flags.overstays = n; s.flags.illegitimate = s.month;
+  s.terms.pop(); s.ended = null; s.done = false; s.election = null;
+  s.rule.termExtra = 12;
+  act(s, "overstay", { democracy: -28 - 4 * n, anger: 18 + 3 * n, intl: 16 + 3 * n, elite: -6, coup: 10 + 4 * n });
+  ripple(s, "overstay");
+  s.gov.trust = clamp100(s.gov.trust - 6);
+  return { ok: true, message: "You stay. No vote, no law, only the army and your word. The country will respond." };
 }
 
 /** The player's last choice after a fall: run with the money, or stay and face the consequences. */

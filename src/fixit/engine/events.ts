@@ -18,6 +18,7 @@ import { BIG_TEMPLATES, BIG_TRIGGERS } from "./bigmoves";
 import { INVESTOR_TEMPLATES } from "./investors";
 import { ENEMY_TEMPLATES, ripple } from "./ripples";
 import { DESK_TEMPLATES } from "./desk";
+import { ALL_OFFICIAL, OFFICIAL_TRIGGERS, prosecuteMinister } from "./officials";
 import { earn, groupPressure, relate } from "./society";
 import { eventRate } from "./setup";
 import type { GroupId } from "./types";
@@ -32,6 +33,7 @@ export interface Fx {
   insecurity?: number; scandal?: number; sackMinister?: boolean; ministerIntegrity?: number; coverage?: number; treasury?: number; reserves?: number; opposition?: number; foreign?: number; corruption?: number;
   oilPrice?: number; health?: number; groups?: Partial<Record<GroupId, number>>; governors?: number; govRel?: number;
   /** power and corruption */
+  prosecute?: boolean;
   anger?: number; coup?: number; intl?: number; elite?: number; democracy?: number; press?: number; inec?: number; assembly?: number; lmLoyalty?: number; judiciary?: number; actTag?: string;
   /** custom effect; may return a sentence that replaces the generic outcome text */
   run?: (s: FixState, e: GameEvent) => string | void;
@@ -74,6 +76,7 @@ const TEMPLATES: Tpl[] = [
     title: (s) => `${ministerName(s)} accused of fraud`,
     cause: (s) => `Auditors say money meant for the ministry was diverted to private accounts linked to ${ministerName(s)}. The press wants to know what you will do.`,
     options: [
+      { id: "prosecute", label: "Prosecute", explain: "The courts decide, and the law as it stands is applied.", cost: 5, tradeoff: "His sponsors will not forgive you.", unc: "medium", dyn: (s) => ({ label: s.rule.lawLevel === 0 ? "Prosecute (the law is weak: a reprimand)" : s.rule.lawLevel === 1 ? "Prosecute: seize the loot and sack him" : s.rule.lawLevel === 2 ? "Prosecute: send him to prison" : s.rule.lawLevel === 3 ? "Prosecute: life in prison" : "Prosecute: death sentence" }), chance: (s) => 0.4 + 0.5 * (s.rule.judiciary / 100), win: { prosecute: true }, lose: { trust: -1, judiciary: -1, run: () => "The case collapsed in court. He is still in the cabinet, and he knows you tried." }, winText: "", loseText: "" },
       { id: "sack", label: "Sack the minister", explain: "Act fast and appoint someone new.", cost: 0, tradeoff: "The post is vacant until you appoint a replacement; their allies are angry.", unc: "low", chance: () => 0.95, win: { sackMinister: true, trust: 2.5, mods: { corruption: -1 }, dur: 6 }, lose: { sackMinister: true, trust: 1 }, winText: "Voters approved of the swift action.", loseText: "" },
       { id: "investigate", label: "Suspend and investigate", explain: "Let an independent panel decide.", cost: 10, tradeoff: "Slow; if they are guilty you look weak for waiting.", unc: "medium", chance: () => 0.5, win: { trust: 1, ministerIntegrity: 15 }, lose: { sackMinister: true, trust: -1 }, winText: "The panel found procedural failures, not theft; the minister promised reforms.", loseText: "The panel confirmed the fraud and the minister had to go." },
       { id: "defend", label: "Defend your minister", explain: "Call it a political smear.", cost: 0, tradeoff: "If the evidence holds, you share the blame.", unc: "high", chance: () => 0.3, win: { trust: -0.5 }, lose: { trust: -4, evidence: 6, opposition: 3 }, winText: "The story faded.", loseText: "More documents emerged; you are now tied to the scandal." },
@@ -235,7 +238,7 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[])].map((t) => [t.id, t]));
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
   return t.options.map((o) => {
@@ -304,7 +307,7 @@ export function generateEvents(s: FixState, rng: Rng) {
     for (const tr of STORY_TRIGGERS) if (!s.flags[`arc:${tr.tpl}`]) cands.unshift({ tpl: tr.tpl, p: tr.p(s), place: () => { s.flags[`arc:${tr.tpl}`] = s.month; return tr.place(s, (a) => rng.pick(a)); } });
   }
   cands.push({ tpl: "govRequest", p: s.events.some((x) => x.tpl === "govRequest" && x.status === "open") ? 0 : 0.05, place: () => { const g = rng.pick(s.governors); const ids = Object.keys(s.regions).filter((id) => STATE_BY_ID[id]?.zone === g.zone && !cooling(s, "govRequest", id, 8)); return ids.length ? rng.pick(ids) : null; } });
-  for (const m of [...MOMENT_TRIGGERS, ...BIG_TRIGGERS]) {
+  for (const m of [...MOMENT_TRIGGERS, ...BIG_TRIGGERS, ...OFFICIAL_TRIGGERS]) {
     const p = m.p(s);
     if (p > 0 && !(typeof s.flags[`cdt:${m.tpl}`] === "number" && s.month - (s.flags[`cdt:${m.tpl}`] as number) < (m.gap ?? 10)) && !s.events.some((x) => x.tpl === m.tpl && x.status === "open")) cands.push({ tpl: m.tpl, p, place: () => m.place(s, (a) => rng.pick(a)) });
   }
@@ -343,6 +346,7 @@ export function createEvent(s: FixState, tpl: string, stateId: string): GameEven
   s.flags[`cd:${tpl}:${stateId}`] = s.month;
   s.flags[`cdt:${tpl}`] = s.month;
   if (tpl === "ministerScandal" && s.flags.scandalMinister) s.flags[`ev:${id}:portfolio`] = s.flags.scandalMinister;
+  if (tpl === "cronyLoot" && s.flags.lootPort) s.flags[`ev:${id}:portfolio`] = s.flags.lootPort;
   if (tpl === "lmCase" && s.flags.caseLm) { s.flags[`ev:${id}:lm`] = s.flags.caseLm; s.flags[`ev:${id}:amt`] = s.flags.caseAmount as number; }
   if (s.events.length > 120) s.events = s.events.filter((e, i) => e.status === "open" || i > s.events.length - 80);
   pushNews(s, { source: `event:${id}`, headline: ev.title, body: ev.cause, tone: t.kind === "opportunity" ? "good" : "bad", stateId });
@@ -372,6 +376,8 @@ function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string): string | undef
   if (fx.governors) for (const g of s.governors) g.relation = clamp100(g.relation + fx.governors);
   if (fx.govRel) relate(s, e.stateId, fx.govRel);
   const port = s.flags[`ev:${e.id}:portfolio`] as Portfolio | undefined;
+  let punished: string | undefined;
+  if (port && fx.prosecute) punished = prosecuteMinister(s, port);
   if (port && fx.sackMinister) sack(s, port);
   if (port && fx.ministerIntegrity && s.cabinet.members[port]) s.cabinet.members[port]!.integrity = clamp100(s.cabinet.members[port]!.integrity + fx.ministerIntegrity);
   const P = s.rule;
@@ -388,7 +394,7 @@ function applyFx(s: FixState, e: GameEvent, fx: Fx, tag: string): string | undef
   }
   if (fx.assembly) s.assembly.support = clamp100(s.assembly.support + fx.assembly);
   if (fx.lmLoyalty) for (const l of s.lawmakers ?? []) if (l.status === "active") l.loyalty = clamp100(l.loyalty + fx.lmLoyalty);
-  return fx.run?.(s, e) ?? undefined;
+  return punished ?? fx.run?.(s, e) ?? undefined;
 }
 
 export interface EventResult { ok: boolean; text: string; chance: number }
@@ -410,10 +416,13 @@ export function resolveEvent(s: FixState, eventId: string, optionId: string): Ev
   const roll = subRng(s.meta.seed, "resolve", e.id, o.id).next();
   const ok = roll < chance;
   const fx = ok ? o.win : o.lose;
+  const wp = s.flags[`ev:${e.id}:portfolio`] as Portfolio | undefined;
+  const wasWarned = !!wp && s.cabinet.members[wp]?.warned !== undefined;
   const custom = applyFx(s, e, fx, o.id);
+  if (wasWarned && o.id !== "prosecute") { s.flags.hollowWarn = s.month; s.gov.trust = clamp100(s.gov.trust - 3); }
   e.status = "resolved";
   e.chosen = o.id;
-  e.outcome = custom ?? (ok ? o.winText : o.loseText || o.winText);
+  e.outcome = (custom ?? (ok ? o.winText : o.loseText || o.winText)) + (wasWarned && o.id !== "prosecute" ? " You had warned them, and you did nothing: ministers now know your warnings mean nothing." : "");
   s.me.acts = s.me.acts.slice(-30);
   if (e.tpl === "kickback" && o.id === "accept") s.me.acts.push("kickback");
   if (e.tpl === "kickback" && o.id === "report") s.me.acts.push("reported");
