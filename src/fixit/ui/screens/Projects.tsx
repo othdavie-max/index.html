@@ -52,8 +52,9 @@ export function Projects() {
         <>
           <Callout tone="info">Every project can slip: delays, cost overruns and leakage depend on government capacity, procurement quality and corruption. Benefits arrive only when it is finished, and often fall short of the promise.</Callout>
           <div className="g-grid g-grid-2">
-            {PROJECTS.map((d) => {
+            {[...PROJECTS].sort((a, b) => Number(a.cat === "National dreams") - Number(b.cat === "National dreams")).map((d) => {
               const count = s.projects.filter((p) => p.defId === d.id && p.status !== "cancelled").length;
+              const lock = d.unlock?.(s) ?? null;
               return (
                 <Card key={d.id} className="g-col">
                   <div className="g-row g-between g-wrap"><b>{d.name}</b><Badge>{d.cat}</Badge></div>
@@ -65,7 +66,8 @@ export function Projects() {
                     <span><b>Needs capacity:</b> {d.capacityNeed} (you have {Math.round(s.gov.capacity)}) · <b>Risk of delay/overrun:</b> {d.risk >= 0.55 ? "high" : d.risk >= 0.35 ? "medium" : "lower"}</span>
                     <span><b>Funding options:</b> {d.funding.map((f) => FUNDING_LABEL[f]).join(", ")}</span>
                   </div>
-                  <div className="g-row g-between"><span className="g-tiny g-muted">{count}/{d.max ?? "∞"} started</span><Button size="sm" variant="primary" onClick={() => { setCountAtOpen(s.projects.length); setDefId(d.id); }}>Choose site &amp; funding</Button></div>
+                  {lock && <div className="g-small" style={{ color: "#92400e" }}>🔒 {lock}</div>}
+                  <div className="g-row g-between"><span className="g-tiny g-muted">{count}/{d.max ?? "∞"} started</span><Button size="sm" variant="primary" disabled={!!lock} onClick={() => { setCountAtOpen(s.projects.length); setDefId(d.id); }}>Choose site &amp; funding</Button></div>
                 </Card>
               );
             })}

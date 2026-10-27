@@ -9,7 +9,6 @@ import { punish } from "../engine/power";
 import { activeEnemies, dealWithEnemy, ripple } from "../engine/ripples";
 import { DEAL_DEFS, dealsOpen } from "../engine/investors";
 import { deserialise, serialise } from "../persistence";
-import type { FixState } from "../engine/types";
 
 describe("fuel and refineries", () => {
   it("refineries only work if maintained: uptime falls without maintenance", () => {
@@ -138,6 +137,6 @@ describe("old saves", () => {
   it("load with the new fields filled in", () => {
     const s = newGame(720); const raw = JSON.parse(serialise(s)); delete raw.state.deals; delete raw.state.enemies; delete raw.state.timeline; delete raw.state.oil.uptime; delete raw.state.oil.scarcity;
     const back = deserialise(JSON.stringify(raw)).state;
-    expect(back.deals).toEqual([]); expect(back.oil.uptime).toBe(70); advanceMonths(back, 3);
+    expect(back.deals).toEqual([]); expect(back.oil.uptime).toBe(70); expect(back.oil.scarcity).toBe(45); advanceMonths(back, 3);
   });
 });

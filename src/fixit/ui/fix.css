@@ -221,3 +221,8 @@
 .gm .fx-advice { display: flex; gap: 10px; align-items: flex-start; border: 1px solid; border-left-width: 5px; border-radius: 12px; padding: 8px 10px; }
 .gm .fx-ask { align-self: flex-start; background: #eef2f7; border: 1px dashed #94a3b8; color: #0b1f36; border-radius: 999px; padding: 3px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
 .gm .fx-ask:hover { background: #e2e8f0; }
+.gm .fx-tl { border-left: 5px solid #94a3b8; background: #fff; border-radius: 10px; padding: 8px 12px; border: 1px solid var(--g-border); border-left-width: 5px; }
+.gm .fx-tl[data-tone="bad"] { border-left-color: #e11d48; } .gm .fx-tl[data-tone="good"] { border-left-color: #00a862; }
+.gm .fx-subtabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--g-border); }
+.gm .fx-subtab { background: #fff; border: 1px solid var(--g-border); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; color: #0f172a; }
+.gm .fx-subtab[aria-pressed="true"] { background: #0b1f36; color: #f5d57a; border-color: #0b1f36; }

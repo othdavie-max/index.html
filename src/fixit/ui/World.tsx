@@ -2,7 +2,7 @@
 /** The Civilization-style main screen: a living map, a HUD of resources and danger meters, a notification stack,
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Crown, FastForward, HelpCircle, Landmark, Hammer, Menu as MenuIcon, Newspaper, ScrollText, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, Briefcase, Scale, Megaphone, MessagesSquare, UserCheck } from "lucide-react";
+import { Crown, FastForward, HelpCircle, Landmark, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, Scale } from "lucide-react";
 import { useFix, useS, type Tab } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { STATES } from "../../game/data/states";
@@ -34,6 +34,8 @@ import { StreetPanel } from "./StreetPanel";
 import { BriefingPanel } from "./AdvisorStrip";
 import { RecordCard } from "./RecordCard";
 import { RECORD_BY_ID } from "../engine/history";
+import { EnemiesPanel, FuelPanel, InvestorsPanel, TimelinePanel } from "./LivingPanels";
+import { activeEnemies } from "../engine/ripples";
 import { briefing, topIssue } from "../engine/advice";
 import { pegged } from "../engine/bigmoves";
 import { Portrait } from "../../game/ui/kit";
@@ -145,20 +147,17 @@ export function World() {
     sfx("tap"); advance(1);
   };
 
-  const TOOLBAR: { id: Tab; label: string; icon: ReactNode; badge?: number }[] = [
-    { id: "presidency", label: "Presidency", icon: <Landmark size={22} /> },
-    { id: "policies", label: "Policies", icon: <ScrollText size={22} /> },
-    { id: "projects", label: "Projects", icon: <Hammer size={22} /> },
-    { id: "nation", label: "Economy", icon: <TrendingUp size={22} /> },
-    { id: "assembly", label: "Assembly", icon: <Scale size={22} /> },
-    { id: "power", label: "Power", icon: <Crown size={22} />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0 },
-    { id: "cabinet", label: "Cabinet", icon: <Briefcase size={22} /> },
-    { id: "moves", label: "Big Moves", icon: <Megaphone size={22} /> },
-    { id: "street", label: "Street", icon: <MessagesSquare size={22} /> },
-    { id: "advisers", label: "Advisers", icon: <UserCheck size={22} /> },
-    { id: "news", label: "News", icon: <Newspaper size={22} /> },
+  // seven buttons; everything else is a tab inside them
+  const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
+    { id: "govern", label: "Govern", icon: <Landmark size={22} />, wide: true, tabs: [{ id: "presidency", label: "Presidency" }, { id: "policies", label: "Policies" }, { id: "projects", label: "Projects" }, { id: "moves", label: "Big Moves" }] },
+    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }, { id: "street", label: "Street" }] },
+    { id: "assembly", label: "Assembly", icon: <Scale size={22} />, tabs: [{ id: "assembly", label: "Assembly" }] },
+    { id: "power", label: "Power", icon: <Crown size={22} />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "Seat of power" }, { id: "timeline", label: "What I caused" }] },
+    { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "Cabinet & backers" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
+    { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }] },
   ];
-  const title: Record<string, string> = { presidency: "The Presidency", policies: "Policies & budget", projects: "Projects", nation: "Nation & economy", assembly: "National Assembly", power: "Seat of power", cabinet: "Cabinet, advisers & backers", news: "News", moves: "When I become president…", street: "On the street", advisers: "Your advisers" };
+  const group = GROUPS.find((g) => g.tabs.some((x) => x.id === drawer));
+  const title: Record<string, string> = { govern: "Government", economy: "Nation & economy", assembly: "National Assembly", power: "Seat of power", people: "People around you", news: "News" };
 
   return (
     <div className={`fx-world ${shake ? "fx-shake" : ""}`} data-lens={lens}>
@@ -214,23 +213,29 @@ export function World() {
 
       <Ticker />
       <nav className="fx-toolbar" aria-label="Government">
-        {TOOLBAR.map((b) => <button key={b.id} className="fx-tool" aria-pressed={tab === b.id} onClick={() => { sfx("tap"); setTab(tab === b.id ? "world" : b.id); }}>{b.icon}<span>{b.label}</span>{!!b.badge && <i className="fx-dot-red" aria-label="needs attention" />}</button>)}
+        <button className="fx-tool" onClick={() => { sfx("tap"); setQueue(true); }}><ShieldAlert size={22} /><span>Desk</span>{decisions.length > 0 && <i className="fx-dot-red" aria-label="decisions waiting" />}</button>
+        {GROUPS.map((b) => <button key={b.id} className="fx-tool" aria-pressed={group?.id === b.id} onClick={() => { sfx("tap"); setTab(group?.id === b.id ? "world" : b.tabs[0].id); }}>{b.icon}<span>{b.label}</span>{!!b.badge && <i className="fx-dot-red" aria-label="needs attention" />}</button>)}
       </nav>
 
       {select.state && <Drawer title="Location" onClose={() => setSelect({ state: null, lga: null })}><StatePanel s={s} id={select.state} lga={select.lga} /></Drawer>}
-      {drawer && (
-        <Drawer title={title[drawer]} onClose={close} wide={drawer !== "assembly" && drawer !== "power" && drawer !== "moves" && drawer !== "street" && drawer !== "advisers"}>
+      {drawer && group && (
+        <Drawer title={title[group.id]} onClose={close} wide={!!group.wide}>
+          {group.tabs.length > 1 && <div className="fx-subtabs" role="group" aria-label="Sections">{group.tabs.map((x) => <button key={x.id} className="fx-subtab" aria-pressed={drawer === x.id} onClick={() => { sfx("tap"); setTab(x.id); }}>{x.label}</button>)}</div>}
           {drawer === "presidency" && <Presidency />}
           {drawer === "policies" && <Policies />}
           {drawer === "projects" && <Projects />}
+          {drawer === "moves" && <MovesPanel />}
           {drawer === "nation" && <Nation />}
-          {drawer === "news" && <News />}
+          {drawer === "oil" && <FuelPanel />}
+          {drawer === "deals" && <InvestorsPanel />}
+          {drawer === "street" && <StreetPanel />}
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}
           {drawer === "power" && <PowerPanel />}
+          {drawer === "timeline" && <TimelinePanel />}
           {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><StaffCard /><CabinetCard /><GroupsCard /></div>}
-          {drawer === "moves" && <MovesPanel />}
-          {drawer === "street" && <StreetPanel />}
           {drawer === "advisers" && <BriefingPanel />}
+          {drawer === "enemies" && <EnemiesPanel />}
+          {drawer === "news" && <News />}
         </Drawer>
       )}
 

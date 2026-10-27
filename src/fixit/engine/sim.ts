@@ -167,7 +167,7 @@ function phase2(s: FixState, rng: Rng) {
   s.oil.production = (s.oil.crude + L("crude")) * (1 - s.oil.theft / 100);
   // refineries: capacity from projects, output set by uptime, which decays unless maintained
   const maintOil = clamp100(s.infra.maint + L("maint"));
-  const upTarget = clamp(18 + 0.62 * maintOil + 0.22 * (100 - corr) - 0.35 * s.oil.theft - 0.12 * Math.max(0, s.sec.index - 50), 15, 96);
+  const upTarget = clamp(48 + 0.62 * maintOil + 0.22 * (100 - corr) - 0.35 * s.oil.theft - 0.12 * Math.max(0, s.sec.index - 50), 15, 96);
   const old = s.oil.uptime;
   s.oil.uptime = clamp(old + (upTarget > old ? 0.08 : 0.16) * (upTarget - old), 12, 98);
   const capacity = Math.max(20, s.oil.refinery + L("refinery"));
@@ -312,10 +312,10 @@ function phase3(s: FixState, rng: Rng) {
   fu.pump = old + 0.55 * (target - old);
   fu.history.push(fu.pump); if (fu.history.length > 6) fu.history.shift();
   // queues and scarcity: imports, thin reserves and an unpaid subsidy bill all cause them
-  const scTarget = clamp100(14 + 62 * fu.importShare ** 1.4 + (e.reserves < 15 ? 22 : 0) + (fu.coverage > 0.1 && s.fin.treasury < 80 ? 12 : 0) + 0.2 * s.oil.theft - 0.12 * Math.max(0, s.oil.uptime - 70));
+  const scTarget = clamp100(8 + 45 * fu.importShare ** 1.4 + (e.reserves < 15 ? 22 : 0) + (fu.coverage > 0.1 && s.fin.treasury < 80 ? 12 : 0) + 0.15 * s.oil.theft - 0.12 * Math.max(0, s.oil.uptime - 70));
   s.oil.scarcity = clamp100(s.oil.scarcity + 0.25 * (scTarget - s.oil.scarcity));
   removeMods(s, "fuelqueue");
-  addMod(s, "fuelqueue", "Fuel queues", { happiness: clamp(-0.035 * (s.oil.scarcity - 30), -1.6, 1.0) }, { duration: null, ramp: 1 });
+  addMod(s, "fuelqueue", "Fuel queues", { happiness: clamp(-0.03 * (s.oil.scarcity - 45), -1.4, 1.0) }, { duration: null, ramp: 1 });
   s.why.fuel = [
     `Import-parity price is ${Math.round(fu.parity)} per litre (oil $${round(e.oilPrice)}, naira ${Math.round(e.fx)} per dollar)`,
     fu.coverage > 0.02 ? `Subsidy covers about ${Math.round(fu.coverage * 50)}% of that price, so pumps charge ${Math.round(fu.pump)}` : "No subsidy: pumps charge close to the full market price",

@@ -36,7 +36,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
       fx: START.fx, reserves: START.reserves, inflation: START.inflation, foodInflation: START.foodInflation, emaDrift: 0.45, priceLevel: 100, foodPriceIdx: 100,
       wageIdx: 100, growth: 2.4, gdpIdx: 100, investor: 42, oilPrice: START.oil, oilTrend: 0, fxGap: 0, fxDefence: 0.3,
     },
-    oil: { crude: 1650, theft: 20, production: 1320, refinery: 60, refineryNameplate: 650, demand: 470, revenueUsd: 0, uptime: 70, refined: 60, scarcity: 35 },
+    oil: { crude: 1650, theft: 20, production: 1320, refinery: 60, refineryNameplate: 650, demand: 470, revenueUsd: 0, uptime: 70, refined: 60, scarcity: 45 },
     fuel: { coverage: 0.5, targeting: 0, transfers: false, pump: START.pump, parity: 995, costMonthly: 0, leak: 0.2, importShare: 0.87, history: [START.pump, START.pump, START.pump] },
     agri: { inputs: 30, irrigation: 15, storage: 12, processing: 20, weather: 0, supply: 100, demand: 100, loss: 29, imports: 4 },
     power: { installed: 13000, available: 4600, demand: 18000, grid: 40, gas: 45, losses: 35, renew: 4 },

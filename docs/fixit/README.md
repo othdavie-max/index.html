@@ -60,3 +60,15 @@ Run tests: `npx vitest run src/fixit`.
 - **Big moves** (`engine/bigmoves.ts`): fix the naira by decree (the central bank burns reserves, a black market opens, then it collapses), sell the jets, cut lawmakers' pay, ban foreign medical trips, close the borders, print money, school meals, National Jollof Day, rice import ban. Plus new events: Christmas fuel scarcity, "japa", cash scarcity, highway kidnappings, exam leaks, checkpoint extortion, the Super Eagles final.
 - **Street** (`engine/street.ts`): a market board (rice, garri, bread, danfo fare, petrol, the dollar versus day one) and a "Naija X" feed generated from the state.
 - Tests: `src/fixit/tests/fun.test.ts`.
+
+## Living world update: fuel, investors, ripples, enemies, desk
+
+- **Fuel and refineries** (`engine/sim.ts`, `ui/LivingPanels.tsx`): refinery output is capacity times uptime. Uptime decays unless the country is maintained, and theft and corruption hurt it. Local fuel lowers the pump price by up to 24% and reduces a visible queue meter that affects the mood. The Fuel panel shows capacity, uptime, local output, imports, savings per litre and queues.
+- **Investor deals** (`engine/investors.ts`): when investor confidence is above about 40, named offers arrive (private refinery, solar park, garment hub, data centre, gas plant, fertiliser plant, light rail). You choose fair terms or a tax holiday. Deals build with a progress bar, stall in insecurity or dictatorship, and when they open they apply real effects, add jobs and pay taxes. A ribbon-cutting card follows.
+- **Ripples** (`engine/ripples.ts`): executions, jailings, wrongful arrests, press crackdowns, jailing the opposition leader, stolen elections, army purges, protest crackdowns and sackings schedule chains of timed reactions (senators fly abroad, cases drop with a visible counter, the home state erupts, rights groups condemn, a son swears revenge). The "What I caused" timeline records the trail.
+- **Enemies**: the people you wrong get a face, a grudge and a plan (paid protests, leaks, backing your rival, bandits, coup plotting) and act every season. Buy them off, make peace or crush them; crushing can fail and make a martyr. A strong enemy also sends an "enemy is making a move" event.
+- **Desk** (`engine/desk.ts`): a pacer keeps 1 to 2 cards on the desk when it would otherwise be empty. Cards remember promises (a promised road comes back kept or broken). When things go well, success cards appear (gridlock, "where are the jobs", poaching, inequality, an overvalued naira).
+- **Expectations and term crises**: a rising-expectations drag on the mood grows each year. Term 2 brings an oil crash, term 3 a plot by your VP, term 4 a succession fight.
+- **National dreams** (`data/catalogue.ts`): World Cup, Lagos–Calabar railway, 24-hour power, Silicon Lagos, peace in the north-east, and a Nigerian astronaut. They unlock after four other projects and give dream achievements.
+- **Simpler layout**: the bottom bar is now seven buttons (Desk, Govern, Economy, Assembly, Power, People, News) with tabs inside each.
+- Tests: `src/fixit/tests/living.test.ts`.

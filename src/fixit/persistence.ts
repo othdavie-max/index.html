@@ -36,7 +36,7 @@ export function validate(x: unknown): FixState {
   if (!s.backers || !s.backers.length) initBackers(s);
   s.staff ??= { cos: null, picked: true };
   s.deals ??= []; s.enemies ??= []; s.timeline ??= [];
-  s.oil.uptime ??= 70; s.oil.refined ??= s.oil.refinery; s.oil.scarcity ??= 35;
+  s.oil.uptime ??= 70; s.oil.refined ??= s.oil.refinery; s.oil.scarcity ??= 45;
   s.meta.scenario ??= "standard"; s.meta.difficulty ??= "normal"; s.meta.portrait ??= { skin: 2, hair: 0, style: 0, accent: 0 };
   return s;
 }
