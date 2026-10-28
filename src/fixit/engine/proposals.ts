@@ -128,7 +128,7 @@ export function carryOut(s: FixState, p: Proposal, mode: Mode, rng: Rng = subRng
     if (!site) return { ok: false, text: "The site fell through." };
     const err = b.canStartProject(s, p.id, site.stateId, site.funding);
     if (err) return { ok: false, text: `It cannot go ahead now: ${err}` };
-    const r = b.startProject(s, p.id, site.stateId, site.funding, { favour: !!h && h.steal > 0 });
+    const r = b.startProject(s, p.id, site.stateId, site.funding, { favour: !!h && h.steal > 0, free: mode === "deleg" });
     if (!r.ok) return { ok: false, text: r.message };
     const pr = s.projects[s.projects.length - 1];
     if (h) {
@@ -142,7 +142,7 @@ export function carryOut(s: FixState, p: Proposal, mode: Mode, rng: Rng = subRng
     }
     return { ok: true, text: `${pr.name} starts in ${STATES.find((x) => x.id === site.stateId)?.name}, on your orders.` };
   }
-  const r = b.enactPolicy(s, p.id);
+  const r = b.enactPolicy(s, p.id, { free: mode === "deleg" });
   if (!r.ok) return { ok: false, text: r.message };
   if (h && a) {
     const m = s.modifiers.find((x) => x.source === `policy:${p.id}`);

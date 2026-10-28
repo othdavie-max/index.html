@@ -7,6 +7,7 @@
 import { Rng, subRng } from "../../game/engine/rng";
 import { directorMonthly, earnPc, metaTurn } from "./meta";
 import { proposalsMonthly } from "./proposals";
+import { castArcsMonthly } from "./castarcs";
 import "./actions";
 import { STATES } from "../../game/data/states";
 import { PROJECT_BY_ID } from "../data/catalogue";
@@ -64,6 +65,7 @@ export function advanceMonth(s: FixState): boolean {
   backersMonthly(s, subRng(s.meta.seed, "backers", m));
   staffMonthly(s, subRng(s.meta.seed, "staff", m));
   proposalsMonthly(s, subRng(s.meta.seed, "proposals", m));
+  castArcsMonthly(s, subRng(s.meta.seed, "castarcs", m));
   bigMonthly(s, subRng(s.meta.seed, "big", m));
   investorsMonthly(s, subRng(s.meta.seed, "investors", m));
   ripplesMonthly(s, subRng(s.meta.seed, "ripples", m));

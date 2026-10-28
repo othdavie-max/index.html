@@ -15,7 +15,7 @@ export function MonthSummaryModal() {
         {summary.achievements.length > 0 && <div><div className="g-section-title">Milestones</div>{summary.achievements.map((a) => <div key={a.id} className="g-small" style={{ marginTop: 4 }}>🏅 <b>{a.label}</b></div>)}</div>}
         {summary.changes.length === 0 ? <div className="g-small g-muted">A quiet {summary.months > 1 ? `${summary.months} months` : "month"}: nothing moved much.</div> : (
           <div className="g-col" style={{ gap: 0 }}>
-            {summary.changes.map((c) => <div key={c.label} className="g-list-row"><div className="g-grow g-small"><b>{c.label}</b></div><span className="g-small g-muted g-num">{c.from}</span><span aria-hidden>→</span><b className={`g-small g-num ${c.tone === "good" ? "fx-delta-good" : c.tone === "bad" ? "fx-delta-bad" : ""}`}>{c.to} {c.tone === "good" ? "▲" : c.tone === "bad" ? "▼" : ""}</b></div>)}
+            {summary.changes.map((c) => <div key={c.label} className="g-list-row"><div className="g-grow g-small"><b>{c.label}</b>{c.because?.length ? <div className="g-tiny g-muted fx-because">{c.because.join(" ")}</div> : null}</div><span className="g-small g-muted g-num">{c.from}</span><span aria-hidden>→</span><b className={`g-small g-num ${c.tone === "good" ? "fx-delta-good" : c.tone === "bad" ? "fx-delta-bad" : ""}`}>{c.to} {c.tone === "good" ? "▲" : c.tone === "bad" ? "▼" : ""}</b></div>)}
           </div>
         )}
         {summary.events.length > 0 && <div><div className="g-section-title">New on your desk</div>{summary.events.map((e) => <div key={e.id} className="g-small" style={{ marginTop: 4 }}>• <b>{e.title}</b></div>)}</div>}

@@ -11,9 +11,10 @@ import { hallEntry } from "../persistence";
 import { monthLabel, snap } from "../engine/util";
 import { FixSaves, FixSaveError, type Slot } from "../persistence";
 import { pidgin } from "../engine/pidgin";
+import { because } from "../engine/because";
 
 export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet" | "moves" | "street" | "advisers" | "oil" | "deals" | "enemies" | "timeline" | "foreign" | "party" | "sectors" | "debt" | "lending" | "military";
-export interface Change { label: string; from: string; to: string; tone: "good" | "bad" | "neutral" }
+export interface Change { label: string; from: string; to: string; tone: "good" | "bad" | "neutral"; because?: string[] }
 export interface MonthSummary { from: string; to: string; months: number; changes: Change[]; events: GameEvent[]; news: NewsItem[]; echoes: Echo[]; achievements: Achievement[]; headline?: NewsItem }
 export interface Toast { id: number; text: string; bad: boolean }
 
@@ -51,11 +52,11 @@ export const useFix = () => { const c = useContext(C); if (!c) throw new Error("
 export const useS = (): FixState => { const { state } = useFix(); if (!state) throw new Error("no game"); return state; };
 
 const pctChange = (a: number, b: number) => (a === 0 ? 0 : ((b - a) / a) * 100);
-function diffSummary(a: Snap, b: Snap): Change[] {
+function diffSummary(a: Snap, b: Snap, g?: FixState): Change[] {
   const out: Change[] = [];
   const add = (label: string, from: string, to: string, delta: number, goodWhenDown: boolean, min: number) => {
     if (Math.abs(delta) < min) return;
-    out.push({ label, from, to, tone: (delta < 0) === goodWhenDown ? "good" : "bad" });
+    out.push({ label, from, to, tone: (delta < 0) === goodWhenDown ? "good" : "bad", because: g ? because(g, label, delta, a.month) : undefined });
   };
   add("Naira per dollar", `₦${a.fx.toLocaleString()}`, `₦${b.fx.toLocaleString()}`, pctChange(a.fx, b.fx), true, 0.6);
   add("Inflation", `${a.inflation}%`, `${b.inflation}%`, b.inflation - a.inflation, true, 0.4);
@@ -136,7 +137,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     const echoes = g.echoes.filter((e) => e.status === "done" && e.due >= startMonth && e.due < g.month);
     const fresh = g.news.slice(newsBefore).filter((x) => x.month >= startMonth);
     const headline = fresh.filter((x) => !x.source.startsWith("ach:")).find((x) => x.tone === "bad" && !x.source.startsWith("echo")) ?? fresh.find((x) => x.tone === "good") ?? fresh[0];
-    setSummary({ from: monthLabel(startMonth), to: monthLabel(g.month), months: n, changes: diffSummary(before, after), events, news, echoes, achievements: g.achievements.slice(achBefore), headline });
+    setSummary({ from: monthLabel(startMonth), to: monthLabel(g.month), months: n, changes: diffSummary(before, after, g), events, news, echoes, achievements: g.achievements.slice(achBefore), headline });
     bump();
     if (g.settings.autosave) void saveSlot("auto");
     if (g.ended) { const h = hallEntry(g); if (h) void saves.addHall(h).catch(() => undefined); }

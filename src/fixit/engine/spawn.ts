@@ -7,9 +7,9 @@ export const createEvent: Creator = (s, tpl, st) => (impl ? impl(s, tpl, st) : n
 
 /** Late-bound player actions (defined in actions.ts) for modules that must not import it. */
 export interface Builders {
-  startProject: (s: import("./types").FixState, defId: string, stateId: string, funding: import("./types").Funding, opts?: { favour?: boolean }) => { ok: boolean; message: string };
+  startProject: (s: import("./types").FixState, defId: string, stateId: string, funding: import("./types").Funding, opts?: { favour?: boolean; free?: boolean }) => { ok: boolean; message: string };
   canStartProject: (s: import("./types").FixState, defId: string, stateId: string, funding: import("./types").Funding) => string | null;
-  enactPolicy: (s: import("./types").FixState, id: string) => { ok: boolean; message: string };
+  enactPolicy: (s: import("./types").FixState, id: string, opts?: { free?: boolean }) => { ok: boolean; message: string };
 }
 let bimpl: Builders | null = null;
 export const setBuilders = (b: Builders) => { bimpl = b; };

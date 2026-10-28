@@ -384,7 +384,7 @@ export function amendConstitution(s: FixState): PResult {
 }
 
 // ---------------------------------------------------------------- elections
-export const riggingBonus = (s: FixState) => (s.rule ? s.rule.inecControl * 0.12 : 0);
+export const riggingBonus = (s: FixState) => (s.rule ? s.rule.inecControl * 0.1 : 0);
 
 // ---------------------------------------------------------------- monthly
 export function powerMonthly(s: FixState, rng: Rng) {
@@ -450,8 +450,12 @@ export function powerMonthly(s: FixState, rng: Rng) {
   if (s.flags.shutdownWas && !shut) { P.streetAnger = clamp100(P.streetAnger + 5); }
   s.flags.shutdownWas = shut;
 
+  // a strongman is never safe: every month of one-man rule wears the regime down (a slow ratchet on anger and coup risk)
+  if (P.democracy < 38) s.flags.tyrantMonths = Number(s.flags.tyrantMonths ?? 0) + 1;
+  const tyrant = Number(s.flags.tyrantMonths ?? 0);
+  P.streetAnger = clamp100(P.streetAnger + Math.min(0.6, tyrant * 0.015));
   const purgeEcho = typeof s.flags.purgeEcho === "number" && s.month >= (s.flags.purgeEcho as number) && s.month < (s.flags.purgeEcho as number) + 6 ? 9 : 0;
-  const tC = clamp100(6 + 0.45 * Math.max(0, P.streetAnger - 35) + Math.max(-8, 0.5 * (50 - s.groups.military)) + Math.max(-8, 0.3 * (50 - P.eliteLoyalty)) + 0.2 * P.abuse + (P.democracy < 40 ? (40 - P.democracy) * 0.25 : 0) + 0.25 * Math.max(0, P.intlPressure - 60) + purgeEcho + staffCoup(s) + milCoup(s) + (overstay > 0 ? 8 : 0));
+  const tC = clamp100(6 + Math.min(32, tyrant * 0.45) + 0.45 * Math.max(0, P.streetAnger - 35) + Math.max(-8, 0.5 * (50 - s.groups.military)) + Math.max(-8, 0.3 * (50 - P.eliteLoyalty)) + 0.2 * P.abuse + (P.democracy < 40 ? (40 - P.democracy) * 0.25 : 0) + 0.25 * Math.max(0, P.intlPressure - 60) + purgeEcho + staffCoup(s) + milCoup(s) + (overstay > 0 ? 8 : 0));
   P.coupRisk = clamp100(P.coupRisk + 0.13 * (tC - P.coupRisk));
   P.intlPressure = clamp100(P.intlPressure * 0.985 + (overstay > 0 ? 0.7 : 0));
   const eTarget = clamp100(0.5 * (s.governors.reduce((a, g) => a + g.relation, 0) / Math.max(1, s.governors.length)) + 0.3 * s.assembly.support + 0.2 * (50 + lawmakerLoyalty(s) * 2));
@@ -466,7 +470,7 @@ export function powerMonthly(s: FixState, rng: Rng) {
   const has = (tpl: string) => s.events.some((e) => e.tpl === tpl && e.status === "open");
   const bigCity = () => rng.pick(["NG-LA", "NG-KN", "NG-FC", "NG-RI", "NG-OY"]);
   if (P.streetAnger > 70 && !has("megaProtest") && rng.chance(0.1 + (P.streetAnger - 70) / 120)) createEvent(s, "megaProtest", bigCity());
-  if (P.coupRisk > 60 && !has("coupAttempt") && rng.chance(0.03 + (P.coupRisk - 60) / 150)) createEvent(s, "coupAttempt", "NG-FC");
+  if (P.coupRisk > 42 && !has("coupAttempt") && rng.chance(0.015 + (P.coupRisk - 42) / 180)) createEvent(s, "coupAttempt", "NG-FC");
   if (P.intlPressure > 70 && !has("sanctions") && !s.flags.sanctionsAt || (P.intlPressure > 70 && typeof s.flags.sanctionsAt === "number" && s.month - (s.flags.sanctionsAt as number) > 10 && !has("sanctions") && rng.chance(0.1))) { s.flags.sanctionsAt = s.month; createEvent(s, "sanctions", "NG-FC"); }
   if (P.eliteLoyalty < 28 && !has("eliteRevolt") && rng.chance(0.08)) createEvent(s, "eliteRevolt", "NG-FC");
   // while sanctions bite, the economy feels it

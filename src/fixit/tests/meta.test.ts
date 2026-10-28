@@ -282,3 +282,48 @@ describe("advisers bring ideas to your desk", () => {
     expect(s.news.some((n) => n.source.startsWith("prop-auto"))).toBe(true);
   });
 });
+
+import { because } from "../engine/because";
+import { ARC_TEMPLATES, addFavour, castArcsMonthly, favour } from "../engine/castarcs";
+
+describe("the inner circle acts and remembers", () => {
+  it("an unhappy Mama Nkechi threatens to march, and the answer is remembered", () => {
+    const s = newGame(4001); s.fin.treasury = 1e5; s.month = 6; s.groupMood.traders = -35;
+    for (let i = 0; i < 30 && !s.events.some((e) => e.tpl === "arcMamaMarch"); i++) { s.month++; castArcsMonthly(s, subRng(4001, "a", i)); s.flags["arcLast:general"] = s.month; s.flags["arcLast:godfather"] = s.month; s.flags["arcLast:journo"] = s.month; s.flags["arcLast:governor"] = s.month; s.flags["arcLast:vp"] = s.month; }
+    const e = s.events.find((x) => x.tpl === "arcMamaMarch")!; expect(e).toBeDefined(); expect(e.title).toMatch(/Nkechi/);
+    const before = favour(s, "mama"); respond(s, e.id, "police", true as never);
+    expect(favour(s, "mama")).toBeLessThan(before);
+    expect(cast(s).find((f) => f.id === "mama")!.mood).toBeLessThan(40);
+  });
+  it("only one arc is open at a time and each person waits six months between stories", () => {
+    const s = newGame(4002); s.fin.treasury = 1e5; s.month = 8; s.groupMood.traders = -35; s.groupMood.military = -35;
+    for (let i = 0; i < 40; i++) { s.month++; castArcsMonthly(s, subRng(4002, "b", i)); expect(s.events.filter((e) => e.tpl.startsWith("arc") && e.status === "open").length).toBeLessThanOrEqual(1); for (const e of s.events) if (e.tpl.startsWith("arc")) e.status = "resolved"; }
+    const mama = s.events.filter((e) => e.tpl.startsWith("arcMama")).map((e) => e.born); for (let i = 1; i < mama.length; i++) expect(mama[i] - mama[i - 1]).toBeGreaterThanOrEqual(6);
+  });
+  it("every arc has a title, cause, and answers that do something", () => {
+    const s = newGame(4003); s.flags.arcPending = "mama"; s.staff.vp ??= s.staff.cos;
+    for (const t of ARC_TEMPLATES) { expect(t.title(s).length).toBeGreaterThan(5); expect(t.cause(s).length).toBeGreaterThan(20); expect(t.options.length).toBeGreaterThanOrEqual(2); for (const o of t.options) { expect(o.win && o.lose).toBeTruthy(); } }
+  });
+  it("favour fades with time and moves the feeling shown on the card", () => {
+    const s = newGame(4004); const m0 = cast(s).find((f) => f.id === "journo")!.mood;
+    addFavour(s, "journo", 20); expect(cast(s).find((f) => f.id === "journo")!.mood).toBeGreaterThan(m0);
+    for (let i = 0; i < 40; i++) castArcsMonthly(s, subRng(4004, "c", i));
+    expect(Math.abs(favour(s, "journo"))).toBeLessThan(10);
+  });
+});
+
+describe("what happened because of you", () => {
+  it("ties a change to the policy or project behind it", () => {
+    const s = newGame(4010); s.fin.treasury = 1e5;
+    advanceMonths(s, 2);
+    s.modifiers.push({ id: "t", source: "policy:test", label: "Food import waiver", start: s.month, end: null, ramp: 1, scale: 1, effects: { foodPrice: -3 } });
+    const down = because(s, "Food prices (yearly)", -4, s.month - 1);
+    expect(down[0]).toMatch(/Because you started Food import waiver/);
+    expect(because(s, "Food prices (yearly)", +4, s.month - 1).join(" ")).not.toMatch(/Food import waiver/);
+  });
+  it("falls back to the structural reason when you did nothing relevant", () => {
+    const s = newGame(4011); s.fin.treasury = 1e5; advanceMonths(s, 3);
+    const r = because(s, "Inflation", 2, s.month - 1); expect(Array.isArray(r)).toBe(true);
+    expect(because(s, "Something unknown", 1, 0)).toEqual([]);
+  });
+});

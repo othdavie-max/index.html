@@ -36,7 +36,7 @@ export const campaignOpen = (s: FixState) => !s.cap?.quick && s.term < Math.min(
 function nationalBase(s: FixState): number {
   const { kept, total } = promiseScore(s);
   return 50 + 0.33 * (s.gov.approval - 50) + 0.08 * (s.gov.trust - 40) + 1.6 * kept - (monthsToElection(s) <= 12 ? 1.3 * (total - kept) : 0)
-    - 0.06 * (s.rival.popularity - 45) + 0.7 * loyalistCount(s) - 3 + s.campaign.debateShift + s.campaign.mobilise + voteBonus(s) - (s.me.scandals > 1 ? 2.5 : 0);
+    - 0.06 * (s.rival.popularity - 45) + 0.7 * loyalistCount(s) - 1 + s.campaign.debateShift + s.campaign.mobilise + voteBonus(s) - (s.me.scandals > 1 ? 2.5 : 0);
 }
 export function stateShare(s: FixState, id: string, noise = 0, honest = false): number {
   const st = STATE_BY_ID[id];

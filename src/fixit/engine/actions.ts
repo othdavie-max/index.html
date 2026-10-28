@@ -5,6 +5,7 @@ import { FUNDING_LABEL, MEASURE_BY_ID, POLICY_BY_ID, PROJECT_BY_ID } from "../da
 import type { Funding, FixState } from "./types";
 import { advanceMonth } from "./sim";
 import { setBuilders } from "./spawn";
+import { payPc, PC_COST } from "./meta";
 import { resolveEvent } from "./events";
 import { continueNextTerm } from "./legacy";
 import { plantForMeasure, plantForPolicy, scheduleEcho } from "./echoes";
@@ -23,10 +24,11 @@ function pay(s: FixState, bn: number): string | null {
 }
 
 // ------------------------------------------------------------------ policies
-export function enactPolicy(s: FixState, id: string): Result {
+export function enactPolicy(s: FixState, id: string, opts: { free?: boolean } = {}): Result {
   const d = POLICY_BY_ID[id];
   if (!d) return fail("Unknown policy.");
   if (s.policies[id]?.active) return fail("That policy is already in force.");
+  if (!opts.free) { const pcE = payPc(s, PC_COST.policy, "start a policy"); if (pcE) return fail(pcE); }
   const cost = d.setup * priceMult(s);
   const err = pay(s, cost);
   if (err) return fail(err);
@@ -108,9 +110,10 @@ export function canStartProject(s: FixState, defId: string, stateId: string, fun
   }
   return null;
 }
-export function startProject(s: FixState, defId: string, stateId: string, funding: Funding, opts: { lgaId?: string; favour?: boolean } = {}): Result {
+export function startProject(s: FixState, defId: string, stateId: string, funding: Funding, opts: { lgaId?: string; favour?: boolean; free?: boolean } = {}): Result {
   const err = canStartProject(s, defId, stateId, funding);
   if (err) return fail(err);
+  if (!opts.free) { const pcE = payPc(s, PC_COST.project, "start a project"); if (pcE) return fail(pcE); }
   const d = PROJECT_BY_ID[defId];
   const n = s.projects.length + 1;
   const id = `p${n}`;

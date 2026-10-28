@@ -131,3 +131,10 @@ Run tests: `npx vitest run src/fixit`.
 - Delegated projects carry notes ("Handled by …") and a real quality, delay and cost penalty; delegated policies get a weaker or stronger modifier.
 - Also fixed: the "Jobs, Jobs, Jobs" agenda boost had the wrong sign for the jobs lever.
 - Tests: `src/fixit/tests/meta.test.ts` (advisers section).
+
+## Balance pass, inner-circle stories and "because of you"
+
+- **Balance** (`tests/balance.test.ts`, an automated idle / careless / honest-competent / strongman player over six seeds). Findings and fixes: honest play was winning no elections, so the vote baseline is 2 points kinder; strongmen were never overthrown, so one-man rule now has a slow ratchet (`tyrantMonths`: coup risk and street anger creep up every month democracy is below 38), coup attempts start from 42 instead of 60 and INEC rigging is a little weaker; political capital never ran out, so starting a project costs ⚡3 and a policy ⚡4 (free when an aide handles it, which makes delegation attractive), and income is lower. Idle and careless play still lose; the regression test keeps it that way.
+- **Inner-circle stories** (`engine/castarcs.ts`): Mama Nkechi (march, or a rally for you), the general (restless barracks, or an offer to handle a hotspot), the godfather (calls in a favour), the journalist (a story and a deadline), the VP (builds his own camp), a governor (forms a bloc). How they feel decides what they do. Each answer adds favour or grudge (`fav:<id>`, fades 3% a month) that changes how they feel next time; repeats say so; each person waits six months between stories and only one story is open at a time.
+- **Because of you** (`engine/because.ts`): the "what changed" chips and the turn summary now say why, tying each change to the policy, project, measure or decision behind it, with the structural reason as the fallback.
+- Tests: `meta.test.ts` (arcs, because) and `balance.test.ts`.

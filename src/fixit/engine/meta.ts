@@ -95,11 +95,11 @@ export function checkUnlocks(s: FixState, announce = true) {
 }
 
 // ------------------------------------------------------------------ 2. political capital
-export const PC_COST = { tool: 12, lawmaker: 6, warn: 5, lobby: 5, gift: 6, enemyBuy: 5, enemyPeace: 3, enemyCrush: 10, move: 10, speech: 4, law: 10 } as const;
+export const PC_COST = { project: 3, policy: 4, tool: 12, lawmaker: 6, warn: 5, lobby: 5, gift: 6, enemyBuy: 5, enemyPeace: 3, enemyCrush: 10, move: 10, speech: 4, law: 10 } as const;
 export function pcIncome(s: FixState): number {
   const a = clamp((s.gov.approval - 45) / 10, -2, 3), tr = clamp((s.gov.trust - 40) / 20, -1, 1.5), as = clamp((s.assembly.support - 50) / 30, -1, 1);
   const open = s.events.filter((e) => e.status === "open").length;
-  return clamp(3 + a + tr + as + (s.cap.perks.includes("capital") ? 1 : 0) - (open >= 5 ? 1 : 0), 1, 9);
+  return clamp(2.5 + a + tr + as + (s.cap.perks.includes("capital") ? 1 : 0) - (open >= 5 ? 1 : 0), 1, 9);
 }
 export function earnPc(s: FixState, n: number) { if (s.cap) s.cap.pc = clamp(s.cap.pc + n, 0, 100); }
 /** pay for a bold move; returns an error message when you cannot afford it, else null */
@@ -253,7 +253,7 @@ export function cast(s: FixState): Face[] {
   const out: Face[] = [];
   const seed = s.meta.seed;
   const push = (id: string, name: string, role: string, icon: string, portrait: Portrait, mood: number, scheming: boolean, line: string) => {
-    const m = Math.round(clamp100(mood));
+    const m = Math.round(clamp100(mood + Number(s.flags[`fav:${id}`] ?? 0)));
     out.push({ id, name, role, icon, portrait, mood: m, trend: s.cap && s.cap.castPrev[id] !== undefined ? m - s.cap.castPrev[id] : 0, emotion: emotion(m, scheming), line });
   };
   const fuel = Math.round(s.fuel.pump);
