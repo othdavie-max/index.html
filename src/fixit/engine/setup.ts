@@ -91,7 +91,7 @@ export const DIFFICULTY: Record<Difficulty, { label: string; blurb: string; cash
   hard: { label: "Hard", blurb: "Less money, more crises, tougher voters.", cash: 0.6, events: 1.3, vote: -2.5 },
 };
 
-export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[]; archetype?: string; start?: string; daily?: string; quick?: boolean; perks?: string[]; inherit?: Inherit }
+export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[]; archetype?: string; start?: string; daily?: string; quick?: boolean; legacy?: boolean; perks?: string[]; inherit?: Inherit }
 
 /** Who you are before you are president: a perk and a weakness each. */
 export const PRESIDENTS = [

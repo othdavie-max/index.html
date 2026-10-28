@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { stateProgress } from "../../engine/progress";
 import { MapPin, Search, X } from "lucide-react";
 import { useFix, useS } from "../store";
 import { Badge, Bar, Button, Card, EmptyState, Field, Modal } from "../../../game/ui/kit";
@@ -56,6 +57,18 @@ export function StatePanel({ s, id, lga }: { s: FixState; id: string; lga: strin
         {(() => { const g = s.governors.find((x) => x.zone === meta.zone); return g ? <div className="g-small" style={{ marginTop: 4 }}>Zone governor: <b>{g.name}</b> ({g.party}) · {g.relation >= 65 ? "an ally" : g.relation >= 45 ? "neutral" : g.relation >= 25 ? "cool towards you" : "hostile"} ({Math.round(g.relation)}/100)</div> : null; })()}
       </div>
       {!lga && <div className="fx-story">📖 {stateStory(s, id)}</div>}
+      {!lga && (() => { const p = stateProgress(s, id); if (!p) return null; const tone = p.verdict === "thriving" ? "#047857" : p.verdict === "improving" ? "#0f766e" : p.verdict === "slipping" ? "#be123c" : "#64748b"; return (
+        <div className="fx-progress" style={{ borderColor: tone }}>
+          <div className="g-row g-between"><b className="g-small">Since you took office</b><span className="g-small" style={{ color: tone, fontWeight: 800 }}>{p.verdict === "thriving" ? "🌟 Thriving" : p.verdict === "improving" ? "📈 Improving" : p.verdict === "slipping" ? "📉 Slipping" : "➖ No big change"}</span></div>
+          <div className="fx-progress-grid">
+            <span>💡 Light</span><b>{p.powerHours[0]}h → {p.powerHours[1]}h a day</b>
+            <span>👷 Jobs</span><b>{p.jobsCreated > 0 ? `about ${p.jobsCreated.toLocaleString()} more at work` : p.jobsCreated < 0 ? `about ${Math.abs(p.jobsCreated).toLocaleString()} fewer at work` : "no change"}</b>
+            <span>🍲 Food</span><b>{p.foodBetter > 1 ? `${p.foodBetter} points easier` : p.foodBetter < -1 ? `${-p.foodBetter} points harder` : "no change"}</b>
+            <span>🛡️ Safety</span><b>{p.saferBy > 1 ? `${p.saferBy} points safer` : p.saferBy < -1 ? `${-p.saferBy} points less safe` : "no change"}</b>
+            <span>🏗️ Finished here</span><b>{p.projects}</b>
+          </div>
+        </div>
+      ); })()}
       <div className="g-col" style={{ gap: 8 }}>{vals.map((x) => <Gauge key={x.k} label={METRICS.find((m) => m.id === x.k)!.label} v={x.v} />)}</div>
       <div className="g-small"><b>Biggest pressure here:</b> {METRICS.find((m) => m.id === worst.k)!.label.toLowerCase()}. <span className="g-muted">{cause[worst.k]}</span></div>
       {events.length > 0 && <div className="g-col" style={{ gap: 6 }}><div className="g-section-title">Happening now</div>{events.map((e) => <div key={e.id} className="g-row"><SymbolIcon k={e.kind} size={20} /><span className="g-small g-grow"><b>{e.title}</b></span><Button size="sm" variant="primary" onClick={() => setRespond(e.id)}>Respond</Button></div>)}</div>}

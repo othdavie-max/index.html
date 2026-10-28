@@ -55,7 +55,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
     why: {},
     regions, policies: {}, modifiers: [], projects: [], events: [], news: [], reports: [], history: [], terms: [], echoes: [], promises: [], achievements: [], cabinet: { members: {}, pool: [], reshuffles: 0 }, rival: { name: "", party: "", zone: "", popularity: 45 }, campaign: { rallies: {}, debateShift: 0, mobilise: 0, attacks: 0, actionsThisMonth: 0, month: -1 }, election: null, lawmakers: [], rule: {} as never, assembly: { support: 55, lobby: {}, passed: 0, defeats: 0 }, governors: [], groups: {} as never, groupMood: {} as never, reputation: {} as never, budget: {} as never, speech: { last: -9, moment: null },
     baseline: undefined as never,
-    flags: {}, staff: { cos: null, picked: false }, backers: [], deals: [], enemies: [], timeline: [], gone: [], families: [], foreign: { rel: { imf: 45, china: 50, usa: 50, ecowas: 55 }, imf: null, china: null, usaAid: null, log: [] }, party: { north: 55, south: 55, youth: 50, oldguard: 55, vpAmbition: 20, vpStage: 0 }, home: { spouse: { name: "First Lady/Gentleman", portrait: { skin: 3, hair: 1, style: 1, accent: 2 } }, kids: 3, health: 85, illness: null, abroad: 0 }, mil: { strength: 38, peace: 0, neighbours: [{ id: "sahelia", name: "Sahelia", strength: 34, mood: 55, stability: 45 }, { id: "dahoma", name: "Dahoma", strength: 28, mood: 60, stability: 55 }, { id: "gulfland", name: "Gulfland", strength: 42, mood: 50, stability: 62 }, { id: "kamura", name: "Kamura", strength: 31, mood: 58, stability: 40 }, { id: "atlantia", name: "Atlantia", strength: 36, mood: 62, stability: 70 }] }, lend: { loans: [], fund: 0 }, ledger: { stolen: 0, recovered: 0, pending: 0, used: {}, log: [] }, settings: { autosave: true, reducedMotion: false }, cap: newCap({ quick: setup.quick, perks: setup.perks, inherit: setup.inherit }),
+    flags: {}, staff: { cos: null, picked: false }, backers: [], deals: [], enemies: [], timeline: [], gone: [], families: [], foreign: { rel: { imf: 45, china: 50, usa: 50, ecowas: 55 }, imf: null, china: null, usaAid: null, log: [] }, party: { north: 55, south: 55, youth: 50, oldguard: 55, vpAmbition: 20, vpStage: 0 }, home: { spouse: { name: "First Lady/Gentleman", portrait: { skin: 3, hair: 1, style: 1, accent: 2 } }, kids: 3, health: 85, illness: null, abroad: 0 }, mil: { strength: 38, peace: 0, neighbours: [{ id: "sahelia", name: "Sahelia", strength: 34, mood: 55, stability: 45 }, { id: "dahoma", name: "Dahoma", strength: 28, mood: 60, stability: 55 }, { id: "gulfland", name: "Gulfland", strength: 42, mood: 50, stability: 62 }, { id: "kamura", name: "Kamura", strength: 31, mood: 58, stability: 40 }, { id: "atlantia", name: "Atlantia", strength: 36, mood: 62, stability: 70 }] }, lend: { loans: [], fund: 0 }, ledger: { stolen: 0, recovered: 0, pending: 0, used: {}, log: [] }, settings: { autosave: true, reducedMotion: false }, cap: newCap({ quick: setup.quick, legacy: setup.legacy, perks: setup.perks, inherit: setup.inherit }),
   };
   initCabinet(s);
   initRival(s);
@@ -68,7 +68,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
   initFamilies(s);
   s.staff = { cos: null, picked: false };
   applySetup(s, { ...setup, president: setup.president ?? president });
-  applyRunOptions(s, { quick: setup.quick, perks: setup.perks, inherit: setup.inherit });
+  applyRunOptions(s, { quick: setup.quick, legacy: setup.legacy, perks: setup.perks, inherit: setup.inherit });
   computeGroups(s);
   // initial fuel numbers so the dashboard is truthful on day one
   s.fuel.parity = (s.eco.oilPrice * s.eco.fx) / 159 * 1.35;
@@ -76,6 +76,7 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
   s.fuel.history = [s.fuel.pump, s.fuel.pump, s.fuel.pump];
   s.fuel.costMonthly = (1500 * (1 + 0.15 * s.fuel.coverage) / 1000) * (s.fuel.parity - s.fuel.pump) * (1 + s.fuel.leak);
   s.baseline = snap(s);
+  for (const r of Object.values(s.regions)) r.start = { food: r.food, insecurity: r.insecurity, jobless: r.jobless, power: r.power };
   s.history.push(s.baseline);
   offerAgenda(s);
   checkUnlocks(s, false);

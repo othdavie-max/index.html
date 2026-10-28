@@ -39,6 +39,7 @@ export function validate(x: unknown): FixState {
   s.staff ??= { cos: null, picked: true };
   s.deals ??= []; s.enemies ??= []; s.gone ??= []; s.mil ??= { strength: 38, peace: 0, neighbours: [{ id: "sahelia", name: "Sahelia", strength: 34, mood: 55, stability: 45 }, { id: "dahoma", name: "Dahoma", strength: 28, mood: 60, stability: 55 }, { id: "gulfland", name: "Gulfland", strength: 42, mood: 50, stability: 62 }, { id: "kamura", name: "Kamura", strength: 31, mood: 58, stability: 40 }, { id: "atlantia", name: "Atlantia", strength: 36, mood: 62, stability: 70 }] }; s.lend ??= { loans: [], fund: 0 }; s.ledger ??= { stolen: 0, recovered: 0, pending: 0, used: {}, log: [] }; s.foreign ??= { rel: { imf: 45, china: 50, usa: 50, ecowas: 55 }, imf: null, china: null, usaAid: null, log: [] }; s.party ??= { north: 55, south: 55, youth: 50, oldguard: 55, vpAmbition: 20, vpStage: 0 }; s.home ??= { spouse: { name: "First Lady/Gentleman", portrait: { skin: 3, hair: 1, style: 1, accent: 2 } }, kids: 3, health: 85, illness: null, abroad: 0 }; if (!s.families || !s.families.length) initFamilies(s); s.timeline ??= [];
   backfillCap(s);
+  for (const r of Object.values(s.regions)) r.start ??= { food: r.food, insecurity: r.insecurity, jobless: r.jobless, power: r.power };
   s.oil.uptime ??= 70; s.oil.refined ??= s.oil.refinery; s.oil.scarcity ??= 45;
   s.meta.scenario ??= "standard"; s.meta.difficulty ??= "normal"; s.meta.portrait ??= { skin: 2, hair: 0, style: 0, accent: 0 };
   return s;

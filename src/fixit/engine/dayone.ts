@@ -42,15 +42,16 @@ function makeAide(rng: Rng, kind: AideKind, i: number): Aide {
   return { id: `aide-${kind}-${i}`, kind, name: title ? `${title} ${name}` : name, bio, skill, loyalty, integrity, portrait: { skin: rng.int(1, 5), hair: rng.int(0, 3), style: rng.int(0, 3), accent: rng.int(0, 4) }, revealed: kind !== "friend" && kind !== "chieftain" && kind !== "defector", since: 0 };
 }
 
-/** The Chief of Staff candidates are fixed by the world seed. */
+const eraKey = (s: FixState): number[] => ((s.cap?.era ?? 1) > 1 ? [s.cap.era] : []);
+/** The Chief of Staff candidates are fixed by the world seed (and which president you are). */
 export function cosCandidates(s: FixState): Aide[] {
-  const rng = subRng(s.meta.seed, "cos");
+  const rng = subRng(s.meta.seed, "cos", ...(eraKey(s)));
   const kinds: AideKind[] = ["friend", "technocrat", "chieftain", rng.chance(0.5) ? "general" : "cleric"];
   return kinds.map((k, i) => makeAide(rng, k, i));
 }
 
 export function vpCandidates(s: FixState): Aide[] {
-  const rng = subRng(s.meta.seed, "vp");
+  const rng = subRng(s.meta.seed, "vp", ...(eraKey(s)));
   const kinds: AideKind[] = ["regional", "technocrat", "defector", rng.chance(0.5) ? "loyalist" : "cleric"];
   return kinds.map((k, i) => makeAide(rng, k, i + 10));
 }

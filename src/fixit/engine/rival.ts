@@ -8,7 +8,8 @@ import type { Rng } from "../../game/engine/rng";
 import { subRng } from "../../game/engine/rng";
 import { STATES, STATE_BY_ID } from "../../game/data/states";
 import type { ElectionResult, FixState } from "./types";
-import { TERM_MONTHS, HARD_CAP_TERMS } from "./types";
+import { TERM_MONTHS } from "./types";
+import { termCap } from "./terms";
 import { clamp, clamp100, nb, pushNews, pushReport } from "./util";
 import { stateLayerValue } from "./views";
 import { promiseScore } from "./promises";
@@ -30,7 +31,7 @@ export function initRival(s: FixState) {
 
 const electionMonth = (s: FixState) => s.termStart + TERM_MONTHS + (s.rule?.termExtra ?? 0);
 export const monthsToElection = (s: FixState) => electionMonth(s) - s.month;
-export const campaignOpen = (s: FixState) => !s.cap?.quick && s.term < Math.min(s.rule?.maxTerms ?? 2, HARD_CAP_TERMS) && monthsToElection(s) <= 6 && monthsToElection(s) > 0;
+export const campaignOpen = (s: FixState) => !s.cap?.quick && s.term < termCap(s) && monthsToElection(s) <= 6 && monthsToElection(s) > 0;
 
 // ---------------------------------------------------------------- vote model
 function nationalBase(s: FixState): number {

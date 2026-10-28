@@ -17,6 +17,7 @@ export const ENDINGS: { id: string; name: string; icon: string; blurb: string }[
   { id: "coup", name: "Overthrown in a Coup", icon: "🪖", blurb: "The generals decided." },
   { id: "uprising", name: "Toppled by the People", icon: "✊", blurb: "A nation said enough." },
   { id: "trial", name: "On Trial", icon: "⚖️", blurb: "Your successors came for you." },
+  { id: "ruin", name: "Nigeria Worse Off", icon: "📉", blurb: "Prices soared and little was fixed." },
   { id: "impeached", name: "Impeached", icon: "🏛️", blurb: "The Assembly removed you." },
   { id: "statesman", name: "Respected Statesman", icon: "🎖️", blurb: "You left office with your head high." },
   { id: "votedout", name: "Voted Out", icon: "🗳️", blurb: "The voters said no." },
@@ -52,6 +53,7 @@ export function computeEnding(s: FixState): Ending {
     return out("votedout", hap >= 50 ? "mixed" : "bad", `Voters chose someone else. ${hap >= 50 ? "You handed over power peacefully, and that counts for something." : "The transition was bitter."}`);
   }
   if (stayed) {
+    if (end.inflation >= 45 && hap < 45 && !authoritarian(s)) return out("ruin", "bad", `You stayed within the law, but prices ran away: inflation ended at ${end.inflation}% and the naira at ₦${end.fx.toLocaleString()}. Nigerians will remember the queues, not the speeches.`);
     if (s.term >= 3 && authoritarian(s)) return out("forlife", "mixed", `Term limits fell, elections became ceremonies and the opposition learned silence. After ${terms} terms you are still President. ${hap >= 50 ? "The economy grew and many do not mind." : "The mood is quiet and watchful."}`);
     if (dictator(s) && P.termExtra === 0 && s.term >= 2 && P.maxTerms > 2) return out("forlife", "mixed", `You rewrote the rules and kept the villa. Nigeria is ruled by one person, you, and the rest of the country waits to see how long that lasts.`);
     if (authoritarian(s) && (hap >= 50 || end.realIncome >= 95) && done >= 4) return out("builder", "mixed", `Roads, power plants and refineries rose under your iron grip, and the press that might have asked about the bill was silent. ${P.executions ? "The executions are still debated." : ""} Admirers call you a builder; critics say you bought progress with freedom.`);

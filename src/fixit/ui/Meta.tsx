@@ -5,6 +5,7 @@ import { Button, Card, Modal, Portrait } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
 import { AGENDA_BY_ID, AGENDA_PICKS, MAX_PERKS, PERKS, agendaProgress, cast, directorMood, pickAgenda, whyChain, type WhyKey } from "../engine/meta";
 import { sfx } from "./sound";
+import { democracyLabel } from "../engine/power";
 import type { LegacyMeta } from "../persistence";
 import { EMPTY_LEGACY } from "../persistence";
 
@@ -122,5 +123,23 @@ export function PerksCard({ onChange }: { onChange?: (equipped: string[]) => voi
         ); })}
       </div>
     </div>
+  );
+}
+
+/** one calm button that tells you the single biggest danger right now */
+export function DangerChip({ onClick, hl }: { onClick: () => void; hl?: boolean }) {
+  const s = useS();
+  const P = s.rule;
+  const rows = [
+    { label: "Street anger", v: P.streetAnger, bad: true }, { label: "Coup risk", v: P.coupRisk, bad: true }, { label: "World pressure", v: P.intlPressure, bad: true },
+    { label: "Elite loyalty", v: Math.max(0, (52 - P.eliteLoyalty) * 2.4), bad: true }, { label: "Democracy", v: Math.max(0, (50 - P.democracy) * 2.2), bad: true },
+  ];
+  const worst = [...rows].sort((a, b) => b.v - a.v)[0];
+  const level = worst.v >= 60 ? "bad" : worst.v >= 42 ? "warn" : "ok";
+  const text = level === "ok" ? "All calm" : `${worst.label} ${worst.label === "Elite loyalty" ? Math.round(P.eliteLoyalty) : worst.label === "Democracy" ? Math.round(P.democracy) : Math.round(worst.v)}`;
+  return (
+    <button className={`fx-danger ${hl ? "fx-coach-hl" : ""}`} data-level={level} onClick={onClick} aria-label={`Danger: ${text}. Open the president's office.`} title={democracyLabel(s)}>
+      <span aria-hidden>{level === "ok" ? "🛡️" : level === "warn" ? "⚠️" : "🚨"}</span><b>{text}</b>
+    </button>
   );
 }

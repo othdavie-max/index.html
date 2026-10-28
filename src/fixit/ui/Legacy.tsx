@@ -7,7 +7,7 @@ import { computeEnding } from "../engine/endings";
 import { democracyLabel } from "../engine/power";
 import { sfx } from "./sound";
 import { useEffect, useState } from "react";
-import { inheritFrom } from "../engine/meta";
+import { canContinue, continueNigeria, successors } from "../engine/succession";
 import { legacyAward } from "../persistence";
 import { presidentName, snap } from "../engine/util";
 import type { TermResult } from "../engine/types";
@@ -115,12 +115,12 @@ export function Legacy() {
           <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Assembly: {s.assembly.passed} bills passed, {s.assembly.defeats} defeated.</div>
         </Card>
         {s.achievements.length > 0 && <Card title={`Milestones (${s.achievements.length})`}><div className="fx-pills">{s.achievements.map((a) => <span key={a.id} className="g-badge g-badge-green">🏅 {a.label}</span>)}</div></Card>}
+        {s.done && !canContinue(s) && <ContinueCard />}
         <div className="g-row g-wrap" style={{ gap: 10 }}>
           {s.ended.overstay && <div className="g-card-flat" style={{ background: "#3b0a14", borderColor: "#e11d48", color: "#fff", flex: "1 1 100%" }}><b>⚖️ Refuse to leave office?</b><div className="g-small" style={{ color: "#fecdd3", marginTop: 4 }}>The constitution says your time is up. You can stay anyway. There is no vote and no law, only the army and your word. Expect: ECOWAS suspending Nigeria, a Supreme Court ruling against you, governors refusing to recognise you, officers meeting in secret, a general strike. Each time you do it, it gets worse.</div><Button variant="danger" size="sm" style={{ marginTop: 8 }} onClick={() => act((x) => refuseToLeave(x))}>Refuse to leave</Button></div>}
           {won && <Button variant="primary" onClick={continueTerm}><Play size={16} /> Begin your second term</Button>}
           <ShareButton s={s} title={lg.title} a={last.start} b={last.end} verdict={lg.titleWhy} />
           <Button variant={won ? "default" : "primary"} onClick={() => startNew(s.meta.seed)}><RotateCcw size={16} /> Replay this same world</Button>
-          {ending && <Button variant="primary" onClick={() => { void saves.legacy().then((m) => startNew(undefined, s.promises, { difficulty: s.meta.difficulty, portrait: s.meta.portrait, president: "Madam/Mr President", archetype: "career", start: "normal", quick: s.cap.quick, perks: m.equipped, inherit: inheritFrom(s) })); }}>👑 Pass the baton: your successor inherits this Nigeria</Button>}
           <Button onClick={() => startNew()}>New presidency</Button>
           <Button variant="light" onClick={quit} style={{ background: "#12304f", color: "#fff" }}>Back to title</Button>
         </div>
@@ -130,3 +130,27 @@ export function Legacy() {
   );
 }
 void snap;
+
+function ContinueCard() {
+  const s = useS();
+  const { act } = useFix();
+  const list = successors(s);
+  const [sel, setSel] = useState(list[0]?.id ?? "");
+  const kept = s.projects.filter((p) => p.status === "done").length;
+  return (
+    <div className="g-card" style={{ background: "#0b1f36", color: "#fff", borderColor: "#00c875" }}>
+      <div className="g-tiny" style={{ letterSpacing: ".14em", color: "#86efac", fontWeight: 800 }}>YOUR NIGERIA DOES NOT HAVE TO END</div>
+      <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 4 }}>Continue this Nigeria</h3>
+      <p style={{ color: "#cfe0ee", marginTop: 4 }}>Someone new takes the oath. Everything you built stays: {kept} finished project{kept === 1 ? "" : "s"}, the naira at ₦{Math.round(s.eco.fx).toLocaleString()}, every state and governor, exactly as you left them. They pick a new team and make new promises.</p>
+      <div className="fx-succ" role="group" aria-label="Choose the next president">
+        {list.map((x) => (
+          <button key={x.id} className="fx-pp" style={{ alignItems: "flex-start", padding: "8px 10px" }} aria-pressed={sel === x.id} onClick={() => setSel(x.id)}>
+            <Portrait p={x.portrait} size={44} name={x.name} />
+            <span><b>{x.name}</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>{x.blurb}</div></span>
+          </button>
+        ))}
+      </div>
+      <Button variant="primary" style={{ marginTop: 10 }} onClick={() => { sfx("fanfare"); act((x) => continueNigeria(x, sel)); }}>👑 Continue this Nigeria as {list.find((x) => x.id === sel)?.name ?? "them"}</Button>
+    </div>
+  );
+}

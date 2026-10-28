@@ -7,16 +7,16 @@ import type { Cap, Effects, FixState, Inherit, Portrait } from "./types";
 import { addMod, clamp, clamp100, lever, pushNews, strength } from "./util";
 
 // ------------------------------------------------------------------ run options
-export interface RunOptions { quick?: boolean; perks?: string[]; inherit?: Inherit }
+export interface RunOptions { quick?: boolean; legacy?: boolean; perks?: string[]; inherit?: Inherit }
 
 export const newCap = (o: RunOptions = {}): Cap => ({
   pc: 50, unlocked: [], agenda: [], agendaDue: true, offer: [], agendaLog: [], tension: 20, calm: 0, rate: 1,
-  quick: !!o.quick, perks: o.perks ?? [], dynasty: o.inherit?.gen ?? 0, castPrev: {},
+  quick: !!o.quick, legacy: !!o.legacy, era: 1, perks: o.perks ?? [], dynasty: o.inherit?.gen ?? 0, castPrev: {},
 });
 
 /** an old save has no meta layer: everything stays open, nothing is owed */
 export function backfillCap(s: FixState) {
-  if (s.cap) { s.cap.castPrev ??= {}; s.cap.agendaLog ??= []; s.cap.offer ??= []; s.cap.agenda ??= []; s.cap.unlocked ??= []; s.cap.perks ??= []; return; }
+  if (s.cap) { s.cap.legacy ??= false; s.cap.era ??= 1; s.cap.castPrev ??= {}; s.cap.agendaLog ??= []; s.cap.offer ??= []; s.cap.agenda ??= []; s.cap.unlocked ??= []; s.cap.perks ??= []; return; }
   s.cap = newCap();
   s.cap.agendaDue = false;
   s.cap.unlocked = UNLOCKS.map((u) => u.id);

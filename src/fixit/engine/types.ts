@@ -97,6 +97,8 @@ export interface Region {
   unrest: number;
   /** persistent structural offsets so Borno stays different from Lagos */
   off: { food: number; insecurity: number; jobless: number; power: number; flood: number };
+  /** where this state stood on day one, so progress can be shown */
+  start?: { food: number; insecurity: number; jobless: number; power: number };
 }
 
 export interface Snap {
@@ -203,6 +205,10 @@ export interface Cap {
   /** pacing director: how hot the last months were (0..100), calm streak, and the event-rate multiplier it set */
   tension: number; calm: number; rate: number;
   quick: boolean;
+  /** legacy mode: no term limits, keep building one Nigeria */
+  legacy: boolean;
+  /** which president of this Nigeria (1 = the first) */
+  era: number;
   perks: string[];
   dynasty: number;
   castPrev: Record<string, number>;

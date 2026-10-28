@@ -10,11 +10,11 @@ import { sfx } from "./sound";
 import type { NewsItem } from "../engine/types";
 
 // ---------------------------------------------------------------- the coach: three nudges, then it gets out of the way
-export const COACH: { text: string; target: "notes" | "next" | "govern" | "danger" }[] = [
+export const COACH: { text: string; target: "notes" | "next" | "build" | "danger" }[] = [
   { text: "Welcome, Mr/Madam President! The notices on the left are decisions waiting for you. Tap one to see your options.", target: "notes" },
   { text: "Good. Now press the big gold NEXT TURN button to move one month. Prices, the naira and people's mood all change.", target: "next" },
-  { text: "Open Govern to start projects, and check Advisers for honest advice. Different choices lead to very different Nigerias.", target: "govern" },
-  { text: "Up here are your danger meters. If street anger, coup risk or world pressure climb, trouble comes. Tap them to see what to do.", target: "danger" },
+  { text: "Open Build to start projects and policies, and check People then Advisers for honest advice. Different choices lead to very different Nigerias.", target: "build" },
+  { text: "This button shows your biggest danger. If street anger, coup risk or world pressure climb, trouble comes. Tap it to see what to do.", target: "danger" },
 ];
 export const coachStep = (flags: Record<string, unknown>) => (typeof flags.coach === "number" && (flags.coach as number) < COACH.length ? (flags.coach as number) : -1);
 export function Coach({ step }: { step: number }) {

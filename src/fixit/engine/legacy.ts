@@ -8,6 +8,7 @@ import { act } from "./act";
 import { ripple } from "./ripples";
 import { clamp100 } from "./util";
 import { computeEnding, isDirty } from "./endings";
+import { termCap } from "./terms";
 
 export interface LegacyRow { label: string; start: string; end: string; delta: string; better: boolean | null }
 export interface Legacy {
@@ -26,7 +27,7 @@ export function reelectionChance(s: FixState): number {
   return winChance(s);
 }
 
-export const termCap = (s: FixState) => (s.cap?.quick ? 1 : Math.min(s.rule?.maxTerms ?? 2, HARD_CAP_TERMS));
+export { termCap };
 
 /** Called after every processed month. */
 export function evaluateTermEnd(s: FixState) {

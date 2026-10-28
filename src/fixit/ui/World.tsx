@@ -2,7 +2,7 @@
 /** The Civilization-style main screen: a living map, a HUD of resources and danger meters, a notification stack,
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Crown, FastForward, HelpCircle, Lock, Landmark, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, Scale } from "lucide-react";
+import { Crown, FastForward, HelpCircle, Lock, Hammer, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, } from "lucide-react";
 import { useFix, useS, type Tab } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { STATES } from "../../game/data/states";
@@ -21,12 +21,12 @@ import { News } from "./screens/News";
 import { CabinetCard } from "./Cabinet";
 import { BudgetCard, GovernorsCard, GroupsCard, SpeechButton } from "./Politics";
 import { AssemblyPanel } from "./AssemblyPanel";
-import { Meters, PowerPanel } from "./PowerPanel";
+import { PowerPanel } from "./PowerPanel";
 import { EventCard } from "./Decisions";
 import { HowTo, MenuModal } from "./Menu";
 import { Legacy } from "./Legacy";
 import { ElectionNight } from "./ElectionNight";
-import { MonthSummaryModal, Ticker } from "./Shell";
+import { MonthSummaryModal } from "./Shell";
 import { DayOne } from "./DayOne";
 import { StaffCard } from "./StaffCard";
 import { MovesPanel } from "./MovesPanel";
@@ -43,7 +43,8 @@ import { FirstFamilyCard, ForeignPanel, PartyPanel, SectorsPanel } from "./World
 import { DebtPanel, LendingPanel, MilitaryPanel } from "./DebtMilitary";
 import { debtView } from "../engine/debt";
 import { tabLock, UNLOCK_BY_ID, type WhyKey } from "../engine/meta";
-import { AgendaModal, AgendaProgress, CastPanel, WhyModal } from "./Meta";
+import { AgendaModal, AgendaProgress, CastPanel, DangerChip, WhyModal } from "./Meta";
+import { PlatformModal } from "./Platform";
 import { activeEnemies } from "../engine/ripples";
 import { briefing, topIssue } from "../engine/advice";
 import { pegged } from "../engine/bigmoves";
@@ -105,6 +106,7 @@ export function World() {
   const { tab, setTab: rawSetTab, advance, select, setSelect, summary, version, act, toast, lang, setLang, tx } = useFix();
   const setTab = (t: Tab) => { const h = tabLock(s, t); if (h) { toast(`🔒 ${h}`, true); sfx("bad"); return; } rawSetTab(t); };
   const [why, setWhy] = useState<WhyKey | null>(null);
+  const [moreHud, setMoreHud] = useState(false);
   const [fresh, setFresh] = useState<string | null>(null);
   const seenUnlocks = useRef(s.cap.unlocked.length);
   const lootSeen = useRef(String(s.flags.lootToast ?? ""));
@@ -185,17 +187,16 @@ export function World() {
     sfx("tap"); advance(s.cap.quick ? 2 : 1);
   };
 
-  // seven buttons; everything else is a tab inside them
+  // five buttons; everything else is a tab inside them
   const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
-    { id: "govern", label: "Govern", icon: <Landmark size={22} />, wide: true, tabs: [{ id: "presidency", label: "Presidency" }, { id: "policies", label: "Policies" }, { id: "projects", label: "Projects" }, { id: "moves", label: "Big Moves" }, { id: "foreign", label: "Foreign" }] },
-    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }, { id: "street", label: "Nigeria today" }] },
-    { id: "assembly", label: "Assembly", icon: <Scale size={22} />, tabs: [{ id: "assembly", label: "Assembly" }] },
-    { id: "power", label: "Power", icon: <Crown size={22} />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "Seat of power" }, { id: "military", label: "Military" }] },
-    { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "Cabinet & backers" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
-    { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }] },
+    { id: "build", label: "Build", icon: <Hammer size={22} />, wide: true, tabs: [{ id: "presidency", label: "Overview" }, { id: "projects", label: "Projects" }, { id: "policies", label: "Policies" }] },
+    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }] },
+    { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "military", label: "Military" }] },
+    { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "My team" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
+    { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }, { id: "street", label: "Nigeria today" }] },
   ];
   const group = GROUPS.find((g) => g.tabs.some((x) => x.id === drawer));
-  const title: Record<string, string> = { govern: "Government", economy: "Nation & economy", assembly: "National Assembly", power: "Seat of power", people: "People around you", news: "News" };
+  const title: Record<string, string> = { build: "Build", economy: "Nation & economy", power: "Power", people: "People around you", news: "News" };
 
   return (
     <div className={`fx-world ${shake ? "fx-shake" : ""}`} data-lens={lens}>
@@ -204,14 +205,17 @@ export function World() {
         <div className="fx-hud-res">
           <Res icon="💰" label="Cash" v={nb(s.fin.treasury)} bad={s.fin.treasury < 30} onClick={() => setWhy("cash")} />
           <Res icon="💵" label={pegged(s) ? "Official / black" : "Naira"} v={pegged(s) ? `₦${Math.round(s.eco.fx).toLocaleString()} / ${Math.round(Number(s.flags.blackFx ?? s.eco.fx)).toLocaleString()}` : `₦${Math.round(s.eco.fx).toLocaleString()}`} bad={pegged(s)} onClick={() => setWhy("fx")} />
-          <Res icon="💳" label="Debt" v={`${debtView(s).pctGdp.toFixed(0)}%`} bad={debtView(s).pctGdp > 60} onClick={() => setWhy("debt")} />
-          <Res icon="📈" label="Inflation" v={`${s.eco.inflation.toFixed(0)}%`} bad={s.eco.inflation > 25} onClick={() => setWhy("inflation")} />
-          <Res icon="👷" label="Jobless" v={`${s.jobs.unemployment.toFixed(0)}%`} bad={s.jobs.unemployment > 30} onClick={() => setWhy("jobless")} />
-          <Res icon={face(100 - s.gov.happiness)} label="Mood" v={`${Math.round(s.gov.happiness)}`} bad={s.gov.happiness < 35} onClick={() => setWhy("mood")} />
           <Res icon="🗳️" label="Approval" v={`${Math.round(s.gov.approval)}%`} bad={s.gov.approval < 35} onClick={() => setWhy("approval")} />
           <Res icon="⚡" label="Capital" v={`${Math.floor(s.cap.pc)}`} bad={s.cap.pc < 8} onClick={() => setWhy("capital")} gold />
+          <button className="fx-res fx-more" aria-expanded={moreHud} aria-label={moreHud ? "Hide extra numbers" : "Show inflation, jobs, mood and debt"} onClick={() => setMoreHud(!moreHud)}><span aria-hidden>{moreHud ? "▲" : "▼"}</span><i>{moreHud ? "Less" : "More"}</i></button>
+          {moreHud && <>
+            <Res icon="📈" label="Inflation" v={`${s.eco.inflation.toFixed(0)}%`} bad={s.eco.inflation > 25} onClick={() => setWhy("inflation")} />
+            <Res icon="👷" label="Jobless" v={`${s.jobs.unemployment.toFixed(0)}%`} bad={s.jobs.unemployment > 30} onClick={() => setWhy("jobless")} />
+            <Res icon={face(100 - s.gov.happiness)} label="Mood" v={`${Math.round(s.gov.happiness)}`} bad={s.gov.happiness < 35} onClick={() => setWhy("mood")} />
+            <Res icon="💳" label="Debt" v={`${debtView(s).pctGdp.toFixed(0)}%`} bad={debtView(s).pctGdp > 60} onClick={() => setWhy("debt")} />
+          </>}
         </div>
-        <button className={`fx-hud-danger ${cstep >= 0 && COACH[cstep].target === "danger" ? "fx-coach-hl" : ""}`} onClick={() => setTab("power")} aria-label="Open the seat of power: danger meters"><Meters compact /></button>
+        <DangerChip hl={cstep >= 0 && COACH[cstep].target === "danger"} onClick={() => setTab("power")} />
         <div className="fx-hud-tools">
           <button className="fx-icon-btn" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
           <button className="fx-icon-btn" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music">{music ? "🎵" : "🔇"}</button>
@@ -225,12 +229,12 @@ export function World() {
         <MapView s={s} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels />
         <div className="fx-lens" role="group" aria-label="Map lens">{LENSES.map((l) => <button key={l.id} className="fx-chip" aria-pressed={lens === l.id} onClick={() => setLens(l.id)}>{l.label}</button>)}</div>
         <div className={`fx-notes ${cstep >= 0 && COACH[cstep].target === "notes" ? "fx-coach-hl" : ""}`} aria-label="Notifications">
-          {all.slice(0, 5).map((e) => (
+          {all.slice(0, 3).map((e) => (
             <button key={e.id} className="fx-note" data-kind={e.kind} onClick={() => { sfx("tap"); setPick(e.id); }} aria-label={`${EVENT_SYMBOL[e.kind].label}: ${e.title}`}>
               <SymbolIcon k={e.kind} size={26} /><span><b>{e.title}</b><i>{EVENT_SYMBOL[e.kind].label}</i></span>
             </button>
           ))}
-          {all.length > 5 && <button className="fx-note fx-note-more" onClick={() => setQueue(true)}>+{all.length - 5} more</button>}
+          {all.length > 3 && <button className="fx-note fx-note-more" onClick={() => setQueue(true)}>+{all.length - 3} more</button>}
         </div>
         {banner && <div className="fx-turn-banner" aria-hidden><span>{banner}</span></div>}
         <TurnChips />
@@ -256,10 +260,8 @@ export function World() {
         </div>
       </div>
 
-      <Ticker />
       <nav className="fx-toolbar" aria-label="Government">
-        <button className="fx-tool" onClick={() => { sfx("tap"); setQueue(true); }}><ShieldAlert size={22} /><span>Desk</span>{decisions.length > 0 && <i className="fx-dot-red" aria-label="decisions waiting" />}</button>
-        {GROUPS.map((b) => { const open = b.tabs.find((x) => !tabLock(s, x.id)); return <button key={b.id} data-locked={open ? undefined : "1"} className={`fx-tool ${cstep >= 0 && COACH[cstep].target === "govern" && b.id === "govern" ? "fx-coach-hl" : ""}`} aria-pressed={group?.id === b.id} onClick={() => { sfx("tap"); if (!open) { toast(`🔒 ${tabLock(s, b.tabs[0].id)}`, true); return; } setTab(group?.id === b.id ? "world" : open.id); }}>{open ? b.icon : <Lock size={22} />}<span>{b.label}</span>{!!b.badge && !!open && <i className="fx-dot-red" aria-label="needs attention" />}</button>; })}
+        {GROUPS.map((b) => { const open = b.tabs.find((x) => !tabLock(s, x.id)); return <button key={b.id} data-locked={open ? undefined : "1"} className={`fx-tool ${cstep >= 0 && COACH[cstep].target === "build" && b.id === "build" ? "fx-coach-hl" : ""}`} aria-pressed={group?.id === b.id} onClick={() => { sfx("tap"); if (!open) { toast(`🔒 ${tabLock(s, b.tabs[0].id)}`, true); return; } setTab(group?.id === b.id ? "world" : open.id); }}>{open ? b.icon : <Lock size={22} />}<span>{b.label}</span>{!!b.badge && !!open && <i className="fx-dot-red" aria-label="needs attention" />}</button>; })}
       </nav>
 
       {select.state && <Drawer title="Location" onClose={() => setSelect({ state: null, lga: null })}><StatePanel s={s} id={select.state} lga={select.lga} /></Drawer>}
@@ -299,6 +301,7 @@ export function World() {
       )}
       {cards.length > 0 && RECORD_BY_ID[cards[0]] && <RecordCard r={RECORD_BY_ID[cards[0]]} label={pegged(s) ? "Official rate only: the black market tells a different story." : undefined} onClose={() => setCards((c) => c.slice(1))} />}
       {!s.staff.picked && <DayOne />}
+      {s.staff.picked && s.promises.length === 0 && !s.ended && <PlatformModal />}
       {fresh && UNLOCK_BY_ID[fresh] && <button className="fx-unlock" onClick={() => { setFresh(null); const u = UNLOCK_BY_ID[fresh]; rawSetTab(u.tabs[0] as Tab); }}><b>{UNLOCK_BY_ID[fresh].icon} New: {UNLOCK_BY_ID[fresh].label}</b><span>{UNLOCK_BY_ID[fresh].why} Tap to open.</span></button>}
       {why && <WhyModal k={why} onClose={() => setWhy(null)} onOpen={WHYTAB[why] ? () => { const w = why; setWhy(null); setTab(WHYTAB[w]!); } : undefined} />}
       {!s.ended && s.cap.agendaDue && s.staff.picked && !summary && !(s.flags.reviewDue !== undefined && s.flags.reviewDue !== s.flags.reviewSeen) && <AgendaModal onClose={() => undefined} />}

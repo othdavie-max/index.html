@@ -176,3 +176,14 @@ export function cabinetScore(s: FixState): number {
   return ms.length ? Math.round(ms.reduce((a, m) => a + m.skill, 0) / 6) : 0;
 }
 export { clamp, infraScore };
+
+/** a new president gets a fresh slate of candidates for every ministry (current ministers stay in post until replaced) */
+export function freshCandidates(s: FixState) {
+  const rng = subRng(s.meta.seed, "cabinet", s.cap?.era ?? 1);
+  const pool: Minister[] = [];
+  for (const p of PORTFOLIOS) {
+    const fs: Faction[] = ["technocrat", "heavyweight", "loyalist"];
+    fs.forEach((f, i) => { const m = makeMinister(rng, p.id, f, 20 + i + 10 * (s.cap?.era ?? 1)); pool.push(m); });
+  }
+  s.cabinet.pool = pool;
+}
