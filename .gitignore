@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 .geo-cache/
 .artifact/
+/site
+/.site-tmp

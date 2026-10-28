@@ -50,7 +50,7 @@ export function About({ onClose }: { onClose: () => void }) {
       <div className="g-col g-small" style={{ gap: 8 }}>
         <p><b>Fictional and simulated.</b> The scenario, politicians, events, prices, statistics and outcomes are invented for gameplay. They are not real data and not predictions about Nigeria.</p>
         <p><b>Real geography.</b> The map shows Nigeria&apos;s 36 states, the FCT and 774 local government areas using geoBoundaries (GRID3 / CC BY 4.0). Local conditions inside the map are simulated.</p>
-        <p><b>Offline and private.</b> The game runs entirely in your browser and saves on your device. No accounts, no tracking, no paid services.</p>
+        <p><b>Offline and private.</b> The game runs entirely in your browser and saves on your device. No accounts, no ads. Once installed it works with no data at all. The online version counts anonymous things like "a game was started" so the developer can see how the game is doing, and sends nothing if your browser says Do Not Track.</p>
       </div>
     </Modal>
   );

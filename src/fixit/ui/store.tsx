@@ -12,6 +12,7 @@ import { monthLabel, snap } from "../engine/util";
 import { FixSaves, FixSaveError, type Slot } from "../persistence";
 import { pidgin } from "../engine/pidgin";
 import { socialSync } from "../engine/social";
+import { track } from "./analytics";
 import { because } from "../engine/because";
 
 export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet" | "moves" | "street" | "advisers" | "oil" | "deals" | "enemies" | "timeline" | "foreign" | "party" | "sectors" | "debt" | "lending" | "military" | "governors" | "plans" | "x" | "league" | "grand";
@@ -76,7 +77,8 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const [game, setGame] = useState<FixState | null>(null);
   const [version, setVersion] = useState(0);
   const [screen, setScreen] = useState<"title" | "play">("title");
-  const [tab, setTab] = useState<Tab>("world");
+  const [tab, setTabRaw] = useState<Tab>("world");
+  const setTab = useCallback((t: Tab) => { setTabRaw(t); if (t !== "world") track(`open/${t}`, true); }, []);
   const [summary, setSummary] = useState<MonthSummary | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [select, setSelect] = useState<{ state: string | null; lga: string | null }>({ state: null, lga: null });
@@ -133,6 +135,9 @@ export function FixProvider({ children }: { children: ReactNode }) {
       if (months > 1 && fresh) break; // multi-month skips stop for anything that needs a decision
     }
     if (n === 0) { bump(); return; }
+    for (const y of [12, 24, 36, 48, 72, 96, 144]) if (startMonth < y && g.month >= y) track(`reached/month-${y}`, true);
+    const fin = g.ended as FixState["ended"];
+    if (fin) track(`end/${fin.kind}${fin.cause ? `-${fin.cause}` : ""}`);
     const after = snap(g);
     const events = g.events.filter((e) => e.status === "open" && !seen.has(e.id));
     const news = g.news.slice(newsBefore).filter((x) => x.month >= startMonth && !x.source.startsWith("echo:") && !x.source.startsWith("ach:")).slice(-5);
@@ -151,9 +156,10 @@ export function FixProvider({ children }: { children: ReactNode }) {
     const opts: SetupOptions = setup ?? (pm ? { difficulty: pm.difficulty, portrait: pm.portrait, president: pm.president, quick: gameRef.current?.cap.quick, perks: gameRef.current?.cap.perks } : {});
     const g = newGame(seed ?? Math.floor(Math.random() * 1e6) + 1, opts.president ?? "Madam/Mr President", opts);
     setPromises(g, promises ?? prev ?? []);
+    track("start"); track(`start/${g.meta.difficulty}`); track(`scenario/${g.meta.scenario}`);
     setGame(g); setScreen("play"); setTab("world"); setSummary(null); setSelect({ state: null, lga: null }); bump();
     void saves.save("auto", g).then(() => setLastSaved(Date.now())).catch(() => undefined);
-  }, [bump, saves]);
+  }, [bump, saves, setTab]);
 
   const continueTerm = useCallback(() => {
     const g = gameRef.current;
@@ -169,7 +175,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       setError(e instanceof FixSaveError ? e.message : "That save could not be loaded."); return false;
     }
-  }, [bump, saves]);
+  }, [bump, saves, setTab]);
 
   const quit = useCallback(() => { void saveSlot("auto").then(() => setScreen("title")); }, [saveSlot]);
 

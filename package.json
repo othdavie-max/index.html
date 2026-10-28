@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "build:geo": "node scripts/build-geo.mjs"
+    "build:geo": "node scripts/build-geo.mjs",
+    "build:site": "node scripts/build-site.mjs",
+    "deploy:site": "bash scripts/deploy-site.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
