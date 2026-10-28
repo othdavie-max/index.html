@@ -366,3 +366,13 @@
 .gm .fx-cmd { text-align: left; display: flex; flex-direction: column; background: #f8fafc; border: 2px solid transparent; border-radius: 10px; padding: 6px 10px; cursor: pointer; } .gm .fx-cmd[aria-pressed="true"] { border-color: #00c875; background: #ecfdf5; }
 .gm .fx-dials { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; } .gm .fx-dial { display: flex; flex-direction: column; gap: 6px; background: #f8fafc; border-radius: 12px; padding: 10px; }
 .gm .fx-whip { display: flex; flex-direction: column; gap: 6px; } .gm .fx-whipbar { display: flex; height: 22px; border-radius: 8px; overflow: hidden; color: #fff; font-size: 12px; font-weight: 800; } .gm .fx-whipbar span { display: grid; place-items: center; min-width: 0; }
+
+.gm .fx-avatar { background: none; border: 0; padding: 0; cursor: pointer; align-self: flex-start; }
+.gm .fx-reply { padding: 6px 0 6px 6px; border-bottom: 0; } .gm .fx-replies { margin: 0 0 6px 22px; padding-left: 10px; border-left: 2px solid var(--g-border); }
+.gm .fx-post[data-player="1"] { background: #f0f9ff; border-radius: 10px; padding-left: 8px; padding-right: 8px; }
+.gm .fx-tag { display: inline-block; font-size: 12px; font-weight: 700; color: #1d4ed8; margin-top: 2px; }
+.gm .fx-stats { display: flex; gap: 14px; margin-top: 2px; } .gm .fx-stats span { display: inline-flex; gap: 3px; align-items: center; }
+.gm .fx-thread { border-bottom: 1px solid var(--g-border); padding-bottom: 4px; } .gm .fx-thread .fx-post { border-bottom: 0; }
+.gm .fx-link { background: none; border: 0; color: #1d4ed8; font-size: 12px; font-weight: 700; cursor: pointer; padding: 2px 0 6px 48px; }
+.gm .fx-trend { display: flex; gap: 10px; align-items: center; border-left: 4px solid #94a3b8; padding: 4px 10px; background: #f8fafc; border-radius: 8px; } .gm .fx-trend[data-tone="bad"] { border-left-color: #e11d48; } .gm .fx-trend[data-tone="good"] { border-left-color: #00c875; }
+.gm .fx-xmood { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .gm .fx-xface { font-size: 26px; display: flex; gap: 8px; align-items: center; }

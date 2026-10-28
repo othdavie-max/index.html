@@ -12,6 +12,7 @@ import { govLeak, govMult, govsMonthly } from "./govs";
 import { officeMonthly } from "./office";
 import { tradeMonthly } from "./trade";
 import { opsMonthly } from "./ops";
+import { socialMonthly } from "./social";
 import { proposalsMonthly, routineMonthly } from "./proposals";
 import { castArcsMonthly } from "./castarcs";
 import "./actions";
@@ -76,6 +77,7 @@ export function advanceMonth(s: FixState): boolean {
   officeMonthly(s, subRng(s.meta.seed, "office", m));
   tradeMonthly(s);
   opsMonthly(s, subRng(s.meta.seed, "ops", m));
+  socialMonthly(s, subRng(s.meta.seed, "social", m));
   bigMonthly(s, subRng(s.meta.seed, "big", m));
   investorsMonthly(s, subRng(s.meta.seed, "investors", m));
   ripplesMonthly(s, subRng(s.meta.seed, "ripples", m));

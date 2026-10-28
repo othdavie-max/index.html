@@ -11,9 +11,10 @@ import { hallEntry } from "../persistence";
 import { monthLabel, snap } from "../engine/util";
 import { FixSaves, FixSaveError, type Slot } from "../persistence";
 import { pidgin } from "../engine/pidgin";
+import { socialSync } from "../engine/social";
 import { because } from "../engine/because";
 
-export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet" | "moves" | "street" | "advisers" | "oil" | "deals" | "enemies" | "timeline" | "foreign" | "party" | "sectors" | "debt" | "lending" | "military" | "governors" | "plans";
+export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet" | "moves" | "street" | "advisers" | "oil" | "deals" | "enemies" | "timeline" | "foreign" | "party" | "sectors" | "debt" | "lending" | "military" | "governors" | "plans" | "x";
 export interface Change { label: string; from: string; to: string; tone: "good" | "bad" | "neutral"; because?: string[] }
 export interface MonthSummary { from: string; to: string; months: number; changes: Change[]; events: GameEvent[]; news: NewsItem[]; echoes: Echo[]; achievements: Achievement[]; headline?: NewsItem }
 export interface Toast { id: number; text: string; bad: boolean }
@@ -109,6 +110,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     const g = gameRef.current;
     if (!g) return { ok: false, message: "No game" };
     const r = fn(g);
+    socialSync(g);
     bump();
     if (!opts?.silent) toast(r.message, !r.ok);
     return r;

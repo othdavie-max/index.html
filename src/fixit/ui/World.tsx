@@ -31,6 +31,7 @@ import { DayOne } from "./DayOne";
 import { StaffCard } from "./StaffCard";
 import { MovesPanel } from "./MovesPanel";
 import { StreetPanel } from "./StreetPanel";
+import { XPanel } from "./Social";
 import { BriefingPanel } from "./AdvisorStrip";
 import { RecordCard } from "./RecordCard";
 import { BreakingBanner, Coach, TurnChips, YearReview, coachStep, COACH } from "./Feel";
@@ -197,7 +198,7 @@ export function World() {
     { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }] },
     { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "military", label: "Military" }] },
     { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "My team" }, { id: "governors", label: "Governors" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
-    { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }, { id: "street", label: "Nigeria today" }] },
+    { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }, { id: "x", label: "Naija X" }, { id: "street", label: "Nigeria today" }] },
   ];
   const group = GROUPS.find((g) => g.tabs.some((x) => x.id === drawer));
   const title: Record<string, string> = { build: "Build", economy: "Nation & economy", power: "Power", people: "People around you", news: "News" };
@@ -291,6 +292,7 @@ export function World() {
           {drawer === "governors" && <GovernorsPanel />}
           {drawer === "advisers" && <BriefingPanel />}
           {drawer === "enemies" && <EnemiesPanel />}
+          {drawer === "x" && <XPanel />}
           {drawer === "news" && <News />}
         </Drawer>
       )}

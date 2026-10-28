@@ -172,3 +172,13 @@ Run tests: `npx vitest run src/fixit`.
 - **Assembly whip count** (`engine/politics.ts`): the chamber split into yes, undecided and no, with a way to win over an undecided member before a vote.
 - **Interest-rate dial** (`engine/dials.ts`, Economy): high rates cool prices and cost jobs; changes are rate-limited.
 - Tests: `tests/stage4.test.ts`.
+
+## Stage 5: Naija X
+
+- **A living feed** (`engine/social.ts`, `ui/Social.tsx`, News then Naija X): 14 recurring accounts (a market woman, a danfo driver, a developer, a graduate, an importer, a farmer, two journalists, two activists, a loyalist influencer, a troll, an official stats account), each with a mood toward you that follows the real numbers for their topic, and a memory of what you did. They quote those memories back ("Remember ...?"). Every post can collect replies, shown as threads.
+- **Reactions to everything**: each decision, news item and report is turned into posts within the same click (`socialSync`), by the accounts that care about the topic. Trending hashtags (#FuelQueue, #RiceWatch, #NEPATookLight, #ShowTheReceipts ...) rise with real conditions and with what you do.
+- **Your own posts**: seven kinds (thank, public promise, explain, celebrate, apologise, joke, attack the media), one every two months, with real effects. A public promise is checked nine months later and quoted back, kept or broken.
+- **Accounts**: tap any avatar to read what they remember about you; reply kindly or sharply, block, or send the security service. Blocking and summoning journalists tends to backfire (the Streisand effect).
+- **Bots**: pay for a bot army (three levels) to fill the feed with praise and cool the streets a little. The feed then flatters you ("what your feed says" vs "what people really feel"), and a journalist eventually exposes the payments (#BotGate). Hostile bot campaigns appear when the country is angry; you can report them.
+- **Online mood to the street**: real online anger adds to street anger, and a very angry bad hashtag turns into a protest event. Switching Naija X off quiets things for about three months, then costs investors, young people and foreign goodwill.
+- Tests: `tests/stage5.test.ts`.
