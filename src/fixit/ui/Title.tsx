@@ -1,130 +1,44 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Play, FolderOpen, Info, RotateCcw } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, FolderOpen, Info, Landmark, CalendarDays } from "lucide-react";
 import { useFix } from "./store";
-import { Button, Modal } from "../../game/ui/kit";
-import { SaveSlots } from "./Menu";
-import { DEFAULT_PROMISES, PROMISES } from "../engine/promises";
-import { ARCH_NEED, DIFFICULTY, PRESIDENTS, START_NEED, STARTS } from "../engine/setup";
-import { PerksCard } from "./Meta";
-import type { Difficulty, Portrait as PortraitT } from "../engine/types";
-import { Portrait, PORTRAIT_OPTIONS } from "../../game/ui/kit";
+import { Modal } from "../../game/ui/kit";
+import { HowTo, SaveSlots } from "./Menu";
+import { DEFAULT_PROMISES } from "../engine/promises";
+import { PRESIDENTS } from "../engine/setup";
 import { Hall } from "./Hall";
+import { Setup } from "./Setup";
+import { Button } from "../../game/ui/kit";
 
 export function Title() {
-  const { startNew, hasAuto, loadSlot, saves, lang, setLang } = useFix();
-  const [progress, setProgress] = useState(0);
-  const [quick, setQuick] = useState(false);
-  const [perks, setPerks] = useState<string[]>([]);
-  const [all, setAll] = useState(false);
-  useEffect(() => { Promise.all([saves.endings(), saves.hall(), saves.legacy()]).then(([e, h, m]) => { setProgress(m.unlockAll ? 99 : Math.max(e.length, h.length)); setAll(!!m.unlockAll); }).catch(() => undefined); }, [saves]);
+  const { startNew, hasAuto, loadSlot } = useFix();
   const [slots, setSlots] = useState(false);
   const [about, setAbout] = useState(false);
-  const [step, setStep] = useState<"intro" | "setup" | "promises">("intro");
+  const [how, setHow] = useState(false);
+  const [setup, setSetup] = useState(false);
   const [hall, setHall] = useState(false);
-  const [name, setName] = useState("");
-  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
-  const [archetype, setArchetype] = useState("career");
-  const [start, setStart] = useState("normal");
-  const [portrait, setPortrait] = useState<PortraitT>({ skin: 3, hair: 0, style: 0, accent: 0 });
-  const cycle = (k: keyof PortraitT) => setPortrait((p) => ({ ...p, [k]: (p[k] + 1) % (PORTRAIT_OPTIONS as unknown as Record<string, number>)[k] }));
-  const [picked, setPicked] = useState<string[]>(DEFAULT_PROMISES);
-  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= 3 ? [...p.slice(1), id] : [...p, id]));
-  if (step === "setup") return (
-    <div className="fx-title-screen">
-      <div className="fx-title-card">
-        <div>
-          <div className="g-tiny" style={{ letterSpacing: ".18em", color: "#9db3c9", fontWeight: 800 }}>STEP 1 OF 2</div>
-          <h1 style={{ fontSize: "clamp(28px,5vw,42px)", fontWeight: 900, lineHeight: 1.1, marginTop: 6 }}>Who are you?</h1>
-        </div>
-        <div className="g-row g-wrap" style={{ gap: 18, alignItems: "flex-start" }}>
-          <div className="g-col" style={{ alignItems: "center", gap: 8 }}>
-            <Portrait p={portrait} size={110} name={name || "the President"} />
-            <div className="g-row g-wrap" style={{ gap: 4, justifyContent: "center", maxWidth: 220 }}>
-              {(["skin", "hair", "style", "accent"] as const).map((k) => <Button key={k} size="sm" variant="light" onClick={() => cycle(k)}>{k === "style" ? "Hair style" : k === "accent" ? "Outfit" : k === "skin" ? "Skin" : "Hair colour"}</Button>)}
-            </div>
-          </div>
-          <div className="g-col g-grow" style={{ minWidth: 260, gap: 8 }}>
-            <label className="g-small" htmlFor="pres-name" style={{ fontWeight: 700 }}>Your name</label>
-            <input id="pres-name" className="g-input" style={{ background: "rgba(255,255,255,.95)" }} placeholder="e.g. Adaora Bello" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
-            <div className="g-small" style={{ fontWeight: 700, marginTop: 6 }}>Difficulty</div>
-            <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Difficulty">{(Object.keys(DIFFICULTY) as Difficulty[]).map((d) => <button key={d} className="fx-pp" style={{ padding: "8px 12px" }} aria-pressed={difficulty === d} onClick={() => setDifficulty(d)}><span><b>{DIFFICULTY[d].label}</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>{DIFFICULTY[d].blurb}</div></span></button>)}</div>
-          </div>
-        </div>
-        <div className="g-col" style={{ gap: 6 }}>
-          <div className="g-small" style={{ fontWeight: 700 }}>Who were you before the villa?</div>
-          <div className="fx-cand-grid fx-cand-5" role="group" aria-label="President type">{PRESIDENTS.map((p) => { const need = ARCH_NEED[p.id] ?? 0, lock = progress < need; return <button key={p.id} className="fx-pp" style={{ padding: "8px 10px", alignItems: "flex-start", opacity: lock ? 0.55 : 1 }} aria-pressed={archetype === p.id} disabled={lock} onClick={() => setArchetype(p.id)}><span><b>{lock ? "🔒" : p.icon} {p.name}</b>{lock ? <div className="g-tiny" style={{ color: "#fde68a" }}>Finish {need - progress} more {need - progress === 1 ? "game" : "games"} to unlock</div> : <><div className="g-tiny" style={{ color: "#a7f3d0" }}>+ {p.perk}</div><div className="g-tiny" style={{ color: "#fecaca" }}>− {p.weak}</div></>}</span></button>; })}</div>
-          {!all && progress < 3 && <button className="g-btn g-btn-ghost g-tiny" style={{ color: "#9db3c9", alignSelf: "flex-start", textDecoration: "underline" }} onClick={() => { setProgress(99); setAll(true); void saves.legacy().then((m) => saves.saveLegacy({ ...m, unlockAll: true })).catch(() => undefined); }}>Know the game already? Unlock every president and start.</button>}
-          <div className="g-small" style={{ fontWeight: 700, marginTop: 4 }}>How do you take over?</div>
-          <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Starting situation">{STARTS.map((x) => { const need = START_NEED[x.id] ?? 0, lock = progress < need; return <button key={x.id} className="fx-pp" style={{ padding: "8px 12px", opacity: lock ? 0.55 : 1 }} aria-pressed={start === x.id} disabled={lock} onClick={() => setStart(x.id)}><span><b>{lock ? "🔒" : x.icon} {x.name}</b><div className="g-tiny" style={{ color: lock ? "#fde68a" : "#cfe0ee" }}>{lock ? `Finish ${need - progress} more ${need - progress === 1 ? "game" : "games"} to unlock` : x.blurb}</div></span></button>; })}</div>
-        </div>
-        <div className="g-col" style={{ gap: 6 }}>
-          <div className="g-small" style={{ fontWeight: 700 }}>How long do you want to play?</div>
-          <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Game length">
-            <button className="fx-pp" style={{ padding: "8px 12px" }} aria-pressed={!quick} onClick={() => setQuick(false)}><span><b>🏛️ Full campaign</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>Up to two terms, re-election, every system. 2 to 4 hours.</div></span></button>
-            <button className="fx-pp" style={{ padding: "8px 12px" }} aria-pressed={quick} onClick={() => setQuick(true)}><span><b>⚡ Quick term</b><div className="g-tiny" style={{ color: "#cfe0ee" }}>One four-year term, two months a turn, systems open faster. About 20 minutes.</div></span></button>
-          </div>
-          <div className="g-small" style={{ fontWeight: 700, marginTop: 4 }}>Legacy perks from your past games</div>
-          <PerksCard onChange={setPerks} />
-          <div className="g-row g-wrap" style={{ gap: 6, alignItems: "center" }}><span className="g-small" style={{ fontWeight: 700 }}>Street voices in</span><button className="fx-pp" style={{ padding: "6px 10px" }} aria-pressed={lang === "en"} onClick={() => setLang("en")}><b>English</b></button><button className="fx-pp" style={{ padding: "6px 10px" }} aria-pressed={lang === "pcm"} onClick={() => setLang("pcm")}><b>Naija Pidgin</b></button></div>
-        </div>
-        <div className="fx-intro" style={{ fontSize: 14 }}>
-          <div><b>🎲 A different Nigeria every time.</b> When you take the oath, the game rolls what you inherit: maybe a collapsing naira and a looming strike, maybe banditry in the North West, a looted treasury or a bumper harvest. You will only find out on day one.</div>
-        </div>
-        <div className="g-row g-wrap" style={{ gap: 12 }}>
-          <button className="fx-big-btn" onClick={() => setStep("promises")}>Next: your promises</button>
-          <Button variant="light" onClick={() => setStep("intro")}>Back</Button>
-        </div>
-      </div>
-    </div>
-  );
-  if (step === "promises") return (
-    <div className="fx-title-screen">
-      <div className="fx-title-card">
-        <div>
-          <div className="g-tiny" style={{ letterSpacing: ".18em", color: "#9db3c9", fontWeight: 800 }}>STEP 2 OF 2 · BEFORE YOU TAKE THE OATH</div>
-          <h1 style={{ fontSize: "clamp(28px,5vw,42px)", fontWeight: 900, lineHeight: 1.1, marginTop: 6 }}>Make three promises to Nigeria</h1>
-          <p style={{ color: "#cfe0ee", marginTop: 8 }}>Voters will remember. Each promise you keep raises your re-election chances; each one you break lowers them. Pick the ones you believe you can deliver.</p>
-        </div>
-        <div className="fx-promise-pick" role="group" aria-label="Campaign promises">
-          {PROMISES.map((p) => (
-            <button key={p.id} className="fx-pp" aria-pressed={picked.includes(p.id)} onClick={() => toggle(p.id)}>
-              <span className="fx-check" aria-hidden>{picked.includes(p.id) ? "✓" : ""}</span>
-              <span><b>{p.label}</b></span>
-            </button>
-          ))}
-        </div>
-        <div className="g-row g-wrap" style={{ gap: 12 }}>
-          <button className="fx-big-btn" disabled={picked.length !== 3} onClick={() => startNew(undefined, picked, { difficulty, portrait, president: name.trim() || "Madam/Mr President", archetype, start, quick, perks })}><Play size={22} /> Take the oath ({picked.length}/3)</button>
-          <Button variant="light" onClick={() => setStep("setup")}>Back</Button>
-        </div>
-      </div>
-    </div>
-  );
+  if (setup) return <Setup onBack={() => setSetup(false)} />;
+  const daily = () => { const d = new Date(); const key = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`; const seed = Number(key); startNew(seed, DEFAULT_PROMISES, { difficulty: "normal", portrait: { skin: 3, hair: 0, style: 0, accent: 0 }, president: "Madam/Mr President", archetype: PRESIDENTS[seed % PRESIDENTS.length].id, start: ["normal", "normal", "coup", "recession"][seed % 4], daily: key }); };
   return (
-    <div className="fx-title-screen">
-      <div className="fx-title-card">
-        <div>
-          <div className="g-tiny" style={{ letterSpacing: ".18em", color: "#9db3c9", fontWeight: 800 }}>A PRESIDENTIAL STRATEGY SIMULATION</div>
-          <h1 className="fx-title-h" style={{ marginTop: 8 }}>NIGERIA:<br /><em>CAN YOU FIX IT?</em></h1>
-          <p style={{ fontSize: 20, marginTop: 10, color: "#cfe0ee", fontWeight: 600 }}>Your country. Your decisions. Your legacy.</p>
-        </div>
-        <div className="fx-intro">
-          <div><b>The job.</b> You have just been sworn in as President. Every presidency inherits a different Nigeria: a weak naira, food prices, fuel queues, blackouts, banditry, angry unions or a looted treasury. You never know which until you take office. You have four years, a limited budget and no easy answers.</div>
-          <div><b>How it works.</b> Each month, the game shows you the country&apos;s biggest problem and a few real choices, each with a cost, a trade-off and an honest uncertainty. Choose, end the month, and see what changes. Nothing is faked: every number comes from the simulation.</div>
-          <div className="g-tiny" style={{ color: "#9db3c9" }}>This is a fictional, internally consistent scenario. All figures are simulated game values, not real data or forecasts. Map boundaries are real (geoBoundaries, CC BY 4.0).</div>
-        </div>
-        <div className="g-row g-wrap" style={{ gap: 12 }}>
-          <button className="fx-big-btn" onClick={() => setStep("setup")}><Play size={22} /> Start Presidency</button>
-          <Button variant="light" onClick={() => { const d = new Date(); const key = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`; const seed = Number(key); startNew(seed, DEFAULT_PROMISES, { difficulty: "normal", portrait, president: name.trim() || "Madam/Mr President", archetype: PRESIDENTS[seed % PRESIDENTS.length].id, start: ["normal", "normal", "coup", "recession"][seed % 4], daily: key }); }}>📅 Daily challenge</Button>
-          {hasAuto && <Button variant="light" onClick={() => void loadSlot("auto")}><RotateCcw size={17} /> Continue</Button>}
-          <Button variant="light" onClick={() => setSlots(true)}><FolderOpen size={17} /> Load game</Button>
-          <Button variant="light" onClick={() => setHall(true)}>🏛️ Hall of Presidents</Button>
-          <Button variant="light" onClick={() => setAbout(true)}><Info size={17} /> About</Button>
-        </div>
+    <div className="fx-hero">
+      <div className="fx-hero-center">
+        <div className="fx-hero-kicker">A PRESIDENTIAL STRATEGY GAME</div>
+        <h1 className="fx-hero-title">NIGERIA:<br /><em>CAN YOU FIX IT?</em></h1>
+        <p className="fx-hero-tag">Four years. One country. Every choice counts.</p>
+        <button className="fx-big-btn fx-hero-go" onClick={() => setSetup(true)}>Start your presidency</button>
+        {hasAuto && <button className="fx-hero-sub" onClick={() => void loadSlot("auto")}>Continue your last game</button>}
       </div>
+      <nav className="fx-hero-icons" aria-label="More">
+        <button onClick={() => setSlots(true)}><FolderOpen size={20} /><span>Load</span></button>
+        <button onClick={daily}><CalendarDays size={20} /><span>Daily</span></button>
+        <button onClick={() => setHall(true)}><Landmark size={20} /><span>Hall</span></button>
+        <button onClick={() => setHow(true)}><BookOpen size={20} /><span>How to play</span></button>
+        <button onClick={() => setAbout(true)}><Info size={20} /><span>About</span></button>
+      </nav>
+      <div className="fx-hero-fine">Fictional and simulated. Every figure is a game value, not real data.</div>
       {slots && <Modal title="Load a game" onClose={() => setSlots(false)}><SaveSlots mode="load" onDone={() => setSlots(false)} /></Modal>}
       {about && <About onClose={() => setAbout(false)} />}
+      {how && <HowTo onClose={() => setHow(false)} />}
       {hall && <Hall onClose={() => setHall(false)} />}
     </div>
   );

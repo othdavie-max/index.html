@@ -5,7 +5,7 @@ import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, Portrait } from "../../game/ui/kit";
 import { AIDE_KINDS, cosCandidates, finishDayOne, pickChiefOfStaff, pickVice, vpCandidates } from "../engine/dayone";
-import { FACTION_LABEL, PORTFOLIOS, appoint } from "../engine/cabinet";
+import { FACTION_FLAW, FACTION_LABEL, KEY_PORTFOLIOS, PORTFOLIOS, appoint, signatureOf } from "../engine/cabinet";
 import { backerLabel, cosMood, hireMood } from "../engine/backers";
 import { BACKER_GIFTS, giftBlock, giveGift } from "../engine/officials";
 import { warnMinister } from "../engine/cabinet";
@@ -49,6 +49,7 @@ function Candidate({ m, current, onPick }: { m: Minister; current: boolean; onPi
     <button className="fx-cand" data-on={current ? "1" : undefined} onClick={onPick} aria-pressed={current}>
       <div className="g-row g-wrap" style={{ gap: 6 }}><b className="g-small">{m.name}</b><Badge tone={m.faction === "technocrat" ? "blue" : crony ? "red" : m.faction === "heavyweight" ? "amber" : "navy"}>{FACTION_LABEL[m.faction].label}</Badge></div>
       {m.bio && <div className="g-tiny g-muted">{m.bio}</div>}
+      {crony ? <div className="g-tiny g-muted">Your own person: skill and honesty unknown.</div> : <div className="fx-sig"><span>✨ {signatureOf(m).label}</span><span>⚠️ {FACTION_FLAW[m.faction]}</span></div>}
       <div className="g-row g-between g-tiny"><span>Skill {crony ? <b title="You can only tell with time">?</b> : <b>{m.skill}</b>}</span><span>Honesty {crony ? <b title="You will find out">?</b> : <b>{m.integrity}</b>}</span></div>
       <Hint d={d} />
     </button>
@@ -60,7 +61,8 @@ function AideCard({ a, on, onPick }: { a: ReturnType<typeof cosCandidates>[numbe
     <button className="fx-cand" data-on={on ? "1" : undefined} onClick={onPick}>
       <div className="g-row" style={{ gap: 10 }}><Portrait p={a.portrait} size={46} name={a.name} /><div><b>{a.name}</b><div className="g-tiny g-muted">{AIDE_KINDS[a.kind].icon} {AIDE_KINDS[a.kind].tag}</div></div></div>
       <div className="g-tiny g-muted">{a.bio}</div>
-      <div className="g-small">{AIDE_KINDS[a.kind].perk}</div>
+      {a.quote && <q className="fx-quote">{a.quote}</q>}
+      <div className="fx-sig"><span>✨ {AIDE_KINDS[a.kind].perk}</span><span>⚠️ {AIDE_KINDS[a.kind].flaw}</span></div>
       <div className="g-row g-between g-tiny"><span>Skill <b>{a.revealed ? a.skill : "?"}</b></span><span>Honesty <b>{a.revealed ? a.integrity : "?"}</b></span><span>Loyalty <b>{a.revealed ? a.loyalty : "?"}</b></span></div>
       <Hint d={cosMood(a.kind)} />
     </button>
@@ -100,12 +102,12 @@ export function DayOne() {
         )}
         {step === 2 && (
           <>
-            <h2>Pick your ministers</h2>
-            <p className="g-small" style={{ color: "#cfe0ee" }}>Qualified strangers run the economy well. Your own people are loyal and your backers love them, but nobody knows how honest they are. <b>Choose carefully: the people who funded you are watching.</b></p>
+            <h2>Pick your four key ministers</h2>
+            <p className="g-small" style={{ color: "#cfe0ee" }}>Qualified strangers run the economy well. Your own people are loyal and your backers love them, but nobody knows how honest they are. <b>Choose carefully: the people who funded you are watching.</b> Each one has a signature strength and a flaw, and runs their sector from now on. Your Chief of Staff fills the other two posts (the central bank and works) with the most capable people available.</p>
             <div className="fx-backers"><BackerRow /></div>
             <label className="fx-charge"><input type="checkbox" checked={charge} onChange={(e) => setCharge(e.target.checked)} /> <span><b>Charge every appointee:</b> "You are not here to eat. You are here to work. Steal and you answer for it." <i>They steal less, but your own people will be offended, and you must act if one steals.</i></span></label>
             <div className="g-col" style={{ gap: 12 }}>
-              {PORTFOLIOS.map((p) => {
+              {PORTFOLIOS.filter((p) => KEY_PORTFOLIOS.includes(p.id)).map((p) => {
                 const cur = s.cabinet.members[p.id];
                 const all = [cur, ...s.cabinet.pool.filter((m) => m.portfolio === p.id)].filter(Boolean) as Minister[];
                 return (

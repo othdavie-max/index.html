@@ -34,6 +34,9 @@ export function SaveSlots({ mode, onDone }: { mode: "load" | "both"; onDone: () 
 
 export function HowTo({ onClose }: { onClose: () => void }) {
   const steps = [
+    ["Continue this Nigeria", "When your time ends you do not have to start again. Pick a successor and the same country carries on: the same naira, projects and governors. Only the president changes: new team, new promises."],
+    ["Your promises have numbers and a deadline", "Three promises, each with a target and a date (the end of year three). Keep one and you get a moment and a boost; miss it and the opposition quotes you back."],
+    ["36 governors, and states that change", "Every state has its own governor. At the start you back candidates in the party primaries. A skilled, honest governor makes projects work better in their state. Tap a state to see how it has changed since you took office: light, jobs, food and safety."],
     ["Political capital: ⚡ is your favour", "Every bold move (power tools, lobbying, warnings, gifts, big moves, speeches, dealing with enemies) costs ⚡ political capital. It refills each month in proportion to your approval, trust and Assembly support, and you earn extra from finished projects and kept agendas. Tap ⚡ at the top to see why it moves."],
     ["Set a yearly agenda", "At the start of each year pick up to two priorities: Feed the Nation, War on Corruption, Power for All and more. Each gives a small boost. At the year end you are judged: keep it for +12 ⚡ and approval, miss it and lose trust."],
     ["Tap any number to see why", "Tap Cash, Naira, Debt, Inflation, Jobless, Mood or Approval in the top bar. You get a plain chain: what is driving it, which of your policies and projects are in play, and your recent big moves."],

@@ -58,6 +58,19 @@ export function initCabinet(s: FixState) {
   for (const p of PORTFOLIOS) applyMinister(s, p.id);
 }
 
+/** what makes a minister special: a signature ability with a real effect, and a flaw */
+export const SIGNATURES: Record<Portfolio, { label: string; effects: Effects }[]> = {
+  finance: [{ label: "Taxman: collections rise", effects: { revenue: 60, taxCompl: 3 } }, { label: "Debt hawk: lenders trust the books", effects: { investor: 3, revenue: 20 } }, { label: "Budget magician: less leakage", effects: { corruption: -1.5, procurement: 3 } }],
+  cbn: [{ label: "Inflation hawk", effects: { inflation: -1.5 } }, { label: "Market whisperer: calms the naira", effects: { fxSupply: 0.3, investor: 2 } }, { label: "Reformer: opens the FX market", effects: { fxSupply: 0.4, fxDemand: -0.2 } }],
+  agriculture: [{ label: "Farmer's friend: cheaper inputs", effects: { inputs: 6, foodPrice: -0.8 } }, { label: "Silo builder: less food wasted", effects: { postHarvest: 3, storage: 3 } }, { label: "Irrigation evangelist", effects: { irrigation: 4, foodSupply: 1.5 } }],
+  power: [{ label: "Gas whisperer: more fuel for the plants", effects: { gas: 8, power: 150 } }, { label: "Grid fixer: fewer collapses", effects: { grid: 7, maint: 3 } }, { label: "Solar champion: off-grid megawatts", effects: { power: 220 } }],
+  works: [{ label: "Pothole slayer", effects: { roads: 4, maint: 4 } }, { label: "Contract cleaner: fewer padded bills", effects: { procurement: 6 } }, { label: "Rail romantic", effects: { rail: 3 } }],
+  security: [{ label: "Hearts and minds: locals trust them", effects: { security: 4, trust: 0.8 } }, { label: "Intelligence ace", effects: { security: 5, forces: 2 } }, { label: "Barracks man: the army is loyal", effects: { forces: 4 } }],
+};
+export const signatureOf = (m: Pick<Minister, "id" | "portfolio">) => { let h = 0; for (const c of m.id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return SIGNATURES[m.portfolio][h % 3]; };
+export const FACTION_FLAW: Record<Faction, string> = { technocrat: "No political base: lawmakers ignore them.", loyalist: "Less skilled, and the party's favourite for contracts.", heavyweight: "Puts his home zone first.", crony: "Skill and honesty are unknown until something happens." };
+/** the four posts you pick yourself; the rest are filled by your chief of staff */
+export const KEY_PORTFOLIOS: Portfolio[] = ["finance", "power", "agriculture", "security"];
 /** effects of whoever holds (or does not hold) a portfolio */
 export function ministerEffects(m: Minister | undefined, portfolio: Portfolio): Effects {
   const k = (m ? (m.skill - 50) / 50 : -0.5) * 0.7;
@@ -73,6 +86,7 @@ export function ministerEffects(m: Minister | undefined, portfolio: Portfolio): 
   const e: Effects = { ...base[portfolio] };
   if (c > 0) { e.corruption = (e.corruption ?? 0) + 3 * c; e.procurement = (e.procurement ?? 0) - 4 * c; }
   if (m?.faction === "technocrat") e.investor = (e.investor ?? 0) + 1.5;
+  if (m && m.picked && !m.hidden) { const sg = signatureOf(m); const w = 0.5 + m.skill / 100; for (const [k, v] of Object.entries(sg.effects)) e[k as keyof Effects] = (e[k as keyof Effects] ?? 0) + (v as number) * w; }
   return e;
 }
 function applyMinister(s: FixState, p: Portfolio) {
@@ -100,7 +114,7 @@ export function appoint(s: FixState, portfolio: Portfolio, candidateId: string):
       for (const m of Object.values(s.cabinet.members)) if (m && m.portfolio !== portfolio) m.mood = clamp100(m.mood - 3);
     }
   }
-  s.cabinet.members[portfolio] = { ...cand, since: s.month, mood: 65 };
+  s.cabinet.members[portfolio] = { ...cand, since: s.month, mood: 65, picked: true };
   if (s.backers) { moodAll(s, hireMood(cand.faction, true)); if (old) moodAll(s, hireMood(old.faction, false) * 0.5); }
   s.cabinet.reshuffles += early ? 0 : 1;
   applyMinister(s, portfolio);
@@ -186,4 +200,14 @@ export function freshCandidates(s: FixState) {
     fs.forEach((f, i) => { const m = makeMinister(rng, p.id, f, 20 + i + 10 * (s.cap?.era ?? 1)); pool.push(m); });
   }
   s.cabinet.pool = pool;
+}
+
+/** your chief of staff quietly fills the posts you did not choose with the most capable non-crony available */
+export function autoFillRest(s: FixState) {
+  for (const p of PORTFOLIOS) {
+    if (KEY_PORTFOLIOS.includes(p.id)) continue;
+    const cur = s.cabinet.members[p.id];
+    const best = s.cabinet.pool.filter((m) => m.portfolio === p.id && m.faction !== "crony").sort((a, b) => b.skill - a.skill)[0];
+    if (best && (!cur || best.skill > cur.skill + 6)) appoint(s, p.id, best.id);
+  }
 }

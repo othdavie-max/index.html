@@ -7,6 +7,7 @@
 import { Rng, subRng } from "../../game/engine/rng";
 import { directorMonthly, earnPc, metaTurn } from "./meta";
 import { stateMilestonesMonthly } from "./progress";
+import { govLeak, govMult } from "./govs";
 import { proposalsMonthly } from "./proposals";
 import { castArcsMonthly } from "./castarcs";
 import "./actions";
@@ -16,7 +17,7 @@ import { TERM_MONTHS, type FixState, type Project } from "./types";
 import { addMod, removeMods, calMonth, clamp, clamp100, debtServiceRatio, delivery, foodAffordIdx, infraScore, isFloodSeason, isHarvest, isLeanSeason, lever, powerRatio, pushNews, pushReport, realWage, round, snap, debtTotalNgn, nb, annualGdpNgn } from "./util";
 import { generateEvents, resolveExpired } from "./events";
 import { resolveEchoes } from "./echoes";
-import { checkAchievements, midtermCheck } from "./promises";
+import { checkAchievements, midtermCheck, pledgesMonthly } from "./promises";
 import { cabinetMonthly } from "./cabinet";
 import { rivalMonthly } from "./rival";
 import { governorSpeed, relate, societyMonthly } from "./society";
@@ -92,6 +93,7 @@ export function advanceMonth(s: FixState): boolean {
   if (s.month > 0 && s.month % 12 === 0) s.flags.reviewDue = s.month / 12;
   metaTurn(s);
   if (typeof s.flags.coach === "number" && s.flags.coach < 4 && s.month >= [1, 2, 4, 7][s.flags.coach as number]) s.flags.coach = (s.flags.coach as number) + 1;
+  pledgesMonthly(s);
   checkAchievements(s);
   checkRecords(s);
   evaluateTermEnd(s);
@@ -142,7 +144,7 @@ function stepProject(s: FixState, p: Project) {
   if (p.funding === "concessional") s.fin.foreignDebt += (pay * 0.85) / s.eco.fx;
   if (p.funding === "concessional") s.eco.reserves += (pay * 0.85) / s.eco.fx * 0.35; // part of the loan lands as dollars
   const corr = clamp100(s.gov.corruption + lever(s, "corruption")), proc = clamp100(s.gov.procurement + lever(s, "procurement"));
-  const leakRate = clamp(0.03 + 0.3 * (corr / 100) * (1 - 0.6 * proc / 100) + (p.favour ? 0.07 : 0), 0.02, 0.4);
+  const leakRate = clamp(0.03 + 0.3 * (corr / 100) * (1 - 0.6 * proc / 100) + (p.favour ? 0.07 : 0) + govLeak(s, p.stateId), 0.02, 0.4);
   const leaked = pay * leakRate;
   p.spent += pay;
   p.leaked += leaked;
@@ -504,9 +506,10 @@ export function localEffects(s: FixState): Record<string, Partial<Record<RegionK
     if (!table || !s.regions[p.stateId]) continue;
     const k = (p.benefitScale ?? 0.8) * Math.min(1, (s.month - (p.done ?? s.month) + 1) / 10);
     const zone = STATES.find((x) => x.id === p.stateId)?.zone;
+    const gm = govMult(s, p.stateId);
     for (const [key, v] of Object.entries(table) as [RegionKey, number][]) {
-      add(p.stateId, key, v * k);
-      for (const o of STATES) if (o.id !== p.stateId && o.zone === zone) add(o.id, key, v * k * 0.25);
+      add(p.stateId, key, v * k * gm);
+      for (const o of STATES) if (o.id !== p.stateId && o.zone === zone) add(o.id, key, v * k * gm * 0.25);
     }
   }
   for (const d of s.deals ?? []) if (d.status === "open" && s.regions[d.stateId]) add(d.stateId, "jobless", -6);

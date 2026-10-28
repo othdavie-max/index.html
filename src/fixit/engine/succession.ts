@@ -58,7 +58,7 @@ export function continueNigeria(s: FixState, id: string): { ok: boolean; message
   if (pick.source === "minister" && pick.portfolio) { delete s.cabinet.members[pick.portfolio]; }
   freshCandidates(s);
   s.cap.era = era; s.cap.dynasty = (s.cap.dynasty ?? 0) + 1; s.cap.pc = 50; s.cap.agenda = [];
-  s.flags.formerPresident = old; s.flags.successionAt = s.month; s.flags.coach = 99;
+  s.flags.primaryDone = 1; s.flags.primarySeen = 1; s.flags.formerPresident = old; s.flags.successionAt = s.month; s.flags.coach = 99;
   s.reputation = { reformer: 0, populist: 0, strongman: 0, clean: 0, builder: 0, borrower: 0 };
   // old feuds cool, old backers want a fresh start, and a new face gets a short honeymoon
   for (const e of s.enemies) if (e.status === "active") { e.power = Math.round(e.power * 0.5); if (e.power < 18) e.status = "reconciled"; }

@@ -45,6 +45,8 @@ import { debtView } from "../engine/debt";
 import { tabLock, UNLOCK_BY_ID, type WhyKey } from "../engine/meta";
 import { AgendaModal, AgendaProgress, CastPanel, DangerChip, WhyModal } from "./Meta";
 import { PlatformModal } from "./Platform";
+import { PrimaryModal } from "./Primary";
+import { GovernorsPanel } from "./Governors";
 import { activeEnemies } from "../engine/ripples";
 import { briefing, topIssue } from "../engine/advice";
 import { pegged } from "../engine/bigmoves";
@@ -192,7 +194,7 @@ export function World() {
     { id: "build", label: "Build", icon: <Hammer size={22} />, wide: true, tabs: [{ id: "presidency", label: "Overview" }, { id: "projects", label: "Projects" }, { id: "policies", label: "Policies" }] },
     { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }] },
     { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "military", label: "Military" }] },
-    { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "My team" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
+    { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "My team" }, { id: "governors", label: "Governors" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
     { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }, { id: "street", label: "Nigeria today" }] },
   ];
   const group = GROUPS.find((g) => g.tabs.some((x) => x.id === drawer));
@@ -283,6 +285,7 @@ export function World() {
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}
           {drawer === "power" && <PowerPanel />}
                     {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><CastPanel /><StaffCard /><FirstFamilyCard /><CabinetCard /><GroupsCard /></div>}
+          {drawer === "governors" && <GovernorsPanel />}
           {drawer === "advisers" && <BriefingPanel />}
           {drawer === "enemies" && <EnemiesPanel />}
           {drawer === "news" && <News />}
@@ -300,7 +303,8 @@ export function World() {
         </Modal>
       )}
       {cards.length > 0 && RECORD_BY_ID[cards[0]] && <RecordCard r={RECORD_BY_ID[cards[0]]} label={pegged(s) ? "Official rate only: the black market tells a different story." : undefined} onClose={() => setCards((c) => c.slice(1))} />}
-      {!s.staff.picked && <DayOne />}
+      {!!s.flags.primary && !s.flags.primarySeen && !s.staff.picked && <PrimaryModal />}
+      {!s.staff.picked && (!s.flags.primary || !!s.flags.primarySeen) && <DayOne />}
       {s.staff.picked && s.promises.length === 0 && !s.ended && <PlatformModal />}
       {fresh && UNLOCK_BY_ID[fresh] && <button className="fx-unlock" onClick={() => { setFresh(null); const u = UNLOCK_BY_ID[fresh]; rawSetTab(u.tabs[0] as Tab); }}><b>{UNLOCK_BY_ID[fresh].icon} New: {UNLOCK_BY_ID[fresh].label}</b><span>{UNLOCK_BY_ID[fresh].why} Tap to open.</span></button>}
       {why && <WhyModal k={why} onClose={() => setWhy(null)} onOpen={WHYTAB[why] ? () => { const w = why; setWhy(null); setTab(WHYTAB[w]!); } : undefined} />}

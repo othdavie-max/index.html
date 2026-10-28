@@ -4,6 +4,7 @@
  * and their hidden side comes out later. All people are fictional.
  */
 import { subRng, type Rng } from "../../game/engine/rng";
+import { autoFillRest } from "./cabinet";
 import type { Aide, AideKind, FixState, Minister, Portfolio } from "./types";
 import { addMod, clamp100, nb, pushNews, removeMods } from "./util";
 import { createEvent } from "./spawn";
@@ -12,17 +13,27 @@ const FIRST = ["Tunde", "Emeka", "Musa", "Segun", "Chinedu", "Bala", "Kelechi", 
 const LAST = ["Adewale", "Okonkwo", "Garba", "Bakare", "Eze", "Dikko", "Ajayi", "Nwachukwu", "Shehu", "Olaniyan", "Umaru", "Obi", "Lawal", "Ekpo", "Salami", "Anyanwu"];
 const HOMETOWN = ["Ikenne", "Otuoke", "Daura", "Abeokuta", "Nsukka", "Bida", "Ogbomosho", "Owerri", "Gusau", "Ilesa"];
 
-export const AIDE_KINDS: Record<AideKind, { tag: string; icon: string; perk: string }> = {
-  friend: { tag: "Childhood friend", icon: "🤝", perk: "Would die for you. Nobody knows what else he would do." },
-  technocrat: { tag: "Technocrat", icon: "🎓", perk: "Brilliant and honest. Investors love it. Will quit if you get dirty." },
-  chieftain: { tag: "Party chairman's son", icon: "🎩", perk: "Lawmakers pick up his calls. The party will want contracts." },
-  general: { tag: "Retired general", icon: "🎖️", perk: "The barracks stay quiet. Some say he dreams of your chair." },
-  cleric: { tag: "Your spiritual father's pick", icon: "🙏", perk: "Faith leaders are delighted. Meetings start with long prayers." },
-  regional: { tag: "Regional power-broker", icon: "🗺️", perk: "Balances the ticket: brings his zone's votes and the Assembly's ear." },
-  loyalist: { tag: "Party loyalist", icon: "🎗️", perk: "Keeps the party faithful. Knows where every body is buried." },
-  defector: { tag: "Opposition defector", icon: "🔄", perk: "Weakens your rival and splits the opposition. Will he stay loyal?" },
+export const AIDE_KINDS: Record<AideKind, { tag: string; icon: string; perk: string; flaw: string }> = {
+  friend: { tag: "Childhood friend", icon: "🤝", perk: "Would die for you. Nobody knows what else he would do.", flaw: "Cannot say no to you, and you cannot say no to him." },
+  technocrat: { tag: "Technocrat", icon: "🎓", perk: "Brilliant and honest. Investors love it. Will quit if you get dirty.", flaw: "No political base: your backers will hate it." },
+  chieftain: { tag: "Party chairman's son", icon: "🎩", perk: "Lawmakers pick up his calls. The party will want contracts.", flaw: "The party will want its share." },
+  general: { tag: "Retired general", icon: "🎖️", perk: "The barracks stay quiet. Some say he dreams of your chair.", flaw: "Sees every problem as a battle." },
+  cleric: { tag: "Your spiritual father's pick", icon: "🙏", perk: "Faith leaders are delighted. Meetings start with long prayers.", flaw: "Young people find the office preachy." },
+  regional: { tag: "Regional power-broker", icon: "🗺️", perk: "Balances the ticket: brings his zone's votes and the Assembly's ear.", flaw: "Puts his zone first." },
+  loyalist: { tag: "Party loyalist", icon: "🎗️", perk: "Keeps the party faithful. Knows where every body is buried.", flaw: "Knows too much to ever be sacked." },
+  defector: { tag: "Opposition defector", icon: "🔄", perk: "Weakens your rival and splits the opposition. Will he stay loyal?", flaw: "Loyal to whoever is winning." },
 };
 
+const QUOTES: Record<AideKind, string[]> = {
+  friend: ["Oga, no wahala. I go handle am.", "We don come far, my guy. I no go let you fall.", "Who else go carry this load for you? Na me."],
+  technocrat: ["The numbers do not lie, Sir, but they are easy to ignore.", "Give me the data and one honest year.", "I can fix the economy. I cannot fix politics."],
+  chieftain: ["Mr President, my father sends his greetings. And his list.", "Every senator takes my call. That is not an accident.", "Politics is a relationship business, Sir."],
+  general: ["Discipline, Sir. A country runs like a barracks or not at all.", "I will have your desk clean by 6 a.m.", "Give me the order and I will give you the result."],
+  cleric: ["Let us pray, then let us work.", "The people trust a clean heart, Sir.", "God has a plan, and I have a schedule."],
+  regional: ["My zone voted for you. My zone expects to be remembered.", "I know every chief from here to the creeks.", "Balance, Sir. A ticket without balance falls."],
+  loyalist: ["Thirty years, Sir. I have never missed a meeting.", "The party is a family. I am the one who calls the family together.", "I know where things are buried, and I have never dug."],
+  defector: ["I know their secrets, Sir. I know their weaknesses.", "I left them for you. Do not make me regret it.", "The opposition is hollow. Let me show you."],
+};
 function makeAide(rng: Rng, kind: AideKind, i: number): Aide {
   const name = `${rng.pick(FIRST)} ${rng.pick(LAST)}`;
   const town = rng.pick(HOMETOWN);
@@ -39,7 +50,8 @@ function makeAide(rng: Rng, kind: AideKind, i: number): Aide {
   };
   const [bio, skill, loyalty, integrity] = base[kind];
   const title = kind === "general" ? "Gen. (rtd)" : kind === "technocrat" ? "Dr" : kind === "chieftain" ? "Hon." : kind === "cleric" ? "Deacon/Mallam" : "";
-  return { id: `aide-${kind}-${i}`, kind, name: title ? `${title} ${name}` : name, bio, skill, loyalty, integrity, portrait: { skin: rng.int(1, 5), hair: rng.int(0, 3), style: rng.int(0, 3), accent: rng.int(0, 4) }, revealed: kind !== "friend" && kind !== "chieftain" && kind !== "defector", since: 0 };
+  const quote = rng.pick(QUOTES[kind]);
+  return { id: `aide-${kind}-${i}`, kind, quote, name: title ? `${title} ${name}` : name, bio, skill, loyalty, integrity, portrait: { skin: rng.int(1, 5), hair: rng.int(0, 3), style: rng.int(0, 3), accent: rng.int(0, 4) }, revealed: kind !== "friend" && kind !== "chieftain" && kind !== "defector", since: 0 };
 }
 
 const eraKey = (s: FixState): number[] => ((s.cap?.era ?? 1) > 1 ? [s.cap.era] : []);
@@ -107,7 +119,7 @@ export function pickChiefOfStaff(s: FixState, id: string): { ok: boolean; messag
   pushNews(s, { source: `cos:${s.month}`, headline: `${a.name} named Chief of Staff`, body: `${AIDE_KINDS[a.kind].tag}. ${AIDE_KINDS[a.kind].perk}`, tone: "neutral" });
   return { ok: true, message: `${a.name} is your Chief of Staff.` };
 }
-export function finishDayOne(s: FixState) { s.staff.picked = true; if (s.flags.coach === undefined) s.flags.coach = 0; if (!s.staff.cos) applyStaff(s); }
+export function finishDayOne(s: FixState) { autoFillRest(s); s.staff.picked = true; if (s.flags.coach === undefined) s.flags.coach = 0; if (!s.staff.cos) applyStaff(s); }
 export const advisers = (s: FixState): Aide[] => [s.staff?.cos, s.staff?.vp].filter(Boolean) as Aide[];
 
 /** Monthly: your people show their true colours. */

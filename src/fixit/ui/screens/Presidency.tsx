@@ -8,7 +8,7 @@ import { economyScore, fiscalCondition, headline, securityLabel, trendOf, months
 import { nb, monthLabel, monthShort } from "../../engine/util";
 import { openEvents } from "../../engine/events";
 import { upcoming } from "../../engine/forecast";
-import { PROMISE_BY_ID } from "../../engine/promises";
+import { PROMISE_BY_ID, PLEDGE_META, pledgeDue } from "../../engine/promises";
 import { reelectionChance } from "../../engine/legacy";
 import { ChallengePanel, EventCard } from "../Decisions";
 import { MapLegend, MapView } from "../MapView";
@@ -152,7 +152,7 @@ function Promises() {
   const s = useS();
   if (!s.promises.length) return null;
   return (
-    <Card title="Your promises" icon={<Target size={16} />}>
+    <Card title="Your promises to Nigeria" icon={<Target size={16} />}>
       <div className="g-col" style={{ gap: 10 }}>
         {s.promises.map((id) => {
           const p = PROMISE_BY_ID[id];
@@ -160,9 +160,9 @@ function Promises() {
           const pr = p.progress(s), kept = p.kept(s);
           return (
             <div key={id}>
-              <div className="g-row g-between g-small"><b>{p.label}</b><Word tone={kept ? "good" : pr >= 0.5 ? "ok" : "warn"}>{kept ? "On target" : pr >= 0.5 ? "Getting there" : "Off track"}</Word></div>
+              <div className="g-row g-between g-small"><b>{PLEDGE_META[id]?.icon} {p.label}</b><Word tone={kept ? "good" : pr >= 0.5 ? "ok" : "warn"}>{kept ? "Kept" : pr >= 0.5 ? "Getting there" : "Off track"}</Word></div>
               <Bar value={pr} tone={kept ? undefined : pr >= 0.5 ? "blue" : "amber"} label={`${p.label} progress`} />
-              <div className="g-tiny g-muted">{p.status(s)}</div>
+              <div className="g-tiny g-muted">{p.status(s)} · judged {s.month >= pledgeDue(s) ? "now" : `by ${monthLabel(pledgeDue(s))}`}</div>
             </div>
           );
         })}
