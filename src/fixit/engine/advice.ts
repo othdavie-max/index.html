@@ -66,7 +66,14 @@ export function factsFor(s: FixState, key: string): Fact | null {
       borders: [0.6, "Prices jump first, neighbours retaliate, and smuggling only slowly falls."],
       print: [0.8, `It feels wonderful for two months. Then prices climb. Inflation is already ${s.eco.inflation.toFixed(0)}%.`],
       school: [0.35, "A good idea that costs money every month. Watch the contractors."],
-      jollof: [0.05, "Costs almost nothing and lifts the mood. Ghana will complain."],
+      probe: [0.4, "Real money can be recovered, but your own backers appear in the old files and the old guard fights back."],
+      sackcbn: [0.55, "A weak governor is worth replacing. A strong one is not. Markets punish political interference."],
+      redesign: [0.5, "Hoarders are squeezed and cash returns to the banks, but queues and anger come first."],
+      amnesty: [0.5, "It buys quiet in the creeks, not peace. The money has a way of vanishing and other groups will ask."],
+      youthservice: [0.2, "A good idea that costs money every month and depends on employers showing up."],
+      privatise: [0.55, `It only works with honest bidding. Procurement integrity is ${Math.round(s.gov.procurement)}; bills jump first.`],
+      relocate: [0.35, "Your home zone cheers. Everyone else remembers it was favouritism."],
+      pricecap: [0.7, "Pump prices hold, then marketers hoard and the subsidy bill explodes. Prices catch up with a jump."],
       importban: [0.6, "Rice prices jump now. It only works if farmers get seeds and fertiliser."],
     };
     const x = m[id]; return x ? { risk: x[0], why: x[1] } : null;

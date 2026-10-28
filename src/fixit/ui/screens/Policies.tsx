@@ -60,7 +60,7 @@ export function Policies() {
   const s = useS();
   const { act } = useFix();
   const [cat, setCat] = useState<Category | "all">("all");
-  const list = POLICIES.filter((p) => cat === "all" || p.cat === cat);
+  const list = POLICIES.filter((p) => !p.retired && (cat === "all" || p.cat === cat));
   const active = POLICIES.filter((p) => s.policies[p.id]?.active);
   const [vote, setVote] = useState<{ bill: string; exec: (x: FixState) => Result } | null>(null);
   const start = (id: string) => { const bill = billFor({ type: "policy", id }); if (bill) setVote({ bill, exec: (x) => enactPolicy(x, id) }); else act((x) => enactPolicy(x, id)); };

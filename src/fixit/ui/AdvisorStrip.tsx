@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Portrait } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
 import { advisers } from "../engine/dayone";
-import { isAuto, propLog, setAuto } from "../engine/proposals";
+import { isAuto, propLog, routineOn, setAuto, setRoutine } from "../engine/proposals";
 import { adviceFor, briefing, eventAdvice, type Advice } from "../engine/advice";
 import { AIDE_KINDS } from "../engine/dayone";
 import type { GameEvent } from "../engine/types";
@@ -87,6 +87,7 @@ function ProposalsCard() {
           <Button size="sm" variant={isAuto(s, a.id) ? "primary" : "default"} onClick={() => act((x) => { setAuto(x, a.id, !isAuto(x, a.id)); return { ok: true, message: isAuto(x, a.id) ? `${a.name} will now act on good ideas without asking.` : `${a.name} will ask you first.` }; })}>{isAuto(s, a.id) ? "Acts on their own: ON" : "Asks me first"}</Button>
         </div>
       ))}
+      {s.staff.cos && <div className="g-row g-between g-wrap" style={{ gap: 8 }}><span className="g-small"><b>While you are busy:</b> let {s.staff.cos.name} handle small routine matters (village requests, governors begging, market letters) for you. Their skill and honesty decide how well.</span><Button size="sm" variant={routineOn(s) ? "primary" : "default"} onClick={() => act((x) => { setRoutine(x, !routineOn(x)); return { ok: true, message: routineOn(x) ? "Your Chief of Staff will handle routine matters." : "You will see every matter yourself." }; })}>{routineOn(s) ? "Handled for me: ON" : "I handle everything"}</Button></div>}
       {log.length > 0 && <div className="g-col" style={{ gap: 4 }}><div className="g-section-title">Recently</div>{log.slice(0, 6).map((l, i) => <div key={i} className="g-small">• <b>{l.by}</b> · {l.what} <span className="g-muted">({l.mode === "own" ? "you built it" : l.mode === "deleg" ? "you told them to handle it" : "on their own"})</span>: {l.text}</div>)}</div>}
     </div>
   );

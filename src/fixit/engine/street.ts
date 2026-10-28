@@ -73,4 +73,4 @@ export function reaction(headline: string, tone: "good" | "bad" | "neutral"): st
   let h = 0; for (const c of headline) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return list[h % list.length];
 }
-export const BIG_NEWS = /^(ripple:|punish:|backer:|pegbreak|pegsus|vpdefect|enemy:|pm:|pg:|rel:|relg:|fam:|deal:|dealopen:|amend:|imfsus|usasus|ach:rec:|memjobs|memroad|rumour:|refoutage|refgood|expect:)/;
+export const BIG_NEWS = /^(ripple:|punish:|backer:|pegbreak|pegsus|vpdefect|enemy:|pm:|pg:|rel:|relg:|fam:|deal:|dealopen:|amend:|imfsus|usasus|ach:rec:|memjobs|memroad|rumour:|refoutage|refgood|expect:|ladder:)/;

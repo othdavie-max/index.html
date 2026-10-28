@@ -47,6 +47,7 @@ import { AgendaModal, AgendaProgress, CastPanel, DangerChip, WhyModal } from "./
 import { PlatformModal } from "./Platform";
 import { PrimaryModal } from "./Primary";
 import { GovernorsPanel } from "./Governors";
+import { PlansPanel } from "./Plans";
 import { activeEnemies } from "../engine/ripples";
 import { briefing, topIssue } from "../engine/advice";
 import { pegged } from "../engine/bigmoves";
@@ -99,7 +100,7 @@ function advisor(s: FixState, open: number): { text: string; label: string; go: 
   if (budgetDue(s) && s.month > 0) return { text: `The ${s.month >= 12 ? "annual " : ""}budget is due. Lawmakers are waiting.`, label: "Policies", go: "policies" };
   const rich = s.lawmakers.some((l) => l.evidence >= 40 && l.stolen > 10 && (l.status === "active" || l.status === "exposed"));
   if (rich) return { text: "You hold proof against a lawmaker. Arrest, leak, or use it.", label: "Assembly", go: "assembly" };
-  if (!s.projects.some((p) => p.status === "active")) return { text: "No projects are under way. Lasting change needs them.", label: "Projects", go: "projects" };
+  if (!s.projects.some((p) => p.status === "active")) return { text: "No projects are under way. Lasting change needs them. Plans shows the steps for every big problem.", label: "Open Plans", go: "plans" };
   return null;
 }
 
@@ -191,7 +192,7 @@ export function World() {
 
   // five buttons; everything else is a tab inside them
   const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
-    { id: "build", label: "Build", icon: <Hammer size={22} />, wide: true, tabs: [{ id: "presidency", label: "Overview" }, { id: "projects", label: "Projects" }, { id: "policies", label: "Policies" }] },
+    { id: "build", label: "Build", icon: <Hammer size={22} />, wide: true, tabs: [{ id: "presidency", label: "Overview" }, { id: "plans", label: "Plans" }, { id: "projects", label: "Projects" }, { id: "policies", label: "Policies" }] },
     { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }] },
     { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "military", label: "Military" }] },
     { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "My team" }, { id: "governors", label: "Governors" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
@@ -271,6 +272,7 @@ export function World() {
         <Drawer title={title[group.id]} onClose={close} wide={!!group.wide}>
           {group.tabs.length > 1 && <div className="fx-subtabs" role="group" aria-label="Sections">{group.tabs.map((x) => { const lk = tabLock(s, x.id); return <button key={x.id} className="fx-subtab" data-locked={lk ? "1" : undefined} title={lk ?? undefined} aria-pressed={drawer === x.id} onClick={() => { sfx("tap"); setTab(x.id); }}>{lk ? "🔒 " : ""}{x.label}</button>; })}</div>}
           {drawer === "presidency" && <div className="g-col" style={{ gap: 14 }}><AgendaProgress /><Presidency /></div>}
+          {drawer === "plans" && <PlansPanel />}
           {drawer === "policies" && <div className="g-col" style={{ gap: 14 }}><Policies /><SectorsPanel /></div>}
           {drawer === "projects" && <Projects />}
           {drawer === "moves" && <MovesPanel />}

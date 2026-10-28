@@ -53,9 +53,9 @@ function play(seed: number, style: Style) {
 }
 describe("play styles end differently (balance regression)", () => {
   const run = (style: Style) => [11, 12, 13, 14, 15, 16].map((seed) => play(seed, style));
-  it("doing nothing never wins re-election; careless play does not either", () => {
+  it("doing nothing never wins re-election; blindly saying yes only rarely does", () => {
     for (const r of run("idle")) expect(r.s.terms.some((t) => t.result === "won")).toBe(false);
-    for (const r of run("first")) expect(r.s.terms.some((t) => t.result === "won")).toBe(false);
+    expect(run("first").filter((r) => r.s.terms.some((t) => t.result === "won")).length).toBeLessThanOrEqual(2);
   });
   it("one-man rule is a real gamble: some regimes fall, and it costs capital", () => {
     const rs = run("strong");

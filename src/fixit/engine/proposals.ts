@@ -6,7 +6,8 @@
 import { subRng, type Rng } from "../../game/engine/rng";
 import { STATES } from "../../game/data/states";
 import { POLICIES, PROJECTS } from "../data/catalogue";
-import type { Aide, Funding, FixState, Lever } from "./types";
+import type { Aide, Funding, FixState, Lever, Minister, Portfolio } from "./types";
+import { PORTFOLIO_BY_ID } from "./cabinet";
 import { builders, createEvent } from "./spawn";
 import { noteStolen } from "./ledger";
 import { advisers } from "./dayone";
@@ -52,6 +53,7 @@ const recentlyDeclined = (s: FixState, key: string) => typeof s.flags[`decl:${ke
 export function ideas(s: FixState, withVanity = false): Idea[] {
   const w = needs(s), out: Idea[] = [];
   for (const d of PROJECTS) {
+    if (d.retired) continue;
     if (d.cat === "National dreams" && !withVanity) continue;
     if (d.unlock?.(s)) continue;
     const total = s.projects.filter((p) => p.defId === d.id && p.status !== "cancelled").length;
@@ -62,6 +64,7 @@ export function ideas(s: FixState, withVanity = false): Idea[] {
     out.push({ kind: "project", id: d.id, name: d.name, score: score / (1 + d.cost / 900), need, vanity: d.cat === "National dreams" });
   }
   for (const d of POLICIES) {
+    if (d.retired) continue;
     if (s.policies[d.id]?.active || recentlyDeclined(s, `policy:${d.id}`)) continue;
     if (d.setup * (0.6 + 0.4 * s.eco.priceLevel / 100) > s.fin.treasury * 0.6) continue;
     const { score, need } = scoreEffects(d.effects, w);
@@ -70,7 +73,13 @@ export function ideas(s: FixState, withVanity = false): Idea[] {
   return out.filter((i) => i.score > 0 || withVanity).sort((a, b) => b.score - a.score);
 }
 
-export interface Proposal { kind: "project" | "policy"; id: string; name: string; stateId?: string; funding?: Funding; by: string; need: Need; vanity: boolean; padded: boolean; reason: string }
+export interface Proposal { kind: "project" | "policy"; id: string; name: string; stateId?: string; funding?: Funding; by: string; need: Need; vanity: boolean; padded: boolean; reason: string; role?: string }
+
+/** each minister brings ideas in their own sector */
+const SECTOR_NEEDS: Record<Portfolio, Need[]> = { finance: ["fx", "gov"], cbn: ["fx"], agriculture: ["food"], power: ["power", "oil"], works: ["infra", "jobs"], security: ["sec"] };
+export interface Proposer extends Aide { role?: string; sector?: Need[] }
+const asAide = (m: Minister): Proposer => ({ id: m.id, kind: "loyalist", name: m.name, bio: "", skill: m.skill, loyalty: m.mood, integrity: m.integrity, portrait: { skin: 2 + (m.skill % 3), hair: m.integrity % 4, style: m.mood % 4, accent: m.skill % 5 }, revealed: !m.hidden, since: m.since, role: PORTFOLIO_BY_ID[m.portfolio].title, sector: SECTOR_NEEDS[m.portfolio] });
+export const proposers = (s: FixState): Proposer[] => [...advisers(s), ...(Object.values(s.cabinet.members).filter(Boolean) as Minister[]).map(asAide)];
 
 function pickSite(s: FixState, rng: Rng, defId: string, need: Need): { stateId: string; funding: Funding } | null {
   const d = builders();
@@ -83,27 +92,29 @@ function pickSite(s: FixState, rng: Rng, defId: string, need: Need): { stateId: 
 }
 
 /** a clever adviser proposes what the country really needs; a weak one proposes something else */
-export function makeProposal(s: FixState, a: Aide, rng: Rng): Proposal | null {
-  let list = ideas(s);
+export function makeProposal(s: FixState, a: Proposer, rng: Rng): Proposal | null {
+  const inSector = (l: Idea[]) => (a.sector ? l.filter((i) => a.sector!.includes(i.need)) : l);
+  let list = inSector(ideas(s));
   if (!list.length) return null;
   let vanity = false, idea: Idea;
   if (a.skill >= 60) idea = list[0];
   else if (a.skill >= 45) idea = rng.pick(list.slice(0, 3));
-  else if (rng.chance(0.5)) { list = ideas(s, true).filter((i) => i.vanity || i.score < list[0].score * 0.5); if (!list.length) return null; idea = rng.pick(list); vanity = true; }
+  else if (rng.chance(0.5)) { list = inSector(ideas(s, true)).filter((i) => i.vanity || i.score < list[0].score * 0.5); if (!list.length) return null; idea = rng.pick(list); vanity = true; }
   else idea = rng.pick(list.slice(0, 6));
   const padded = a.integrity < 38 && rng.chance(0.7);
   let stateId: string | undefined, funding: Funding | undefined;
   if (idea.kind === "project") { const site = pickSite(s, rng, idea.id, idea.need); if (!site) return null; stateId = site.stateId; funding = site.funding; }
-  const reason = vanity ? `Sir, I think the nation wants to see something grand. This would make people proud.`
+  const lead = a.role ? `As your ${a.role}, ` : "";
+  const reason = lead + (vanity ? `Sir, I think the nation wants to see something grand. This would make people proud.`
     : a.skill >= 60 ? `The numbers are plain, Sir: ${NEED_LABEL[idea.need]} is where we are weakest, and nothing we are doing fixes it. This does.`
     : a.skill >= 45 ? `I think ${NEED_LABEL[idea.need]} is worth attention, Sir. This should help.`
-    : `Sir, I have been thinking about this one for a while. I believe it would be good for the country.`;
-  return { kind: idea.kind, id: idea.id, name: idea.name, stateId, funding, by: a.id, need: idea.need, vanity, padded, reason };
+    : `Sir, I have been thinking about this one for a while. I believe it would be good for the country.`);
+  return { kind: idea.kind, id: idea.id, name: idea.name, stateId, funding, by: a.id, need: idea.need, vanity, padded, reason, role: a.role };
 }
 
 // ---------------------------------------------------------------- doing it
 export type Mode = "own" | "deleg";
-const byId = (s: FixState, id: string): Aide | null => advisers(s).find((x) => x.id === id) ?? null;
+const byId = (s: FixState, id: string): Proposer | null => proposers(s).find((x) => x.id === id) ?? null;
 
 /** how a task goes when an aide runs it: skill sets quality, honesty sets what leaks, loyalty sets effort */
 export interface Handling { quality: number; delay: number; overrun: number; steal: number; wrecked: boolean; notes: string[] }
@@ -163,12 +174,12 @@ export const setAuto = (s: FixState, aideId: string, on: boolean) => { if (on) s
 export const proposalOf = (s: FixState, eventId: string): Proposal | null => { try { return JSON.parse(String(s.flags[`ev:${eventId}:prop`])) as Proposal; } catch { return null; } };
 
 export function proposalsMonthly(s: FixState, rng: Rng) {
-  const team = advisers(s);
+  const team = proposers(s);
   if (!team.length || s.month < 3) return;
   if (s.events.some((e) => e.tpl === "adviserProposal" && e.status === "open")) return;
   const last = Number(s.flags.lastProposal ?? -9);
   if (s.month - last < 2 || !rng.chance(0.55)) return;
-  const a = team[Math.floor(s.month / 2) % team.length];
+  const a = rng.pick(team);
   const p = makeProposal(s, a, rng);
   if (!p) return;
   s.flags.lastProposal = s.month;
@@ -216,3 +227,28 @@ export const PROPOSAL_TEMPLATES = [
     expire: {}, expireText: () => "You did not answer. The idea was quietly shelved.",
   },
 ];
+
+// ---------------------------------------------------------------- "while I am busy": your chief of staff handles routine matters
+export const routineOn = (s: FixState) => s.flags.cosRoutine === 1;
+export const setRoutine = (s: FixState, on: boolean) => { if (on) s.flags.cosRoutine = 1; else delete s.flags.cosRoutine; };
+const ROUTINE = new Set(["villageRoad", "governorBegs", "ministerPet", "marketLetter", "relatives", "pastorInvite", "govRequest", "factionDemand"]);
+/** Called after the month's events are made: small matters are decided for you, well or badly depending on who your chief of staff is. */
+export function routineMonthly(s: FixState, rng: Rng) {
+  const a = s.staff?.cos;
+  if (!routineOn(s) || !a) return;
+  const b = builders();
+  for (const e of s.events.filter((x) => x.status === "open" && x.born === s.month && ROUTINE.has(x.tpl))) {
+    let opts = b.rankedOptions(s, e).filter((o) => o.cost * 0.8 < s.fin.treasury * 0.06);
+    if (!opts.length) continue;
+    const corruptOk = a.integrity < 35 && rng.chance(0.55);
+    if (!corruptOk) opts = opts.filter((o) => !o.corrupt);
+    if (!opts.length) continue;
+    opts.sort((x, y) => (corruptOk && x.corrupt !== y.corrupt ? (x.corrupt ? -1 : 1) : y.chance - x.chance));
+    const pick = a.skill >= 60 ? opts[0] : a.skill >= 40 ? rng.pick(opts.slice(0, 2)) : rng.pick(opts);
+    const r = b.respond(s, e.id, pick.id);
+    const done = s.events.find((x) => x.id === e.id);
+    addLog(s, { month: s.month, by: a.name, what: e.title, mode: "auto", text: done?.outcome ?? r.message });
+    a.loyalty = clamp100(a.loyalty + 0.5);
+    if (corruptOk && pick.corrupt) { s.me.evidence = clamp100(s.me.evidence + 3); a.revealed = a.revealed || rng.chance(0.4); }
+  }
+}

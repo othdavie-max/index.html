@@ -7,8 +7,8 @@ import { subRng } from "../../game/engine/rng";
 import { payPc, PC_COST } from "./meta";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { Rng } from "../../game/engine/rng";
-import type { Effects, Faction, FixState, Minister, Portfolio } from "./types";
-import { addMod, clamp, clamp100, infraScore, pushNews, pushReport, removeMods } from "./util";
+import type { Lever, Effects, Faction, FixState, Minister, Portfolio } from "./types";
+import { leverFrom, addMod, clamp, clamp100, infraScore, pushNews, pushReport, removeMods } from "./util";
 import { addCronies } from "./dayone";
 import { ripple } from "./ripples";
 import { hireMood, moodAll } from "./backers";
@@ -210,4 +210,15 @@ export function autoFillRest(s: FixState) {
     const best = s.cabinet.pool.filter((m) => m.portfolio === p.id && m.faction !== "crony").sort((a, b) => b.skill - a.skill)[0];
     if (best && (!cur || best.skill > cur.skill + 6)) appoint(s, p.id, best.id);
   }
+}
+
+/** a minister's report card: a grade, and what they are really adding to the country right now */
+export function ministerCard(s: FixState, p: Portfolio): { grade: string; line: string; signature: string; flaw: string } | null {
+  const m = s.cabinet.members[p]; if (!m) return null;
+  const v = (l: Lever) => leverFrom(s, `minister:${p}`, l);
+  const g = (m.skill * 1.2 + m.integrity) / 2.2;
+  const grade = g >= 72 ? "A" : g >= 60 ? "B" : g >= 48 ? "C" : g >= 36 ? "D" : "F";
+  const sg = (n: number, d = 0) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toFixed(d)}`;
+  const line = p === "power" ? `Because of them: ${sg(v("power"))} MW` : p === "finance" ? `Because of them: ${sg(v("revenue"))}bn a month in revenue` : p === "agriculture" ? `Because of them: food supply ${sg(v("foodSupply"), 1)}, inputs ${sg(v("inputs"), 1)}` : p === "security" ? `Because of them: security ${sg(v("security"), 1)}, forces ${sg(v("forces"), 1)}` : p === "cbn" ? `Because of them: inflation ${sg(v("inflation"), 1)} pts, naira supply ${sg(v("fxSupply"), 2)}` : `Because of them: roads ${sg(v("roads"), 1)}, maintenance ${sg(v("maint"), 1)}`;
+  return { grade, line, signature: m.picked ? signatureOf(m).label : "", flaw: FACTION_FLAW[m.faction] };
 }

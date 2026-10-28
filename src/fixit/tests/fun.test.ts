@@ -194,9 +194,9 @@ describe("advisers", () => {
   });
   it("facts exist for every law, tool and move the player can ask about", () => {
     const s = newGame(460);
-    for (const k of ["law:1", "law:2", "law:3", "law:4", "amendment", "tool:inec", "tool:postpone", "tool:military", "move:peg", "move:print", "move:jollof"]) expect(factsFor(s, k)).not.toBeNull();
+    for (const k of ["law:1", "law:2", "law:3", "law:4", "amendment", "tool:inec", "tool:postpone", "tool:military", "move:peg", "move:print", "move:jets", "move:probe", "move:pricecap"]) expect(factsFor(s, k)).not.toBeNull();
     expect(factsFor(s, "move:peg")!.risk).toBeGreaterThan(0.6);
-    expect(factsFor(s, "move:jollof")!.risk).toBeLessThan(0.2);
+    expect(factsFor(s, "move:jets")!.risk).toBeLessThan(0.2);
   });
   it("the briefing notices what is going wrong; advisers with different strengths see different things", () => {
     const s = withAdvisers(470, { kind: "technocrat", skill: 90, integrity: 90 }, { kind: "general", skill: 40, integrity: 70 });

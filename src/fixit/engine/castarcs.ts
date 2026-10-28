@@ -6,9 +6,11 @@
 import type { Rng } from "../../game/engine/rng";
 import type { FixState } from "./types";
 import { cast } from "./meta";
+import { PORTFOLIO_BY_ID, sack, KEY_PORTFOLIOS } from "./cabinet";
+import type { Minister, Portfolio } from "./types";
 import { createEvent } from "./spawn";
 import { act } from "./act";
-import { clamp, clamp100, nb } from "./util";
+import { addMod, clamp, clamp100, nb } from "./util";
 
 const FACE_IDS = ["mama", "general", "godfather", "journo", "vp", "governor"] as const;
 type FaceId = (typeof FACE_IDS)[number];
@@ -39,6 +41,19 @@ export function castArcsMonthly(s: FixState, rng: Rng) {
   for (const id of FACE_IDS) { const f = favour(s, id); if (f) s.flags[`fav:${id}`] = Math.abs(f) < 0.5 ? 0 : f * 0.97; }
   if (s.month < 4 || s.events.some((e) => e.tpl.startsWith("arc") && e.status === "open")) return;
   const faces = cast(s);
+  // your ministers have careers too: the good ones deliver, the unhappy ones threaten to leave
+  const min = (Object.values(s.cabinet.members).filter(Boolean) as Minister[]).filter((m) => KEY_PORTFOLIOS.includes(m.portfolio));
+  for (const m of rng.shuffle([...min])) {
+    const last = Number(s.flags[`minLast:${m.portfolio}`] ?? -99);
+    if (s.month - last < 14) continue;
+    const good = m.skill >= 72 && m.integrity >= 55 && s.month - m.since >= 5 && rng.chance(0.08);
+    const quit = m.mood < 32 && m.skill >= 55 && rng.chance(0.14);
+    if (!good && !quit) continue;
+    s.flags[`minLast:${m.portfolio}`] = s.month; s.flags.minPending = m.portfolio;
+    const ev = createEvent(s, good ? "minBreakthrough" : "minThreat", "NG-FC");
+    if (ev) s.flags[`ev:${ev.id}:min`] = m.portfolio;
+    return;
+  }
   for (const r of rng.shuffle([...RULES])) {
     const f = faces.find((x) => x.id === r.face);
     if (!f) continue;
@@ -151,3 +166,35 @@ export const ARC_TEMPLATES = [
   },
 ];
 void eventArc;
+const minOf = (s: FixState): Minister | undefined => s.cabinet.members[(s.flags.minPending as Portfolio) ?? "finance"];
+const BREAK: Record<Portfolio, { text: string; effects: Record<string, number> }> = {
+  finance: { text: "closed a gap in tax collection nobody thought could be closed", effects: { revenue: 70, taxCompl: 3 } },
+  cbn: { text: "calmed the foreign-exchange market with a smart intervention", effects: { fxSupply: 0.5, investor: 2 } },
+  agriculture: { text: "signed a deal that cuts the price of fertiliser for farmers", effects: { inputs: 8, foodPrice: -1 } },
+  power: { text: "secured gas supply that adds real megawatts to the grid", effects: { gas: 8, power: 260 } },
+  works: { text: "found and cancelled a pile of padded road contracts", effects: { procurement: 6, roads: 3 } },
+  security: { text: "broke up a kidnapping ring and recovered dozens of victims", effects: { security: 5, forces: 2, trust: 1 } },
+};
+export const MINISTER_TEMPLATES = [
+  {
+    id: "minBreakthrough", kind: "opportunity" as const, urgency: 3,
+    title: (s: FixState) => { const m = minOf(s); return m ? `${m.name} delivers a breakthrough` : "A minister delivers"; },
+    cause: (s: FixState) => { const m = minOf(s); return m ? `Your ${PORTFOLIO_BY_ID[m.portfolio].title} has ${BREAK[m.portfolio].text}. The press is calling.` : ""; },
+    options: [
+      base("credit", "Back them publicly and give them the credit", "Let them take the bow.", "They get more loyal and more famous.", { run: (s: FixState) => { const m = minOf(s); if (m) { addMod(s, `minbreak:${m.portfolio}:${s.month}`, `${PORTFOLIO_BY_ID[m.portfolio].title}'s breakthrough`, BREAK[m.portfolio].effects as never, { duration: 18, ramp: 2 }); m.mood = clamp100(m.mood + 14); } s.gov.trust = clamp100(s.gov.trust + 1.5); return "The minister was applauded and you were praised for choosing well."; } }, {}, 1, "", ""),
+      base("mine", "Take the credit yourself", "It is your government.", "They will remember.", { run: (s: FixState) => { const m = minOf(s); if (m) { addMod(s, `minbreak:${m.portfolio}:${s.month}`, `${PORTFOLIO_BY_ID[m.portfolio].title}'s breakthrough`, BREAK[m.portfolio].effects as never, { duration: 18, ramp: 2 }); m.mood = clamp100(m.mood - 16); } s.gov.approval = clamp100(s.gov.approval + 2); return "You stood at the podium with the results. The minister smiled for the cameras and wrote a draft letter that night."; } }, {}, 1, "", ""),
+    ],
+    expire: {}, expireText: () => "Nobody said anything, and the news moved on.",
+  },
+  {
+    id: "minThreat", kind: "story" as const, urgency: 2,
+    title: (s: FixState) => { const m = minOf(s); return m ? `${m.name} threatens to resign` : "A minister threatens to resign"; },
+    cause: (s: FixState) => { const m = minOf(s); return m ? `Your ${PORTFOLIO_BY_ID[m.portfolio].title} says they have been ignored, blamed and starved of money. "I will not be the fall guy, Sir." The press has their number.` : ""; },
+    options: [
+      base("money", "Back them with a bigger budget and a public vote of confidence", "Give them what they asked for.", "Costs money, and every minister will ask for the same.", { run: (s: FixState) => { const m = minOf(s); if (m) m.mood = clamp100(m.mood + 30); return "They stayed. Their next report was the best in months."; } }, { run: (s: FixState) => { const m = minOf(s); if (m) m.mood = clamp100(m.mood + 8); return "They stayed, for now, and are still unhappy."; } }, (s) => 0.6 + 0.3 * s.gov.trust / 100, "", "", 60),
+      base("talk", "Take them to dinner and promise change", "Talk it out.", "Promises are remembered.", { run: (s: FixState) => { const m = minOf(s); if (m) m.mood = clamp100(m.mood + 14); return "They stayed after a long dinner and a short promise."; } }, { run: (s: FixState) => { const m = minOf(s); if (m) m.mood = clamp100(m.mood - 6); return "They did not believe you."; } }, 0.5, "", ""),
+      base("go", "Accept the resignation", "Let them go.", "A vacancy and a former minister with opinions.", { run: (s: FixState) => { const m = minOf(s); if (m) sack(s, m.portfolio, "resigned"); s.gov.trust = clamp100(s.gov.trust - 1); return "The resignation was accepted. The post is vacant until you appoint someone."; } }, {}, 1, "", ""),
+    ],
+    expire: { run: (s: FixState) => { const m = minOf(s); if (m) sack(s, m.portfolio, "resigned"); return "You did not reply, and they resigned."; } }, expireText: () => "You did not reply, and they resigned.",
+  },
+];

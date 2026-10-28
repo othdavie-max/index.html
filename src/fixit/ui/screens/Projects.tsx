@@ -52,7 +52,7 @@ export function Projects() {
         <>
           <Callout tone="info">Every project can slip: delays, cost overruns and leakage depend on government capacity, procurement quality and corruption. Benefits arrive only when it is finished, and often fall short of the promise.</Callout>
           <div className="g-grid g-grid-2">
-            {[...PROJECTS].sort((a, b) => Number(a.cat === "National dreams") - Number(b.cat === "National dreams")).map((d) => {
+            {[...PROJECTS].filter((d) => !d.retired).sort((a, b) => Number(a.cat === "National dreams") - Number(b.cat === "National dreams")).map((d) => {
               const count = s.projects.filter((p) => p.defId === d.id && p.status !== "cancelled").length;
               const lock = d.unlock?.(s) ?? null;
               return (

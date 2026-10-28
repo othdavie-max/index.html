@@ -18,6 +18,7 @@ import { LAWS, LAW_DIFFICULTY, lawmakerLoyalty, sitting } from "./power";
 export const SEATS = 469; // 109 senators + 360 representatives (fictional party split)
 export const BILL_DIFFICULTY: Record<string, number> = {
   "policy:taxDrive": 8, "policy:vatCut": -6, "policy:fxWindow": 5, "policy:minWage": 4, "policy:eduCut": 12, "policy:healthCut": 12, "policy:troopSurge": 2,
+  "policy:landReform": 14, "policy:digitalId": 8, "policy:diasporaBonds": 5, "policy:mineralsLicensing": 10, "policy:startupAct": 3, "policy:ecowasTrade": 6,
   "policy:civilService": 10, "policy:eProcure": 9, "policy:foodImport": 4, "policy:portReform": 6, "policy:cashTransfers": 2, "policy:tightMoney": 3,
   "fuel:remove": 15, "fuel:reduce": 8, "fuel:reform": 6,
 };

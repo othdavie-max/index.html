@@ -81,7 +81,7 @@ export function StatePanel({ s, id, lga }: { s: FixState; id: string; lga: strin
       {picker && (
         <Modal title="Which project?" onClose={() => setPicker(false)}>
           <div className="g-col" style={{ gap: 4 }}>
-            {PROJECTS.filter((d) => !d.sites || d.sites.includes(id)).map((d) => <button key={d.id} className="g-btn" style={{ justifyContent: "space-between" }} onClick={() => { setDefId(d.id); setPicker(false); }}><span>{d.name}</span><span className="g-tiny g-muted">{d.cat}</span></button>)}
+            {PROJECTS.filter((d) => !d.retired && (!d.sites || d.sites.includes(id))).map((d) => <button key={d.id} className="g-btn" style={{ justifyContent: "space-between" }} onClick={() => { setDefId(d.id); setPicker(false); }}><span>{d.name}</span><span className="g-tiny g-muted">{d.cat}</span></button>)}
           </div>
         </Modal>
       )}

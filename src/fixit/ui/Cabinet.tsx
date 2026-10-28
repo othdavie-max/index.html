@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { ministerCard } from "../engine/cabinet";
 import { PC_COST } from "../engine/meta";
 import { Users } from "lucide-react";
 import { useFix, useS } from "./store";
@@ -24,6 +25,9 @@ function MinisterRow({ m, action, inOffice }: { m: Minister; action?: React.Reac
           <div><div className="g-tiny g-muted">Skill {veiled ? "?" : m.skill}</div><Bar value={veiled ? 0 : m.skill / 100} tone="blue" label={veiled ? "Skill unknown" : `Skill ${m.skill}`} /></div>
           <div><div className="g-tiny g-muted">Honesty {veiled ? "?" : m.integrity}</div><Bar value={veiled ? 0 : m.integrity / 100} tone={!veiled && m.integrity < 45 ? "red" : undefined} label={veiled ? "Honesty unknown" : `Honesty ${m.integrity}`} /></div>
         </div>
+        {inOffice && (() => { const c = ministerCard(s, m.portfolio); if (!c || veiled) return null; const col = { A: "#047857", B: "#0f766e", C: "#a16207", D: "#c2410c", F: "#be123c" }[c.grade] ?? "#475569"; return (
+          <div className="fx-mcard"><span><span className="fx-mgrade" style={{ background: col }}>{c.grade}</span><b>{c.line}</b></span>{c.signature && <span style={{ color: "#047857" }}>✨ {c.signature}</span>}<span style={{ color: "#92400e" }}>⚠️ {c.flaw}</span></div>
+        ); })()}
       </div>
       {action}
     </div>

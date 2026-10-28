@@ -7,8 +7,9 @@
 import { Rng, subRng } from "../../game/engine/rng";
 import { directorMonthly, earnPc, metaTurn } from "./meta";
 import { stateMilestonesMonthly } from "./progress";
+import { laddersMonthly } from "./ladders";
 import { govLeak, govMult } from "./govs";
-import { proposalsMonthly } from "./proposals";
+import { proposalsMonthly, routineMonthly } from "./proposals";
 import { castArcsMonthly } from "./castarcs";
 import "./actions";
 import { STATES } from "../../game/data/states";
@@ -86,6 +87,7 @@ export function advanceMonth(s: FixState): boolean {
   resolveEchoes(s);
   resolveExpired(s);
   generateEvents(s, subRng(s.meta.seed, "events", m));
+  routineMonthly(s, subRng(s.meta.seed, "routine", m));
   phase7(s);
   s.processed = m;
   s.month = m + 1;
@@ -93,6 +95,7 @@ export function advanceMonth(s: FixState): boolean {
   if (s.month > 0 && s.month % 12 === 0) s.flags.reviewDue = s.month / 12;
   metaTurn(s);
   if (typeof s.flags.coach === "number" && s.flags.coach < 4 && s.month >= [1, 2, 4, 7][s.flags.coach as number]) s.flags.coach = (s.flags.coach as number) + 1;
+  laddersMonthly(s);
   pledgesMonthly(s);
   checkAchievements(s);
   checkRecords(s);
@@ -482,7 +485,7 @@ function phase4(s: FixState, rng: Rng) {
     r.jobless = clamp100(r.jobless + 0.35 * (clamp100(r.off.jobless + (l.jobless ?? 0) + nat.jobless * 1.8) - r.jobless));
     r.power = clamp100(r.power + 0.35 * (clamp100(r.off.power + (l.power ?? 0) + nat.power) - r.power));
     const wet = isFloodSeason(s.month) ? 8 * Math.max(0, s.agri.weather + 0.3) : 0;
-    r.flood = clamp100(r.flood + 0.4 * (clamp100(r.off.flood + wet) - r.flood));
+    r.flood = clamp100(r.flood + 0.4 * (clamp100(r.off.flood + (l.flood ?? 0) + wet) - r.flood));
     const local = 0.3 * r.food + 0.25 * r.jobless + 0.2 * r.insecurity + 0.25 * (60 - s.gov.happiness);
     r.unrest = clamp100(r.unrest + 0.25 * (local * 0.9 - 18 - r.unrest));
   }
@@ -495,6 +498,9 @@ const LOCAL_TOTAL: Record<string, Partial<Record<RegionKey, number>>> = {
   securityInfra: { insecurity: -14 }, pipelineSecure: { insecurity: -6 }, refinery: { jobless: -6, power: -3 },
   industrial: { jobless: -16 }, highway: { jobless: -6, food: -2 }, port: { jobless: -8 }, transit: { jobless: -8 }, rail: { jobless: -8 },
   schools: { jobless: -4 }, hospitals: { jobless: -3 }, water: { food: -3 },
+  fertiliserPlant: { food: -6, jobless: -5 }, riceMills: { jobless: -6, food: -3 }, exportHub: { jobless: -8, food: -3 }, garmentHub: { jobless: -12 }, lithiumPlant: { jobless: -9, insecurity: 2 },
+  nollywoodCity: { jobless: -7 }, techHubs: { jobless: -7 }, tourismSites: { jobless: -6, insecurity: -2 }, modularRefinery: { jobless: -6, power: -2 }, cngStations: { jobless: -2 },
+  broadband: { jobless: -4 }, housing: { jobless: -9 }, dams: { flood: -14, food: -4, power: -3 },
 };
 /** what every state is being pulled by from the things built in it (and, a little, in its zone), recomputed fresh each month */
 export function localEffects(s: FixState): Record<string, Partial<Record<RegionKey, number>>> {

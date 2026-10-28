@@ -10,6 +10,8 @@ export interface Builders {
   startProject: (s: import("./types").FixState, defId: string, stateId: string, funding: import("./types").Funding, opts?: { favour?: boolean; free?: boolean }) => { ok: boolean; message: string };
   canStartProject: (s: import("./types").FixState, defId: string, stateId: string, funding: import("./types").Funding) => string | null;
   enactPolicy: (s: import("./types").FixState, id: string, opts?: { free?: boolean }) => { ok: boolean; message: string };
+  respond: (s: import("./types").FixState, eventId: string, optionId: string) => { ok: boolean; message: string };
+  rankedOptions: (s: import("./types").FixState, e: import("./types").GameEvent) => { id: string; chance: number; cost: number; corrupt: boolean }[];
 }
 let bimpl: Builders | null = null;
 export const setBuilders = (b: Builders) => { bimpl = b; };

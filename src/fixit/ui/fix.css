@@ -352,3 +352,8 @@
 .gm .fx-govrow { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--g-border); border-radius: 12px; padding: 6px 10px; text-align: left; cursor: pointer; width: 100%; } .gm .fx-govrow:hover { background: #f8fafc; }
 .gm .fx-grade { width: 30px; height: 30px; border-radius: 8px; color: #fff; font-weight: 900; display: grid; place-items: center; }
 .gm .fx-sticky { position: sticky; bottom: 0; padding: 12px 0; background: linear-gradient(180deg, transparent, #0b1f36 35%); z-index: 2; }
+.gm .fx-ladder-bar { height: 8px; background: #e2e8f0; border-radius: 6px; overflow: hidden; } .gm .fx-ladder-bar span { display: block; height: 100%; background: linear-gradient(90deg, #00c875, #f5d57a); }
+.gm .fx-miles { display: flex; flex-wrap: wrap; gap: 6px; } .gm .fx-miles span { font-size: 12px; border: 1px solid #cbd5e1; border-radius: 999px; padding: 2px 10px; color: #64748b; background: #fff; } .gm .fx-miles span[data-on="1"] { border-color: #c8a24a; background: #fffaf0; color: #7a5b12; font-weight: 700; }
+.gm .fx-rung { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; background: #f8fafc; } .gm .fx-rung[data-state="done"] { background: #ecfdf5; } .gm .fx-rung[data-state="building"] { background: #f0fdfa; } .gm .fx-rung[data-state="locked"] { opacity: .65; }
+.gm .fx-jobs { background: #fffaf0; border: 1px solid #f1d28a; border-radius: 10px; padding: 6px 10px; font-size: 14px; }
+.gm .fx-mcard { margin-top: 6px; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; } .gm .fx-mgrade { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; color: #fff; font-weight: 900; font-size: 13px; margin-right: 6px; }

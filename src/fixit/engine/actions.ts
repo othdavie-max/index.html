@@ -6,7 +6,7 @@ import type { Funding, FixState } from "./types";
 import { advanceMonth } from "./sim";
 import { setBuilders } from "./spawn";
 import { payPc, PC_COST } from "./meta";
-import { resolveEvent } from "./events";
+import { rankedOptions, resolveEvent } from "./events";
 import { continueNextTerm } from "./legacy";
 import { plantForMeasure, plantForPolicy, scheduleEcho } from "./echoes";
 import { earn, nudgeGroups, relate } from "./society";
@@ -300,4 +300,4 @@ export function performRef(s: FixState, ref: import("./challenge").ActionRef): R
   }
 }
 
-setBuilders({ startProject, canStartProject, enactPolicy });
+setBuilders({ startProject, canStartProject, enactPolicy, respond, rankedOptions });

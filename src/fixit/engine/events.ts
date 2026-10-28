@@ -31,7 +31,7 @@ import { earn, groupPressure, relate } from "./society";
 import { eventRate } from "./setup";
 import { flavour } from "./variety";
 import { PROPOSAL_TEMPLATES } from "./proposals";
-import { ARC_TEMPLATES } from "./castarcs";
+import { ARC_TEMPLATES, MINISTER_TEMPLATES } from "./castarcs";
 import { earnPc } from "./meta";
 import type { GroupId } from "./types";
 import { sack, PORTFOLIO_BY_ID } from "./cabinet";
@@ -250,7 +250,7 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(PROPOSAL_TEMPLATES as unknown as Tpl[]), ...(ARC_TEMPLATES as unknown as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[]), ...(MIL_TEMPLATES as unknown as Tpl[]), ...(LEND_TEMPLATES as unknown as Tpl[]), ...(STATE_TEMPLATES as unknown as Tpl[]), ...(LEDGER_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(PROPOSAL_TEMPLATES as unknown as Tpl[]), ...(ARC_TEMPLATES as unknown as Tpl[]), ...(MINISTER_TEMPLATES as unknown as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[]), ...(MIL_TEMPLATES as unknown as Tpl[]), ...(LEND_TEMPLATES as unknown as Tpl[]), ...(STATE_TEMPLATES as unknown as Tpl[]), ...(LEDGER_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
   return t.options.map((o) => {
@@ -340,6 +340,11 @@ export function generateEvents(s: FixState, rng: Rng) {
   }
 }
 
+/** every answer to an event with its current chance, cost and whether it is the corrupt way out (used when an aide decides for you) */
+export function rankedOptions(s: FixState, e: GameEvent) {
+  const t = TEMPLATE_BY_ID[e.tpl];
+  return (t?.options ?? []).map((o) => ({ id: o.id, chance: o.chance(s, e), cost: typeof o.cost === "function" ? o.cost(s) : o.cost, corrupt: ["accept", "cut", "give", "favour"].includes(o.id) }));
+}
 export function createEvent(s: FixState, tpl: string, stateId: string): GameEvent | null {
   const t = TEMPLATE_BY_ID[tpl];
   if (!t) return null;
