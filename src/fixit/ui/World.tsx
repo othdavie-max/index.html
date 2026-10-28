@@ -32,6 +32,9 @@ import { StaffCard } from "./StaffCard";
 import { MovesPanel } from "./MovesPanel";
 import { StreetPanel } from "./StreetPanel";
 import { XPanel } from "./Social";
+import { LeaguePanel } from "./League";
+import { GrandPanel } from "./Grand";
+import { myRank } from "../engine/world";
 import { BriefingPanel } from "./AdvisorStrip";
 import { RecordCard } from "./RecordCard";
 import { BreakingBanner, Coach, TurnChips, YearReview, coachStep, COACH } from "./Feel";
@@ -194,9 +197,9 @@ export function World() {
 
   // five buttons; everything else is a tab inside them
   const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
-    { id: "build", label: "Build", icon: <Hammer size={22} />, wide: true, tabs: [{ id: "presidency", label: "Overview" }, { id: "plans", label: "Plans" }, { id: "projects", label: "Projects" }, { id: "policies", label: "Policies" }] },
+    { id: "build", label: "Build", icon: <Hammer size={22} />, wide: true, tabs: [{ id: "presidency", label: "Overview" }, { id: "plans", label: "Plans" }, { id: "projects", label: "Projects" }, { id: "grand", label: "Grand plans" }, { id: "policies", label: "Policies" }] },
     { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }] },
-    { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "military", label: "Military" }] },
+    { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "league", label: "World league" }, { id: "military", label: "Military" }] },
     { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "My team" }, { id: "governors", label: "Governors" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
     { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }, { id: "x", label: "Naija X" }, { id: "street", label: "Nigeria today" }] },
   ];
@@ -218,6 +221,7 @@ export function World() {
             <Res icon="👷" label="Jobless" v={`${s.jobs.unemployment.toFixed(0)}%`} bad={s.jobs.unemployment > 30} onClick={() => setWhy("jobless")} />
             <Res icon={face(100 - s.gov.happiness)} label="Mood" v={`${Math.round(s.gov.happiness)}`} bad={s.gov.happiness < 35} onClick={() => setWhy("mood")} />
             <Res icon="💳" label="Debt" v={`${debtView(s).pctGdp.toFixed(0)}%`} bad={debtView(s).pctGdp > 60} onClick={() => setWhy("debt")} />
+            <Res icon="🌍" label="World rank" v={`#${myRank(s)}`} onClick={() => setTab("league")} />
           </>}
         </div>
         <DangerChip hl={cstep >= 0 && COACH[cstep].target === "danger"} onClick={() => setTab("power")} />
@@ -293,6 +297,8 @@ export function World() {
           {drawer === "advisers" && <BriefingPanel />}
           {drawer === "enemies" && <EnemiesPanel />}
           {drawer === "x" && <XPanel />}
+          {drawer === "league" && <LeaguePanel />}
+          {drawer === "grand" && <GrandPanel />}
           {drawer === "news" && <News />}
         </Drawer>
       )}
