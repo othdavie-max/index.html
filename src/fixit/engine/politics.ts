@@ -186,3 +186,27 @@ export function giveSpeech(s: FixState, tone: Tone): { ok: boolean; message: str
   return { ok: trust >= 0, message: text };
 }
 export function initSpeech(s: FixState) { s.speech = { last: -9, moment: null }; }
+
+/** the whip count: who will vote yes, who is wavering, and what the wavering ones want */
+export function whipCount(s: FixState, bill: string) {
+  const sit = [...sitting(s)].sort((a, b) => b.loyalty - a.loyalty);
+  const p = billChance(s, bill);
+  const n = sit.length;
+  const yesN = Math.round(n * Math.max(0, p - 0.1)), maybeN = Math.round(n * 0.2);
+  const yes = sit.slice(0, yesN), maybe = sit.slice(yesN, yesN + maybeN), no = sit.slice(yesN + maybeN);
+  const scale = SEATS / Math.max(1, n);
+  return { yes, maybe, no, seats: { yes: Math.round(yes.length * scale), maybe: Math.round(maybe.length * scale), no: Math.round(no.length * scale) }, need: Math.floor(SEATS / 2) + 1 };
+}
+/** win one wavering lawmaker over: a project for his constituency, a favour, a promise */
+export function winOver(s: FixState, bill: string, lmId: string): { ok: boolean; message: string } {
+  const lm = sitting(s).find((l) => l.id === lmId); if (!lm) return { ok: false, message: "He is not in the chamber." };
+  const key = `winover:${bill}:${lmId}:${s.month}`;
+  if (s.flags[key]) return { ok: false, message: "You already spoke to him this month." };
+  const cost = 25 * (0.6 + 0.4 * s.eco.priceLevel / 100);
+  if (cost > s.fin.treasury) return { ok: false, message: `You need ${nb(cost)} for his constituency project.` };
+  const pcE = payPc(s, 2, "win a lawmaker over"); if (pcE) return { ok: false, message: pcE };
+  s.flags[key] = true; s.fin.treasury -= cost;
+  lm.loyalty = clamp100(lm.loyalty + 18); s.assembly.lobby[bill] = (s.assembly.lobby[bill] ?? 0) + 1.5;
+  if (lm.greed > 65) { s.gov.corruption = clamp100(s.gov.corruption + 0.3); s.me.evidence = clamp100(s.me.evidence + 1); }
+  return { ok: true, message: `${lm.name} was promised a road and a clinic in ${lm.stateId.replace("NG-", "")}. He is now leaning your way.` };
+}

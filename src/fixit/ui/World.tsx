@@ -47,6 +47,7 @@ import { AgendaModal, AgendaProgress, CastPanel, DangerChip, WhyModal } from "./
 import { PlatformModal } from "./Platform";
 import { PrimaryModal } from "./Primary";
 import { GovernorsPanel } from "./Governors";
+import { OfficePanel } from "./Office";
 import { PlansPanel } from "./Plans";
 import { activeEnemies } from "../engine/ripples";
 import { briefing, topIssue } from "../engine/advice";
@@ -285,7 +286,7 @@ export function World() {
           {drawer === "deals" && <InvestorsPanel />}
           {drawer === "street" && <div className="g-col" style={{ gap: 14 }}><StreetPanel /><div><div className="g-section-title">What I caused</div><TimelinePanel /></div></div>}
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}
-          {drawer === "power" && <PowerPanel />}
+          {drawer === "power" && <div className="g-col" style={{ gap: 14 }}><OfficePanel /><PowerPanel /></div>}
                     {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><CastPanel /><StaffCard /><FirstFamilyCard /><CabinetCard /><GroupsCard /></div>}
           {drawer === "governors" && <GovernorsPanel />}
           {drawer === "advisers" && <BriefingPanel />}
@@ -305,7 +306,7 @@ export function World() {
         </Modal>
       )}
       {cards.length > 0 && RECORD_BY_ID[cards[0]] && <RecordCard r={RECORD_BY_ID[cards[0]]} label={pegged(s) ? "Official rate only: the black market tells a different story." : undefined} onClose={() => setCards((c) => c.slice(1))} />}
-      {!!s.flags.primary && !s.flags.primarySeen && !s.staff.picked && <PrimaryModal />}
+      {!!s.flags.primary && !s.flags.primarySeen && !s.ended && <PrimaryModal />}
       {!s.staff.picked && (!s.flags.primary || !!s.flags.primarySeen) && <DayOne />}
       {s.staff.picked && s.promises.length === 0 && !s.ended && <PlatformModal />}
       {fresh && UNLOCK_BY_ID[fresh] && <button className="fx-unlock" onClick={() => { setFresh(null); const u = UNLOCK_BY_ID[fresh]; rawSetTab(u.tabs[0] as Tab); }}><b>{UNLOCK_BY_ID[fresh].icon} New: {UNLOCK_BY_ID[fresh].label}</b><span>{UNLOCK_BY_ID[fresh].why} Tap to open.</span></button>}

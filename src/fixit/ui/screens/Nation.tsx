@@ -1,5 +1,6 @@
 "use client";
 import { useState, type ReactNode } from "react";
+import { RATE_LABEL, rateLevel, setRate } from "../../engine/dials";
 import { useFix, useS } from "../store";
 import { Badge, Button, Callout, Card, LineChart, Meter, Tabs } from "../../../game/ui/kit";
 import { borrow, setFxDefence, type BorrowKind } from "../../engine/actions";
@@ -100,6 +101,7 @@ function Money({ s, fcLabel }: { s: FixState; fcLabel: string }) {
   return (
     <div className="g-col" style={{ gap: 14 }}>
       <Callout tone="info">Four different things, often confused: <b>government funds</b> (cash in the treasury), <b>reserves</b> (dollars held by the central bank), <b>debt</b> (what is owed) and <b>personal wealth</b> (yours alone).</Callout>
+      <DialsCard />
       <div className="g-grid g-grid-2">
         <Card title="Government funds" action={<Badge tone={fcLabel === "Healthy" ? "green" : fcLabel === "Tight" ? "blue" : "amber"}>{fcLabel}</Badge>}>
           <Table rows={[["Cash in the treasury", nb(f.treasury)], ["Revenue this month", nb(f.revenue), `Oil ${nb(f.oilRev)} · everything else ${nb(f.nonOilRev)}`], ["Spending this month", nb(f.spend), `Of which debt payments ${nb(f.debtService)} and the fuel subsidy ${nb(s.fuel.costMonthly)}`], ["Deficit (−) or surplus (+)", nb(-f.deficit)], ["Tax compliance", `${Math.round(f.taxCompl + lever(s, "taxCompl"))}%`, "Share of tax actually collected"], ["Unpaid bills to contractors", nb(f.arrears)]]} />
@@ -125,5 +127,26 @@ function Money({ s, fcLabel }: { s: FixState; fcLabel: string }) {
         </Card>
       </div>
     </div>
+  );
+}
+
+function DialsCard() {
+  const s = useS();
+  const { act, setTab } = useFix();
+  const lv = rateLevel(s);
+  return (
+    <Card title="🎛️ Your three dials">
+      <div className="fx-dials">
+        <div className="fx-dial"><b>Interest rate</b>
+          <div className="g-row" style={{ gap: 4 }}>{([-1, 0, 1] as const).map((l) => <button key={l} className="fx-subtab" aria-pressed={lv === l} onClick={() => act((x) => setRate(x, l))}>{RATE_LABEL[l].name}</button>)}</div>
+          <span className="g-tiny g-muted">{RATE_LABEL[lv].blurb}</span></div>
+        <div className="fx-dial"><b>The naira</b>
+          <span className="g-small">{s.eco.fxDefence < 0.05 ? "Floating" : s.eco.fxDefence < 0.45 ? "Light defence" : s.eco.fxDefence < 0.8 ? "Strong defence" : "All-out defence"}: ₦{Math.round(s.eco.fx).toLocaleString()}</span>
+          <span className="g-tiny g-muted">Reserves ${s.eco.reserves.toFixed(1)}bn. Set how hard to defend it below.</span></div>
+        <div className="fx-dial"><b>Fuel price</b>
+          <span className="g-small">₦{Math.round(s.fuel.pump)} a litre · subsidy covers {Math.round(s.fuel.coverage * 100)}%</span>
+          <button className="fx-subtab" onClick={() => setTab("policies")}>Change the fuel price</button></div>
+      </div>
+    </Card>
   );
 }

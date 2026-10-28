@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { stateProgress } from "../../engine/progress";
+import { StateGovCard } from "../Governors";
 import { MapPin, Search, X } from "lucide-react";
 import { useFix, useS } from "../store";
 import { Badge, Bar, Button, Card, EmptyState, Field, Modal } from "../../../game/ui/kit";
@@ -54,7 +55,7 @@ export function StatePanel({ s, id, lga }: { s: FixState; id: string; lga: strin
         <div className="g-row g-between"><h3 style={{ fontSize: 19, fontWeight: 800 }}>{lg ? lg.name : meta.name}</h3><Button size="sm" variant="ghost" onClick={() => setSelect({ state: lga ? id : null, lga: null })} aria-label="Close"><X size={16} /></Button></div>
         <div className="g-small g-muted">{lg ? `${lg.name} local government, ${meta.name} state · ${Math.round(lg.areaKm2).toLocaleString()} km²` : `${meta.isFct ? "Federal Capital Territory" : "State"} · capital ${meta.capital} · ${ZONES[meta.zone]}`}</div>
         {lg && <div className="g-tiny g-muted">Local conditions are simulated around the state picture.</div>}
-        {(() => { const g = s.governors.find((x) => x.zone === meta.zone); return g ? <div className="g-small" style={{ marginTop: 4 }}>Zone governor: <b>{g.name}</b> ({g.party}) · {g.relation >= 65 ? "an ally" : g.relation >= 45 ? "neutral" : g.relation >= 25 ? "cool towards you" : "hostile"} ({Math.round(g.relation)}/100)</div> : null; })()}
+        {!lga && <StateGovCard id={id} />}
       </div>
       {!lga && <div className="fx-story">📖 {stateStory(s, id)}</div>}
       {!lga && (() => { const p = stateProgress(s, id); if (!p) return null; const tone = p.verdict === "thriving" ? "#047857" : p.verdict === "improving" ? "#0f766e" : p.verdict === "slipping" ? "#be123c" : "#64748b"; return (

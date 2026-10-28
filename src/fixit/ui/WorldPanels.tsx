@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 /** Foreign relations, your party, and the first family. */
 import { useFix, useS } from "./store";
 import { SECTORS, leakage, programmeOn, sectorStats, toggleProgramme } from "../engine/sectors";
@@ -11,6 +12,7 @@ import { PARTNERS, relWord } from "../engine/foreign";
 import { FACTIONS } from "../engine/party";
 import { monthLabel } from "../engine/util";
 import { AIDE_KINDS } from "../engine/dayone";
+import { PRODUCTS, TRADE_PARTNERS, dealBlock, dealsOf, signDeal, startVisit, visitCooldown, PRODUCT_BY_ID, TP_BY_ID } from "../engine/trade";
 
 export function ForeignPanel() {
   const s = useS();
@@ -31,6 +33,7 @@ export function ForeignPanel() {
           </Card>
         );
       })}
+      <TradeCard />
       <Card title="Diplomatic log">
         {F.log.length === 0 ? <EmptyState title="Nothing yet" body="Offers arrive when the time is right: an IMF rescue when reserves are thin, a Chinese rail deal, American security help." /> : <div className="g-col" style={{ gap: 6 }}>{[...F.log].reverse().map((l, i) => <div key={i} className="g-small"><span className="g-tiny g-muted">{monthLabel(l.month)}</span> {l.text}</div>)}</div>}
       </Card>
@@ -106,5 +109,33 @@ export function SectorsPanel() {
         </Card>
       ))}
     </div>
+  );
+}
+
+function TradeCard() {
+  const s = useS();
+  const { act } = useFix();
+  const [partner, setPartner] = useState("china");
+  const deals = dealsOf(s);
+  return (
+    <Card title="🚢 Trade and visits">
+      <div className="g-col" style={{ gap: 10 }}>
+        <div className="g-small g-muted">What you can sell depends on what you have built: mills, hubs, plants, studios. Every partner wants something in return. Sign deals, or go in person.</div>
+        <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Trading partner">{TRADE_PARTNERS.map((p) => <button key={p.id} className="fx-subtab" aria-pressed={partner === p.id} onClick={() => setPartner(p.id)}>{p.icon} {p.name} · {Math.round(p.warm(s))}</button>)}</div>
+        <div className="g-tiny g-muted">{TP_BY_ID[partner].strings}</div>
+        <div className="fx-trade">
+          {PRODUCTS.map((pr) => { const block = dealBlock(s, partner, pr.id); const cap = pr.cap(s); const has = deals.find((d) => d.partner === partner && d.product === pr.id);
+            return (
+              <div key={pr.id} className="fx-trade-row" data-on={has ? "1" : undefined}>
+                <span aria-hidden style={{ fontSize: 22 }}>{pr.icon}</span>
+                <span className="g-grow"><b className="g-small">{pr.name}</b><span className="g-tiny g-muted" style={{ display: "block" }}>{cap > 0 ? `You can supply about ${Math.round(cap * 100)}% of a full deal.` : pr.blurb}</span></span>
+                {has ? <span className="g-tiny" style={{ color: has.suspended ? "#be123c" : "#047857", fontWeight: 800 }}>{has.suspended ? "Suspended" : "Deal in force"}</span> : <Button size="sm" variant="primary" disabled={!!block} title={block ?? undefined} onClick={() => act((x) => signDeal(x, partner, pr.id))}>Sign ⚡6</Button>}
+              </div>
+            ); })}
+        </div>
+        <div className="g-row g-between g-wrap"><span className="g-small">{deals.filter((d) => !d.suspended).length} deal{deals.filter((d) => !d.suspended).length === 1 ? "" : "s"} running ({deals.map((d) => `${PRODUCT_BY_ID[d.product].icon}${TP_BY_ID[d.partner].icon}`).join(" ") || "none yet"})</span>
+          <Button size="sm" disabled={visitCooldown(s, partner) > 0} onClick={() => act((x) => startVisit(x, partner))}>{visitCooldown(s, partner) > 0 ? `Visit again in ${visitCooldown(s, partner)} months` : `State visit to ${TP_BY_ID[partner].name} ⚡5`}</Button></div>
+      </div>
+    </Card>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { PC_COST } from "../engine/meta";
+import { whipCount, winOver } from "../engine/politics";
 import { Gavel, Landmark, Megaphone, Users2, Wallet } from "lucide-react";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, Card, Modal } from "../../game/ui/kit";
@@ -75,6 +76,7 @@ export function VoteModal({ bill, exec, onClose }: { bill: string; exec: (s: Fix
         <div className="g-col">
           <div className="g-small">This change needs lawmakers&apos; approval. Your support in the Assembly is <b>{Math.round(s.assembly.support)}%</b>.</div>
           <div><div className="g-row g-between g-small"><span>Chance it passes</span><b>{Math.round(p * 100)}%</b></div><Bar value={p} tone={p < 0.4 ? "red" : p < 0.6 ? "amber" : undefined} label="Chance of passing" /></div>
+          <WhipCount bill={bill} />
           <div className="g-section-title">Before the vote, you can lobby</div>
           {(Object.keys(LOBBY) as LobbyKind[]).map((k) => (
             <div key={k} className="g-list-row"><div className="g-grow"><b className="g-small">{LOBBY[k].label}</b><div className="g-tiny g-muted">{LOBBY[k].explain}{k === "projects" ? ` (about ${nb(40 * (0.6 + 0.4 * s.eco.priceLevel / 100))})` : ""}</div></div><Button size="sm" disabled={!!s.flags[`lobby:${bill}:${k}:${s.month}`]} onClick={() => act((x) => lobby(x, bill, k))}>{s.flags[`lobby:${bill}:${k}:${s.month}`] ? "Done" : `Try ⚡${PC_COST.lobby}`}</Button></div>
@@ -145,5 +147,21 @@ export function SpeechButton() {
         </Modal>
       )}
     </>
+  );
+}
+
+function WhipCount({ bill }: { bill: string }) {
+  const s = useS();
+  const { act } = useFix();
+  const w = whipCount(s, bill);
+  return (
+    <div className="fx-whip">
+      <div className="g-section-title">Whip count</div>
+      <div className="fx-whipbar" role="img" aria-label={`${w.seats.yes} yes, ${w.seats.maybe} undecided, ${w.seats.no} no`}>
+        <span style={{ flex: w.seats.yes, background: "#00c875" }}>{w.seats.yes}</span><span style={{ flex: w.seats.maybe, background: "#f59e0b" }}>{w.seats.maybe}</span><span style={{ flex: w.seats.no, background: "#e11d48" }}>{w.seats.no}</span>
+      </div>
+      <div className="g-tiny g-muted">Yes · Undecided · No. You need {w.need} seats. The undecided want something.</div>
+      {w.maybe.slice(0, 4).map((l) => <div key={l.id} className="g-row g-between g-small" style={{ gap: 6 }}><span><b>{l.name}</b> <span className="g-tiny g-muted">wants a project in {l.stateId.replace("NG-", "")}</span></span><Button size="sm" onClick={() => act((x) => winOver(x, bill, l.id))}>Win over ⚡2</Button></div>)}
+    </div>
   );
 }

@@ -31,11 +31,11 @@ export function PrimaryModal() {
   return (
     <div className="fx-dayone" role="dialog" aria-modal="true" aria-label="The primaries">
       <div className="fx-dayone-card">
-        <div className="g-tiny" style={{ letterSpacing: ".16em", fontWeight: 800, color: "#9db3c9" }}>BEFORE THE OATH</div>
+        <div className="g-tiny" style={{ letterSpacing: ".16em", fontWeight: 800, color: "#9db3c9" }}>{p.mid ? "MIDTERM" : "BEFORE THE OATH"}</div>
         {!done ? (
           <>
-            <h2>Back your governors</h2>
-            <p className="g-small" style={{ color: "#cfe0ee" }}>Your party is choosing candidates in six big states. The people you back become the governors who run those states while you are president. A skilled, honest governor makes your projects work better in their state; a weak or corrupt one wastes them. Backing someone also makes them owe you. <b>You have {ENDORSEMENTS} endorsements ({ENDORSEMENTS - used} left).</b> A backed candidate is far more likely to win, but not certain.</p>
+            <h2>{p.mid ? "Governorship elections" : "Back your governors"}</h2>
+            <p className="g-small" style={{ color: "#cfe0ee" }}>{p.mid ? "Voters in six big states choose their governors again. Sitting governors can be re-elected or thrown out. " : "Your party is choosing candidates in six big states."} The people you back become the governors who run those states while you are president. A skilled, honest governor makes your projects work better in their state; a weak or corrupt one wastes them. Backing someone also makes them owe you. <b>You have {ENDORSEMENTS} endorsements ({ENDORSEMENTS - used} left).</b> A backed candidate is far more likely to win, but not certain.</p>
             <div className="fx-races">
               {p.races.map((r) => (
                 <div key={r.stateId} className="fx-race">
@@ -44,7 +44,7 @@ export function PrimaryModal() {
                 </div>
               ))}
             </div>
-            <div className="g-row g-between fx-sticky"><span className="g-small" style={{ color: "#9db3c9" }}>{used === 0 ? "You can also stay neutral and let the party decide." : `${used} of ${ENDORSEMENTS} endorsements used.`}</span><Button variant="primary" onClick={() => { sfx("gavel"); act((x) => { finishPrimary(x); return { ok: true, message: "" }; }, { silent: true }); setDone(true); }}>Hold the primaries</Button></div>
+            <div className="g-row g-between fx-sticky"><span className="g-small" style={{ color: "#9db3c9" }}>{used === 0 ? "You can also stay neutral and let the party decide." : `${used} of ${ENDORSEMENTS} endorsements used.`}</span><Button variant="primary" onClick={() => { sfx("gavel"); act((x) => { finishPrimary(x); return { ok: true, message: "" }; }, { silent: true }); setDone(true); }}>{p.mid ? "Hold the elections" : "Hold the primaries"}</Button></div>
           </>
         ) : (
           <>
@@ -58,7 +58,7 @@ export function PrimaryModal() {
               ))}
             </div>
             <p className="g-small" style={{ color: "#cfe0ee" }}>The other 30 states keep their sitting governors. You can see every governor, and how their state is doing, under People.</p>
-            <div className="g-row" style={{ justifyContent: "flex-end" }}><Button variant="primary" onClick={() => { sfx("tap"); act((x) => { x.flags.primarySeen = 1; return { ok: true, message: "" }; }, { silent: true }); }}>On to Day One</Button></div>
+            <div className="g-row" style={{ justifyContent: "flex-end" }}><Button variant="primary" onClick={() => { sfx("tap"); act((x) => { x.flags.primarySeen = 1; return { ok: true, message: "" }; }, { silent: true }); }}>{p.mid ? "Back to the map" : "On to Day One"}</Button></div>
           </>
         )}
       </div>

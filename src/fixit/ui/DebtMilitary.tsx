@@ -1,6 +1,8 @@
 "use client";
 /** National debt and the road to being debt-free, lending abroad, and the armed forces. */
 import { useState } from "react";
+import { THEATRES, STRATEGIES, commanders, endOp, launchOp, monthlyCost, opsOf } from "../engine/ops";
+import { SUPPLIERS, armsDeal } from "../engine/trade";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, Card, EmptyState, LineChart } from "../../game/ui/kit";
 import { debtView, DEBT_FREE_AT, repayForeign } from "../engine/debt";
@@ -88,6 +90,8 @@ export function MilitaryPanel() {
         <Bar value={M.strength / 100} label={`Military strength ${Math.round(M.strength)}`} />
         <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Strongest neighbour: {sn.name} at {Math.round(sn.strength)}. A strong army is safer and wins you respect, but it costs money every month, makes generals more dangerous ({s.mil.strength > 55 ? `extra coup risk from strength ${Math.round(M.strength)}` : "not yet a worry"}), and alarms neighbours who arm themselves in return.</div>
       </Card>
+      <OpsCard />
+      <ArmsCard />
       <Card title="Programmes">
         <div className="g-col" style={{ gap: 8 }}>
           {MIL_PROGRAMMES.map((p) => { const on = milOn(s, p.id); return (
@@ -104,5 +108,62 @@ export function MilitaryPanel() {
       </Card>
       {(statesCreated(s) > 0) && <Callout tone="info">You have created {statesCreated(s)} new state{statesCreated(s) > 1 ? "s" : ""}, costing about {nb(statesCost(s))} a month.</Callout>}
     </div>
+  );
+}
+
+function OpsCard() {
+  const s = useS();
+  const { act } = useFix();
+  const ops = opsOf(s);
+  const [sel, setSel] = useState<Record<string, { strategy: string; funding: 1 | 2 | 3; cmd: string }>>({});
+  return (
+    <Card title="Operations in the field" icon={<span aria-hidden>🗺️</span>}>
+      <div className="g-col" style={{ gap: 10 }}>
+        <div className="g-small g-muted">Run up to two operations. Pick the strategy, the money and the commander. A skilled, honest commander wins; a corrupt one steals the rations; a popular one starts to look like a rival.</div>
+        {THEATRES.map((t) => {
+          const o = ops.find((x) => x.theatre === t.id);
+          const cm = commanders(s, t.id);
+          const cur = sel[t.id] ?? { strategy: "hearts", funding: 2 as const, cmd: cm[0].id };
+          const set = (patch: Partial<typeof cur>) => setSel({ ...sel, [t.id]: { ...cur, ...patch } });
+          return (
+            <div key={t.id} className="fx-op">
+              <div className="g-row g-between g-wrap"><b>{t.icon} {t.name}</b><span className="g-tiny g-muted">{t.blurb}</span></div>
+              {o ? (
+                <div className="g-col" style={{ gap: 4 }}>
+                  <div className="g-small"><b>{o.commander.name}</b> commands · {STRATEGIES.find((x) => x.id === o.strategy)!.name} · {"₦".repeat(o.funding)} funding · since {monthLabel(o.since)}</div>
+                  <div className="g-tiny g-muted">Skill {o.commander.skill} · Honesty {o.commander.integrity} · Loyalty {o.commander.loyalty} · Progress {Math.round(o.progress)}/14 to a breakthrough · costs {nb(monthlyCost(o.funding))} a month</div>
+                  <div><Button size="sm" onClick={() => act((x) => endOp(x, t.id))}>Wind it down</Button></div>
+                </div>
+              ) : (
+                <div className="g-col" style={{ gap: 6 }}>
+                  <div className="g-row g-wrap" style={{ gap: 4 }}>{STRATEGIES.map((st) => <button key={st.id} className="fx-subtab" aria-pressed={cur.strategy === st.id} title={st.blurb} onClick={() => set({ strategy: st.id })}>{st.name}</button>)}</div>
+                  <div className="g-row g-wrap" style={{ gap: 4 }}>{([1, 2, 3] as const).map((f) => <button key={f} className="fx-subtab" aria-pressed={cur.funding === f} onClick={() => set({ funding: f })}>{"₦".repeat(f)} {nb(monthlyCost(f))}/month</button>)}</div>
+                  <div className="g-col" style={{ gap: 4 }}>{cm.map((c) => <button key={c.id} className="fx-cmd" aria-pressed={cur.cmd === c.id} onClick={() => set({ cmd: c.id })}><b className="g-small">{c.name}</b><span className="g-tiny g-muted">Skill {c.skill} · Honesty {c.integrity} · Loyalty {c.loyalty}</span></button>)}</div>
+                  <div className="g-tiny g-muted">{STRATEGIES.find((x) => x.id === cur.strategy)!.blurb}</div>
+                  <div><Button size="sm" variant="primary" onClick={() => act((x) => launchOp(x, t.id, cur.strategy, cur.funding, cur.cmd))}>Launch ⚡6</Button></div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+function ArmsCard() {
+  const s = useS();
+  const { act } = useFix();
+  return (
+    <Card title="Arms deals" icon={<span aria-hidden>🤝</span>}>
+      <div className="g-col" style={{ gap: 8 }}>
+        <div className="g-small g-muted">Buy kit from abroad. Each supplier wants something back.</div>
+        {SUPPLIERS.map((d) => { const block = d.need(s); return (
+          <div key={d.id} className="g-row g-between g-wrap" style={{ gap: 8 }}>
+            <span className="g-grow"><b className="g-small">{d.name}</b> <span className="g-tiny g-muted">strength +{d.strength} · {nb(d.cost)}</span><span className="g-tiny g-muted" style={{ display: "block" }}>{block ?? d.blurb}</span></span>
+            <Button size="sm" disabled={!!block} onClick={() => act((x) => armsDeal(x, d.id))}>Buy ⚡6</Button>
+          </div>
+        ); })}
+      </div>
+    </Card>
   );
 }
