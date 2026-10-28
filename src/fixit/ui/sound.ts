@@ -1,0 +1,81 @@
+/** Tiny WebAudio sound effects (no files). Muted state is remembered per browser; every call is safe if audio is unavailable. */
+let ctx: AudioContext | null = null;
+let muted = false;
+try { muted = localStorage.getItem("fix:muted") === "1"; } catch { /* storage blocked */ }
+
+export const isMuted = () => muted;
+export function setMuted(m: boolean) { muted = m; try { localStorage.setItem("fix:muted", m ? "1" : "0"); } catch { /* ignore */ } }
+
+function audio(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return null;
+    ctx ??= new AC();
+    if (ctx.state === "suspended") void ctx.resume();
+    return ctx;
+  } catch { return null; }
+}
+
+function tone(freq: number, start: number, dur: number, type: OscillatorType = "triangle", vol = 0.08) {
+  const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.value = freq;
+  const t = a.currentTime + start;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+
+export type Sfx = "tap" | "turn" | "alert" | "good" | "bad" | "gavel" | "fanfare" | "doom";
+const SEQ: Record<Sfx, [number, number, number, OscillatorType?][]> = {
+  tap: [[660, 0, 0.06, "sine"]],
+  turn: [[392, 0, 0.12], [523, 0.1, 0.12], [659, 0.2, 0.2]],
+  alert: [[880, 0, 0.09, "square"], [880, 0.14, 0.09, "square"]],
+  good: [[523, 0, 0.1], [659, 0.09, 0.1], [784, 0.18, 0.22]],
+  bad: [[330, 0, 0.18, "sawtooth"], [247, 0.16, 0.3, "sawtooth"]],
+  gavel: [[160, 0, 0.12, "square"], [120, 0.16, 0.2, "square"]],
+  fanfare: [[523, 0, 0.14], [659, 0.14, 0.14], [784, 0.28, 0.14], [1047, 0.42, 0.45]],
+  doom: [[220, 0, 0.4, "sawtooth"], [185, 0.35, 0.4, "sawtooth"], [147, 0.7, 0.8, "sawtooth"]],
+};
+export function sfx(name: Sfx) {
+  if (muted) return;
+  for (const [f, st, d, t] of SEQ[name]) tone(f, st, d, t ?? "triangle", name === "doom" ? 0.06 : 0.07);
+}
+
+// ---------------------------------------------------------------- music and crowd sounds
+let musicOn = true;
+try { musicOn = localStorage.getItem("fix:music") !== "0"; } catch { /* blocked */ }
+export const isMusicOn = () => musicOn;
+export function setMusicOn(on: boolean) { musicOn = on; try { localStorage.setItem("fix:music", on ? "1" : "0"); } catch { /* ignore */ } if (!on) stopMusic(); }
+let timer: ReturnType<typeof setInterval> | null = null;
+let mood: "calm" | "tense" = "calm";
+let step = 0;
+export function setMusicMood(m: "calm" | "tense") { mood = m; }
+const CALM = [261.6, 329.6, 392, 440, 392, 329.6, 293.7, 329.6];
+const TENSE = [196, 233.1, 261.6, 233.1, 196, 174.6, 196, 164.8];
+export function startMusic() {
+  if (timer || muted || !musicOn || typeof window === "undefined") return;
+  if (!audio()) return;
+  timer = setInterval(() => {
+    if (muted || !musicOn) return;
+    const seq = mood === "calm" ? CALM : TENSE;
+    const f = seq[step % seq.length];
+    tone(f, 0, mood === "calm" ? 1.1 : 0.8, mood === "calm" ? "sine" : "triangle", 0.035);
+    if (step % 4 === 0) tone(f / 2, 0, 2.4, "sine", 0.03);
+    if (mood === "tense" && step % 2 === 0) tone(f * 1.5, 0.1, 0.3, "square", 0.012);
+    step++;
+  }, 900);
+}
+export function stopMusic() { if (timer) { clearInterval(timer); timer = null; } }
+function noise(dur: number, vol: number, lowpass: number) {
+  const a = audio(); if (!a || muted) return;
+  const n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+  const src = a.createBufferSource(); src.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = lowpass;
+  const g = a.createGain(); g.gain.value = vol;
+  src.connect(f); f.connect(g); g.connect(a.destination); src.start();
+}
+/** a crowd cheering, or a hush */
+export function crowd(kind: "roar" | "hush") { if (muted) return; if (kind === "roar") { noise(1.8, 0.16, 1800); } else { noise(1.2, 0.04, 400); } }
+export function buzz(ms = 200) { try { if (!muted) navigator.vibrate?.(ms); } catch { /* ignore */ } }
