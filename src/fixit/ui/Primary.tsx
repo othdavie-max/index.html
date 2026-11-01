@@ -52,7 +52,7 @@ export function PrimaryModal() {
             <div className="g-col" style={{ gap: 8 }}>
               {(result ?? []).map((r) => (
                 <div key={r.stateId} className="fx-race" style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 22 }} aria-hidden>{r.backed ? (r.youWon ? "✅" : "❌") : "➖"}</span>
+                  <span style={{ fontSize: 22 }} aria-hidden>{r.backed ? (r.youWon ? "✅" : "❌") : "🤷"}</span>
                   <div className="g-grow"><b>{STATE_BY_ID[r.stateId]?.name}</b>: {r.winner.replace("Gov. ", "")} won the primary.<div className="g-tiny" style={{ color: "#9db3c9" }}>{r.backed ? (r.youWon ? "Your candidate won and owes you." : `You backed ${r.backed.replace("Gov. ", "")}, who lost. The winner noticed.`) : "You stayed out of it."}</div></div>
                 </div>
               ))}

@@ -11,7 +11,7 @@ import { PORTFOLIO_BY_ID } from "./cabinet";
 import { builders, createEvent } from "./spawn";
 import { noteStolen } from "./ledger";
 import { advisers } from "./dayone";
-import { infraScore, nb, powerRatio, pushNews, pushReport, clamp, clamp100 } from "./util";
+import { infraScore, nb, powerRatio, pushNews, pushReport, clamp, clamp100, jflag } from "./util";
 
 type Need = "food" | "power" | "infra" | "jobs" | "fx" | "gov" | "sec" | "social" | "oil";
 const LEVER_NEED: Partial<Record<Lever, Need>> = {
@@ -196,7 +196,7 @@ export function proposalsMonthly(s: FixState, rng: Rng) {
 }
 
 const nameOf = (s: FixState) => { try { const p = JSON.parse(String(s.flags.propPending)) as Proposal; return byId(s, p.by)?.name ?? "Your aide"; } catch { return "Your aide"; } };
-const pend = (s: FixState): Proposal => JSON.parse(String(s.flags.propPending)) as Proposal;
+const pend = (s: FixState): Proposal => jflag<Proposal>(s, "propPending", { id: "none", by: "", title: "", text: "" } as unknown as Proposal);
 const pe = (s: FixState, e: { id: string }) => proposalOf(s, e.id) ?? pend(s);
 function act(mode: Mode | "auto") {
   return (s: FixState, e: { id: string }) => {

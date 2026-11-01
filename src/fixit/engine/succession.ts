@@ -64,6 +64,9 @@ export function continueNigeria(s: FixState, id: string): { ok: boolean; message
   for (const e of s.enemies) if (e.status === "active") { e.power = Math.round(e.power * 0.5); if (e.power < 18) e.status = "reconciled"; }
   for (const b of s.backers) { b.mood = 50; b.owed = 0; }
   s.gov.trust = clamp100(s.gov.trust + 5); s.gov.approval = clamp(s.gov.approval + 6, 0, 72);
+  // the crowds and the barracks give a new face a chance: the countdown to an uprising starts again
+  s.rule.uprising = 0; s.rule.streetAnger = Math.min(70, s.rule.streetAnger * 0.7); s.rule.coupRisk = Math.min(60, s.rule.coupRisk * 0.7);
+  if (s.gov.approval < 30) s.gov.approval = 30;
   s.rival = { ...s.rival, popularity: clamp(s.rival.popularity - 4, 0, 100) };
   offerAgenda(s);
   const kept = s.projects.filter((p) => p.status === "done").length, going = s.projects.filter((p) => p.status === "active" || p.status === "stalled").length;

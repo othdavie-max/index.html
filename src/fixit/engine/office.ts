@@ -4,7 +4,7 @@
  */
 import type { Rng } from "../../game/engine/rng";
 import type { Effects, FixState, GroupId } from "./types";
-import { addMod, clamp, clamp100, nb, pushNews } from "./util";
+import { addMod, clamp, clamp100, nb, pushNews, jflag } from "./util";
 import { payPc } from "./meta";
 import { recoverLoot } from "./ledger";
 import { sack } from "./cabinet";
@@ -21,7 +21,7 @@ export interface Power {
   run: (s: FixState, arg?: string) => string;
 }
 const jailed = (s: FixState) => s.gone.filter((g) => g.how === "jailed" && !s.flags[`pardoned:${g.id}`]);
-const later = (s: FixState, id: string, delay: number, arg?: string) => { const l = JSON.parse(String(s.flags.offLater ?? "[]")) as { due: number; id: string; arg?: string }[]; l.push({ due: s.month + delay, id, arg }); s.flags.offLater = JSON.stringify(l); };
+const later = (s: FixState, id: string, delay: number, arg?: string) => { const l = jflag<{ due: number; id: string; arg?: string }[]>(s, "offLater", []); l.push({ due: s.month + delay, id, arg }); s.flags.offLater = JSON.stringify(l); };
 
 export const POWERS: Power[] = [
   { id: "eolocal", icon: "🇳🇬", title: "Order: government buys Nigerian", blurb: "Every ministry must buy local goods first.", pc: 6, cost: 0, cooldown: 24, run: (s) => { mod(s, "eolocal", "Buy-Nigerian order", { manuf: 2, exports: 0.03, inflation: 0.2 }); grp(s, { business: 3, traders: -2 }); return "Factories get orders. Importers grumble and prices of some goods creep up."; } },
@@ -53,7 +53,7 @@ export function applyPower(s: FixState, id: string, arg?: string): { ok: boolean
 
 // ---------------------------------------------------------------- intelligence: rumours, some of them true
 export interface Rumour { id: string; month: number; kind: "coup" | "minister" | "vp" | "leak"; text: string; real: boolean; target?: string; done?: boolean; revealed?: boolean; hint?: string }
-export const rumours = (s: FixState): Rumour[] => { try { return JSON.parse(String(s.flags.intel ?? "[]")) as Rumour[]; } catch { return []; } };
+export const rumours = (s: FixState): Rumour[] => { return jflag<Rumour[]>(s, "intel", []); };
 const saveRumours = (s: FixState, l: Rumour[]) => { s.flags.intel = JSON.stringify(l.slice(-8)); };
 const accuracy = (s: FixState) => clamp(0.6 + ((s.staff?.cos?.skill ?? 50) - 50) * 0.003 + (typeof s.flags.nscAt === "number" && s.month - Number(s.flags.nscAt) < 4 ? 0.15 : 0), 0.4, 0.92);
 const general = (s: FixState) => ["General Ibrahim Danladi", "General Chukwuma Obi", "General Musa Garba", "General Tunde Bakare", "General Yakubu Sani"][Math.abs(s.meta.seed) % 5];
@@ -103,7 +103,7 @@ export function officeMonthly(s: FixState, rng: Rng) {
   for (const r of all) if (!r.done && s.month - r.month >= 5) { r.done = true; changed = true; if (r.real && r.kind === "coup") s.rule.coupRisk = clamp100(s.rule.coupRisk + 2); }
   if (changed) saveRumours(s, all);
   // commissions report
-  const l = JSON.parse(String(s.flags.offLater ?? "[]")) as { due: number; id: string; arg?: string }[];
+  const l = jflag<{ due: number; id: string; arg?: string }[]>(s, "offLater", []);
   if (l.length) {
     for (const x of l.filter((y) => y.due <= s.month)) {
       if (x.id === "inquiry") {

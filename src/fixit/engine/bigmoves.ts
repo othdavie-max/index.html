@@ -6,7 +6,7 @@
 import type { Rng } from "../../game/engine/rng";
 import { payPc, PC_COST } from "./meta";
 import type { Effects, FixState, GroupId } from "./types";
-import { addMod, clamp100, nb, pushNews, removeMods } from "./util";
+import { addMod, clamp100, nb, pushNews, removeMods, jflag } from "./util";
 import { createEvent } from "./spawn";
 import { STATE_BY_ID } from "../../game/data/states";
 
@@ -25,7 +25,7 @@ const mods = (s: FixState, id: string, label: string, e: Effects, o: { duration?
   if (o.monthly) { const m = s.modifiers[s.modifiers.length - 1]; if (m && m.source === `move:${id}`) m.monthly = o.monthly; }
 };
 const grp = (s: FixState, d: Partial<Record<GroupId, number>>) => { for (const [k, v] of Object.entries(d)) s.groupMood[k as GroupId] = Math.max(-40, Math.min(40, s.groupMood[k as GroupId] + (v as number))); };
-const later = (s: FixState, id: string, delay: number) => { const l = JSON.parse(String(s.flags.laters ?? "[]")) as { due: number; id: string }[]; l.push({ due: s.month + delay, id }); s.flags.laters = JSON.stringify(l); };
+const later = (s: FixState, id: string, delay: number) => { const l = jflag<{ due: number; id: string }[]>(s, "laters", []); l.push({ due: s.month + delay, id }); s.flags.laters = JSON.stringify(l); };
 
 export const MOVES: Move[] = [
   {
@@ -159,7 +159,7 @@ export function bigMonthly(s: FixState, rng: Rng) {
     if (s.eco.reserves <= 3 || s.month - Number(s.flags.pegSince ?? s.month) > 30) breakPeg(s);
     else if (ratio > 1.3 && rng.chance(0.25)) pushNews(s, { source: `black:${s.month}`, headline: `Black market: dollar at ₦${Math.round(Number(s.flags.blackFx)).toLocaleString()} as banks run out of forex`, body: "Official rate holds. Nobody can get dollars.", tone: "bad" });
   }
-  const l = JSON.parse(String(s.flags.laters ?? "[]")) as { due: number; id: string }[];
+  const l = jflag<{ due: number; id: string }[]>(s, "laters", []);
   if (l.length) {
     const rest = l.filter((x) => x.due > s.month);
     for (const x of l.filter((y) => y.due <= s.month)) {

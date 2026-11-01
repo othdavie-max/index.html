@@ -6,6 +6,11 @@ self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((ks) =
 self.addEventListener("fetch", (e) => {
   const req = e.request; const url = new URL(req.url);
   if (req.method !== "GET" || url.origin !== self.location.origin) return; // stats and anything else go straight to the network
+  // the game page itself: newest version when online, the saved copy when offline
+  if (req.mode === "navigate") {
+    e.respondWith(fetch(req).then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put("./index.html", copy)); } return res; }).catch(() => caches.match("./index.html")));
+    return;
+  }
   e.respondWith(caches.match(req, { ignoreSearch: true }).then((hit) => {
     const net = fetch(req).then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return res; }).catch(() => hit || (req.mode === "navigate" ? caches.match("./index.html") : Response.error()));
     return hit || net;

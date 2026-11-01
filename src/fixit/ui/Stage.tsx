@@ -15,7 +15,7 @@ export function VictoryCard() {
       <div className="g-col" style={{ gap: 8 }}>
         {PATHS.map((p) => { const v = Math.round(p.progress(s)); const won = s.flags[`victory:${p.id}`]; return (
           <div key={p.id} className="fx-path" data-won={won !== undefined ? "1" : undefined}>
-            <span style={{ fontSize: 22 }} aria-hidden>{p.icon}</span>
+            <span className="fx-path-icon" aria-hidden>{p.icon}</span>
             <div className="g-grow"><div className="g-row g-between"><b className="g-small">{p.name}</b><span className="g-tiny">{won !== undefined ? `✅ Won ${monthLabel(Number(won))}` : `${v}%`}</span></div><div className="fx-bar"><i style={{ width: `${v}%` }} /></div><div className="g-tiny g-muted">{p.goal}</div></div>
           </div>); })}
       </div>

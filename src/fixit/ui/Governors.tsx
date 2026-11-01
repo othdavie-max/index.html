@@ -12,7 +12,7 @@ import type { StateGov } from "../engine/types";
 
 export const govGrade = (g: StateGov) => { const v = (g.skill * 1.2 + g.integrity) / 2.2; return v >= 72 ? "A" : v >= 60 ? "B" : v >= 48 ? "C" : v >= 36 ? "D" : "F"; };
 const GRADE_COLOR: Record<string, string> = { A: "#047857", B: "#0f766e", C: "#a16207", D: "#c2410c", F: "#be123c" };
-const VERDICT: Record<string, string> = { thriving: "🌟", improving: "📈", flat: "➖", slipping: "📉" };
+const VERDICT: Record<string, string> = { thriving: "🌟", improving: "📈", flat: "😐", slipping: "📉" };
 
 export function GovernorsPanel() {
   const s = useS();

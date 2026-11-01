@@ -7,7 +7,7 @@ import { subRng, type Rng } from "../../game/engine/rng";
 import { payPc, PC_COST } from "./meta";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { Enemy, FixState, GroupId } from "./types";
-import { clamp100, nb, pushNews } from "./util";
+import { clamp100, nb, pushNews, jflag } from "./util";
 import { createEvent } from "./spawn";
 
 interface Ctx { name?: string; stateId?: string; lmId?: string; extra?: number }
@@ -100,7 +100,7 @@ export function logTimeline(s: FixState, title: string, text: string, tone: "goo
 export function ripple(s: FixState, key: keyof typeof CHAINS | string, ctx: Ctx = {}) {
   const chain = CHAINS[key];
   if (!chain) return;
-  const q = JSON.parse(String(s.flags.ripples ?? "[]")) as { due: number; key: string; i: number; ctx: Ctx }[];
+  const q = jflag<{ due: number; key: string; i: number; ctx: Ctx }[]>(s, "ripples", []);
   const k = (s.enemies?.length ?? 0) + q.length;
   chain.forEach((b, i) => q.push({ due: s.month + b.delay, key, i, ctx: { ...ctx, extra: k + i } }));
   s.flags.ripples = JSON.stringify(q);
@@ -115,7 +115,7 @@ function makeEnemy(s: FixState, e: NonNullable<ReturnType<NonNullable<Beat["enem
 export const activeEnemies = (s: FixState) => s.enemies.filter((e) => e.status === "active");
 
 export function ripplesMonthly(s: FixState, rng: Rng) {
-  const q = JSON.parse(String(s.flags.ripples ?? "[]")) as { due: number; key: string; i: number; ctx: Ctx }[];
+  const q = jflag<{ due: number; key: string; i: number; ctx: Ctx }[]>(s, "ripples", []);
   if (q.length) {
     const rest: typeof q = [];
     for (const r of q) {

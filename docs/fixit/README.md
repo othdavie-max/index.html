@@ -204,3 +204,14 @@ Run tests: `npx vitest run src/fixit`.
 - **Saves**: every autosave keeps the previous one as a backup (Menu, Restore last backup), and saves can be exported to a file and imported again.
 - **Faces**: foreign leaders and Naija X accounts now have portraits.
 - Tests: `tests/worldstage.test.ts`.
+
+## Quality pass
+
+- **Robot players** (`tests/fuzz.test.ts`): six games of ten years each, with every kind of action chosen at random every month (policies, projects, events, big moves, strongman tools, visits, UN, mega-projects, governors, operations, trade, X posts, bots, the ban), a save and reload every 17 months, and checks that nothing crashes, nothing becomes NaN, and meters stay in range.
+- Fixed: a successor inherited the overthrow countdown and was toppled within a month, over and over; new presidents now get a nine-month grace period and a cooler street.
+- Fixed: some answers that should change how a rival country feels were silently lost (cyber-attack, tariff threat, proxy rebels, debt-relief resolution).
+- Fixed: you could keep flying to a country that refuses to see you, paying capital each time; the trip cooldown now applies.
+- Fixed: the world ranking was computed from the previous month's numbers; a fake "Nigeria overtakes Ghana" headline at the start; duplicate leader calls.
+- Saved-game data is now read defensively everywhere (`jflag`), so a damaged save field falls back instead of crashing.
+- Charts no longer zoom into a tiny range that makes a 1% move look like a cliff; small icon fixes (governor trend, primary results, victory-path alignment).
+- Offline site: the game page is now network-first, so players get the newest version as soon as they are online, and still play fully offline.

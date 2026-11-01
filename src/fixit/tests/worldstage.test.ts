@@ -65,6 +65,24 @@ describe("the world stage", () => {
   it("every victory path reports progress between 0 and 100", () => { const s = rich(8013); for (const p of PATHS) { const v = p.progress(s); expect(v).toBeGreaterThanOrEqual(0); expect(v).toBeLessThanOrEqual(100); } });
 });
 
+describe("regressions", () => {
+  it("answers that change how a rival feels are kept", async () => {
+    const { createEvent } = await import("../engine/events"); const { respond } = await import("../engine/actions");
+    const s = rich(8030); boom(s); s.flags.lateRival = "cn"; const r0 = W(s).c.find((c) => c.id === "cn")!.rel;
+    const e = createEvent(s, "lateCyber", "NG-FC")!; respond(s, e.id, "blame", true as never); expect(W(s).c.find((c) => c.id === "cn")!.rel).toBeLessThan(r0);
+    const t = rich(8031); boom(t); friends(t, 55); expect(campaign(t, "unsc").ok).toBe(true); const poor = W(t).c.filter((c) => c.gdp < 1000).map((c) => c.id);
+    friends(t, 95); campaign(t, "unsc"); const before = W(t).c.filter((c) => poor.includes(c.id)).map((c) => c.rel);
+    for (let k = 0; k < 8 && !t.news.some((n) => /passes Nigeria's resolution: Debt/.test(n.headline)); k++) { delete (t.flags as Record<string, unknown>)["rescd:debt"]; propose(t, "debt"); t.month++; }
+    if (t.news.some((n) => /passes Nigeria's resolution: Debt/.test(n.headline))) expect(W(t).c.filter((c) => poor.includes(c.id)).some((c, i) => c.rel > before[i] || c.rel === 100)).toBe(true);
+  });
+  it("a successor is not thrown out in their first months", async () => {
+    const { continueNigeria, successors } = await import("../engine/succession"); const { finishTerm } = await import("../engine/legacy");
+    const s = rich(8032); s.rule.streetAnger = 99; s.rule.uprising = 6; s.gov.approval = 3; s.flags.primarySeen = 1; delete s.flags.primary;
+    finishTerm(s, "removed", "test", "uprising"); s.done = true; expect(continueNigeria(s, successors(s)[0].id).ok).toBe(true);
+    for (let i = 0; i < 6; i++) { s.rule.streetAnger = 99; s.gov.approval = 3; advanceMonths(s, 1); } expect(s.ended).toBeNull();
+  });
+});
+
 describe("sandbox and saves", () => {
   it("sandbox starts rich, open and with no term limits, and its tools work", () => {
     const a = newGame(8020); const s = newGame(8020, "Test", { sandbox: true });

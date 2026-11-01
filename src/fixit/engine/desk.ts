@@ -6,7 +6,7 @@
 import type { Rng } from "../../game/engine/rng";
 import { STATE_BY_ID } from "../../game/data/states";
 import type { FixState } from "./types";
-import { addMod, clamp, clamp100, nb, pushNews, removeMods } from "./util";
+import { addMod, clamp, clamp100, nb, pushNews, removeMods, jflag } from "./util";
 import { createEvent } from "./spawn";
 import { relate } from "./society";
 import { ripple } from "./ripples";
@@ -57,7 +57,7 @@ export function deskMonthly(s: FixState, rng: Rng) {
 
 // ---------------------------------------------------------------- promises that come back
 interface Mem { kind: "road" | "backerJobs"; stateId: string; due: number; asked: number }
-const mems = (s: FixState) => JSON.parse(String(s.flags.mems ?? "[]")) as Mem[];
+const mems = (s: FixState) => jflag<Mem[]>(s, "mems", []);
 const saveMems = (s: FixState, m: Mem[]) => { s.flags.mems = JSON.stringify(m); };
 function checkPromises(s: FixState) {
   const m = mems(s);

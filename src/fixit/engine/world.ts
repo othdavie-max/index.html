@@ -132,6 +132,7 @@ export function worldMonthly(s: FixState, rng: Rng) {
     c.rel = clamp100(c.rel + (50 - c.rel) * 0.01);
   }
   if (s.month % 12 === 6) yearly(s, w, rng);
+  saveW(s, w); // rank on this month's numbers, not last month's
   // how the league changed this month
   const rows = league(s); const me = rows.find((r) => r.me)!;
   const prev = w.ranks[NG] ?? me.rank;

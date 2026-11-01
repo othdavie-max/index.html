@@ -119,7 +119,7 @@ export const LEVEL_LABEL: Record<number, string> = { [-2]: "Deep cut", [-1]: "Cu
 export function initBudget(s: FixState) { s.budget = { levels: { education: 0, health: 0, security: 0, infrastructure: 0, social: 0 }, passedYear: calYear(s.month) }; }
 export function pendingBudget(s: FixState): Record<BudgetHead, number> | null {
   const p = s.flags.pendingBudget;
-  return typeof p === "string" ? (JSON.parse(p) as Record<BudgetHead, number>) : null;
+  if (typeof p !== "string") return null; try { return JSON.parse(p) as Record<BudgetHead, number>; } catch { return null; }
 }
 export function setPendingBudget(s: FixState, lv: Record<BudgetHead, number>) { s.flags.pendingBudget = JSON.stringify(lv); }
 export function budgetEffects(lv: Record<BudgetHead, number>): { effects: Effects; monthly: number } {

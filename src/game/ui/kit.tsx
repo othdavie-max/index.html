@@ -216,7 +216,8 @@ export function LineChart({ series, height = 150, format = (v: number) => v.toFi
   const xs = all.map((p) => p.x), ys = all.map((p) => p.y);
   const x0 = Math.min(...xs), x1 = Math.max(...xs);
   let y0 = Math.min(...ys), y1 = Math.max(...ys);
-  if (y0 === y1) { y0 -= 1; y1 += 1; }
+  // never zoom in so far that a tiny wobble looks like a cliff
+  { const mid = (y0 + y1) / 2, minSpan = Math.max(2, Math.abs(mid) * 0.08); if (y1 - y0 < minSpan) { y0 = mid - minSpan / 2; y1 = mid + minSpan / 2; } }
   const padY = (y1 - y0) * 0.1; y0 -= padY; y1 += padY;
   const sx = (x: number) => pad.l + ((x - x0) / (x1 - x0 || 1)) * (W - pad.l - pad.r);
   const sy = (y: number) => pad.t + (1 - (y - y0) / (y1 - y0)) * (H - pad.t - pad.b);

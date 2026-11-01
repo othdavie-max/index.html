@@ -34,12 +34,14 @@ export function evaluateTermEnd(s: FixState) {
   if (s.ended || s.done) return;
   // a free country can impeach a president whose support has collapsed; a dictator faces a coup or an uprising instead
   const low = (s.flags.lowApproval as number | undefined) ?? 0;
-  s.flags.lowApproval = s.gov.approval < 15 && s.rule.democracy >= 50 ? low + 1 : 0;
+  // a successor gets nine months before parliament or the street can throw them out
+  const grace = typeof s.flags.successionAt === "number" && s.month - s.flags.successionAt < 9;
+  s.flags.lowApproval = s.gov.approval < 15 && s.rule.democracy >= 50 && !grace ? low + 1 : 0;
   if ((s.flags.lowApproval as number) >= 5) {
     finishTerm(s, "removed", "Your support collapsed. After months of crisis, parliament voted to remove you from office.", "impeached");
     return;
   }
-  if (s.rule.uprising >= 4) { overthrow(s, "uprising"); return; }
+  if (s.rule.uprising >= 4 && !grace) { overthrow(s, "uprising"); return; }
   if (s.flags.courtObeyed !== undefined && s.flags.illegitimate !== undefined) { delete s.flags.courtObeyed; delete s.flags.illegitimate; s.rule.termExtra = 0; finishTerm(s, "completed", "The Supreme Court ruled and you obeyed. You left the villa that evening, and some people say that was the bravest thing you did."); return; }
   if (s.month >= s.termStart + TERM_MONTHS + s.rule.termExtra) {
     if (s.term >= termCap(s)) { finishTerm(s, "completed", s.cap?.quick ? "Your quick term is over. The country, and history, will now give its verdict." : s.term >= HARD_CAP_TERMS ? "You have ruled for sixteen years. History will decide what that was." : "You completed your final term. The constitution allows no more."); const e2 = (s as FixState).ended; if (e2 && s.term < HARD_CAP_TERMS && !s.cap?.quick) e2.overstay = true; return; }

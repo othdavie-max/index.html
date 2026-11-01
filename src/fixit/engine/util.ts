@@ -109,3 +109,10 @@ export function nb(n: number): string {
 
 /** how to address the player: their chosen name, or a neutral title if they did not give one */
 export const presidentName = (s: { meta: { president: string } }) => (!s.meta.president || s.meta.president === "Madam/Mr President" ? "Your Excellency" : `President ${s.meta.president}`);
+
+/** read a JSON value kept in a flag; a damaged or missing value gives the fallback instead of crashing the game */
+export function jflag<T>(s: FixState, key: string, fallback: T): T {
+  const raw = s.flags[key];
+  if (typeof raw !== "string") return fallback;
+  try { return JSON.parse(raw) as T; } catch { return fallback; }
+}

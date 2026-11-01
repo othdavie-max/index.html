@@ -39,7 +39,7 @@ import { earnPc } from "./meta";
 import type { GroupId } from "./types";
 import { sack, PORTFOLIO_BY_ID } from "./cabinet";
 import type { Portfolio } from "./types";
-import { addMod, clamp, clamp100, delivery, foodAffordIdx, lever, pushNews, pushReport, realWage, round, isFloodSeason, uid, nb } from "./util";
+import { addMod, clamp, clamp100, delivery, foodAffordIdx, lever, pushNews, pushReport, realWage, round, isFloodSeason, uid, nb, jflag } from "./util";
 
 const sname = (id: string) => STATE_BY_ID[id]?.name ?? id;
 
@@ -299,7 +299,7 @@ function candidates(s: FixState, rng: Rng): Cand[] {
 }
 
 interface QueuedArc { tpl: string; due: number; stateId: string }
-function arcQueue(s: FixState): QueuedArc[] { return typeof s.flags.arcQueue === "string" ? (JSON.parse(s.flags.arcQueue) as QueuedArc[]) : []; }
+function arcQueue(s: FixState): QueuedArc[] { return typeof s.flags.arcQueue === "string" ? (jflag<QueuedArc[]>(s, "arcQueue", []) as QueuedArc[]) : []; }
 function queueNext(s: FixState, t: Tpl, e: GameEvent, opt: string | null, ok: boolean) {
   const n = t.next?.(s, opt, ok);
   if (!n) return;
