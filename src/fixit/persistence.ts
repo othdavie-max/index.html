@@ -77,7 +77,7 @@ export function legacyAward(s: FixState, firstEnding: boolean): number {
 }
 export class FixSaves {
   constructor(private backend: StorageBackend = defaultBackend()) {}
-  async save(slot: Slot, s: FixState) { const text = serialise(s); await this.backend.set(`fix:save:${slot}`, text); await this.backend.set(`fix:meta:${slot}`, JSON.stringify(deserialise(text).summary)); }
+  async save(slot: Slot, s: FixState) { const text = serialise(s); if (slot === "auto") { try { const prev = await this.backend.get("fix:save:auto"); if (prev) await this.backend.set("fix:save:backup", prev); } catch { /* backup is best effort */ } } await this.backend.set(`fix:save:${slot}`, text); await this.backend.set(`fix:meta:${slot}`, JSON.stringify(deserialise(text).summary)); }
   async load(slot: Slot): Promise<FixState> { const t = await this.backend.get(`fix:save:${slot}`); if (!t) throw new FixSaveError("That slot is empty.", "missing"); return deserialise(t).state; }
   async list(): Promise<{ slot: Slot; summary?: Summary }[]> {
     const out: { slot: Slot; summary?: Summary }[] = [];
@@ -91,6 +91,8 @@ export class FixSaves {
   /** between-game progress: legacy points, perks you own and have equipped, games played, dynasty record */
   async legacy(): Promise<LegacyMeta> { try { const t = await this.backend.get("fix:legacy"); return { ...EMPTY_LEGACY, ...(t ? (JSON.parse(t) as Partial<LegacyMeta>) : {}) }; } catch { return { ...EMPTY_LEGACY }; } }
   async saveLegacy(m: LegacyMeta) { await this.backend.set("fix:legacy", JSON.stringify(m)); }
+  /** the autosave from before the latest one: a safety net if a save goes wrong */
+  async backup(): Promise<FixState | null> { try { const t = await this.backend.get("fix:save:backup"); return t ? deserialise(t).state : null; } catch { return null; } }
   async remove(slot: Slot) { await this.backend.remove(`fix:save:${slot}`); await this.backend.remove(`fix:meta:${slot}`); }
 }
 export { MemoryBackend };

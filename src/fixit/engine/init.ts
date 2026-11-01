@@ -1,3 +1,4 @@
+import { applySandbox } from "./sandbox";
 import { initFamilies } from "./families";
 import { initBackers } from "./backers";
 import { STATES } from "../../game/data/states";
@@ -70,7 +71,8 @@ export function newGame(seed = 2027, president = "Madam/Mr President", setup: Se
   initFamilies(s);
   s.staff = { cos: null, picked: false };
   applySetup(s, { ...setup, president: setup.president ?? president });
-  applyRunOptions(s, { quick: setup.quick, legacy: setup.legacy, perks: setup.perks, inherit: setup.inherit });
+  applyRunOptions(s, { quick: setup.quick, legacy: setup.legacy || setup.sandbox, perks: setup.perks, inherit: setup.inherit });
+  if (setup.sandbox) applySandbox(s);
   computeGroups(s);
   // initial fuel numbers so the dashboard is truthful on day one
   s.fuel.parity = (s.eco.oilPrice * s.eco.fx) / 159 * 1.35;

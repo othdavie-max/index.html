@@ -1,6 +1,7 @@
 "use client";
 /** Visiting another country: its map, its leader, and what you can ask for. */
-import { Button, Modal } from "../../game/ui/kit";
+import { Button, Modal, Portrait } from "../../game/ui/kit";
+import { faceFor } from "./faces";
 import { useFix, useS } from "./store";
 import { ARCH, ASKS, MEET_MIN, TRIP_COST, TRIP_PC, askBlock, chance, flyHome, leaderOf, negotiate, respect, travel, tripBlock, word } from "../engine/diplomacy";
 import { W, league } from "../engine/world";
@@ -56,7 +57,7 @@ export function VisitModal({ id, onClose }: { id: string; onClose: () => void })
         </div>
         <div className="g-col" style={{ gap: 10 }}>
           <div className="fx-leader">
-            <div style={{ fontSize: 30 }} aria-hidden>{ARCH[L.arch].icon}</div>
+            <div style={{ position: "relative" }}><Portrait p={faceFor(`${c.id}:${L.name}`, c.region === "africa" ? 3 : c.region === "europe" ? 0 : 1)} size={52} name={L.name} /><span style={{ position: "absolute", right: -4, bottom: -4, fontSize: 18 }} aria-hidden>{ARCH[L.arch].icon}</span></div>
             <div className="g-grow"><b>{L.title} {L.name}</b><div className="g-tiny g-muted">{ARCH[L.arch].label}. {tx(ARCH[L.arch].wants)}</div></div>
             <div style={{ fontSize: 28 }} aria-label={word(R)}>{face(R)}</div>
           </div>

@@ -31,6 +31,7 @@ export function Setup({ onBack }: { onBack: () => void }) {
   const [start, setStart] = useState("normal");
   const [quick, setQuick] = useState(false);
   const [legacy, setLegacy] = useState(false);
+  const [sandbox, setSandbox] = useState(false);
   const [perks, setPerks] = useState<string[]>([]);
   const [more, setMore] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -102,9 +103,10 @@ export function Setup({ onBack }: { onBack: () => void }) {
               <div className="fx-more-opts">
                 <div className="fx-wiz-label">Game length</div>
                 <div className="fx-chips">
-                  <button className="fx-opt" aria-pressed={!quick && !legacy} onClick={() => { setQuick(false); setLegacy(false); }}><b>Full campaign</b><i>Two terms, every system</i></button>
-                  <button className="fx-opt" aria-pressed={quick} onClick={() => { setQuick(true); setLegacy(false); }}><b>Quick term</b><i>One term, about 20 minutes</i></button>
-                  <button className="fx-opt" aria-pressed={legacy} onClick={() => { setLegacy(true); setQuick(false); }}><b>Legacy mode</b><i>No term limits. Keep building.</i></button>
+                  <button className="fx-opt" aria-pressed={!quick && !legacy && !sandbox} onClick={() => { setQuick(false); setLegacy(false); setSandbox(false); }}><b>Full campaign</b><i>Two terms, every system</i></button>
+                  <button className="fx-opt" aria-pressed={quick} onClick={() => { setQuick(true); setLegacy(false); setSandbox(false); }}><b>Quick term</b><i>One term, about 20 minutes</i></button>
+                  <button className="fx-opt" aria-pressed={legacy && !sandbox} onClick={() => { setLegacy(true); setQuick(false); setSandbox(false); }}><b>Legacy mode</b><i>No term limits. Keep building.</i></button>
+                  <button className="fx-opt" aria-pressed={sandbox} onClick={() => { setSandbox(true); setLegacy(true); setQuick(false); }}><b>Sandbox</b><i>Deep pockets, everything open, cheat tools. Not ranked.</i></button>
                 </div>
                 <div className="fx-wiz-label">How you take over</div>
                 <div className="fx-chips">{STARTS.map((x) => { const need = START_NEED[x.id] ?? 0, lock = progress < need; return <button key={x.id} className="fx-opt" aria-pressed={start === x.id} disabled={lock} onClick={() => setStart(x.id)}><b>{lock ? "🔒" : x.icon} {x.name}</b><i>{lock ? `Finish ${need - progress} more` : x.blurb}</i></button>; })}</div>
@@ -121,7 +123,7 @@ export function Setup({ onBack }: { onBack: () => void }) {
           <Button variant="light" onClick={() => (step === 0 ? onBack() : go(step - 1))}>Back</Button>
           {step < 3
             ? <button className="fx-big-btn" disabled={step === 2 && picked.length !== 3} onClick={() => go(step + 1)}>{step === 2 ? `Next (${picked.length}/3)` : "Next"}</button>
-            : <button className="fx-big-btn" onClick={() => { sfx("fanfare"); startNew(undefined, picked, { difficulty, portrait, president: name.trim() || "Madam/Mr President", archetype, start, quick, legacy, perks }); }}>Take the oath</button>}
+            : <button className="fx-big-btn" onClick={() => { sfx("fanfare"); startNew(undefined, picked, { difficulty, portrait, president: name.trim() || "Madam/Mr President", archetype, start, quick, legacy, perks, sandbox }); }}>Take the oath</button>}
         </div>
       </div>
     </div>

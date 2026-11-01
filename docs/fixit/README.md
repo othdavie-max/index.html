@@ -192,3 +192,15 @@ Run tests: `npx vitest run src/fixit`.
 - **Mega-projects forever**: ten of them (a world-class university, a new capital, a bullet train, nuclear power, a space programme, the Olympics, a Moon base, fusion, a pan-African bank and more). Each can be built again at a bigger scale, 1.7 times the cost and a smaller prize, so there is always a new summit. Three at a time.
 - **Sovereign wealth fund** with safe, balanced and bold styles, and **the naira abroad**: win countries into the African Prosperity Zone, then to trade in naira. At 8%, 20% and 34% of world trade weight the naira becomes a regional currency, a major trade currency and a rival to the dollar.
 - Tests: `tests/world.test.ts`, `tests/late.test.ts`.
+
+## Stage 7: a world you can see, and a world that talks back
+
+- **World map** (`ui/WorldMap.tsx`, data from Natural Earth via `world-atlas`, projected by `scripts/build-world.mjs` into `data/worldMap.json`): real country shapes, coloured by power, friendship or naira bloc, with world ranks on every league country; zoom to Africa; tap a country to visit.
+- **Diplomatic inbox** (`engine/worldlife.ts`, `ui/Inbox.tsx`): countries ask for disaster aid, loans (repaid with interest, or not, depending on their stability), peacekeepers, your vote against a rival, or to take refugees. Unanswered requests expire and cost goodwill. Helped countries owe you and return favours later. Leaders call when you pass them. The Power button shows how many requests are waiting.
+- **The world's own news**: elections, coups, border clashes, trade deals, breakthroughs and financial crises in other countries, which also move their numbers.
+- **Seats and clubs, and UN resolutions** (`engine/un.ts`, `ui/Stage.tsx`): campaign for the G20, the African Union chair, a Security Council seat, the IMF board, the trade talks and finally a permanent Council seat. Each is won by votes from countries that like you (or owe you). With a Council seat you can table resolutions (debt relief, a climate fund, an arms embargo on the rival behind the rebels, Council reform, recognising the naira) and watch the tally.
+- **Ways to win**: five victory paths with progress bars (economic superpower, leader of Africa, the naira rules the world, diplomatic giant, clean statesman). A win is celebrated and the game goes on.
+- **Sandbox mode** (`engine/sandbox.ts`): no term limits, four times the cash, all screens open, cheat tools in the menu; not entered in the Hall of Presidents.
+- **Saves**: every autosave keeps the previous one as a backup (Menu, Restore last backup), and saves can be exported to a file and imported again.
+- **Faces**: foreign leaders and Naija X accounts now have portraits.
+- Tests: `tests/worldstage.test.ts`.

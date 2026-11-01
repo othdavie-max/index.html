@@ -33,6 +33,7 @@ interface Ctx {
   startNew: (seed?: number, promises?: string[], setup?: SetupOptions) => void;
   continueTerm: () => void;
   loadSlot: (slot: Slot) => Promise<boolean>;
+  loadState: (g: FixState) => void;
   saveSlot: (slot: Slot) => Promise<boolean>;
   saves: FixSaves;
   hasAuto: boolean;
@@ -147,7 +148,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     setSummary({ from: monthLabel(startMonth), to: monthLabel(g.month), months: n, changes: diffSummary(before, after, g), events, news, echoes, achievements: g.achievements.slice(achBefore), headline });
     bump();
     if (g.settings.autosave) void saveSlot("auto");
-    if (g.ended) { const h = hallEntry(g); if (h) void saves.addHall(h).catch(() => undefined); }
+    if (g.ended && !g.flags.sandbox) { const h = hallEntry(g); if (h) void saves.addHall(h).catch(() => undefined); }
   }, [bump, saveSlot, saves]);
 
   const startNew = useCallback((seed?: number, promises?: string[], setup?: SetupOptions) => {
@@ -177,6 +178,8 @@ export function FixProvider({ children }: { children: ReactNode }) {
     }
   }, [bump, saves, setTab]);
 
+  const loadState = useCallback((g: FixState) => { setGame(g); setScreen("play"); setTab("world"); setSummary(null); setSelect({ state: null, lga: null }); bump(); void saves.save("auto", g).catch(() => undefined); }, [bump, saves, setTab]);
+
   const quit = useCallback(() => { void saveSlot("auto").then(() => setScreen("title")); }, [saveSlot]);
 
   // autosave when leaving the page
@@ -187,7 +190,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
   }, [saves]);
 
   const value: Ctx = {
-    state: game, version, screen, tab, setTab, act, advance, summary, closeSummary: () => setSummary(null), startNew, continueTerm, loadSlot, saveSlot, saves, hasAuto, quit,
+    state: game, version, screen, tab, setTab, act, advance, summary, closeSummary: () => setSummary(null), startNew, continueTerm, loadSlot, loadState, saveSlot, saves, hasAuto, quit,
     toast, toasts, select, setSelect, lastSaved, error, clearError: () => setError(null), lang, setLang, tx,
   };
   return <C.Provider value={value}>{children}</C.Provider>;

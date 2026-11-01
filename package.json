@@ -40,11 +40,14 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-simple-maps": "^3.0.6",
+    "@types/topojson-client": "^3.1.5",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "playwright": "^1.63.0",
     "tailwindcss": "^4",
+    "topojson-client": "^3.1.0",
     "typescript": "^5",
-    "vitest": "^3.2.7"
+    "vitest": "^3.2.7",
+    "world-atlas": "^2.0.2"
   }
 }

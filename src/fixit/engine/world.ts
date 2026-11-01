@@ -70,7 +70,9 @@ export function W(s: FixState): WorldState {
   // a fresh world is shaped by the seed so no two games start identically
   let h = s.meta.seed >>> 0; const r = () => { h = (Math.imul(h, 1664525) + 1013904223) >>> 0; return h / 4294967296; };
   for (const c of w.c) { c.gdp *= 0.94 + 0.12 * r(); c.mil = clamp100(c.mil + (r() - 0.5) * 6); c.tech = clamp100(c.tech + (r() - 0.5) * 6); c.inf = clamp100(c.inf + (r() - 0.5) * 6); c.rel = 46 + r() * 10; }
-  saveW(s, w); ranksInto(s, w); w.best = w.ranks[NG]; saveW(s, w); return w;
+  saveW(s, w); ranksInto(s, w); w.best = w.ranks[NG];
+  { const rows = league(s); const me = rows.find((r) => r.me)!; w.lead = rows.filter((r) => !r.me && me.score - r.score > 1.5).map((r) => r.id); }
+  saveW(s, w); return w;
 }
 export const saveW = (s: FixState, w: WorldState) => { s.flags.world = JSON.stringify(w); };
 

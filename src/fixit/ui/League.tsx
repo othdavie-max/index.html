@@ -4,6 +4,9 @@ import { useState } from "react";
 import { Card } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
 import { VisitModal } from "./Visit";
+import { WorldMap } from "./WorldMap";
+import { InboxCard } from "./Inbox";
+import { StageCard, VictoryCard } from "./Stage";
 import { TIERS, W, africaRank, league, nextTarget, type Row } from "../engine/world";
 
 const DIMS = [{ k: "econ", l: "Economy" }, { k: "mil", l: "Military" }, { k: "tech", l: "Tech" }, { k: "inf", l: "Influence" }] as const;
@@ -30,6 +33,10 @@ export function LeaguePanel() {
         </div>
         <div className="g-tiny g-muted" style={{ marginTop: 6 }}>The score mixes economy (35%), military (20%), technology (20%) and influence (25%). Every number is simulated and simplified.</div>
       </Card>
+      <VictoryCard />
+      <Card title="The world" icon={<span aria-hidden>🗺️</span>}><WorldMap onPick={setPick} /></Card>
+      <InboxCard />
+      <StageCard />
       {tgt ? (
         <Card title={`Next to pass: ${tgt.row.flag} ${tgt.row.name}`} icon={<span aria-hidden>🎯</span>}>
           <div className="g-small">They are {(tgt.row.score - me.score).toFixed(1)} points ahead. {tx(tgt.row.c?.blurb ?? "")} <b>{tgt.row.trendText}.</b></div>

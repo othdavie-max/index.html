@@ -1,4 +1,7 @@
 "use client";
+import { serialise, deserialise } from "../persistence";
+import { SANDBOX_TOOLS } from "../engine/sandbox";
+import { monthShort } from "../engine/util";
 import { useEffect, useState } from "react";
 import { useFix } from "./store";
 import { Badge, Button, ConfirmDialog, Modal } from "../../game/ui/kit";
@@ -86,7 +89,7 @@ export function HowTo({ onClose }: { onClose: () => void }) {
 }
 
 export function MenuModal({ onClose }: { onClose: () => void }) {
-  const { state, quit, startNew, saveSlot, toast, act } = useFix();
+  const { state, quit, startNew, saveSlot, toast, act, saves, loadState } = useFix();
   const [sub, setSub] = useState<"slots" | "about" | "how" | "new" | null>(null);
   if (!state) return null;
   return (
@@ -100,6 +103,12 @@ export function MenuModal({ onClose }: { onClose: () => void }) {
             <Button onClick={() => setSub("how")}>How to play</Button>
             <Button onClick={() => setSub("about")}>About &amp; data</Button>
           </div>
+          <div className="g-row g-wrap" style={{ borderTop: "1px solid #e2e8f0", paddingTop: 10 }}>
+            <Button onClick={() => { const blob = new Blob([serialise(state)], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `nigeria-${state.meta.president.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-${monthShort(state.month).replace(" ", "-")}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Save file downloaded. Keep it somewhere safe."); }}>Export save file</Button>
+            <label className="g-btn" style={{ cursor: "pointer" }}>Import save file<input type="file" accept=".json,application/json" style={{ display: "none" }} onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; try { const { state: g } = deserialise(await f.text()); loadState(g); toast("Save loaded."); onClose(); } catch { toast("That file is not a valid save.", true); } }} /></label>
+            <Button onClick={async () => { const g = await saves.backup(); if (!g) { toast("No backup yet. One is made every time the game autosaves.", true); return; } loadState(g); toast(`Restored the backup from ${monthShort(g.month)}.`); onClose(); }}>Restore last backup</Button>
+          </div>
+          {!!state.flags.sandbox && <div className="g-col" style={{ borderTop: "1px solid #e2e8f0", paddingTop: 10, gap: 6 }}><b className="g-small">🧪 Sandbox tools</b><div className="g-row g-wrap" style={{ gap: 6 }}>{SANDBOX_TOOLS.map((x) => <Button key={x.id} size="sm" onClick={() => act((g) => ({ ok: true, message: x.run(g) }))}>{x.label}</Button>)}</div></div>}
           <label className="g-row g-small"><input type="checkbox" checked={state.settings.autosave} onChange={(e) => act((s) => { s.settings.autosave = e.target.checked; return { ok: true, message: "Setting saved." }; }, { silent: true })} /> Autosave after each month</label>
           <label className="g-row g-small"><input type="checkbox" checked={!!state.flags.noSummary} onChange={(e) => act((s) => { s.flags.noSummary = e.target.checked; return { ok: true, message: "" }; }, { silent: true })} /> Skip the end-of-month summary window</label>
           <div className="g-row g-wrap" style={{ borderTop: "1px solid #e2e8f0", paddingTop: 10 }}>

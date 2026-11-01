@@ -2,7 +2,8 @@
 /** Naija X: the feed, the trending list, your own posts, accounts that remember you, the bot army and the off switch. */
 import { useEffect, useState } from "react";
 import { Heart, MessageCircle, Repeat2 } from "lucide-react";
-import { Button, Card, Initials, Modal } from "../../game/ui/kit";
+import { Button, Card, Initials, Modal, Portrait } from "../../game/ui/kit";
+import { faceFor } from "./faces";
 import { useFix, useS } from "./store";
 import { BOT_LEVELS, POST_KINDS, X, acctActions, actOnAcct, banX, playerPost, postBlock, profileOf, realMood, reportBots, seedFeed, setBots, shownMood, threads, trending, unbanX, ME, type XPost } from "../engine/social";
 import { monthLabel } from "../engine/util";
@@ -30,7 +31,7 @@ export function XPanel() {
     const blocked = !!x.accts.find((y) => y.id === p.by)?.blocked;
     return (
       <div className={reply ? "fx-post fx-reply" : "fx-post"} data-player={p.player ? "1" : undefined}>
-        <button className="fx-avatar" aria-label={`Open ${a.name}`} onClick={() => p.by !== ME && setProfile(p.by)}><Initials name={a.name} size={reply ? 28 : 36} color={colorOf(a.kind)} /></button>
+        <button className="fx-avatar" aria-label={`Open ${a.name}`} onClick={() => p.by !== ME && setProfile(p.by)}>{a.kind === "bot" ? <Initials name={a.name} size={reply ? 28 : 36} color={colorOf(a.kind)} /> : <Portrait p={p.by === ME ? s.meta.portrait : faceFor(a.id, 3)} size={reply ? 28 : 36} name={a.name} />}</button>
         <div className="g-grow">
           <div className="g-small"><b>{a.name}</b>{a.verified && <span title="Verified"> ✅</span>} <span className="g-muted">{a.handle}</span> <span className="g-tiny g-muted">· {monthLabel(p.month)}{p.vpn ? " · via VPN" : ""}</span></div>
           {blocked ? <div className="g-small g-muted">🚫 You blocked this account. Everyone else can still see this post.</div> : <div className="g-small">{tx(p.text)}</div>}
@@ -109,7 +110,7 @@ export function XPanel() {
       {prof && (
         <Modal title={<>{prof.name} <span className="g-muted g-small">{prof.handle}</span></>} onClose={() => setProfile(null)}>
           <div className="g-col" style={{ gap: 10 }}>
-            <div className="g-row" style={{ gap: 10 }}><Initials name={prof.name} size={48} color={colorOf(prof.kind)} /><div className="g-grow"><div className="g-small">{tx(prof.bio || "No bio. Probably a bot.")}</div><div className="g-tiny g-muted">{compact(prof.followers)} followers · {prof.kind}</div></div><div style={{ fontSize: 28 }} aria-label={`Mood ${prof.mood}`}>{face(prof.mood)}</div></div>
+            <div className="g-row" style={{ gap: 10 }}>{prof.kind === "bot" ? <Initials name={prof.name} size={48} color={colorOf(prof.kind)} /> : <Portrait p={faceFor(prof.id, 3)} size={48} name={prof.name} />}<div className="g-grow"><div className="g-small">{tx(prof.bio || "No bio. Probably a bot.")}</div><div className="g-tiny g-muted">{compact(prof.followers)} followers · {prof.kind}</div></div><div style={{ fontSize: 28 }} aria-label={`Mood ${prof.mood}`}>{face(prof.mood)}</div></div>
             <div><div className="g-section-title">What they remember about you</div>{prof.mem.length === 0 ? <div className="g-small g-muted">Nothing yet.</div> : <ul className="g-small" style={{ margin: 0, paddingLeft: 18 }}>{[...prof.mem].reverse().map((m, i) => <li key={i} style={{ color: m.good ? "#047857" : "#b91c1c" }}>{monthLabel(m.m)}: {tx(m.t)}</li>)}</ul>}</div>
             <div className="g-row g-wrap" style={{ gap: 6 }}>
               {acctActions(prof).map((a) => <Button key={a.id} size="sm" onClick={() => { sfx("tap"); act((g) => actOnAcct(g, prof.id, a.id)); setProfile(null); }}>{a.label}{a.pc ? ` ⚡${a.pc}` : ""}</Button>)}

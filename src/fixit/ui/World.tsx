@@ -35,6 +35,8 @@ import { XPanel } from "./Social";
 import { LeaguePanel } from "./League";
 import { GrandPanel } from "./Grand";
 import { myRank } from "../engine/world";
+import { inbox } from "../engine/worldlife";
+const inboxWaiting = (s: import("../engine/types").FixState) => inbox(s).filter((m) => !m.done && m.options).length;
 import { BriefingPanel } from "./AdvisorStrip";
 import { RecordCard } from "./RecordCard";
 import { BreakingBanner, Coach, TurnChips, YearReview, coachStep, COACH } from "./Feel";
@@ -199,7 +201,7 @@ export function World() {
   const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
     { id: "build", label: "Build", icon: <Hammer size={22} />, wide: true, tabs: [{ id: "presidency", label: "Overview" }, { id: "plans", label: "Plans" }, { id: "projects", label: "Projects" }, { id: "grand", label: "Grand plans" }, { id: "policies", label: "Policies" }] },
     { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }] },
-    { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0, tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "league", label: "World league" }, { id: "military", label: "Military" }] },
+    { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: (s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0) + inboxWaiting(s), tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "league", label: "World league" }, { id: "military", label: "Military" }] },
     { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "My team" }, { id: "governors", label: "Governors" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
     { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }, { id: "x", label: "Naija X" }, { id: "street", label: "Nigeria today" }] },
   ];
