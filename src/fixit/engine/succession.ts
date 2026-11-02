@@ -7,7 +7,7 @@ import type { FixState, Portfolio, Portrait } from "./types";
 import { PORTFOLIO_BY_ID, freshCandidates } from "./cabinet";
 import { initSpeech } from "./politics";
 import { offerAgenda } from "./meta";
-import { clamp, clamp100, pushNews, pushReport, snap, uid } from "./util";
+import { addMod, clamp, clamp100, pushNews, pushReport, snap, uid } from "./util";
 
 export interface Successor { id: string; name: string; portrait: Portrait; blurb: string; source: "vp" | "minister" | "party" | "rival"; portfolio?: Portfolio }
 const FIRST = ["Adaora", "Ibrahim", "Folasade", "Chidera", "Musa", "Temitope", "Hauwa", "Emeka", "Yetunde", "Sadiq"];
@@ -65,8 +65,11 @@ export function continueNigeria(s: FixState, id: string): { ok: boolean; message
   for (const b of s.backers) { b.mood = 50; b.owed = 0; }
   s.gov.trust = clamp100(s.gov.trust + 5); s.gov.approval = clamp(s.gov.approval + 6, 0, 72);
   // the crowds and the barracks give a new face a chance: the countdown to an uprising starts again
-  s.rule.uprising = 0; s.rule.streetAnger = Math.min(70, s.rule.streetAnger * 0.7); s.rule.coupRisk = Math.min(60, s.rule.coupRisk * 0.7);
-  if (s.gov.approval < 30) s.gov.approval = 30;
+  s.rule.uprising = 0; s.rule.streetAnger = Math.min(55, s.rule.streetAnger * 0.6); s.rule.coupRisk = Math.min(45, s.rule.coupRisk * 0.6);
+  if (s.gov.approval < 35) s.gov.approval = 35;
+  s.flags.lowApproval = 0;
+  // a honeymoon that fades over a year: people give a new face the benefit of the doubt
+  addMod(s, `succession:honeymoon:${era}`, "A new president's honeymoon", { happiness: 3 }, { duration: 12, ramp: 1 });
   s.rival = { ...s.rival, popularity: clamp(s.rival.popularity - 4, 0, 100) };
   offerAgenda(s);
   const kept = s.projects.filter((p) => p.status === "done").length, going = s.projects.filter((p) => p.status === "active" || p.status === "stalled").length;

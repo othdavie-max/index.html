@@ -9,6 +9,19 @@ import { PRESIDENTS } from "../engine/setup";
 import { Hall } from "./Hall";
 import { Setup } from "./Setup";
 import { Button } from "../../game/ui/kit";
+import worldMap from "../data/worldMap.json";
+
+const NG_SHAPE = worldMap.c.find((c) => c.id === "NG")!;
+/** a glowing Nigeria on the title screen, drawn from the same map data as the world view */
+function HeroMap() {
+  const [cx, cy] = NG_SHAPE.c;
+  return (
+    <svg className="fx-hero-map" viewBox={`${cx - 24} ${cy - 20} 48 40`} aria-hidden>
+      <defs><linearGradient id="fxng" x1="0" x2="1"><stop offset="0" stopColor="#00c875" /><stop offset=".5" stopColor="#ffffff" /><stop offset="1" stopColor="#00c875" /></linearGradient></defs>
+      <path d={NG_SHAPE.d} fill="url(#fxng)" stroke="#f5d57a" strokeWidth={0.35} />
+    </svg>
+  );
+}
 
 export function Title() {
   const { startNew, hasAuto, loadSlot } = useFix();
@@ -22,9 +35,10 @@ export function Title() {
   return (
     <div className="fx-hero">
       <div className="fx-hero-center">
+        <HeroMap />
         <div className="fx-hero-kicker">A PRESIDENTIAL STRATEGY GAME</div>
         <h1 className="fx-hero-title">NIGERIA:<br /><em>CAN YOU FIX IT?</em></h1>
-        <p className="fx-hero-tag">Four years. One country. Every choice counts.</p>
+        <p className="fx-hero-tag">Fix Nigeria. Then take on the world.</p>
         <button className="fx-big-btn fx-hero-go" onClick={() => setSetup(true)}>Start your presidency</button>
         {hasAuto && <button className="fx-hero-sub" onClick={() => void loadSlot("auto")}>Continue your last game</button>}
       </div>

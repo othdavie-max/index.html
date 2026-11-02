@@ -215,3 +215,10 @@ Run tests: `npx vitest run src/fixit`.
 - Saved-game data is now read defensively everywhere (`jflag`), so a damaged save field falls back instead of crashing.
 - Charts no longer zoom into a tiny range that makes a 1% move look like a cliff; small icon fixes (governor trend, primary results, victory-path alignment).
 - Offline site: the game page is now network-first, so players get the newest version as soon as they are online, and still play fully offline.
+
+## Breathing room and a design pass
+
+- Successors get 18 months before impeachment or an uprising can remove them, a calmer street and barracks, approval of at least 35%, and a year-long honeymoon.
+- Phone layout: a two-row header (date, alert and menu on top; five equal number tiles below); sound, music and language moved into the menu; one notification card plus a "+N more" pill so the map stays visible; the duplicate "matters to decide" card is gone (the big button already says it); compact advisor; tabs scroll with a fade hint.
+- Look and feel: softer cards, hover lift on action cards, pressed-button feedback, gradient progress bars, clear keyboard focus, bigger tap targets on phones, single-column action grids on phones.
+- Title screen: a glowing Nigeria drawn from the world map, and a tagline that matches the game ("Fix Nigeria. Then take on the world."). "Surprise me" is readable on the dark setup screen.

@@ -51,7 +51,7 @@ export function Setup({ onBack }: { onBack: () => void }) {
 
         {step === 0 && (
           <div className="fx-wiz-body fx-you">
-            <div className="fx-you-pic"><Portrait p={portrait} size={170} name={name || "the President"} /><button className="fx-link" onClick={shuffle}><Shuffle size={15} /> Surprise me</button></div>
+            <div className="fx-you-pic"><Portrait p={portrait} size={170} name={name || "the President"} /><button className="fx-link fx-link-light" onClick={shuffle}><Shuffle size={15} /> Surprise me</button></div>
             <div className="fx-you-form">
               <label htmlFor="pres-name" className="fx-wiz-label">Your name</label>
               <input id="pres-name" className="fx-input" placeholder="e.g. Adaora Bello" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />

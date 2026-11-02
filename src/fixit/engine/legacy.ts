@@ -34,8 +34,8 @@ export function evaluateTermEnd(s: FixState) {
   if (s.ended || s.done) return;
   // a free country can impeach a president whose support has collapsed; a dictator faces a coup or an uprising instead
   const low = (s.flags.lowApproval as number | undefined) ?? 0;
-  // a successor gets nine months before parliament or the street can throw them out
-  const grace = typeof s.flags.successionAt === "number" && s.month - s.flags.successionAt < 9;
+  // a successor gets eighteen months before parliament or the street can throw them out
+  const grace = typeof s.flags.successionAt === "number" && s.month - s.flags.successionAt < 18;
   s.flags.lowApproval = s.gov.approval < 15 && s.rule.democracy >= 50 && !grace ? low + 1 : 0;
   if ((s.flags.lowApproval as number) >= 5) {
     finishTerm(s, "removed", "Your support collapsed. After months of crisis, parliament voted to remove you from office.", "impeached");

@@ -228,9 +228,9 @@ export function World() {
         </div>
         <DangerChip hl={cstep >= 0 && COACH[cstep].target === "danger"} onClick={() => setTab("power")} />
         <div className="fx-hud-tools">
-          <button className="fx-icon-btn" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
-          <button className="fx-icon-btn" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music">{music ? "🎵" : "🔇"}</button>
-          <button className="fx-icon-btn" style={{ fontSize: 11, fontWeight: 800 }} onClick={() => { setLang(lang === "pcm" ? "en" : "pcm"); sfx("tap"); }} aria-label={lang === "pcm" ? "Switch to English" : "Switch to Naija Pidgin"} title="Naija Pidgin for street voices, feed, advisers">{lang === "pcm" ? "PCM" : "EN"}</button>
+          <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
+          <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music">{music ? "🎵" : "🔇"}</button>
+          <button className="fx-icon-btn fx-hud-opt" style={{ fontSize: 11, fontWeight: 800 }} onClick={() => { setLang(lang === "pcm" ? "en" : "pcm"); sfx("tap"); }} aria-label={lang === "pcm" ? "Switch to English" : "Switch to Naija Pidgin"} title="Naija Pidgin for street voices, feed, advisers">{lang === "pcm" ? "PCM" : "EN"}</button>
           <button className="fx-icon-btn" onClick={() => setHow(true)} aria-label="How to play"><HelpCircle size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setMenu(true)} aria-label="Menu and saves"><MenuIcon size={18} /></button>
         </div>
@@ -245,7 +245,7 @@ export function World() {
               <SymbolIcon k={e.kind} size={26} /><span><b>{e.title}</b><i>{EVENT_SYMBOL[e.kind].label}</i></span>
             </button>
           ))}
-          {all.length > 3 && <button className="fx-note fx-note-more" onClick={() => setQueue(true)}>+{all.length - 3} more</button>}
+          {all.length > 1 && <button className={`fx-note fx-note-more ${all.length <= 3 ? "fx-desk-hide" : ""}`} onClick={() => setQueue(true)}><span className="fx-phone-only">+{all.length - 1} more</span><span className="fx-desk-only">+{all.length - 3} more</span></button>}
         </div>
         {banner && <div className="fx-turn-banner" aria-hidden><span>{banner}</span></div>}
         <TurnChips />
@@ -257,7 +257,7 @@ export function World() {
             <div><b>{cos.name}</b><p>{tx(say.text.length > 190 ? `${say.text.slice(0, 187)}…` : say.text)}</p><Button size="sm" variant="primary" onClick={() => { sfx("tap"); setTab(sayGo ?? "advisers"); }}>{sayGo ? "Take me there" : "All advisers"}</Button></div>
           </div>
         )}
-        {tip && !blocked && cstep < 0 && (
+        {tip && tip.go !== "events" && !blocked && cstep < 0 && (
           <div className="fx-advisor" role="status">
             <div className="fx-advisor-face" aria-hidden>🧑🏾‍💼</div>
             <div><b>Chief of Staff</b><p>{tip.text}</p><Button size="sm" variant="primary" onClick={() => { sfx("tap"); if (tip.go === "events") setQueue(true); else setTab(tip.go); }}>{tip.label}</Button></div>

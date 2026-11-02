@@ -1,5 +1,6 @@
 "use client";
 import { serialise, deserialise } from "../persistence";
+import { isMuted, isMusicOn, setMuted, setMusicOn, sfx, startMusic } from "./sound";
 import { SANDBOX_TOOLS } from "../engine/sandbox";
 import { monthShort } from "../engine/util";
 import { useEffect, useState } from "react";
@@ -89,7 +90,9 @@ export function HowTo({ onClose }: { onClose: () => void }) {
 }
 
 export function MenuModal({ onClose }: { onClose: () => void }) {
-  const { state, quit, startNew, saveSlot, toast, act, saves, loadState } = useFix();
+  const { state, quit, startNew, saveSlot, toast, act, saves, loadState, lang, setLang } = useFix();
+  const [snd, setSnd] = useState(!isMuted());
+  const [mus, setMus] = useState(isMusicOn());
   const [sub, setSub] = useState<"slots" | "about" | "how" | "new" | null>(null);
   if (!state) return null;
   return (
@@ -102,6 +105,11 @@ export function MenuModal({ onClose }: { onClose: () => void }) {
             <Button onClick={() => setSub("slots")}>Save slots</Button>
             <Button onClick={() => setSub("how")}>How to play</Button>
             <Button onClick={() => setSub("about")}>About &amp; data</Button>
+          </div>
+          <div className="g-row g-wrap" style={{ gap: 6 }}>
+            <Button size="sm" onClick={() => { const on = !snd; setSnd(on); setMuted(!on); if (on) sfx("tap"); }}>{snd ? "🔊 Sound on" : "🔇 Sound off"}</Button>
+            <Button size="sm" onClick={() => { const on = !mus; setMus(on); setMusicOn(on); if (on) startMusic(); }}>{mus ? "🎵 Music on" : "🎵 Music off"}</Button>
+            <Button size="sm" onClick={() => setLang(lang === "pcm" ? "en" : "pcm")}>{lang === "pcm" ? "🗣️ Naija Pidgin" : "🗣️ English"}</Button>
           </div>
           <div className="g-row g-wrap" style={{ borderTop: "1px solid #e2e8f0", paddingTop: 10 }}>
             <Button onClick={() => { const blob = new Blob([serialise(state)], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `nigeria-${state.meta.president.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-${monthShort(state.month).replace(" ", "-")}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Save file downloaded. Keep it somewhere safe."); }}>Export save file</Button>
