@@ -36,12 +36,13 @@ export function Coach({ step }: { step: number }) {
 
 // ---------------------------------------------------------------- what changed since last turn
 export function TurnChips() {
-  const { summary, closeSummary } = useFix();
+  const { summary, closeSummary, setTab } = useFix();
   useEffect(() => { if (!summary) return; const t = setTimeout(closeSummary, 9000); return () => clearTimeout(t); }, [summary, closeSummary]);
   if (!summary || !summary.changes.length) return null;
   return (
     <div className="fx-turnchips" aria-label="What changed this turn">
       <span className="g-tiny" style={{ color: "#9db3c9" }}>{summary.to}:</span>
+      <button className="fx-chip2 fx-paper-btn" onClick={() => { closeSummary(); setTab("news"); }}>📰 Read this month's paper</button>
       {summary.changes.slice(0, 4).map((c) => <span key={c.label} className="fx-chip2" data-tone={c.tone}>{c.tone === "good" ? "▲" : c.tone === "bad" ? "▼" : "•"} {c.label}: {c.from} → {c.to}{c.because?.[0] ? <i className="fx-chip2-why">{c.because[0].length > 70 ? `${c.because[0].slice(0, 67)}…` : c.because[0]}</i> : null}</span>)}
     </div>
   );

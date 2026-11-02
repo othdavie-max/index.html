@@ -1,4 +1,6 @@
 "use client";
+import { CrisisTimer } from "./Fun";
+import { isCrisis } from "../engine/fun";
 import { useState } from "react";
 import { Clock, Hourglass, MapPin } from "lucide-react";
 import { useFix } from "./store";
@@ -89,6 +91,7 @@ export function EventCard({ e, compact }: { e: GameEvent; compact?: boolean }) {
         <Badge><MapPin size={12} /> {STATE_BY_ID[e.stateId]?.name}</Badge>
       </div>
       <div className="g-small" style={{ color: "#334155" }}>{e.cause}</div>
+      {!compact && isCrisis(e.tpl) && <CrisisTimer e={e} />}
       {!compact && e.status === "open" && mg && <button className="fx-play" onClick={() => setMini(true)}>🎮 {mg.label}<span>{mg.blurb}</span></button>}
       {mini && mg && <MiniHost game={mg.game} seed={e.id} onClose={() => setMini(false)} onDone={(ok) => { setMini(false); act((s) => respond(s, e.id, mg.opt, ok)); }} />}
       {!compact && e.status === "open" && <EventAdvisers e={e} />}

@@ -34,6 +34,7 @@ import { StreetPanel } from "./StreetPanel";
 import { XPanel } from "./Social";
 import { LeaguePanel } from "./League";
 import { GrandPanel } from "./Grand";
+import { FrontPageCard, TitlesCard } from "./Fun";
 import { myRank } from "../engine/world";
 import { inbox } from "../engine/worldlife";
 const inboxWaiting = (s: import("../engine/types").FixState) => inbox(s).filter((m) => !m.done && m.options).length;
@@ -279,7 +280,7 @@ export function World() {
       {drawer && group && (
         <Drawer title={title[group.id]} onClose={close} wide={!!group.wide}>
           {group.tabs.length > 1 && <div className="fx-subtabs" role="group" aria-label="Sections">{group.tabs.map((x) => { const lk = tabLock(s, x.id); return <button key={x.id} className="fx-subtab" data-locked={lk ? "1" : undefined} title={lk ?? undefined} aria-pressed={drawer === x.id} onClick={() => { sfx("tap"); setTab(x.id); }}>{lk ? "🔒 " : ""}{x.label}</button>; })}</div>}
-          {drawer === "presidency" && <div className="g-col" style={{ gap: 14 }}><AgendaProgress /><Presidency /></div>}
+          {drawer === "presidency" && <div className="g-col" style={{ gap: 14 }}><AgendaProgress /><Presidency /><TitlesCard /></div>}
           {drawer === "plans" && <PlansPanel />}
           {drawer === "policies" && <div className="g-col" style={{ gap: 14 }}><Policies /><SectorsPanel /></div>}
           {drawer === "projects" && <Projects />}
@@ -301,7 +302,7 @@ export function World() {
           {drawer === "x" && <XPanel />}
           {drawer === "league" && <LeaguePanel />}
           {drawer === "grand" && <GrandPanel />}
-          {drawer === "news" && <News />}
+          {drawer === "news" && <div className="g-col" style={{ gap: 14 }}><FrontPageCard /><News /></div>}
         </Drawer>
       )}
 

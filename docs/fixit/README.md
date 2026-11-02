@@ -222,3 +222,14 @@ Run tests: `npx vitest run src/fixit`.
 - Phone layout: a two-row header (date, alert and menu on top; five equal number tiles below); sound, music and language moved into the menu; one notification card plus a "+N more" pill so the map stays visible; the duplicate "matters to decide" card is gone (the big button already says it); compact advisor; tabs scroll with a fade hint.
 - Look and feel: softer cards, hover lift on action cards, pressed-button feedback, gradient progress bars, clear keyboard focus, bigger tap targets on phones, single-column action grids on phones.
 - Title screen: a glowing Nigeria drawn from the world map, and a tagline that matches the game ("Fix Nigeria. Then take on the world."). "Surprise me" is readable on the dark setup screen.
+
+## The fun layer (`engine/fun.ts`, `ui/Fun.tsx`)
+
+- **Front page**: a satirical newspaper at the top of the News tab, built from the month's real news, prices and your record ("TOMATO GOES TO SPACE: PRICES HIT THE MOON"). After each turn, a "Read this month's paper" button opens it.
+- **Nigerian calendar**: Detty December (and Christmas fuel queues when supply is short), Ramadan and Sallah (moving each year), the rainy season (worse without dams), Independence Day, the JAMB results scandal every May, and AFCON every other January, where paying the team raises the odds of a national party.
+- **Press conferences** every few months, with the question drawn from your real record (broken promises, scandals, rice, petrol, insecurity). Answer honestly, dodge, blame the last government (works early, backfires later) or attack the journalist.
+- **Crisis rooms**: rare emergencies (tanks near the Villa, a stadium bomb threat, a naira crash) with a 20-second timer; when it runs out, the hesitant option is chosen for you. The timer can be switched off in the menu. Fumbling a coup night under one-man rule can end your presidency.
+- **Quarterly cabinet meeting**: Finance, Power and Security argue; whoever you overrule remembers.
+- **Story campaigns**: four three-chapter stories (The Oil Cartel, The Missing Billions, The General's Plot, The Prodigal Governor) that start by themselves, remember your choices and can be won.
+- **Titles**: sixteen nicknames Nigerians give you (Baba Light, Food Basket President, Coup Proof, Chief Borrower...), shown under Build, Overview.
+- Tests: `tests/funlayer.test.ts`.

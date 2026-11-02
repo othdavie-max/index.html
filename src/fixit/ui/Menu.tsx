@@ -109,6 +109,7 @@ export function MenuModal({ onClose }: { onClose: () => void }) {
           <div className="g-row g-wrap" style={{ gap: 6 }}>
             <Button size="sm" onClick={() => { const on = !snd; setSnd(on); setMuted(!on); if (on) sfx("tap"); }}>{snd ? "🔊 Sound on" : "🔇 Sound off"}</Button>
             <Button size="sm" onClick={() => { const on = !mus; setMus(on); setMusicOn(on); if (on) startMusic(); }}>{mus ? "🎵 Music on" : "🎵 Music off"}</Button>
+            <Button size="sm" onClick={() => act((g) => { g.flags.noTimer = !g.flags.noTimer; return { ok: true, message: g.flags.noTimer ? "Crisis timers off." : "Crisis timers on." }; })}>{state.flags.noTimer ? "⏱️ Crisis timer off" : "⏱️ Crisis timer on"}</Button>
             <Button size="sm" onClick={() => setLang(lang === "pcm" ? "en" : "pcm")}>{lang === "pcm" ? "🗣️ Naija Pidgin" : "🗣️ English"}</Button>
           </div>
           <div className="g-row g-wrap" style={{ borderTop: "1px solid #e2e8f0", paddingTop: 10 }}>
