@@ -114,7 +114,7 @@
 
 /* map key */
 .fx-stage { position: relative; }
-.fx-mapkey-btn { position: absolute; right: 10px; top: 150px; z-index: 6; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); background: #fffdf7; color: #1d1639; display: grid; place-items: center; box-shadow: 0 4px 12px rgba(0,0,0,.3); cursor: pointer; }
+.fx-mapkey-btn { position: absolute; right: 10px; top: 150px; z-index: 8; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); background: #fffdf7; color: #1d1639; display: grid; place-items: center; box-shadow: 0 4px 12px rgba(0,0,0,.3); cursor: pointer; }
 .fx-mapkey { position: absolute; right: 10px; top: 198px; z-index: 9; width: min(330px, calc(100% - 20px)); max-height: 60%; overflow: auto; background: #fffdf7; color: #1d1639; border: 2px solid var(--gold); border-radius: 16px; padding: 12px 14px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
 .fx-mapkey-h { font-weight: 800; font-size: 13px; margin: 4px 0; }
 .fx-mapkey-p { font-size: 12.5px; margin: 4px 0 8px; opacity: .8; }
@@ -135,20 +135,68 @@
 .fx-lockhint { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #7a6a45; background: #fff4d6; border: 1px dashed #e9b44c; border-radius: 10px; padding: 6px 10px; margin: 6px 0 2px; }
 
 /* plan steps: numbered, so it reads as a ladder, not a tick-list */
-.fx-step { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; background: #fff; color: #1d1639; border: 2px solid #e9b44c; }
-.fx-step[data-state="done"] { background: #10b981; color: #fff; border-color: #10b981; }
-.fx-step[data-state="building"] { background: #fef3c7; border-color: #f59e0b; }
-.fx-step[data-state="locked"] { background: #f1f5f9; border-color: #cbd5e1; font-size: 12px; }
+.fx-pstep { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; background: #fff; color: #1d1639; border: 2px solid #e9b44c; }
+.fx-pstep[data-state="done"] { background: #10b981; color: #fff; border-color: #10b981; }
+.fx-pstep[data-state="building"] { background: #fef3c7; border-color: #f59e0b; }
+.fx-pstep[data-state="locked"] { background: #f1f5f9; border-color: #cbd5e1; font-size: 12px; }
 
 /* agenda cards: icon beside the words, one line each */
 .gm .fx-agenda { flex-direction: row; align-items: center; gap: 12px; }
 .gm .fx-agenda-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .gm .fx-agenda-ic { font-size: 30px; flex: none; }
 /* the tour card steps out of the way of what it points at */
-.gm .fx-coach[data-pos="top"] { bottom: auto; top: 150px; }
+.gm .fx-coach[data-pos="top"] { bottom: auto; top: 206px; }
 @media (max-width: 640px) { .gm .fx-coach { padding: 10px 12px; } .gm .fx-coach p { font-size: 13px; } .gm .fx-coach-face { font-size: 26px; } }
 
 /* a choice that cannot be used right now: show the reason as plain grey words, not a faded button */
 .gm .fx-act2 .g-btn:disabled, .gm .fx-act2 button:disabled { background: #eef2f7 !important; color: #475569 !important; opacity: 1; box-shadow: none !important; border: 1px dashed #cbd5e1; font-weight: 600; white-space: normal; text-align: left; height: auto; min-height: 32px; }
 
 @media (min-width: 900px) { .gm .fx-globe-svg { max-height: 460px; } }
+
+/* title screen: everything flows in one column, so nothing can sit on top of anything else (any phone, any height) */
+.gm .fx-hero { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 14px; padding: 20px 14px 14px; min-height: 100dvh; }
+.gm .fx-hero-center { flex: 1 1 auto; justify-content: center; width: 100%; }
+.gm .fx-hero-lang { position: relative; margin: 0; width: 100%; flex: none; }
+.gm .fx-hero-icons { position: static; flex: none; width: 100%; padding: 0; }
+.gm .fx-hero-fine { position: static; flex: none; padding: 0; }
+.gm .fx-hero-map { width: min(240px, 58vw, 30dvh); margin-bottom: 8px; }
+@media (max-height: 640px) { .gm .fx-hero-icons button { padding: 6px 10px; } .gm .fx-hero-go { padding: 14px 30px; font-size: 20px; } .gm .fx-hero-center { gap: 10px; } }
+
+/* language dropdown */
+.fx-langdd { position: relative; display: inline-block; }
+.fx-langdd-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.4); background: rgba(255,255,255,.12); color: #fff; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.fx-langdd-compact .fx-langdd-btn { min-height: 36px; padding: 0 10px; gap: 4px; font-size: 12px; }
+.fx-langdd-menu { position: absolute; z-index: 60; min-width: 180px; margin: 6px 0 0; padding: 6px; list-style: none; background: #fffdf7; color: #1d1639; border: 2px solid var(--gold); border-radius: 14px; box-shadow: 0 14px 34px rgba(0,0,0,.45); top: 100%; left: 50%; transform: translateX(-50%); }
+.fx-langdd-menu[data-up="1"] { top: auto; bottom: 100%; margin: 0 0 6px; }
+.fx-langdd-menu[data-align="right"] { left: auto; right: 0; transform: none; }
+.fx-langdd-menu[data-align="left"] { left: 0; transform: none; }
+.fx-langdd-menu li { margin: 0; } .fx-langdd-menu button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 12px; background: none; border: 0; border-radius: 10px; font: inherit; font-weight: 700; color: inherit; cursor: pointer; text-align: left; }
+.fx-langdd-menu button:hover, .fx-langdd-menu li[aria-selected="true"] button { background: #fff1c9; }
+.fx-hero-lang { margin: 0; }
+/* the menu and settings place the dropdown on light backgrounds */
+.gm-modal .fx-langdd-btn, .fx-more-opts .fx-langdd-btn { background: #fff; color: #1d1639; border-color: #cbd5e1; }
+
+/* primary: candidate cards */
+.gm .fx-stat { grid-template-columns: 92px 1fr 28px; font-size: 12px; }
+.gm .fx-gcand { gap: 8px; padding: 12px; }
+.gm .fx-gcand-back { align-self: stretch; text-align: center; font-size: 14px; padding: 11px 12px; border-radius: 12px; background: #fdf0c8; color: #5c4208; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.gm .fx-gcand[aria-pressed="true"] .fx-gcand-back { background: #10b981; color: #fff; }
+.gm .fx-sticky { background: #0b1f36; border-top: 1px solid rgba(255,255,255,.14); padding: 10px 0; margin-top: 6px; }
+
+/* phones held sideways: very little height, so the top bar shrinks and the chatty cards step aside */
+@media (max-height: 480px) and (orientation: landscape) {
+  .gm .fx-hud { padding: 4px 10px; gap: 6px; }
+  .fx-res-ic { display: none; }
+  .gm .fx-hud-res .fx-res { min-height: 34px; padding: 2px 8px; flex-direction: row; gap: 6px; align-items: center; }
+  .gm .fx-hud-res .fx-res i { font-size: 10px; }
+  .gm .fx-advisor { display: none; }
+  .gm .fx-coach, .gm .fx-coach[data-pos="top"] { top: auto; bottom: 64px; left: 10px; transform: none; width: 380px; padding: 6px 10px; gap: 8px; } .gm .fx-coach-face { display: none; } .gm .fx-coach p { font-size: 12px; margin: 2px 0 4px; line-height: 1.25; } .gm .fx-coach b { font-size: 12px; }
+  .fx-mapkey-btn { top: 62px; right: 62px; width: 34px; height: 34px; }
+  .fx-mapkey { top: 102px; right: 62px; max-height: 60%; }
+  .gm .fx-sticky { padding: 6px 0; }
+}
+
+/* title screen shortcuts: one even row of five */
+.gm .fx-hero-icons { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; max-width: 520px; }
+.gm .fx-hero-icons button { padding: 8px 2px; font-size: 12px; line-height: 1.15; text-align: center; justify-content: center; min-height: 58px; }
+@media (max-width: 340px) { .gm .fx-hero-icons button { font-size: 11px; } }

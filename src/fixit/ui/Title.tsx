@@ -43,7 +43,7 @@ export function Title() {
         <button className="fx-big-btn fx-hero-go" onClick={() => setSetup(true)}>Start your presidency</button>
         {hasAuto && <button className="fx-hero-sub" onClick={() => void loadSlot("auto")}>Continue your last game</button>}
       </div>
-      <div className="fx-hero-lang"><LangPicker compact /></div>
+      <div className="fx-hero-lang"><LangPicker up /></div>
       <nav className="fx-hero-icons" aria-label="More">
         <button onClick={() => setSlots(true)}><FolderOpen size={20} /><span>Load</span></button>
         <button onClick={daily}><CalendarDays size={20} /><span>Daily</span></button>

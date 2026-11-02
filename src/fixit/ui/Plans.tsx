@@ -44,7 +44,7 @@ export function PlansPanel() {
                   const cost = d ? d.cost * (s.eco.priceLevel / 100) : pol!.setup * priceMult(s);
                   return (
                     <div key={r.ref} className="fx-rung" data-state={st.state}>
-                      <span aria-hidden className="fx-step" data-state={st.state}>{st.state === "done" ? "✓" : st.state === "building" ? "⏳" : st.state === "locked" ? "🔒" : ri + 1}</span>
+                      <span aria-hidden className="fx-pstep" data-state={st.state}>{st.state === "done" ? "✓" : st.state === "building" ? "⏳" : st.state === "locked" ? "🔒" : ri + 1}</span>
                       <span className="g-grow"><b className="g-small">{d?.name ?? pol!.name}</b> <span className="g-tiny g-muted">{r.why}{r.kind === "policy" ? " · policy" : ""}</span>
                         {st.note && <span className="g-tiny" style={{ display: "block", color: "#92400e" }}>{st.note}</span>}</span>
                       {st.state === "open" && <><span className="g-tiny g-muted">{nb(cost)}</span><Button size="sm" variant="primary" disabled={cost > s.fin.treasury} onClick={() => (r.kind === "project" ? (sfx("tap"), setProj(r.ref)) : startPolicy(r.ref))}>{r.kind === "project" ? "Plan it" : billFor({ type: "policy", id: r.ref }) ? "To Assembly" : "Start"}</Button></>}

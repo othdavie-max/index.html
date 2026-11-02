@@ -15,7 +15,7 @@ function CandCard({ c, on, onPick }: { c: Cand; on: boolean; onPick: () => void 
       <div className="g-row" style={{ gap: 8 }}><Portrait p={c.portrait} size={40} name={c.name} /><b className="g-small">{c.name.replace("Gov. ", "")}</b></div>
       <div className="g-tiny g-muted">{c.bio}</div>
       <Stat label="Skill" v={c.skill} /><Stat label="Honesty" v={c.integrity} /><Stat label="Loyal to you" v={c.loyalty} />
-      <span className="fx-gcand-back">{on ? "★ Backed" : "Back them"}</span>
+      <span className="fx-gcand-back">{on ? "✓ Backed. Tap to undo" : "Back this candidate"}</span>
     </button>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 /** The Civilization-style main screen: a living map, a HUD of resources and danger meters, a notification stack,
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
-import { LANGS } from "../engine/i18n";
+import { LangPicker } from "./LangPicker";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Banknote, BarChart3, Music, Briefcase, CreditCard, Crown, FastForward, Globe2, HelpCircle, Landmark, Smile, Vote, Wallet, Zap, Lock, Hammer, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, } from "lucide-react";
 import { useFix, useS, type Tab } from "./store";
@@ -118,7 +118,7 @@ function advisor(s: FixState, open: number): { text: string; label: string; go: 
 
 export function World() {
   const s = useS();
-  const { tab, setTab: rawSetTab, advance, select, setSelect, summary, version, act, toast, lang, setLang, tx } = useFix();
+  const { tab, setTab: rawSetTab, advance, select, setSelect, summary, version, act, toast, tx } = useFix();
   const setTab = (t: Tab) => { const h = tabLock(s, t); if (h) { toast(`🔒 ${h}`, true); sfx("bad"); return; } rawSetTab(t); };
   const [why, setWhy] = useState<WhyKey | null>(null);
   const [moreHud, setMoreHud] = useState(false);
@@ -235,7 +235,7 @@ export function World() {
         <div className="fx-hud-tools">
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music"><Music size={18} style={{ opacity: music ? 1 : 0.4 }} /></button>
-          <button className="fx-icon-btn fx-hud-opt" style={{ fontSize: 11, fontWeight: 800 }} onClick={() => { const ids = LANGS.map((l) => l.id); setLang(ids[(ids.indexOf(lang) + 1) % ids.length]); sfx("tap"); }} aria-label="Change language" title="Language: English, Pidgin, Hausa, Yoruba, Igbo">{LANGS.find((l) => l.id === lang)?.short}</button>
+          <span className="fx-hud-opt"><LangPicker compact align="right" /></span>
           <button className="fx-icon-btn" onClick={() => setTab("trade")} aria-label="The world and trade" title="The world and trade"><Globe2 size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setHow(true)} aria-label="How to play"><HelpCircle size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setMenu(true)} aria-label="Menu and saves"><MenuIcon size={18} /></button>
