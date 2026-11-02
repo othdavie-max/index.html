@@ -128,7 +128,7 @@ export function Modal({ title, onClose, children, wide, closable = true, footer 
           <h2>{title}</h2>
           {closable && onClose && <button className="g-btn g-btn-ghost g-btn-sm" onClick={onClose} aria-label="Close"><X size={18} /></button>}
         </header>
-        <div className="gm-body">{children}{footer && <div className="g-row g-wrap" style={{ justifyContent: "flex-end", marginTop: 4 }}>{footer}</div>}</div>
+        <div className="gm-body">{children}{footer && <div className="g-row g-wrap gm-foot" style={{ justifyContent: "flex-end", marginTop: 4 }}>{footer}</div>}</div>
       </div>
     </div>
   );

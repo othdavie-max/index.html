@@ -99,3 +99,29 @@
   radial-gradient(1.2px 1.2px at 12% 20%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 78% 14%, #fff 50%, transparent 51%), radial-gradient(1.4px 1.4px at 88% 70%, #fde68a 50%, transparent 51%),
   radial-gradient(1px 1px at 24% 82%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 55% 90%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 42% 8%, #bae6fd 50%, transparent 51%),
   radial-gradient(ellipse at 50% 40%, #12305a 0%, #070d24 75%); }
+
+/* clearer HUD icons */
+.fx-res-ic { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: rgba(255,255,255,.14); }
+.fx-res[data-k="cash"] .fx-res-ic { background: #f59e0b33; color: #fcd34d; }
+.fx-res[data-k="naira"] .fx-res-ic { background: #10b98133; color: #6ee7b7; }
+.fx-res[data-k="approval"] .fx-res-ic { background: #38bdf833; color: #7dd3fc; }
+.fx-res[data-k="capital"] .fx-res-ic { background: #facc1544; color: #fde047; }
+.fx-res[data-k="inflation"] .fx-res-ic, .fx-res[data-k="debt"] .fx-res-ic { background: #f43f5e33; color: #fda4af; }
+.fx-res[data-k="jobs"] .fx-res-ic { background: #a78bfa33; color: #c4b5fd; }
+.fx-res[data-k="mood"] .fx-res-ic { background: #fb923c33; color: #fdba74; }
+.fx-res[data-k="rank"] .fx-res-ic { background: #2dd4bf33; color: #99f6e4; }
+.fx-skip span { font-size: 12px; font-weight: 800; }
+
+/* map key */
+.fx-stage { position: relative; }
+.fx-mapkey-btn { position: absolute; right: 10px; top: 150px; z-index: 6; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); background: #fffdf7; color: #1d1639; display: grid; place-items: center; box-shadow: 0 4px 12px rgba(0,0,0,.3); cursor: pointer; }
+.fx-mapkey { position: absolute; right: 10px; top: 198px; z-index: 9; width: min(330px, calc(100% - 20px)); max-height: 60%; overflow: auto; background: #fffdf7; color: #1d1639; border: 2px solid var(--gold); border-radius: 16px; padding: 12px 14px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
+.fx-mapkey-h { font-weight: 800; font-size: 13px; margin: 4px 0; }
+.fx-mapkey-p { font-size: 12.5px; margin: 4px 0 8px; opacity: .8; }
+.fx-mapkey-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.fx-mapkey-row span { display: grid; justify-items: center; font-size: 22px; } .fx-mapkey-row i { font-size: 10.5px; font-style: normal; opacity: .75; }
+.fx-mapkey-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.fx-mapkey-grid span { display: flex; align-items: center; gap: 6px; font-size: 12px; } .fx-mapkey-grid i { font-style: normal; }
+
+/* the main buttons of a pop-up stay in view while its content scrolls */
+.gm .gm-foot { position: sticky; bottom: -1px; z-index: 2; background: linear-gradient(to top, #fffdf7 78%, rgba(255,253,247,0)); padding: 14px 0 6px; margin-top: 8px; }

@@ -3,7 +3,7 @@
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
 import { LANGS } from "../engine/i18n";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Crown, FastForward, HelpCircle, Lock, Hammer, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, } from "lucide-react";
+import { Banknote, BarChart3, Briefcase, CreditCard, Crown, FastForward, Globe2, HelpCircle, Landmark, Smile, Vote, Wallet, Zap, Lock, Hammer, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, } from "lucide-react";
 import { useFix, useS, type Tab } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { STATES } from "../../game/data/states";
@@ -13,6 +13,7 @@ import { TERM_MONTHS } from "../engine/types";
 import { budgetDue } from "../engine/politics";
 import { monthsLeft } from "../engine/power";
 import { MapView, SymbolIcon, EVENT_SYMBOL } from "./MapView";
+import { MapKey } from "./MapKey";
 import { StatePanel } from "./screens/MapScreen";
 import { Presidency } from "./screens/Presidency";
 import { Policies } from "./screens/Policies";
@@ -216,18 +217,18 @@ export function World() {
     <div className={`fx-world ${shake ? "fx-shake" : ""}`} data-lens={lens}>
       <header className="fx-hud" aria-label="Status">
         <div className="fx-hud-date"><b>{monthLabel(s.month)}</b><span>Term {s.term} · {left} months to {s.cap.quick ? "the verdict" : "election"}</span><span className="fx-term" role="progressbar" aria-label="Progress through the term" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${pct}%` }} /></span></div>
-        <div className="fx-hud-res">
-          <Res icon="💰" label="Cash" v={nb(s.fin.treasury)} bad={s.fin.treasury < 30} onClick={() => setWhy("cash")} />
-          <Res icon="💵" label={pegged(s) ? "Official / black" : "Naira"} v={pegged(s) ? `₦${Math.round(s.eco.fx).toLocaleString()} / ${Math.round(Number(s.flags.blackFx ?? s.eco.fx)).toLocaleString()}` : `₦${Math.round(s.eco.fx).toLocaleString()}`} bad={pegged(s)} onClick={() => setWhy("fx")} />
-          <Res icon="🗳️" label="Approval" v={`${Math.round(s.gov.approval)}%`} bad={s.gov.approval < 35} onClick={() => setWhy("approval")} />
-          <Res icon="⚡" label="Capital" v={`${Math.floor(s.cap.pc)}`} bad={s.cap.pc < 8} onClick={() => setWhy("capital")} gold />
+        <div className={`fx-hud-res ${cstep >= 0 && COACH[cstep].target === "hud" ? "fx-coach-hl" : ""}`}>
+          <Res k="cash" icon={<Wallet size={20} />} label="Cash" v={nb(s.fin.treasury)} bad={s.fin.treasury < 30} onClick={() => setWhy("cash")} />
+          <Res k="naira" icon={<Banknote size={20} />} label={pegged(s) ? "Official / black" : "Naira"} v={pegged(s) ? `₦${Math.round(s.eco.fx).toLocaleString()} / ${Math.round(Number(s.flags.blackFx ?? s.eco.fx)).toLocaleString()}` : `₦${Math.round(s.eco.fx).toLocaleString()}`} bad={pegged(s)} onClick={() => setWhy("fx")} />
+          <Res k="approval" icon={<Vote size={20} />} label="Approval" v={`${Math.round(s.gov.approval)}%`} bad={s.gov.approval < 35} onClick={() => setWhy("approval")} />
+          <Res k="capital" icon={<Zap size={20} />} label="Capital" v={`${Math.floor(s.cap.pc)}`} bad={s.cap.pc < 8} onClick={() => setWhy("capital")} gold />
           <button className="fx-res fx-more" aria-expanded={moreHud} aria-label={moreHud ? "Hide extra numbers" : "Show inflation, jobs, mood and debt"} onClick={() => setMoreHud(!moreHud)}><span aria-hidden>{moreHud ? "▲" : "▼"}</span><i>{moreHud ? "Less" : "More"}</i></button>
           {moreHud && <>
-            <Res icon="📈" label="Inflation" v={`${s.eco.inflation.toFixed(0)}%`} bad={s.eco.inflation > 25} onClick={() => setWhy("inflation")} />
-            <Res icon="👷" label="Jobless" v={`${s.jobs.unemployment.toFixed(0)}%`} bad={s.jobs.unemployment > 30} onClick={() => setWhy("jobless")} />
-            <Res icon={face(100 - s.gov.happiness)} label="Mood" v={`${Math.round(s.gov.happiness)}`} bad={s.gov.happiness < 35} onClick={() => setWhy("mood")} />
-            <Res icon="💳" label="Debt" v={`${debtView(s).pctGdp.toFixed(0)}%`} bad={debtView(s).pctGdp > 60} onClick={() => setWhy("debt")} />
-            <Res icon="🌍" label="World rank" v={`#${myRank(s)}`} onClick={() => setTab("league")} />
+            <Res k="inflation" icon={<BarChart3 size={20} />} label="Inflation" v={`${s.eco.inflation.toFixed(0)}%`} bad={s.eco.inflation > 25} onClick={() => setWhy("inflation")} />
+            <Res k="jobs" icon={<Briefcase size={20} />} label="Jobless" v={`${s.jobs.unemployment.toFixed(0)}%`} bad={s.jobs.unemployment > 30} onClick={() => setWhy("jobless")} />
+            <Res k="mood" icon={<Smile size={20} />} label="Mood" v={`${Math.round(s.gov.happiness)}`} bad={s.gov.happiness < 35} onClick={() => setWhy("mood")} />
+            <Res k="debt" icon={<CreditCard size={20} />} label="Debt" v={`${debtView(s).pctGdp.toFixed(0)}%`} bad={debtView(s).pctGdp > 60} onClick={() => setWhy("debt")} />
+            <Res k="rank" icon={<Landmark size={20} />} label="World rank" v={`#${myRank(s)}`} onClick={() => setTab("league")} />
           </>}
         </div>
         <DangerChip hl={cstep >= 0 && COACH[cstep].target === "danger"} onClick={() => setTab("power")} />
@@ -235,7 +236,7 @@ export function World() {
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music">{music ? "🎵" : "🔇"}</button>
           <button className="fx-icon-btn fx-hud-opt" style={{ fontSize: 11, fontWeight: 800 }} onClick={() => { const ids = LANGS.map((l) => l.id); setLang(ids[(ids.indexOf(lang) + 1) % ids.length]); sfx("tap"); }} aria-label="Change language" title="Language: English, Pidgin, Hausa, Yoruba, Igbo">{LANGS.find((l) => l.id === lang)?.short}</button>
-          <button className="fx-icon-btn" onClick={() => setTab("trade")} aria-label="The world and trade" title="The world and trade">🌍</button>
+          <button className="fx-icon-btn" onClick={() => setTab("trade")} aria-label="The world and trade" title="The world and trade"><Globe2 size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setHow(true)} aria-label="How to play"><HelpCircle size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setMenu(true)} aria-label="Menu and saves"><MenuIcon size={18} /></button>
         </div>
@@ -243,7 +244,8 @@ export function World() {
 
       <div className="fx-stage">
         <MapView s={s} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels />
-        <div className="fx-lens" role="group" aria-label="Map lens">{LENSES.map((l) => <button key={l.id} className="fx-chip" aria-pressed={lens === l.id} onClick={() => setLens(l.id)}>{l.label}</button>)}</div>
+        <MapKey />
+        <div className={`fx-lens ${cstep >= 0 && COACH[cstep].target === "map" ? "fx-coach-hl" : ""}`} role="group" aria-label="Map lens">{LENSES.map((l) => <button key={l.id} className="fx-chip" aria-pressed={lens === l.id} onClick={() => setLens(l.id)}>{l.label}</button>)}</div>
         <div className={`fx-notes ${cstep >= 0 && COACH[cstep].target === "notes" ? "fx-coach-hl" : ""}`} aria-label="Notifications">
           {all.slice(0, 3).map((e) => (
             <button key={e.id} className="fx-note" data-kind={e.kind} onClick={() => { sfx("tap"); setPick(e.id); }} aria-label={`${EVENT_SYMBOL[e.kind].label}: ${e.title}`}>
@@ -269,7 +271,7 @@ export function World() {
           </div>
         )}
         <div className="fx-turn">
-          <button className="fx-skip" disabled={blocked} onClick={() => { sfx("tap"); advance(3); }} aria-label="Skip up to three months; stops early if something needs a decision" title="Skip up to 3 months"><FastForward size={18} /> +3</button>
+          <button className="fx-skip" disabled={blocked} onClick={() => { sfx("tap"); advance(3); }} aria-label="Skip up to three months; stops early if something needs a decision" title="Skip up to 3 months"><FastForward size={18} /> <span>+3 mo</span></button>
           <button className={`fx-next ${cstep >= 0 && COACH[cstep].target === "next" ? "fx-coach-hl" : ""}`} disabled={blocked} onClick={nextTurn} aria-label={decisions.length ? `${decisions.length} decisions waiting` : "Next turn: move on one month"}>
             {decisions.length > 0 ? <><ShieldAlert size={22} /> <span>{decisions.length} to decide</span></> : <><span>{s.cap.quick ? "NEXT 2 MONTHS" : "NEXT TURN"}</span> <small>{monthLabel(s.month + (s.cap.quick ? 2 : 1))}</small></>}
           </button>
@@ -338,6 +340,6 @@ export function World() {
 }
 void Users;
 
-function Res({ icon, label, v, bad, onClick, gold }: { icon: string; label: string; v: string; bad?: boolean; onClick: () => void; gold?: boolean }) {
-  return <button className="fx-res" data-bad={bad ? "1" : undefined} data-cap={gold ? "1" : undefined} onClick={onClick} aria-label={`${label}: ${v}. Tap to see why.`}><span aria-hidden>{icon}</span><b>{v}</b><i>{label}</i></button>;
+function Res({ icon, k, label, v, bad, onClick, gold }: { icon: ReactNode; k: string; label: string; v: string; bad?: boolean; onClick: () => void; gold?: boolean }) {
+  return <button className="fx-res" data-k={k} data-bad={bad ? "1" : undefined} data-cap={gold ? "1" : undefined} onClick={onClick} aria-label={`${label}: ${v}. Tap to see why.`}><span aria-hidden className="fx-res-ic">{icon}</span><b>{v}</b><i>{label}</i></button>;
 }

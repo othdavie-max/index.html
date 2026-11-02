@@ -10,11 +10,13 @@ import { sfx } from "./sound";
 import type { NewsItem } from "../engine/types";
 
 // ---------------------------------------------------------------- the coach: three nudges, then it gets out of the way
-export const COACH: { text: string; target: "notes" | "next" | "build" | "danger" }[] = [
-  { text: "Welcome, Mr/Madam President! The notices on the left are decisions waiting for you. Tap one to see your options.", target: "notes" },
-  { text: "Good. Now press the big gold NEXT TURN button to move one month. Prices, the naira and people's mood all change.", target: "next" },
-  { text: "Open Build to start projects and policies, and check People then Advisers for honest advice. Different choices lead to very different Nigerias.", target: "build" },
-  { text: "This button shows your biggest danger. If street anger, coup risk or world pressure climb, trouble comes. Tap it to see what to do.", target: "danger" },
+export const COACH: { text: string; target: "hud" | "map" | "notes" | "next" | "build" | "danger" }[] = [
+  { text: "👋 Welcome! This bar is your scoreboard: Cash, Naira, Approval and Capital (your power to act). Tap any number to see why it moves.", target: "hud" },
+  { text: "🗺️ This is Nigeria. Faces show how each state feels. Tap a state to look closer, or tap the ⓘ for a key to every symbol.", target: "map" },
+  { text: "📌 These notices are decisions waiting for you. Tap one, read the short options, and pick. There is no perfect answer.", target: "notes" },
+  { text: "▶️ When you are ready, press the big button to move one month. Prices, jobs and moods all change.", target: "next" },
+  { text: "🏗️ Open Build to start projects and policies. Then People → Advisers for honest advice. You can reopen this help any time with the ? button.", target: "build" },
+  { text: "🚨 This chip shows your biggest danger. If anger, coup risk or world pressure climbs, tap it to see what to do.", target: "danger" },
 ];
 export const coachStep = (flags: Record<string, unknown>) => (typeof flags.coach === "number" && (flags.coach as number) < COACH.length ? (flags.coach as number) : -1);
 export function Coach({ step }: { step: number }) {
