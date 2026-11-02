@@ -1,8 +1,10 @@
 /**
  * The meta layer: what is unlocked, political capital, the yearly agenda, the pacing director and the inner circle.
- * Leaf-ish module (imports only util and types) so every system can call it without import cycles.
+ * Leaf-ish module (imports only util and types) so every system can call it without
+ * import cycles.
  */
 import { subRng } from "../../game/engine/rng";
+import { portraitFor } from "./people";
 import type { Cap, Effects, FixState, Inherit, Portrait } from "./types";
 import { addMod, clamp, clamp100, lever, pushNews, strength } from "./util";
 
@@ -244,7 +246,11 @@ const GEN = ["General Ibrahim Danladi", "General Chukwuma Obi", "General Musa Ga
 const JOURNO = ["Tunde Adeyemi", "Ngozi Eze", "Fatima Bello", "Kemi Ogunleye", "Chinedu Okafor"];
 function portraitOf(seed: number, key: string): Portrait {
   const r = subRng(seed, "cast", key);
-  return { skin: r.int(1, 5), hair: r.int(0, 3), style: r.int(0, 3), accent: r.int(0, 4) };
+  const p = portraitFor(r, key === "mama");
+  if (key === "general") { p.outfit = 2; p.wear = 0; p.beard = 0; }
+  if (key === "mama") { p.wear = 2; p.outfit = 0; }
+  if (key.startsWith("gf:")) { p.outfit = 1; p.wear = p.wear || 1; }
+  return p;
 }
 const emotion = (mood: number, scheming: boolean): Face["emotion"] => (mood >= 72 ? "😊" : mood >= 50 ? "🙂" : mood >= 32 ? "😕" : scheming ? "😈" : "😠");
 const tier = (m: number) => (m >= 62 ? 0 : m >= 36 ? 1 : 2);

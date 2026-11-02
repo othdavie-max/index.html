@@ -2,7 +2,7 @@
  * The 36 governors. Each state has its own: skill decides how much your projects do there, honesty how much leaks, loyalty how
  * they treat you. Before you take office your party holds primaries in the biggest states and you back the ones you want.
  */
-import { QUIRKS, fill, person, type Zone } from "./people";
+import { QUIRKS, fill, person, portraitFor, type Zone } from "./people";
 import { subRng } from "../../game/engine/rng";
 import { STATES } from "../../game/data/states";
 import type { FixState, Portrait, StateGov } from "./types";
@@ -18,7 +18,7 @@ const BIO = {
   bad: ["Rumoured to have a very close relationship with contractors.", "A loud politician with a thin record.", "Won on name recognition and little else.", "Has a way of finding money that nobody can trace.", "Salaries in {his} state are four months late, but {his} convoy has grown.", "Builds flyovers nobody asked for, near land {his} family happens to own."],
 };
 const NICK = { good: ["the Builder", "Mr/Madam Integrity", "the Workaholic", "Teacher's Friend", "the Engineer"], mid: ["the Talker", "the Survivor", "Abuja's Favourite", "the Ribbon-Cutter"], bad: ["Mr/Madam Ten Percent", "the Flyover Governor", "the Absentee", "the Contractor's Friend"] };
-const portraitFor = (seed: number, key: string, female: boolean): Portrait => { const r = subRng(seed, "govp", key); return { skin: r.int(1, 5), hair: r.int(0, 3), style: female ? 2 : r.pick([0, 1, 3]), accent: r.int(0, 4) }; };
+const govFace = (seed: number, key: string, female: boolean, zone?: string): Portrait => portraitFor(subRng(seed, "govp", key), female, zone as Zone);
 const statesOnly = () => STATES.filter((x) => !x.isFct);
 
 function makeGov(s: FixState, stateId: string, rng: ReturnType<typeof subRng>, bias = 0): StateGov {
@@ -31,7 +31,7 @@ function makeGov(s: FixState, stateId: string, rng: ReturnType<typeof subRng>, b
   const bio = fill(rng.pick(BIO[band]), p);
   const nick = rng.pick(NICK[band]).replace("Mr/Madam", p.female ? "Madam" : "Mr");
   const name = `Gov. ${p.name}`;
-  return { stateId, name, party, skill, integrity, loyalty: Math.round(clamp(46 + (party === "NPP" ? 8 : -6) + rng.range(-8, 8), 10, 90)), ambition: Math.round(rng.range(15, 90)), since: 0, terms: 1, bio, portrait: portraitFor(s.meta.seed, `${stateId}:${name}`, p.female), female: p.female, quirk: rng.pick(QUIRKS), nickname: nick };
+  return { stateId, name, party, skill, integrity, loyalty: Math.round(clamp(46 + (party === "NPP" ? 8 : -6) + rng.range(-8, 8), 10, 90)), ambition: Math.round(rng.range(15, 90)), since: 0, terms: 1, bio, portrait: govFace(s.meta.seed, `${stateId}:${name}`, p.female, zone), female: p.female, quirk: rng.pick(QUIRKS), nickname: nick };
 }
 
 export function initGovs(s: FixState) {

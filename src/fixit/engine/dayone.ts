@@ -8,6 +8,7 @@ import { autoFillRest } from "./cabinet";
 import type { Aide, AideKind, FixState, Minister, Portfolio } from "./types";
 import { addMod, clamp100, nb, pushNews, removeMods } from "./util";
 import { createEvent } from "./spawn";
+import { portraitFor } from "./people";
 
 const FIRST_M = ["Tunde", "Emeka", "Musa", "Segun", "Chinedu", "Bala", "Kelechi", "Yusuf", "Femi", "Ikenna", "Sani", "Dapo", "Uche", "Abba", "Gbolahan", "Nnamdi", "Ibrahim", "Obinna", "Kunle", "Ahmed", "Tamuno", "Ebuka", "Babatunde", "Aminu"];
 const FIRST_F = ["Ngozi", "Amina", "Funke", "Zainab", "Chioma", "Hauwa", "Bisi", "Adaeze", "Halima", "Yetunde", "Ifeoma", "Fatima", "Kemi", "Nneka", "Aisha", "Tari", "Folake", "Ebere"];
@@ -84,7 +85,10 @@ function makeAide(rng: Rng, kind: AideKind, i: number): Aide {
   const t = TITLE[kind]?.(female) ?? "";
   const name = t ? `${t} ${plain}` : plain;
   const quote = rng.pick(QUOTES[kind]);
-  const portrait = { skin: rng.int(1, 5), hair: rng.int(0, 3), style: female ? 2 : rng.pick([0, 1, 3]), accent: rng.int(0, 4) };
+  const portrait = portraitFor(rng, female);
+  if (kind === "general" || kind === "spymaster") { portrait.outfit = 2; portrait.wear = 0; }
+  if (kind === "royal") { portrait.outfit = 1; portrait.wear = female ? 2 : 1; }
+  if (kind === "technocrat" || kind === "diaspora") portrait.outfit = 2;
   return { id: `aide-${kind}-${i}`, kind, quote, name, bio, skill, loyalty, integrity, portrait, female, quirk: rng.pick(QUIRKS), revealed: !["friend", "chieftain", "defector", "tycoon", "spymaster"].includes(kind), since: 0 };
 }
 /** draw a varied line-up: one dependable political pick, one clean pick, and two surprises */
@@ -131,7 +135,7 @@ const CRONY_BIO = [
 ];
 export function addCronies(s: FixState, rng: Rng, portfolios: Portfolio[], makeName: () => string) {
   portfolios.forEach((p, i) => {
-    const m: Minister = { id: `m-${p}-crony`, name: makeName(), portfolio: p, skill: Math.round(rng.range(30, 58)), integrity: Math.round(rng.range(10, 75)), faction: "crony", trait: "Loyal", zone: "", since: 0, mood: 85, hidden: true, portrait: { skin: rng.int(1, 5), hair: rng.int(0, 3), style: rng.pick([0, 1, 3]), accent: rng.int(0, 4) }, quirk: "Has known you for twenty years", bio: CRONY_BIO[(i + rng.int(0, 5)) % CRONY_BIO.length] };
+    const m: Minister = { id: `m-${p}-crony`, name: makeName(), portfolio: p, skill: Math.round(rng.range(30, 58)), integrity: Math.round(rng.range(10, 75)), faction: "crony", trait: "Loyal", zone: "", since: 0, mood: 85, hidden: true, portrait: portraitFor(rng, false), quirk: "Has known you for twenty years", bio: CRONY_BIO[(i + rng.int(0, 5)) % CRONY_BIO.length] };
     s.cabinet.pool.push(m);
   });
 }

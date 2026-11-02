@@ -169,25 +169,59 @@ export function Spinner({ label = "Loading…" }: { label?: string }) {
 // ---------------------------------------------------------------- portrait / avatar
 const SKINS = ["#f3d2b3", "#e0ac84", "#c68642", "#a1683a", "#7b4a2a", "#4a2f1d"];
 const HAIRS = ["#0d0d0d", "#2b1b12", "#4a3426", "#6b6b6b"];
-const ACCENTS = ["#00c875", "#2563eb", "#e11d48", "#f59e0b", "#7c3aed"];
-export function Portrait({ p, size = 64, name }: { p: { skin: number; hair: number; style: number; accent: number }; size?: number; name?: string }) {
+const ACCENTS = ["#00c875", "#2563eb", "#e11d48", "#f59e0b", "#7c3aed", "#0f766e", "#b45309", "#111827"];
+export type PortraitData = { skin: number; hair: number; style: number; accent: number; wear?: number; glasses?: number; beard?: number; outfit?: number };
+/** a hand-drawn SVG portrait: 8 hairstyles, headwear (fila, gele, headscarf, red cap), glasses, beards and outfits (shirt, agbada, suit, kaftan) */
+export function Portrait({ p, size = 64, name }: { p: PortraitData; size?: number; name?: string }) {
   const skin = SKINS[p.skin % SKINS.length], hair = HAIRS[p.hair % HAIRS.length], acc = ACCENTS[p.accent % ACCENTS.length];
-  const style = p.style % 4;
+  const style = p.style % 8, wear = (p.wear ?? 0) % 5, gl = (p.glasses ?? 0) % 3, beard = (p.beard ?? 0) % 3, outfit = (p.outfit ?? 0) % 4;
+  const covered = wear === 2 || wear === 3;
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={name ? `Portrait of ${name}` : "Character portrait"} style={{ borderRadius: 999, background: "linear-gradient(160deg,#dbe7f3,#b9cde2)", flex: "none" }}>
-      <path d="M12 100c2-24 18-34 38-34s36 10 38 34z" fill={acc} />
+    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={name ? `Portrait of ${name}` : "Character portrait"} style={{ borderRadius: 999, background: "linear-gradient(160deg,#dbe7f3,#b8cde3)", flex: "0 0 auto" }}>
+      {/* behind the head */}
+      {!covered && style === 4 && <><path d="M30 38c-4 18-3 34 2 46h8c-4-12-5-28-3-44z" fill={hair} /><path d="M70 38c4 18 3 34-2 46h-8c4-12 5-28 3-44z" fill={hair} /></>}
+      {!covered && style === 5 && <circle cx="50" cy="34" r="27" fill={hair} />}
+      {wear === 3 && <path d="M26 44c0-22 11-32 24-32s24 10 24 32v40H26z" fill={acc} />}
+      {/* clothes */}
+      {outfit === 0 && <path d="M12 100c2-24 18-34 38-34s36 10 38 34z" fill={acc} />}
+      {outfit === 1 && <><path d="M4 100c3-26 22-36 46-36s43 10 46 36z" fill={acc} /><path d="M40 66l10 14 10-14" fill="none" stroke="#f5d57a" strokeWidth="3" /><path d="M42 70c3 6 13 6 16 0" fill="none" stroke="#f5d57a" strokeWidth="1.6" strokeDasharray="2 2" /></>}
+      {outfit === 2 && <><path d="M12 100c2-24 18-34 38-34s36 10 38 34z" fill="#1f2a44" /><path d="M42 66l8 16 8-16z" fill="#fff" /><path d="M48 70h4l1 14-3 4-3-4z" fill={acc} /></>}
+      {outfit === 3 && <><path d="M14 100c2-24 17-34 36-34s34 10 36 34z" fill={acc} /><path d="M46 66h8v30h-8z" fill="#f5d57a" opacity=".85" /><path d="M46 72h8M46 78h8M46 84h8" stroke={acc} strokeWidth="1.2" /></>}
+      {wear === 3 && <path d="M34 60c4 10 28 10 32 0l2 10c-6 8-30 8-36 0z" fill={acc} />}
       <rect x="43" y="52" width="14" height="16" rx="6" fill={skin} />
       <ellipse cx="50" cy="40" rx="18" ry="21" fill={skin} />
-      {style === 0 && <path d="M31 36c0-17 11-22 20-22s19 5 19 22c-4-8-10-11-19-11s-16 3-20 11z" fill={hair} />}
-      {style === 1 && <path d="M30 40c-2-22 10-28 21-28 12 0 22 8 19 28-3-10-9-14-19-14s-18 4-21 14z" fill={hair} />}
-      {style === 2 && <><path d="M30 40c-2-22 10-28 21-28 12 0 22 8 19 28-3-10-9-14-19-14s-18 4-21 14z" fill={hair} /><circle cx="30" cy="30" r="9" fill={hair} /><circle cx="70" cy="30" r="9" fill={hair} /></>}
-      {style === 3 && <path d="M32 33c3-12 11-15 19-15s16 3 18 15c-5-5-10-6-18-6s-14 1-19 6z" fill={hair} opacity="0.9" />}
+      {/* hair */}
+      {!covered && style === 0 && <path d="M31 36c0-17 11-22 20-22s19 5 19 22c-4-8-10-11-19-11s-16 3-20 11z" fill={hair} />}
+      {!covered && style === 1 && <path d="M30 40c-2-22 10-28 21-28 12 0 22 8 19 28-3-10-9-14-19-14s-18 4-21 14z" fill={hair} />}
+      {!covered && style === 2 && <><path d="M30 40c-2-22 10-28 21-28 12 0 22 8 19 28-3-10-9-14-19-14s-18 4-21 14z" fill={hair} /><circle cx="30" cy="30" r="9" fill={hair} /><circle cx="70" cy="30" r="9" fill={hair} /></>}
+      {!covered && style === 3 && <path d="M32 33c3-12 11-15 19-15s16 3 18 15c-5-5-10-6-18-6s-14 1-19 6z" fill={hair} opacity="0.9" />}
+      {!covered && style === 4 && <path d="M30 40c-2-22 10-28 21-28 12 0 22 8 19 28-3-10-9-14-19-14s-18 4-21 14z" fill={hair} />}
+      {!covered && style === 4 && <path d="M38 18v10M44 15v11M50 14v11M56 15v11M62 18v10" stroke="#ffffff" strokeOpacity=".18" strokeWidth="1.2" />}
+      {!covered && style === 5 && <path d="M32 40c0-12 8-18 18-18s18 6 18 18c-4-8-10-10-18-10s-14 2-18 10z" fill={hair} />}
+      {!covered && style === 6 && <><circle cx="50" cy="14" r="8" fill={hair} /><path d="M31 38c0-17 11-22 19-22s19 5 19 22c-4-9-11-12-19-12s-15 3-19 12z" fill={hair} /></>}
+      {!covered && style === 7 && <><path d="M31 36c0-16 11-21 19-21s19 5 19 21c-4-7-11-10-19-10s-15 3-19 10z" fill={hair} opacity=".55" /><path d="M42 18l-4 9" stroke={skin} strokeWidth="1.5" /></>}
+      {/* headwear */}
+      {wear === 1 && <path d="M31 30c2-12 12-16 22-15 10 1 17 6 17 13-2 2-6 4-12 2-8-3-18-3-27 0z" fill={acc} stroke="#00000022" />}
+      {wear === 2 && <><path d="M24 30c4-18 18-24 30-22 14 2 24 10 22 22-6 6-14 6-24 5-12-1-20-1-28-5z" fill={acc} /><path d="M30 26c10-6 24-8 40-2M34 18c8-4 18-5 30 0M60 10c8 4 14 10 16 18" fill="none" stroke="#ffffff" strokeOpacity=".35" strokeWidth="1.6" /></>}
+      {wear === 3 && <path d="M30 40c0-18 9-26 20-26s20 8 20 26c-4-10-11-14-20-14s-16 4-20 14z" fill={acc} />}
+      {wear === 4 && <path d="M33 26c2-9 9-12 17-12s15 3 17 12c-5 3-12 4-17 4s-12-1-17-4z" fill="#b91c1c" stroke="#00000022" />}
+      {/* face */}
+      <path d="M40 35h6M54 35h6" stroke="#1f2937" strokeWidth="1.4" strokeLinecap="round" opacity=".6" />
       <circle cx="43" cy="41" r="2" fill="#1f2937" /><circle cx="57" cy="41" r="2" fill="#1f2937" />
-      <path d="M44 50c3 3 9 3 12 0" stroke="#7c3f2a" strokeWidth="2" fill="none" strokeLinecap="round" />
+      {gl === 1 && <g fill="none" stroke="#111827" strokeWidth="1.5"><circle cx="43" cy="41" r="5" /><circle cx="57" cy="41" r="5" /><path d="M48 41h4" /></g>}
+      {gl === 2 && <g fill="none" stroke="#111827" strokeWidth="1.6"><rect x="37" y="37" width="11" height="8" rx="2" /><rect x="52" y="37" width="11" height="8" rx="2" /><path d="M48 40h4" /></g>}
+      {beard === 1 && <path d="M45 54c2 4 8 4 10 0v4c-2 3-8 3-10 0z" fill={hair} />}
+      {beard === 2 && <path d="M33 44c0 12 7 19 17 19s17-7 17-19c-3 6-6 8-8 8-3-2-15-2-18 0-2 0-5-2-8-8z" fill={hair} />}
+      <path d="M44 50c3 3 9 3 12 0" stroke={beard === 2 ? "#e5e7eb" : "#7c3f2a"} strokeWidth="2" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
-export const PORTRAIT_OPTIONS = { skin: SKINS.length, hair: HAIRS.length, style: 4, accent: ACCENTS.length, skinColors: SKINS, accents: ACCENTS };
+export const PORTRAIT_OPTIONS = { skin: SKINS.length, hair: HAIRS.length, style: 8, accent: ACCENTS.length, wear: 5, glasses: 3, beard: 3, outfit: 4, skinColors: SKINS, accents: ACCENTS };
+export const PORTRAIT_NAMES = {
+  style: ["Short crop", "Rounded", "Puffs", "Close cut", "Braids", "Afro", "Top bun", "Fade"],
+  wear: ["Nothing", "Fila cap", "Gele", "Headscarf", "Red cap"], glasses: ["None", "Round", "Square"], beard: ["Clean", "Goatee", "Full beard"], outfit: ["Shirt", "Agbada", "Suit", "Kaftan"],
+  hair: ["Black", "Dark brown", "Brown", "Grey"], skin: ["Very light", "Light", "Medium", "Brown", "Dark", "Very dark"], accent: ["Green", "Blue", "Red", "Gold", "Purple", "Teal", "Copper", "Black"],
+} as const;
 
 export function Initials({ name, size = 40, color = "#0b1f36" }: { name: string; size?: number; color?: string }) {
   const t = name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();

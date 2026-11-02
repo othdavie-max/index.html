@@ -2,7 +2,7 @@
 /** The new start: four short steps, one decision each. */
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Shuffle } from "lucide-react";
-import { Button, Portrait, PORTRAIT_OPTIONS } from "../../game/ui/kit";
+import { Button, Portrait, PORTRAIT_NAMES, PORTRAIT_OPTIONS } from "../../game/ui/kit";
 import { useFix } from "./store";
 import { ARCH_NEED, DIFFICULTY, PRESIDENTS, START_NEED, STARTS } from "../engine/setup";
 import { PROMISE_BY_ID, PLEDGE_DEADLINE, PLEDGE_META } from "../engine/promises";
@@ -14,7 +14,7 @@ import { sfx } from "./sound";
 
 const DIFFS: Difficulty[] = ["easy", "normal", "hard"];
 const DIFF_NAME: Record<Difficulty, string> = { easy: "Kind", normal: "Fair", hard: "Brutal" };
-const ATTR: { k: keyof PortraitT; label: string }[] = [{ k: "skin", label: "Skin" }, { k: "hair", label: "Hair" }, { k: "style", label: "Style" }, { k: "accent", label: "Outfit" }];
+const ATTR: { k: keyof PortraitT; label: string }[] = [{ k: "skin", label: "Skin" }, { k: "style", label: "Hairstyle" }, { k: "hair", label: "Hair colour" }, { k: "wear", label: "Headwear" }, { k: "outfit", label: "Outfit" }, { k: "accent", label: "Colour" }, { k: "glasses", label: "Glasses" }, { k: "beard", label: "Beard" }];
 const BG_STORY: Record<string, string> = {
   career: "Thirty years in the system. You know every door and every dossier.", general: "You have given orders all your life. The barracks still answers your calls.",
   tech: "You built something from nothing. The old guard thinks you are a child.", market: "You grew up behind a stall. You know what a naira really buys.", cleric: "You lead a congregation of thousands. People trust you before they hear you.",
@@ -37,8 +37,8 @@ export function Setup({ onBack }: { onBack: () => void }) {
   const [progress, setProgress] = useState(0);
   useEffect(() => { Promise.all([saves.endings(), saves.hall(), saves.legacy()]).then(([e, h, m]) => setProgress(m.unlockAll ? 99 : Math.max(e.length, h.length))).catch(() => undefined); }, [saves]);
   const opts = PORTRAIT_OPTIONS as unknown as Record<string, number>;
-  const turn = (k: keyof PortraitT, d: number) => { sfx("tap"); setPortrait((p) => ({ ...p, [k]: (p[k] + d + opts[k]) % opts[k] })); };
-  const shuffle = () => { sfx("tap"); setPortrait({ skin: 1 + Math.floor(Math.random() * Math.max(1, opts.skin - 1)), hair: Math.floor(Math.random() * opts.hair), style: Math.floor(Math.random() * opts.style), accent: Math.floor(Math.random() * opts.accent) }); };
+  const turn = (k: keyof PortraitT, d: number) => { sfx("tap"); setPortrait((p) => ({ ...p, [k]: ((p[k] ?? 0) + d + opts[k]) % opts[k] })); };
+  const shuffle = () => { sfx("tap"); const r = (n: number) => Math.floor(Math.random() * n); const fem = Math.random() < 0.5; setPortrait({ skin: 1 + r(opts.skin - 1), hair: r(opts.hair), style: fem ? [2, 4, 6][r(3)] : [0, 1, 3, 5, 7][r(5)], accent: r(opts.accent), wear: fem ? [0, 0, 2, 3][r(4)] : [0, 0, 1, 4][r(4)], glasses: r(3) === 0 ? 1 + r(2) : 0, beard: fem ? 0 : r(3), outfit: r(4) }); };
   const bg = PRESIDENTS.find((p) => p.id === archetype)!;
   const titles = ["Who are you?", "Where do you come from?", "What will you promise?", "Take the oath"];
   const by = monthLabel(PLEDGE_DEADLINE);
@@ -56,7 +56,7 @@ export function Setup({ onBack }: { onBack: () => void }) {
               <label htmlFor="pres-name" className="fx-wiz-label">Your name</label>
               <input id="pres-name" className="fx-input" placeholder="e.g. Adaora Bello" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
               <div className="fx-wiz-label" style={{ marginTop: 10 }}>Your look</div>
-              <div className="fx-looks">{ATTR.map((a) => <div key={a.k} className="fx-look"><button aria-label={`Previous ${a.label}`} onClick={() => turn(a.k, -1)}><ChevronLeft size={18} /></button><span>{a.label}</span><button aria-label={`Next ${a.label}`} onClick={() => turn(a.k, 1)}><ChevronRight size={18} /></button></div>)}</div>
+              <div className="fx-looks">{ATTR.map((a) => <div key={a.k} className="fx-look"><button aria-label={`Previous ${a.label}`} onClick={() => turn(a.k, -1)}><ChevronLeft size={18} /></button><span><b>{a.label}</b><i>{(PORTRAIT_NAMES as unknown as Record<string, readonly string[]>)[a.k]?.[(portrait[a.k] ?? 0) % opts[a.k]] ?? ""}</i></span><button aria-label={`Next ${a.label}`} onClick={() => turn(a.k, 1)}><ChevronRight size={18} /></button></div>)}</div>
             </div>
           </div>
         )}

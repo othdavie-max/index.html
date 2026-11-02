@@ -70,7 +70,7 @@ function makeMinister(rng: Rng, portfolio: Portfolio, faction: Faction, i: numbe
   const bios = [...(MIN_BIO[f][portfolio] ?? []), ...MIN_BIO[f].any];
   return {
     id: `m-${portfolio}-${i}`, name: `${titleFor(rng, p, "minister")} ${p.name}`, portfolio, skill: Math.round(sk), integrity: Math.round(ig), faction,
-    trait: rng.pick(TRAITS), zone, since: 0, mood: 60, female: p.female, portrait: portraitFor(rng, p.female), quirk: rng.pick(QUIRKS),
+    trait: rng.pick(TRAITS), zone, since: 0, mood: 60, female: p.female, portrait: portraitFor(rng, p.female, zone), quirk: rng.pick(QUIRKS),
     bio: fill(rng.pick(bios), p, { zone: ZONE_NAME[zone] }), quote: rng.pick(MIN_QUOTES[f]),
   };
 }

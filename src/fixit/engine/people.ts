@@ -27,7 +27,16 @@ export function titleFor(rng: Rng, p: Person, kind: "minister" | "governor"): st
   const pool = kind === "governor" ? ["Gov."] : p.female ? (north ? ["Hajiya", "Dr", "Barr.", "Prof."] : ["Mrs", "Dr", "Barr.", "Prof.", "Engr"]) : north ? ["Alhaji", "Dr", "Engr", "Prof.", "Mallam"] : ["Chief", "Dr", "Engr", "Prof.", "Barr.", "Mr"];
   return rng.pick(pool);
 }
-export function portraitFor(rng: Rng, female: boolean): Portrait { return { skin: rng.int(1, 5), hair: rng.int(0, 3), style: female ? 2 : rng.pick([0, 1, 3]), accent: rng.int(0, 4) }; }
+/** a varied face: hairstyle, headwear, glasses, beard and outfit that fit the person (and where they come from) */
+export function portraitFor(rng: Rng, female: boolean, zone?: Zone): Portrait {
+  const north = zone === "NW" || zone === "NE";
+  return {
+    skin: rng.int(1, 5), hair: rng.chance(0.15) ? 3 : rng.int(0, 2), accent: rng.int(0, 7),
+    style: female ? rng.pick([2, 4, 6]) : rng.pick([0, 1, 3, 5, 7]),
+    wear: female ? (north ? rng.pick([3, 3, 2]) : rng.pick([0, 2, 2, 0])) : north ? rng.pick([1, 1, 0]) : zone === "SE" ? rng.pick([4, 0, 0]) : zone === "SW" ? rng.pick([1, 0, 0]) : rng.pick([0, 0, 1]),
+    glasses: rng.chance(0.25) ? rng.int(1, 2) : 0, beard: female ? 0 : rng.pick([0, 0, 1, 2]), outfit: north ? rng.pick([3, 1, 2]) : rng.pick([0, 1, 2, 2]),
+  };
+}
 export const QUIRKS = ["Never sleeps more than four hours", "Answers every message with a voice note", "Has a WhatsApp group for everything", "Collects vintage Peugeot 504s", "Quotes Chinua Achebe in every memo", "Cannot stand journalists", "Owns a suspicious number of houses in Abuja", "Plays chess with the Senate President", "Fasts every Monday and Thursday", "Is famous for never smiling", "Has a cousin in every ministry", "Writes everything in red ink", "Supports Arsenal with frightening passion", "Was once arrested at a protest", "Brings jollof to every meeting", "Is never seen without a fila or gele", "Speaks Hausa, Igbo, Yoruba and Pidgin fluently", "Keeps a diary nobody is allowed to read", "Starts every speech with a proverb", "Drives an old Volvo on purpose", "Has 400,000 followers on Naija X", "Hosts a radio phone-in every Sunday", "Was a champion debater at university", "Runs marathons, and makes aides run too"];
 export const pronouns = (female: boolean) => (female ? { He: "She", he: "she", his: "her", him: "her" } : { He: "He", he: "he", his: "his", him: "him" });
 export const fill = (text: string, p: { female: boolean }, extra: Record<string, string> = {}) => { const P = pronouns(p.female); return text.replace(/\{(\w+)\}/g, (m, k: string) => (k in P ? P[k as keyof typeof P] : extra[k] ?? m)); };
