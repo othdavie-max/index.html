@@ -3,6 +3,7 @@
  * and whose faction is a political trade-off: technocrats are competent but have no political base, party loyalists
  * keep the party behind you, regional heavyweights deliver their zone's votes. All names are fictional.
  */
+import { ZONES, fill, person, portraitFor, titleFor, QUIRKS } from "./people";
 import { subRng } from "../../game/engine/rng";
 import { payPc, PC_COST } from "./meta";
 import { STATE_BY_ID } from "../../game/data/states";
@@ -29,17 +30,48 @@ export const FACTION_LABEL: Record<Faction, { label: string; blurb: string }> = 
   crony: { label: "Your own person", blurb: "A friend, relative or donor. Fiercely loyal, rarely qualified, and you will not know how honest they are until something happens. Backers love it." },
 };
 
-const FIRST = ["Adebayo", "Folake", "Tunde", "Funmilayo", "Kunle", "Chukwuemeka", "Ngozi", "Obinna", "Adaeze", "Ifeanyi", "Aminu", "Hadiza", "Sani", "Zainab", "Bello", "Ebiere", "Tamuno", "Ene", "Oghenekaro", "Nenpin", "Terver", "Halima", "Yakubu", "Chiamaka", "Kayode", "Amina", "Emeka", "Ronke", "Musa", "Ifeoma"];
-const LAST = ["Okafor", "Adeyemi", "Danjuma", "Eze", "Ogunleye", "Yusuf", "Ibrahim", "Nwosu", "Abubakar", "Akpan", "Iyorchia", "Ekanem", "Lawal", "Ojo", "Nnamdi", "Bassey", "Garba", "Olatunji", "Umeh", "Dikko", "Ayuba", "Ikwuemesi", "Sowore", "Fashola", "Tanko", "Agbaje", "Okon", "Mohammed", "Igwe", "Alabi"];
-const TITLES = ["Dr", "Mrs", "Mr", "Engr", "Prof", "Alhaji", "Hajia", "Chief", "Barr"];
 const TRAITS = ["Blunt", "Cautious", "Ambitious", "Loyal", "Media-savvy", "Stubborn", "Hard-working", "Well-connected"];
-const ZONES = ["NC", "NE", "NW", "SE", "SS", "SW"];
+const PZONES = ZONES;
 
+/** life stories by type and ministry; {he}/{his}/{him} follow the person */
+const MIN_BIO: Record<Exclude<Faction, "crony">, Partial<Record<Portfolio, string[]>> & { any: string[] }> = {
+  technocrat: {
+    any: ["Spent fifteen years at the IMF and came home to prove a point.", "Professor who wrote the textbook everyone in the ministry studied.", "Turned around a failing state agency in eighteen months, then got bored."],
+    finance: ["Former chief economist at a big Lagos bank. Has never missed a deadline.", "Designed a tax system for another African country that doubled its revenue."],
+    cbn: ["Ran monetary policy in another central bank. Speaks in basis points.", "PhD from LSE; the markets rise a little whenever {he} speaks."],
+    agriculture: ["Agronomist who built the country's biggest rice out-grower scheme.", "Ran a research institute that bred drought-proof seeds."],
+    power: ["Engineer who kept a 1,000 MW plant running through three governments.", "Built mini-grids in fifty villages before anyone called them a trend."],
+    works: ["Civil engineer who built bridges in three countries, on time and on budget.", "Ran the only state roads agency nobody accused of padding contracts."],
+    security: ["Former head of counter-terrorism training. Calm, precise, feared by bandits.", "Retired police inspector-general with a clean record, a rare thing."],
+  },
+  heavyweight: {
+    any: ["Two-term senator who knows where every budget line goes, and who it pays.", "Former governor with a political machine, a private jet and many friends.", "Party financier who has backed every winning candidate for twenty years."],
+    finance: ["Former chairman of the Senate finance committee. Has opinions on every naira."],
+    works: ["Owns a construction company 'on paper his brother's'. Gets roads built fast."],
+    security: ["Retired general turned senator, with deep friendships in every barracks."],
+    power: ["Former governor who promised 24-hour light in {his} state. Got halfway."],
+  },
+  loyalist: {
+    any: ["Ran your campaign office in {his} home state. Hard-working, untested.", "Party organiser who delivered three wards nobody thought you could win.", "Has stood beside you at every rally since your first election."],
+    agriculture: ["A farmer's son from {zone} who organised your rural campaign."],
+    works: ["Was in charge of campaign logistics. Every bus arrived on time."],
+  },
+};
+const MIN_QUOTES: Record<Exclude<Faction, "crony">, string[]> = {
+  technocrat: ["Give me one year and a clean budget line.", "I do not do politics. I do results.", "The data says one thing, the politicians another. I go with the data.", "If you want a yes-man, I am the wrong person."],
+  heavyweight: ["I know how this city works, Mr President.", "Every senator owes me something. Use that.", "Results need friends. I have friends.", "Leave the difficult people to me."],
+  loyalist: ["I will never embarrass you.", "Wherever you send me, I will go.", "I am learning fast, I promise.", "Loyalty first. Everything else can be taught."],
+};
+const ZONE_NAME: Record<string, string> = { NW: "the North-West", NE: "the North-East", NC: "the North-Central", SW: "the South-West", SE: "the South-East", SS: "the South-South" };
 function makeMinister(rng: Rng, portfolio: Portfolio, faction: Faction, i: number): Minister {
   const [sk, ig] = faction === "technocrat" ? [rng.range(68, 90), rng.range(55, 92)] : faction === "loyalist" ? [rng.range(32, 55), rng.range(28, 62)] : [rng.range(48, 66), rng.range(38, 72)];
+  const zone = rng.pick(PZONES); const p = person(rng, zone, 0.38);
+  const f = faction === "crony" ? "loyalist" : faction;
+  const bios = [...(MIN_BIO[f][portfolio] ?? []), ...MIN_BIO[f].any];
   return {
-    id: `m-${portfolio}-${i}`, name: `${rng.pick(TITLES)} ${rng.pick(FIRST)} ${rng.pick(LAST)}`, portfolio, skill: Math.round(sk), integrity: Math.round(ig), faction,
-    trait: rng.pick(TRAITS), zone: rng.pick(ZONES), since: 0, mood: 60,
+    id: `m-${portfolio}-${i}`, name: `${titleFor(rng, p, "minister")} ${p.name}`, portfolio, skill: Math.round(sk), integrity: Math.round(ig), faction,
+    trait: rng.pick(TRAITS), zone, since: 0, mood: 60, female: p.female, portrait: portraitFor(rng, p.female), quirk: rng.pick(QUIRKS),
+    bio: fill(rng.pick(bios), p, { zone: ZONE_NAME[zone] }), quote: rng.pick(MIN_QUOTES[f]),
   };
 }
 
@@ -54,7 +86,7 @@ export function initCabinet(s: FixState) {
     members[p.id] = pool.find((m) => m.portfolio === p.id && m.faction === "loyalist");
   }
   s.cabinet = { members, pool: pool.filter((m) => !Object.values(members).includes(m)), reshuffles: 0 };
-  addCronies(s, rng, PORTFOLIOS.map((p) => p.id), () => `${rng.pick(TITLES)} ${rng.pick(FIRST)} ${rng.pick(LAST)}`);
+  addCronies(s, rng, PORTFOLIOS.map((p) => p.id), () => { const p = person(rng, rng.pick(PZONES), 0.3); return `${titleFor(rng, p, "minister")} ${p.name}`; });
   for (const p of PORTFOLIOS) applyMinister(s, p.id);
 }
 

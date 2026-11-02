@@ -6,7 +6,7 @@ import { Button, Portrait, PORTRAIT_OPTIONS } from "../../game/ui/kit";
 import { useFix } from "./store";
 import { ARCH_NEED, DIFFICULTY, PRESIDENTS, START_NEED, STARTS } from "../engine/setup";
 import { PROMISE_BY_ID, PLEDGE_DEADLINE, PLEDGE_META } from "../engine/promises";
-import { monthLabel } from "../engine/util";
+import { calYear, monthLabel } from "../engine/util";
 import type { Difficulty, Portrait as PortraitT } from "../engine/types";
 import { PledgePicker } from "./Platform";
 import { PerksCard } from "./Meta";
@@ -87,10 +87,19 @@ export function Setup({ onBack }: { onBack: () => void }) {
 
         {step === 3 && (
           <div className="fx-wiz-body fx-oath">
-            <div className="fx-oath-card">
-              <Portrait p={portrait} size={84} name={name || "You"} />
-              <div><b style={{ fontSize: 22 }}>{name.trim() || "Madam/Mr President"}</b><div className="g-small" style={{ color: "#cfe0ee" }}>{bg.icon} {bg.name}{start !== "normal" ? ` · ${STARTS.find((x) => x.id === start)?.name}` : ""}</div>
-                <div className="fx-oath-p">{picked.map((id) => <span key={id}>{PLEDGE_META[id]?.icon} {PROMISE_BY_ID[id]?.short}</span>)}</div></div>
+            <div className="fx-inaug">
+              <div className="fx-inaug-flag" aria-hidden><i /><i /><i /></div>
+              <div className="fx-inaug-place">INAUGURATION DAY · EAGLE SQUARE, ABUJA · 29 MAY {calYear(0)}</div>
+              <div className="fx-oath-card">
+                <div className="fx-oath-pic"><Portrait p={portrait} size={92} name={name || "You"} /></div>
+                <div><b className="fx-oath-name">{name.trim() || "Madam/Mr President"}</b><div className="g-small" style={{ color: "#cfe0ee" }}>{bg.icon} {bg.name}{start !== "normal" ? ` · ${STARTS.find((x) => x.id === start)?.name}` : ""}</div></div>
+              </div>
+              <blockquote className="fx-oath-text">
+                &ldquo;I, <b>{name.trim() || "the President-elect"}</b>, do solemnly swear that I will be faithful and bear true allegiance to the Federal Republic of Nigeria; that I will discharge my duties to the best of my ability, faithfully and in accordance with the Constitution, in the interest of the sovereignty, integrity, solidarity, well-being and prosperity of the Federal Republic of Nigeria. So help me God.&rdquo;
+              </blockquote>
+              <div className="fx-wiz-label" style={{ marginTop: 4 }}>Your mandate</div>
+              <div className="fx-oath-p">{picked.map((id) => <span key={id}>{PLEDGE_META[id]?.icon} {PROMISE_BY_ID[id]?.short}</span>)}</div>
+              <div className="g-tiny" style={{ color: "#9db3c9", marginTop: 6 }}>Two hundred thousand people fill the square. The Chief Justice holds the Bible and the Qur&apos;an. The whole country is watching.</div>
             </div>
             <div className="fx-diff">
               <div className="fx-wiz-label">How hard should Nigeria be?</div>

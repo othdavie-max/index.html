@@ -14,9 +14,15 @@ export const BACKER_DEFS: Omit<Backer, "mood" | "owed">[] = [
   { id: "financier", name: "Otunba Kayode Bakare", title: "The Lagos Financier", zone: "SW", power: 0.9, bio: "Bankrolled your TV ads and your private jet. Owns half a port and wants the other half." },
 ];
 
+/** each game a different set of moneymen behind you */
+const BACKER_NAMES: Record<string, string[]> = {
+  godfather: ["Chief Obiora 'Ozo' Eze", "Chief Emeka 'Ezeudo' Nwankwo", "Sir Ikechukwu 'Odogwu' Okeke", "Chief (Mrs) Ngozi 'Lolo' Okafor", "Chief Uchenna 'Ide' Anyanwu"],
+  kingmaker: ["Alhaji Danladi Mai-Gida", "Alhaji Sule 'Dan Masani' Bello", "Hajiya Bilkisu Dan-Iya", "Alhaji Musa 'Sardauna' Gwarzo", "Alhaji Umaru Kankara"],
+  financier: ["Otunba Kayode Bakare", "Chief Tunde 'Baba Owo' Adeniran", "Mrs Folashade Coker-Adeyemi", "Otunba Gbenga 'Money' Ladipo", "Chief Rotimi Alakija-Bello"],
+};
 export function initBackers(s: FixState) {
   const rng = subRng(s.meta.seed, "backers");
-  s.backers = BACKER_DEFS.map((d) => ({ ...d, mood: Math.round(rng.range(62, 78)), owed: Math.round(rng.range(60, 140)) }));
+  s.backers = BACKER_DEFS.map((d) => ({ ...d, name: rng.pick(BACKER_NAMES[d.id] ?? [d.name]), mood: Math.round(rng.range(62, 78)), owed: Math.round(rng.range(60, 140)) }));
 }
 export const backerOf = (s: FixState, id: string) => s.backers.find((b) => b.id === id);
 export const mood = (s: FixState, id: string, d: number) => { const b = backerOf(s, id); if (b) b.mood = clamp100(b.mood + d); };

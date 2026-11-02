@@ -68,3 +68,17 @@ describe("people at the start", () => {
     expect(lines.size).toBeGreaterThan(1);
   });
 });
+
+describe("ministers and governors with character", () => {
+  it("governors have names from their own region, nicknames and quirks; some are women", async () => {
+    const { STATES } = await import("../../game/data/states");
+    let women = 0; const nicks = new Set<string>();
+    for (const seed of [1, 2, 3]) { const s = newGame(seed); for (const g of s.govs) { expect(g.nickname).toBeTruthy(); expect(g.quirk).toBeTruthy(); expect(g.bio).not.toMatch(/\{/); nicks.add(g.nickname!); if (g.female) women++; } const kano = s.govs.find((g) => g.stateId === "NG-KN")!; expect(STATES.find((x) => x.id === "NG-KN")!.zone).toBe("NW"); expect(kano.name).toMatch(/Aminu|Bashir|Sani|Usman|Lawal|Abdullahi|Nasir|Kabiru|Shehu|Ibrahim|Mansur|Yahaya|Hadiza|Zainab|Aisha|Halima|Maryam|Fatima|Rabi|Hauwa|Bilkisu|Sadiya/); }
+    expect(women).toBeGreaterThan(5); expect(nicks.size).toBeGreaterThan(6);
+  });
+  it("every minister candidate has a face, a life story, a quote and a quirk", () => {
+    const s = newGame(4242); const bios = new Set<string>();
+    for (const m of s.cabinet.pool) { expect(m.portrait).toBeTruthy(); expect(m.quirk).toBeTruthy(); if (m.faction !== "crony") { expect(m.bio).toBeTruthy(); expect(m.quote).toBeTruthy(); bios.add(m.bio!); } expect(m.name).not.toMatch(/Mrs (Tunde|Emeka|Kunle)|Alhaji (Ngozi|Folake)/); }
+    expect(bios.size).toBeGreaterThan(8);
+  });
+});

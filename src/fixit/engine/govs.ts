@@ -2,6 +2,7 @@
  * The 36 governors. Each state has its own: skill decides how much your projects do there, honesty how much leaks, loyalty how
  * they treat you. Before you take office your party holds primaries in the biggest states and you back the ones you want.
  */
+import { QUIRKS, fill, person, type Zone } from "./people";
 import { subRng } from "../../game/engine/rng";
 import { STATES } from "../../game/data/states";
 import type { FixState, Portrait, StateGov } from "./types";
@@ -11,14 +12,13 @@ import { createEvent } from "./spawn";
 import { noteStolen, recoverLoot } from "./ledger";
 import { earnPc, payPc } from "./meta";
 
-const FIRST = ["Babajide", "Ahmed", "Ugochukwu", "Douye", "Simon", "Inuwa", "Folasade", "Nkechi", "Umar", "Abdulrazaq", "Hope", "Seyi", "Aminu", "Chioma", "Yakubu", "Zainab", "Peter", "Mohammed", "Ifeoma", "Bala", "Godwin", "Hadiza", "Tunde", "Obiora", "Nasir", "Ene", "Bassey", "Aisha", "Gideon", "Kehinde", "Lawal", "Rotimi", "Danjuma", "Ngozi", "Isa", "Dakuku"];
-const LAST = ["Okunade", "Shettima", "Mbah", "Diri", "Lalong", "Yahaya", "Adeleke", "Obiano", "Namadi", "Abiodun", "Uzodimma", "Fubara", "Bago", "Sule", "Makinde", "Abdullahi", "Ortom", "Radda", "Soludo", "Otti", "Eno", "Mutfwang", "Zulum", "Buni", "Yusuf", "Mohammed", "Oyebanji", "Alia", "Ododo", "Nwifuru", "Lawan", "Aliyu", "Akpabio", "Ganduje", "Bello", "Fintiri"];
 const BIO = {
-  good: ["Ran a good ministry before politics.", "Turned around a failing hospital as a commissioner.", "A former bank executive who reads budgets for fun.", "Built a reputation as a no-nonsense builder."],
-  mid: ["A career party man with a big network.", "A popular businessman, untested in office.", "A former lawmaker who knows how the system works.", "A charismatic speaker who fills stadiums."],
-  bad: ["Rumoured to have a very close relationship with contractors.", "A loud politician with a thin record.", "Won on name recognition and little else.", "Has a way of finding money that nobody can trace."],
+  good: ["Ran a good ministry before politics, and runs {his} state the same way.", "Turned around a failing hospital as a commissioner, then won the governorship on that record.", "A former bank executive who reads budgets for fun.", "Built a reputation as a no-nonsense builder: roads first, speeches later.", "Former university vice-chancellor who pays teachers on the 25th of every month.", "Publishes every state contract online, to the horror of {his} party."],
+  mid: ["A career party man with a big network and a modest record.", "A popular businessman, untested in office.", "A former lawmaker who knows how the system works.", "A charismatic speaker who fills stadiums, and sometimes delivers.", "Inherited the seat from {his} political godfather and is still finding {his} feet.", "Spends half the year in Abuja lobbying, the other half cutting ribbons."],
+  bad: ["Rumoured to have a very close relationship with contractors.", "A loud politician with a thin record.", "Won on name recognition and little else.", "Has a way of finding money that nobody can trace.", "Salaries in {his} state are four months late, but {his} convoy has grown.", "Builds flyovers nobody asked for, near land {his} family happens to own."],
 };
-const portraitFor = (seed: number, key: string): Portrait => { const r = subRng(seed, "govp", key); return { skin: r.int(1, 5), hair: r.int(0, 3), style: r.int(0, 3), accent: r.int(0, 4) }; };
+const NICK = { good: ["the Builder", "Mr/Madam Integrity", "the Workaholic", "Teacher's Friend", "the Engineer"], mid: ["the Talker", "the Survivor", "Abuja's Favourite", "the Ribbon-Cutter"], bad: ["Mr/Madam Ten Percent", "the Flyover Governor", "the Absentee", "the Contractor's Friend"] };
+const portraitFor = (seed: number, key: string, female: boolean): Portrait => { const r = subRng(seed, "govp", key); return { skin: r.int(1, 5), hair: r.int(0, 3), style: female ? 2 : r.pick([0, 1, 3]), accent: r.int(0, 4) }; };
 const statesOnly = () => STATES.filter((x) => !x.isFct);
 
 function makeGov(s: FixState, stateId: string, rng: ReturnType<typeof subRng>, bias = 0): StateGov {
@@ -26,9 +26,12 @@ function makeGov(s: FixState, stateId: string, rng: ReturnType<typeof subRng>, b
   const zg = s.governors.find((g) => g.zone === zone);
   const party: "NPP" | "PRA" = zg ? (rng.chance(0.78) ? zg.party : zg.party === "NPP" ? "PRA" : "NPP") : "NPP";
   const skill = Math.round(clamp(rng.normal(55 + bias, 16), 20, 92)), integrity = Math.round(clamp(rng.normal(50 + bias * 0.6, 18), 12, 92));
-  const bio = rng.pick(skill >= 65 && integrity >= 55 ? BIO.good : skill < 45 || integrity < 38 ? BIO.bad : BIO.mid);
-  const name = `Gov. ${rng.pick(FIRST)} ${rng.pick(LAST)}`;
-  return { stateId, name, party, skill, integrity, loyalty: Math.round(clamp(46 + (party === "NPP" ? 8 : -6) + rng.range(-8, 8), 10, 90)), ambition: Math.round(rng.range(15, 90)), since: 0, terms: 1, bio, portrait: portraitFor(s.meta.seed, `${stateId}:${name}`) };
+  const band = skill >= 65 && integrity >= 55 ? "good" : skill < 45 || integrity < 38 ? "bad" : "mid";
+  const p = person(rng, (zone ?? "NC") as Zone, 0.22);
+  const bio = fill(rng.pick(BIO[band]), p);
+  const nick = rng.pick(NICK[band]).replace("Mr/Madam", p.female ? "Madam" : "Mr");
+  const name = `Gov. ${p.name}`;
+  return { stateId, name, party, skill, integrity, loyalty: Math.round(clamp(46 + (party === "NPP" ? 8 : -6) + rng.range(-8, 8), 10, 90)), ambition: Math.round(rng.range(15, 90)), since: 0, terms: 1, bio, portrait: portraitFor(s.meta.seed, `${stateId}:${name}`, p.female), female: p.female, quirk: rng.pick(QUIRKS), nickname: nick };
 }
 
 export function initGovs(s: FixState) {

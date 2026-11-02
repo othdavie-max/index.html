@@ -127,6 +127,7 @@ export type Faction = "technocrat" | "loyalist" | "heavyweight" | "crony";
 export interface Minister { id: string; name: string; portfolio: Portfolio; skill: number; integrity: number; faction: Faction; trait: string; zone: string; since: number; mood: number;
   /** cronies: honesty is unknown until something happens */
   hidden?: boolean; bio?: string;
+  portrait?: Portrait; female?: boolean; quirk?: string; quote?: string;
   /** month you warned them: "you are here to work, not to eat" */
   warned?: number;
   /** you chose them yourself (their signature ability is active) */
@@ -217,7 +218,7 @@ export interface Cap {
 }
 
 /** one governor per state: what they can do for their state, and how they treat you */
-export interface StateGov { stateId: string; name: string; party: "NPP" | "PRA"; skill: number; integrity: number; loyalty: number; ambition: number; since: number; terms: number; backed?: boolean; bio: string; portrait: Portrait }
+export interface StateGov { stateId: string; name: string; party: "NPP" | "PRA"; skill: number; integrity: number; loyalty: number; ambition: number; since: number; terms: number; backed?: boolean; bio: string; portrait: Portrait; female?: boolean; quirk?: string; nickname?: string }
 
 export interface FixState {
   version: number;

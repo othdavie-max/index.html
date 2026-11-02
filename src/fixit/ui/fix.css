@@ -481,3 +481,17 @@
 .gm .fx-aide-bar { height: 7px; background: #e2e8f0; border-radius: 6px; overflow: hidden; } .gm .fx-aide-bar i { display: block; height: 100%; background: #94a3b8; border-radius: 6px; transition: width .4s ease; }
 .gm .fx-aide-stat[data-tone="good"] i { background: #00c875; } .gm .fx-aide-stat[data-tone="ok"] i { background: #f59e0b; } .gm .fx-aide-stat[data-tone="bad"] i { background: #e11d48; }
 .gm .fx-aide-hidden { font-size: 12px; background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 6px 8px; color: #475569; }
+.gm .fx-nick { font-size: 12px; color: #a16207; font-weight: 700; font-style: italic; }
+.gm .fx-min .fx-aide-stat { grid-template-columns: 54px 1fr 24px; }
+
+/* ---------------------------------------------------------------- the oath */
+.gm .fx-inaug { position: relative; border-radius: 20px; padding: 16px; background: radial-gradient(circle at 50% -20%, rgba(245,213,122,.25), transparent 60%), rgba(255,255,255,.05); border: 1px solid rgba(245,213,122,.35); overflow: hidden; }
+.gm .fx-inaug-flag { position: absolute; inset: 0 0 auto 0; height: 6px; display: flex; } .gm .fx-inaug-flag i { flex: 1; background: #008751; } .gm .fx-inaug-flag i:nth-child(2) { background: #fff; }
+.gm .fx-inaug-place { text-align: center; font-size: 11px; letter-spacing: .18em; color: #f5d57a; font-weight: 800; margin: 6px 0 12px; }
+.gm .fx-oath-card { background: transparent; border: 0; padding: 0; justify-content: center; }
+.gm .fx-oath-pic { border-radius: 999px; padding: 4px; background: conic-gradient(#008751 0 33%, #fff 0 66%, #008751 0); box-shadow: 0 0 30px rgba(245,213,122,.35); }
+.gm .fx-oath-name { font-size: 22px; display: block; }
+.gm .fx-oath-text { margin: 14px 0 6px; padding: 12px 14px; border-left: 4px solid #c8a24a; background: rgba(0,0,0,.25); border-radius: 0 12px 12px 0; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 14px; line-height: 1.55; color: #e8eef5; animation: fx-oathin 1.2s ease-out; }
+.gm .fx-oath-text b { color: #f5d57a; font-style: normal; }
+@keyframes fx-oathin { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .gm .fx-oath-text { animation: none; } }

@@ -131,7 +131,7 @@ const CRONY_BIO = [
 ];
 export function addCronies(s: FixState, rng: Rng, portfolios: Portfolio[], makeName: () => string) {
   portfolios.forEach((p, i) => {
-    const m: Minister = { id: `m-${p}-crony`, name: makeName(), portfolio: p, skill: Math.round(rng.range(30, 58)), integrity: Math.round(rng.range(10, 75)), faction: "crony", trait: "Loyal", zone: "", since: 0, mood: 85, hidden: true, bio: CRONY_BIO[(i + rng.int(0, 5)) % CRONY_BIO.length] };
+    const m: Minister = { id: `m-${p}-crony`, name: makeName(), portfolio: p, skill: Math.round(rng.range(30, 58)), integrity: Math.round(rng.range(10, 75)), faction: "crony", trait: "Loyal", zone: "", since: 0, mood: 85, hidden: true, portrait: { skin: rng.int(1, 5), hair: rng.int(0, 3), style: rng.pick([0, 1, 3]), accent: rng.int(0, 4) }, quirk: "Has known you for twenty years", bio: CRONY_BIO[(i + rng.int(0, 5)) % CRONY_BIO.length] };
     s.cabinet.pool.push(m);
   });
 }

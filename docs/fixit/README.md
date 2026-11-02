@@ -240,3 +240,6 @@ Run tests: `npx vitest run src/fixit`.
 - New kinds have real effects (investors, transparency, Assembly support, coup risk, group moods) and their own "true colours" moments.
 - Candidate cards are redesigned: coloured by kind, larger portrait with a badge, quote, life story, stat bars (or a clear "unknown" note).
 - The inner circle (Chief of Staff, VP, rival, godfather, market leader, general, journalist, governor) now rotates through several lines per mood, some quoting live prices; the market women's leader has a different name each game.
+- Ministers and governors come from a shared generator (`engine/people.ts`): names that fit their home zone (Hausa, Kanuri, Yoruba, Igbo, Ijaw/Efik/Urhobo, Tiv/Idoma/Berom), gender-correct titles (Alhaji/Hajiya, Chief/Mrs, Dr, Engr, Barr., Prof.), portraits, quirks. Ministers get life stories that fit their ministry and type, and a quote; governors get stories by how good they are, a nickname ("the Builder", "the Flyover Governor") and a quirk. Minister cards share the new card design.
+- The three godfathers have different names each game.
+- The oath screen is now an inauguration at Eagle Square: date, flag ribbon, your portrait in the flag colours, the oath of office with your name, and your three promises as your mandate.

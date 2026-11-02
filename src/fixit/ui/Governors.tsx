@@ -31,7 +31,7 @@ export function GovernorsPanel() {
         {rows.map(({ g, p }) => (
           <button key={g.stateId} className="fx-govrow" onClick={() => setSelect({ state: g.stateId, lga: null })}>
             <Portrait p={g.portrait} size={38} name={g.name} />
-            <span className="g-grow"><b className="g-small">{g.name.replace("Gov. ", "")}</b> <span className="g-tiny g-muted">· {STATE_BY_ID[g.stateId]?.name} · {g.party}{g.backed ? " · you backed them" : ""}</span>
+            <span className="g-grow"><b className="g-small">{g.name.replace("Gov. ", "")}</b>{g.nickname && <i className="fx-nick"> "{g.nickname}"</i>} <span className="g-tiny g-muted">· {STATE_BY_ID[g.stateId]?.name} · {g.party}{g.backed ? " · you backed them" : ""}</span>
               <span className="g-tiny g-muted" style={{ display: "block" }}>Skill {g.skill} · Honesty {g.integrity} · Loyal to you {Math.round(g.loyalty)}</span></span>
             <span title={p?.verdict}>{p ? VERDICT[p.verdict] : ""}</span>
             <span className="fx-grade" style={{ background: GRADE_COLOR[govGrade(g)] }}>{govGrade(g)}</span>
@@ -51,7 +51,7 @@ export function StateGovCard({ id }: { id: string }) {
   return (
     <div className="fx-govcard">
       <div className="g-row" style={{ gap: 10 }}><Portrait p={g.portrait} size={44} name={g.name} />
-        <div className="g-grow"><b>{g.name}</b> <span className="g-tiny g-muted">· {g.party}{g.terms > 1 ? ` · term ${g.terms}` : ""}</span><div className="g-tiny g-muted">{g.bio}</div></div>
+        <div className="g-grow"><b>{g.name}</b>{g.nickname && <i className="fx-nick"> "{g.nickname}"</i>} <span className="g-tiny g-muted">· {g.party}{g.terms > 1 ? ` · term ${g.terms}` : ""}</span><div className="g-tiny g-muted">{g.bio}</div>{g.quirk && <div className="g-tiny g-muted">🔹 {g.quirk}</div>}</div>
         <span className="fx-grade" style={{ background: GRADE_COLOR[govGrade(g)] }}>{govGrade(g)}</span></div>
       <div className="g-tiny g-muted">Skill {g.skill} · Honesty {g.integrity} · Loyal to you {Math.round(g.loyalty)} · Ambition {g.ambition}</div>
       <div className="g-row g-wrap" style={{ gap: 6 }}>

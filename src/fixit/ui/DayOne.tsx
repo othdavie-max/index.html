@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
-import { Badge, Bar, Button, Callout, Portrait } from "../../game/ui/kit";
+import { Bar, Button, Callout, Portrait } from "../../game/ui/kit";
 import { AIDE_KINDS, cosCandidates, finishDayOne, pickChiefOfStaff, pickVice, vpCandidates } from "../engine/dayone";
 import { FACTION_FLAW, FACTION_LABEL, KEY_PORTFOLIOS, PORTFOLIOS, appoint, signatureOf } from "../engine/cabinet";
 import { backerLabel, cosMood, hireMood } from "../engine/backers";
@@ -46,11 +46,15 @@ function Candidate({ m, current, onPick }: { m: Minister; current: boolean; onPi
   const crony = m.faction === "crony";
   const d = hireMood(m.faction, true);
   return (
-    <button className="fx-cand" data-on={current ? "1" : undefined} onClick={onPick} aria-pressed={current}>
-      <div className="g-row g-wrap" style={{ gap: 6 }}><b className="g-small">{m.name}</b><Badge tone={m.faction === "technocrat" ? "blue" : crony ? "red" : m.faction === "heavyweight" ? "amber" : "navy"}>{FACTION_LABEL[m.faction].label}</Badge></div>
-      {m.bio && <div className="g-tiny g-muted">{m.bio}</div>}
-      {crony ? <div className="g-tiny g-muted">Your own person: skill and honesty unknown.</div> : <div className="fx-sig"><span>✨ {signatureOf(m).label}</span><span>⚠️ {FACTION_FLAW[m.faction]}</span></div>}
-      <div className="g-row g-between g-tiny"><span>Skill {crony ? <b title="You can only tell with time">?</b> : <b>{m.skill}</b>}</span><span>Honesty {crony ? <b title="You will find out">?</b> : <b>{m.integrity}</b>}</span></div>
+    <button className="fx-cand fx-aide fx-min" data-kind={m.faction === "technocrat" ? "technocrat" : crony ? "activist" : m.faction === "heavyweight" ? "chieftain" : "loyalist"} data-on={current ? "1" : undefined} onClick={onPick} aria-pressed={current}>
+      <div className="fx-aide-top">
+        {m.portrait && <div className="fx-aide-pic"><Portrait p={m.portrait} size={50} name={m.name} /></div>}
+        <div className="g-grow"><b className="fx-aide-name" style={{ fontSize: 14 }}>{m.name}</b><div className="fx-aide-tag">{FACTION_LABEL[m.faction].label}</div>{m.quirk && <div className="g-tiny g-muted">🔹 {m.quirk}</div>}</div>
+        {current && <span className="fx-aide-check" aria-hidden>✓</span>}
+      </div>
+      {m.quote && !crony && <q className="fx-quote">{m.quote}</q>}
+      {m.bio && <div className="g-tiny" style={{ color: "#334155" }}>{m.bio}</div>}
+      {crony ? <div className="fx-aide-hidden">🔒 Your own person: skill and honesty unknown.</div> : <><div className="fx-aide-stats"><Stat label="Skill" v={m.skill} shown /><Stat label="Honesty" v={m.integrity} shown /></div><div className="fx-sig"><span>✨ {signatureOf(m).label}</span><span>⚠️ {FACTION_FLAW[m.faction]}</span></div></>}
       <Hint d={d} />
     </button>
   );
