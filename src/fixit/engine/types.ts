@@ -127,13 +127,13 @@ export type Faction = "technocrat" | "loyalist" | "heavyweight" | "crony";
 export interface Minister { id: string; name: string; portfolio: Portfolio; skill: number; integrity: number; faction: Faction; trait: string; zone: string; since: number; mood: number;
   /** cronies: honesty is unknown until something happens */
   hidden?: boolean; bio?: string;
-  portrait?: Portrait; female?: boolean; quirk?: string; quote?: string;
+  portrait?: Portrait; female?: boolean; quirk?: string; quote?: string; faith?: string;
   /** month you warned them: "you are here to work, not to eat" */
   warned?: number;
   /** you chose them yourself (their signature ability is active) */
   picked?: boolean }
 export type AideKind = "friend" | "technocrat" | "chieftain" | "general" | "cleric" | "regional" | "loyalist" | "defector" | "tycoon" | "activist" | "spymaster" | "diaspora" | "royal";
-export interface Aide { id: string; kind: AideKind; name: string; bio: string; skill: number; loyalty: number; integrity: number; portrait: Portrait; revealed: boolean; since: number; quote?: string; female?: boolean; quirk?: string }
+export interface Aide { id: string; kind: AideKind; name: string; bio: string; skill: number; loyalty: number; integrity: number; portrait: Portrait; revealed: boolean; since: number; quote?: string; female?: boolean; quirk?: string; zone?: string; faith?: string }
 export interface Backer { id: string; name: string; title: string; zone: string; power: number; bio: string; mood: number; owed: number }
 export interface Deal { id: string; name: string; sector: string; stateId: string; capex: number; jobs: number; start: number; months: number; progress: number; status: "building" | "open" | "stalled"; terms: "generous" | "fair"; benefit: string; effects: Effects; revenue: number; opened?: number }
 export type EnemyPlan = "protests" | "leaks" | "rival" | "bandits" | "coup";
@@ -222,7 +222,7 @@ export interface StateGov { stateId: string; name: string; party: "NPP" | "PRA";
 
 export interface FixState {
   version: number;
-  meta: { seed: number; id: string; president: string; hard: boolean; scenario: string; difficulty: Difficulty; portrait: Portrait; archetype?: string; start?: string; daily?: string };
+  meta: { seed: number; id: string; president: string; hard: boolean; scenario: string; difficulty: Difficulty; portrait: Portrait; archetype?: string; start?: string; daily?: string; homeZone?: string; faith?: string };
   month: number; // months elapsed since inauguration
   processed: number; // last month index fully processed (idempotency)
   term: number;

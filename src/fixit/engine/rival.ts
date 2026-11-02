@@ -3,6 +3,7 @@
  * the national vote AND at least 25% in two-thirds of the states (24 of 37), as in Nigeria's rules for president.
  * Party and candidate names are fictional.
  */
+import { identityVote } from "./identity";
 import { ripple } from "./ripples";
 import type { Rng } from "../../game/engine/rng";
 import { subRng } from "../../game/engine/rng";
@@ -45,7 +46,7 @@ export function stateShare(s: FixState, id: string, noise = 0, honest = false): 
   const hw = heavyweightZones(s).filter((z) => z === st.zone).length;
   const gov = s.governors?.find((g) => g.zone === st.zone);
   const govFx = gov ? (gov.relation - 50) / 12 + (gov.party === "NPP" ? 1 : -1) : 0;
-  return clamp(nationalBase(s) - Number(s.flags.primaryHit ?? 0) + 0.15 * (45 - stateLayerValue(s, id, "overview")) + (s.campaign.rallies[st.zone] ?? 0) + 3 * hw + govFx + 1.5 * Math.min(3, done) - (st.zone === s.rival.zone ? 6 : 0) + (honest ? 0 : riggingBonus(s)) + noise, 5, 95);
+  return clamp(identityVote(s, id) + nationalBase(s) - Number(s.flags.primaryHit ?? 0) + 0.15 * (45 - stateLayerValue(s, id, "overview")) + (s.campaign.rallies[st.zone] ?? 0) + 3 * hw + govFx + 1.5 * Math.min(3, done) - (st.zone === s.rival.zone ? 6 : 0) + (honest ? 0 : riggingBonus(s)) + noise, 5, 95);
 }
 export function projectVote(s: FixState, rng?: Rng, honest = false): Omit<ElectionResult, "month" | "chance"> {
   const shock = rng ? rng.normal(0, 2.5) : 0;

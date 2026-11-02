@@ -19,6 +19,8 @@ import { lateMonthly } from "./late";
 import { worldLifeMonthly } from "./worldlife";
 import { unMonthly } from "./un";
 import { funMonthly } from "./fun";
+import { identityMonthly } from "./identity";
+import { importsMonthly } from "./imports";
 import { proposalsMonthly, routineMonthly } from "./proposals";
 import { castArcsMonthly } from "./castarcs";
 import "./actions";
@@ -89,6 +91,8 @@ export function advanceMonth(s: FixState): boolean {
   worldLifeMonthly(s, subRng(s.meta.seed, "wlife", m));
   unMonthly(s);
   funMonthly(s, subRng(s.meta.seed, "fun", m));
+  identityMonthly(s, subRng(s.meta.seed, "identity", m));
+  importsMonthly(s, subRng(s.meta.seed, "imports", m));
   socialMonthly(s, subRng(s.meta.seed, "social", m));
   bigMonthly(s, subRng(s.meta.seed, "big", m));
   investorsMonthly(s, subRng(s.meta.seed, "investors", m));

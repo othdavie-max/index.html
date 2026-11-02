@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
 import { VisitModal } from "./Visit";
-import { WorldMap } from "./WorldMap";
+import { Globe } from "./Globe";
 import { InboxCard } from "./Inbox";
 import { StageCard, VictoryCard } from "./Stage";
 import { TIERS, W, africaRank, league, nextTarget, type Row } from "../engine/world";
@@ -34,7 +34,7 @@ export function LeaguePanel() {
         <div className="g-tiny g-muted" style={{ marginTop: 6 }}>The score mixes economy (35%), military (20%), technology (20%) and influence (25%). Every number is simulated and simplified.</div>
       </Card>
       <VictoryCard />
-      <Card title="The world" icon={<span aria-hidden>🗺️</span>}><WorldMap onPick={setPick} /></Card>
+      <Card title="The world" icon={<span aria-hidden>🗺️</span>}><Globe lens="power" onPick={setPick} /></Card>
       <InboxCard />
       <StageCard />
       {tgt ? (

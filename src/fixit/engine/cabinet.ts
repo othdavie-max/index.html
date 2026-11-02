@@ -3,6 +3,7 @@
  * and whose faction is a political trade-off: technocrats are competent but have no political base, party loyalists
  * keep the party behind you, regional heavyweights deliver their zone's votes. All names are fictional.
  */
+import { faithFor } from "./identity";
 import { ZONES, fill, person, portraitFor, titleFor, QUIRKS } from "./people";
 import { subRng } from "../../game/engine/rng";
 import { payPc, PC_COST } from "./meta";
@@ -71,7 +72,7 @@ function makeMinister(rng: Rng, portfolio: Portfolio, faction: Faction, i: numbe
   return {
     id: `m-${portfolio}-${i}`, name: `${titleFor(rng, p, "minister")} ${p.name}`, portfolio, skill: Math.round(sk), integrity: Math.round(ig), faction,
     trait: rng.pick(TRAITS), zone, since: 0, mood: 60, female: p.female, portrait: portraitFor(rng, p.female, zone), quirk: rng.pick(QUIRKS),
-    bio: fill(rng.pick(bios), p, { zone: ZONE_NAME[zone] }), quote: rng.pick(MIN_QUOTES[f]),
+    bio: fill(rng.pick(bios), p, { zone: ZONE_NAME[zone] }), quote: rng.pick(MIN_QUOTES[f]), faith: faithFor(rng, zone),
   };
 }
 

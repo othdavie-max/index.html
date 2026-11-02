@@ -91,7 +91,7 @@ export const DIFFICULTY: Record<Difficulty, { label: string; blurb: string; cash
   hard: { label: "Hard", blurb: "Less money, more crises, tougher voters.", cash: 0.6, events: 1.3, vote: -2.5 },
 };
 
-export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[]; archetype?: string; start?: string; daily?: string; quick?: boolean; legacy?: boolean; perks?: string[]; inherit?: Inherit; /** sandbox: no term limits, deep pockets, everything open */ sandbox?: boolean }
+export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[]; archetype?: string; start?: string; daily?: string; quick?: boolean; legacy?: boolean; perks?: string[]; inherit?: Inherit; /** sandbox: no term limits, deep pockets, everything open */ sandbox?: boolean; homeZone?: string; faith?: string }
 
 /** Who you are before you are president: a perk and a weakness each. */
 export const PRESIDENTS = [
@@ -132,6 +132,7 @@ export function applySetup(s: FixState, o: SetupOptions) {
   jitter(s, rng);
   for (const id of ids) ISSUE_BY_ID[id].apply(s, rng.range(0.7, 1.3));
   s.fin.treasury *= DIFFICULTY[s.meta.difficulty].cash;
+  s.meta.homeZone = o.homeZone ?? "SW"; s.meta.faith = o.faith ?? "christian";
   s.meta.archetype = o.archetype ?? "career"; s.meta.start = o.start ?? "normal"; if (o.daily) s.meta.daily = o.daily;
   applyArchetype(s, s.meta.archetype);
   applyStart(s, s.meta.start);

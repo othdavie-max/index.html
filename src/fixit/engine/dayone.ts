@@ -8,7 +8,8 @@ import { autoFillRest } from "./cabinet";
 import type { Aide, AideKind, FixState, Minister, Portfolio } from "./types";
 import { addMod, clamp100, nb, pushNews, removeMods } from "./util";
 import { createEvent } from "./spawn";
-import { portraitFor } from "./people";
+import { portraitFor, type Zone } from "./people";
+import { faithFor } from "./identity";
 
 const FIRST_M = ["Tunde", "Emeka", "Musa", "Segun", "Chinedu", "Bala", "Kelechi", "Yusuf", "Femi", "Ikenna", "Sani", "Dapo", "Uche", "Abba", "Gbolahan", "Nnamdi", "Ibrahim", "Obinna", "Kunle", "Ahmed", "Tamuno", "Ebuka", "Babatunde", "Aminu"];
 const FIRST_F = ["Ngozi", "Amina", "Funke", "Zainab", "Chioma", "Hauwa", "Bisi", "Adaeze", "Halima", "Yetunde", "Ifeoma", "Fatima", "Kemi", "Nneka", "Aisha", "Tari", "Folake", "Ebere"];
@@ -85,11 +86,12 @@ function makeAide(rng: Rng, kind: AideKind, i: number): Aide {
   const t = TITLE[kind]?.(female) ?? "";
   const name = t ? `${t} ${plain}` : plain;
   const quote = rng.pick(QUOTES[kind]);
-  const portrait = portraitFor(rng, female);
+  const zone = rng.pick(["NW", "NE", "NC", "SW", "SE", "SS"]); const faith = faithFor(rng, zone);
+  const portrait = portraitFor(rng, female, zone as Zone);
   if (kind === "general" || kind === "spymaster") { portrait.outfit = 2; portrait.wear = 0; }
   if (kind === "royal") { portrait.outfit = 1; portrait.wear = female ? 2 : 1; }
   if (kind === "technocrat" || kind === "diaspora") portrait.outfit = 2;
-  return { id: `aide-${kind}-${i}`, kind, quote, name, bio, skill, loyalty, integrity, portrait, female, quirk: rng.pick(QUIRKS), revealed: !["friend", "chieftain", "defector", "tycoon", "spymaster"].includes(kind), since: 0 };
+  return { id: `aide-${kind}-${i}`, kind, quote, name, bio, skill, loyalty, integrity, portrait, female, zone, faith, quirk: rng.pick(QUIRKS), revealed: !["friend", "chieftain", "defector", "tycoon", "spymaster"].includes(kind), since: 0 };
 }
 /** draw a varied line-up: one dependable political pick, one clean pick, and two surprises */
 function lineup(rng: Rng, political: AideKind[], clean: AideKind[], wild: AideKind[]): AideKind[] {

@@ -1,4 +1,5 @@
 "use client";
+import { FAITH_NAME, ZONE_INFO, type Faith, type ZoneId } from "../engine/identity";
 /** Day One: you have just been sworn in. Pick your Chief of Staff and your ministers, and see who is pleased and who is not. */
 import { useState } from "react";
 import { PC_COST } from "../engine/meta";
@@ -49,7 +50,7 @@ function Candidate({ m, current, onPick }: { m: Minister; current: boolean; onPi
     <button className="fx-cand fx-aide fx-min" data-kind={m.faction === "technocrat" ? "technocrat" : crony ? "activist" : m.faction === "heavyweight" ? "chieftain" : "loyalist"} data-on={current ? "1" : undefined} onClick={onPick} aria-pressed={current}>
       <div className="fx-aide-top">
         {m.portrait && <div className="fx-aide-pic"><Portrait p={m.portrait} size={50} name={m.name} /></div>}
-        <div className="g-grow"><b className="fx-aide-name" style={{ fontSize: 14 }}>{m.name}</b><div className="fx-aide-tag">{FACTION_LABEL[m.faction].label}</div>{m.quirk && <div className="g-tiny g-muted">🔹 {m.quirk}</div>}</div>
+        <div className="g-grow"><b className="fx-aide-name" style={{ fontSize: 14 }}>{m.name}</b><div className="fx-aide-tag">{FACTION_LABEL[m.faction].label}</div>{m.zone && <div className="g-tiny g-muted">📍 {ZONE_INFO[m.zone as ZoneId]?.name}{m.faith ? ` · ${FAITH_NAME[m.faith as Faith]}` : ""}</div>}{m.quirk && <div className="g-tiny g-muted">🔹 {m.quirk}</div>}</div>
         {current && <span className="fx-aide-check" aria-hidden>✓</span>}
       </div>
       {m.quote && !crony && <q className="fx-quote">{m.quote}</q>}
@@ -70,7 +71,7 @@ function AideCard({ a, on, onPick }: { a: ReturnType<typeof cosCandidates>[numbe
     <button className="fx-cand fx-aide" data-kind={a.kind} data-on={on ? "1" : undefined} onClick={onPick} aria-pressed={on}>
       <div className="fx-aide-top">
         <div className="fx-aide-pic"><Portrait p={a.portrait} size={64} name={a.name} /><span aria-hidden>{k.icon}</span></div>
-        <div className="g-grow"><b className="fx-aide-name">{a.name}</b><div className="fx-aide-tag">{k.tag}</div>{a.quirk && <div className="g-tiny g-muted">🔹 {a.quirk}</div>}</div>
+        <div className="g-grow"><b className="fx-aide-name">{a.name}</b><div className="fx-aide-tag">{k.tag}</div>{a.zone && <div className="g-tiny g-muted">📍 {ZONE_INFO[a.zone as ZoneId]?.name} · {FAITH_NAME[a.faith as Faith]}</div>}{a.quirk && <div className="g-tiny g-muted">🔹 {a.quirk}</div>}</div>
         {on && <span className="fx-aide-check" aria-hidden>✓</span>}
       </div>
       {a.quote && <q className="fx-quote">{a.quote}</q>}

@@ -35,6 +35,8 @@ import { XPanel } from "./Social";
 import { LeaguePanel } from "./League";
 import { GrandPanel } from "./Grand";
 import { FrontPageCard, TitlesCard } from "./Fun";
+import { UnityCard } from "./Unity";
+import { TradePanel } from "./Trade";
 import { myRank } from "../engine/world";
 import { inbox } from "../engine/worldlife";
 const inboxWaiting = (s: import("../engine/types").FixState) => inbox(s).filter((m) => !m.done && m.options).length;
@@ -201,7 +203,7 @@ export function World() {
   // five buttons; everything else is a tab inside them
   const GROUPS: { id: string; label: string; icon: ReactNode; tabs: { id: Tab; label: string }[]; badge?: number; wide?: boolean }[] = [
     { id: "build", label: "Build", icon: <Hammer size={22} />, wide: true, tabs: [{ id: "presidency", label: "Overview" }, { id: "plans", label: "Plans" }, { id: "projects", label: "Projects" }, { id: "grand", label: "Grand plans" }, { id: "policies", label: "Policies" }] },
-    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }] },
+    { id: "economy", label: "Economy", icon: <TrendingUp size={22} />, wide: true, badge: s.oil.scarcity >= 65 || s.oil.uptime < 35 ? 1 : 0, tabs: [{ id: "nation", label: "Economy" }, { id: "trade", label: "Trade & world" }, { id: "debt", label: "Debt & lending" }, { id: "oil", label: "Fuel & refineries" }, { id: "deals", label: "Investors" }] },
     { id: "power", label: "Power", icon: <Crown size={22} />, wide: true, badge: (s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0) + inboxWaiting(s), tabs: [{ id: "power", label: "President's office" }, { id: "assembly", label: "Assembly" }, { id: "moves", label: "Big moves" }, { id: "foreign", label: "Foreign" }, { id: "league", label: "World league" }, { id: "military", label: "Military" }] },
     { id: "people", label: "People", icon: <Users size={22} />, badge: activeEnemies(s).some((e) => e.power >= 50) || s.backers.some((b) => b.mood < 30) ? 1 : 0, tabs: [{ id: "cabinet", label: "My team" }, { id: "governors", label: "Governors" }, { id: "party", label: "Party" }, { id: "advisers", label: "Advisers" }, { id: "enemies", label: "Enemies" }] },
     { id: "news", label: "News", icon: <Newspaper size={22} />, tabs: [{ id: "news", label: "News" }, { id: "x", label: "Naija X" }, { id: "street", label: "Nigeria today" }] },
@@ -232,6 +234,7 @@ export function World() {
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music">{music ? "🎵" : "🔇"}</button>
           <button className="fx-icon-btn fx-hud-opt" style={{ fontSize: 11, fontWeight: 800 }} onClick={() => { setLang(lang === "pcm" ? "en" : "pcm"); sfx("tap"); }} aria-label={lang === "pcm" ? "Switch to English" : "Switch to Naija Pidgin"} title="Naija Pidgin for street voices, feed, advisers">{lang === "pcm" ? "PCM" : "EN"}</button>
+          <button className="fx-icon-btn" onClick={() => setTab("trade")} aria-label="The world and trade" title="The world and trade">🌍</button>
           <button className="fx-icon-btn" onClick={() => setHow(true)} aria-label="How to play"><HelpCircle size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setMenu(true)} aria-label="Menu and saves"><MenuIcon size={18} /></button>
         </div>
@@ -295,12 +298,13 @@ export function World() {
           {drawer === "street" && <div className="g-col" style={{ gap: 14 }}><StreetPanel /><div><div className="g-section-title">What I caused</div><TimelinePanel /></div></div>}
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}
           {drawer === "power" && <div className="g-col" style={{ gap: 14 }}><OfficePanel /><PowerPanel /></div>}
-                    {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><CastPanel /><StaffCard /><FirstFamilyCard /><CabinetCard /><GroupsCard /></div>}
+                    {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><UnityCard /><CastPanel /><StaffCard /><FirstFamilyCard /><CabinetCard /><GroupsCard /></div>}
           {drawer === "governors" && <GovernorsPanel />}
           {drawer === "advisers" && <BriefingPanel />}
           {drawer === "enemies" && <EnemiesPanel />}
           {drawer === "x" && <XPanel />}
           {drawer === "league" && <LeaguePanel />}
+          {drawer === "trade" && <TradePanel />}
           {drawer === "grand" && <GrandPanel />}
           {drawer === "news" && <div className="g-col" style={{ gap: 14 }}><FrontPageCard /><News /></div>}
         </Drawer>
