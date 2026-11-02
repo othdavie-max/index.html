@@ -1,5 +1,6 @@
 "use client";
 /** "When I become president, I will…": big promises you can actually do, and what really happens. */
+import { Brief } from "./Brief";
 import { useState } from "react";
 import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
@@ -28,8 +29,8 @@ export function MovesPanel() {
             <div className="g-grow">
               <div className="fx-move-quote">{m.quote}</div>
               <b>{m.title}</b>
-              <div className="g-small g-muted">{m.blurb}</div>
-              <div className="g-tiny" style={{ color: "#9f1239", marginTop: 2 }}>Risk: {m.risk}</div>
+              <Brief text={m.blurb} max={110} />
+              <div className="g-tiny" style={{ color: "#9f1239", marginTop: 2 }}>⚠️ {m.risk}</div>
               {block && <div className="g-tiny g-muted">⛔ {block}</div>}
               <AskAdvisers k={`move:${m.id}`} />
               {!block && <div className="g-tiny g-muted">Cost: {m.cost > 0 ? `${nb(m.cost)} and ` : ""}⚡{PC_COST.move} political capital</div>}

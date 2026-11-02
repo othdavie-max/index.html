@@ -150,3 +150,5 @@
 
 /* a choice that cannot be used right now: show the reason as plain grey words, not a faded button */
 .gm .fx-act2 .g-btn:disabled, .gm .fx-act2 button:disabled { background: #eef2f7 !important; color: #475569 !important; opacity: 1; box-shadow: none !important; border: 1px dashed #cbd5e1; font-weight: 600; white-space: normal; text-align: left; height: auto; min-height: 32px; }
+
+@media (min-width: 900px) { .gm .fx-globe-svg { max-height: 460px; } }

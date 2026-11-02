@@ -138,7 +138,7 @@ function OpsCard() {
               ) : (
                 <div className="g-col" style={{ gap: 6 }}>
                   <div className="g-row g-wrap" style={{ gap: 4 }}>{STRATEGIES.map((st) => <button key={st.id} className="fx-subtab" aria-pressed={cur.strategy === st.id} title={st.blurb} onClick={() => set({ strategy: st.id })}>{st.name}</button>)}</div>
-                  <div className="g-row g-wrap" style={{ gap: 4 }}>{([1, 2, 3] as const).map((f) => <button key={f} className="fx-subtab" aria-pressed={cur.funding === f} onClick={() => set({ funding: f })}>{"₦".repeat(f)} {nb(monthlyCost(f))}/month</button>)}</div>
+                  <div className="g-row g-wrap" style={{ gap: 4 }}>{([1, 2, 3] as const).map((f) => <button key={f} className="fx-subtab" aria-pressed={cur.funding === f} onClick={() => set({ funding: f })}>{["Light", "Steady", "Heavy"][f - 1]} · {nb(monthlyCost(f))}/mo</button>)}</div>
                   <div className="g-col" style={{ gap: 4 }}>{cm.map((c) => <button key={c.id} className="fx-cmd" aria-pressed={cur.cmd === c.id} onClick={() => set({ cmd: c.id })}><b className="g-small">{c.name}</b><span className="g-tiny g-muted">Skill {c.skill} · Honesty {c.integrity} · Loyalty {c.loyalty}</span></button>)}</div>
                   <div className="g-tiny g-muted">{STRATEGIES.find((x) => x.id === cur.strategy)!.blurb}</div>
                   <div><Button size="sm" variant="primary" onClick={() => act((x) => launchOp(x, t.id, cur.strategy, cur.funding, cur.cmd))}>Launch ⚡6</Button></div>
