@@ -26,8 +26,8 @@ describe("day one: chief of staff", () => {
   });
   it("a dishonest childhood friend eventually embarrasses you", () => {
     let seen = 0;
-    for (let seed = 1; seed <= 25 && !seen; seed++) {
-      const s = newGame(seed + 210); const f = cosCandidates(s).find((x) => x.kind === "friend")!; pickChiefOfStaff(s, f.id);
+    for (let seed = 1; seed <= 80 && !seen; seed++) {
+      const s = newGame(seed + 210); const f = cosCandidates(s).find((x) => x.kind === "friend"); if (!f) continue; pickChiefOfStaff(s, f.id);
       if (s.staff.cos!.integrity >= 50) continue;
       advanceMonths(s, 40); if (s.events.some((e) => e.tpl === "cosFriend") || s.flags.cosFriendDone) seen++;
     }
@@ -155,7 +155,8 @@ const withAdvisers = (seed: number, cos: Partial<Aide>, vp?: Partial<Aide>) => {
 };
 describe("advisers", () => {
   it("the vice president is a real pick with a real effect", () => {
-    const s = newGame(400);
+    let sd = 400; while (!vpCandidates(newGame(sd)).some((x) => x.kind === "regional")) sd++;
+    const s = newGame(sd);
     expect(vpCandidates(s).length).toBe(4);
     const reg = vpCandidates(s).find((x) => x.kind === "regional")!, a0 = s.assembly.support;
     pickVice(s, reg.id);

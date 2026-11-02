@@ -131,8 +131,8 @@ export interface Minister { id: string; name: string; portfolio: Portfolio; skil
   warned?: number;
   /** you chose them yourself (their signature ability is active) */
   picked?: boolean }
-export type AideKind = "friend" | "technocrat" | "chieftain" | "general" | "cleric" | "regional" | "loyalist" | "defector";
-export interface Aide { id: string; kind: AideKind; name: string; bio: string; skill: number; loyalty: number; integrity: number; portrait: Portrait; revealed: boolean; since: number; quote?: string }
+export type AideKind = "friend" | "technocrat" | "chieftain" | "general" | "cleric" | "regional" | "loyalist" | "defector" | "tycoon" | "activist" | "spymaster" | "diaspora" | "royal";
+export interface Aide { id: string; kind: AideKind; name: string; bio: string; skill: number; loyalty: number; integrity: number; portrait: Portrait; revealed: boolean; since: number; quote?: string; female?: boolean; quirk?: string }
 export interface Backer { id: string; name: string; title: string; zone: string; power: number; bio: string; mood: number; owed: number }
 export interface Deal { id: string; name: string; sector: string; stateId: string; capex: number; jobs: number; start: number; months: number; progress: number; status: "building" | "open" | "stalled"; terms: "generous" | "fair"; benefit: string; effects: Effects; revenue: number; opened?: number }
 export type EnemyPlan = "protests" | "leaks" | "rival" | "bandits" | "coup";

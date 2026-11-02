@@ -28,7 +28,7 @@ export function hireMood(faction: Faction | undefined, hired: boolean): number {
   const d = faction === "crony" ? 8 : faction === "loyalist" ? 4 : faction === "heavyweight" ? 1 : faction === "technocrat" ? -5 : 0;
   return hired ? d : -d * 0.9;
 }
-export function cosMood(kind: AideKind): number { return kind === "friend" ? 10 : kind === "chieftain" ? 10 : kind === "technocrat" ? -8 : kind === "general" ? -2 : 1; }
+export function cosMood(kind: AideKind): number { return kind === "friend" || kind === "chieftain" ? 10 : kind === "tycoon" ? 6 : kind === "technocrat" || kind === "activist" ? -8 : kind === "diaspora" ? -4 : kind === "general" || kind === "spymaster" ? -2 : 1; }
 export const backerSupport = (s: FixState) => (s.backers ?? []).reduce((a, b) => a + Math.max(-4, Math.min(4, (b.mood - 50) / 10)) * b.power, 0);
 export const worstBacker = (s: FixState) => [...(s.backers ?? [])].sort((a, b) => a.mood - b.mood)[0];
 

@@ -56,14 +56,24 @@ function Candidate({ m, current, onPick }: { m: Minister; current: boolean; onPi
   );
 }
 
+function Stat({ label, v, shown }: { label: string; v: number; shown: boolean }) {
+  const tone = v >= 70 ? "good" : v >= 45 ? "ok" : "bad";
+  return <div className="fx-aide-stat" data-tone={shown ? tone : undefined}><span>{label}</span><div className="fx-aide-bar"><i style={{ width: shown ? `${v}%` : "0%" }} /></div><b>{shown ? v : "?"}</b></div>;
+}
 function AideCard({ a, on, onPick }: { a: ReturnType<typeof cosCandidates>[number]; on: boolean; onPick: () => void }) {
+  const k = AIDE_KINDS[a.kind];
   return (
-    <button className="fx-cand" data-on={on ? "1" : undefined} onClick={onPick}>
-      <div className="g-row" style={{ gap: 10 }}><Portrait p={a.portrait} size={46} name={a.name} /><div><b>{a.name}</b><div className="g-tiny g-muted">{AIDE_KINDS[a.kind].icon} {AIDE_KINDS[a.kind].tag}</div></div></div>
-      <div className="g-tiny g-muted">{a.bio}</div>
+    <button className="fx-cand fx-aide" data-kind={a.kind} data-on={on ? "1" : undefined} onClick={onPick} aria-pressed={on}>
+      <div className="fx-aide-top">
+        <div className="fx-aide-pic"><Portrait p={a.portrait} size={64} name={a.name} /><span aria-hidden>{k.icon}</span></div>
+        <div className="g-grow"><b className="fx-aide-name">{a.name}</b><div className="fx-aide-tag">{k.tag}</div>{a.quirk && <div className="g-tiny g-muted">🔹 {a.quirk}</div>}</div>
+        {on && <span className="fx-aide-check" aria-hidden>✓</span>}
+      </div>
       {a.quote && <q className="fx-quote">{a.quote}</q>}
-      <div className="fx-sig"><span>✨ {AIDE_KINDS[a.kind].perk}</span><span>⚠️ {AIDE_KINDS[a.kind].flaw}</span></div>
-      <div className="g-row g-between g-tiny"><span>Skill <b>{a.revealed ? a.skill : "?"}</b></span><span>Honesty <b>{a.revealed ? a.integrity : "?"}</b></span><span>Loyalty <b>{a.revealed ? a.loyalty : "?"}</b></span></div>
+      <div className="g-tiny" style={{ color: "#334155" }}>{a.bio}</div>
+      {a.revealed ? <div className="fx-aide-stats"><Stat label="Skill" v={a.skill} shown /><Stat label="Honesty" v={a.integrity} shown /><Stat label="Loyalty" v={a.loyalty} shown /></div>
+        : <div className="fx-aide-hidden">🔒 Skill, honesty and loyalty unknown. You find out what they are really like after a few months.</div>}
+      <div className="fx-sig"><span>✨ {k.perk}</span><span>⚠️ {k.flaw}</span></div>
       <Hint d={cosMood(a.kind)} />
     </button>
   );

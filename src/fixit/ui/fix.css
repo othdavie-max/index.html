@@ -468,3 +468,16 @@
   .gm .fx-turnchips > .g-tiny, .gm .fx-chip2-why { display: none; }
   .gm .fx-chip2 { font-size: 11px; padding: 3px 8px; } .gm .fx-chip2:nth-of-type(n+4) { display: none; }
 }
+
+/* ---------------------------------------------------------------- Day One candidate cards */
+.gm .fx-aide { position: relative; overflow: hidden; border-top: 5px solid var(--aide, #94a3b8); transition: transform .12s ease, box-shadow .12s ease; }
+.gm .fx-aide[data-kind="friend"], .gm .fx-aide[data-kind="loyalist"] { --aide: #f59e0b; } .gm .fx-aide[data-kind="technocrat"], .gm .fx-aide[data-kind="diaspora"] { --aide: #2563eb; }
+.gm .fx-aide[data-kind="chieftain"], .gm .fx-aide[data-kind="regional"], .gm .fx-aide[data-kind="royal"] { --aide: #7c3aed; } .gm .fx-aide[data-kind="general"], .gm .fx-aide[data-kind="spymaster"] { --aide: #334155; }
+.gm .fx-aide[data-kind="cleric"] { --aide: #0d9488; } .gm .fx-aide[data-kind="activist"] { --aide: #e11d48; } .gm .fx-aide[data-kind="tycoon"] { --aide: #c8a24a; } .gm .fx-aide[data-kind="defector"] { --aide: #ea580c; }
+.gm .fx-aide-top { display: flex; gap: 10px; align-items: center; } .gm .fx-aide-pic { position: relative; flex: 0 0 auto; } .gm .fx-aide-pic span { position: absolute; right: -4px; bottom: -4px; background: #fff; border-radius: 999px; font-size: 16px; width: 26px; height: 26px; display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.gm .fx-aide-name { font-size: 15px; display: block; line-height: 1.2; } .gm .fx-aide-tag { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--aide); margin: 2px 0; }
+.gm .fx-aide-check { position: absolute; top: 8px; right: 10px; background: #c8a24a; color: #fff; width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; font-weight: 900; }
+.gm .fx-aide-stats { display: flex; flex-direction: column; gap: 4px; } .gm .fx-aide-stat { display: grid; grid-template-columns: 58px 1fr 26px; gap: 6px; align-items: center; font-size: 12px; } .gm .fx-aide-stat b { text-align: right; }
+.gm .fx-aide-bar { height: 7px; background: #e2e8f0; border-radius: 6px; overflow: hidden; } .gm .fx-aide-bar i { display: block; height: 100%; background: #94a3b8; border-radius: 6px; transition: width .4s ease; }
+.gm .fx-aide-stat[data-tone="good"] i { background: #00c875; } .gm .fx-aide-stat[data-tone="ok"] i { background: #f59e0b; } .gm .fx-aide-stat[data-tone="bad"] i { background: #e11d48; }
+.gm .fx-aide-hidden { font-size: 12px; background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 6px 8px; color: #475569; }

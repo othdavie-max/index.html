@@ -53,3 +53,18 @@ describe("the fun layer", () => {
   });
   it("a long game with everything on stays stable", () => { const s = rich(9108); advanceMonths(s, 60); expect(s.month).toBeGreaterThan(30); });
 });
+
+describe("people at the start", () => {
+  it("each game deals a different, varied line-up with women and men, quirks and stories", async () => {
+    const { cosCandidates, vpCandidates } = await import("../engine/dayone");
+    const kinds = new Set<string>(), bios = new Set<string>(); let women = 0, men = 0;
+    for (let seed = 1; seed <= 40; seed++) { const s = newGame(seed); for (const a of [...cosCandidates(s), ...vpCandidates(s)]) { kinds.add(a.kind); bios.add(a.bio); if (a.female) women++; else men++; expect(a.quirk).toBeTruthy(); expect(a.bio).not.toMatch(/\{/); } expect(new Set(cosCandidates(s).map((a) => a.kind)).size).toBe(4); }
+    expect(kinds.size).toBeGreaterThanOrEqual(12); expect(bios.size).toBeGreaterThan(30); expect(women).toBeGreaterThan(40); expect(men).toBeGreaterThan(40);
+    const lineups = new Set([1, 2, 3, 4, 5, 6].map((sd) => cosCandidates(newGame(sd)).map((a) => a.kind).join())); expect(lineups.size).toBeGreaterThan(3);
+  });
+  it("the inner circle does not repeat the same line every month", async () => {
+    const { cast } = await import("../engine/meta");
+    const s = rich(9200); const lines = new Set<string>(); for (let i = 0; i < 12; i++) { s.month++; lines.add(cast(s).find((f) => f.id === "general")!.line); }
+    expect(lines.size).toBeGreaterThan(1);
+  });
+});

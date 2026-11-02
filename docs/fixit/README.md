@@ -233,3 +233,10 @@ Run tests: `npx vitest run src/fixit`.
 - **Story campaigns**: four three-chapter stories (The Oil Cartel, The Missing Billions, The General's Plot, The Prodigal Governor) that start by themselves, remember your choices and can be won.
 - **Titles**: sixteen nicknames Nigerians give you (Baba Light, Food Basket President, Coup Proof, Chief Borrower...), shown under Build, Overview.
 - Tests: `tests/funlayer.test.ts`.
+
+## People with more character
+
+- Day One candidates come from 13 kinds (adding business tycoon, civil-society activist, former spy chief, diaspora returnee and royal heir), dealt in a different line-up each game: one political pick, one clean pick and two surprises. Women and men, several life stories per kind, a quirk each, and kind-specific titles (Dr, Barr., Princess, Chief, Gen. (rtd)).
+- New kinds have real effects (investors, transparency, Assembly support, coup risk, group moods) and their own "true colours" moments.
+- Candidate cards are redesigned: coloured by kind, larger portrait with a badge, quote, life story, stat bars (or a clear "unknown" note).
+- The inner circle (Chief of Staff, VP, rival, godfather, market leader, general, journalist, governor) now rotates through several lines per mood, some quoting live prices; the market women's leader has a different name each game.

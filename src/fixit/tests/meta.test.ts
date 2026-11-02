@@ -290,7 +290,7 @@ describe("the inner circle acts and remembers", () => {
   it("an unhappy Mama Nkechi threatens to march, and the answer is remembered", () => {
     const s = newGame(4001); s.fin.treasury = 1e5; s.month = 6; s.groupMood.traders = -35;
     for (let i = 0; i < 30 && !s.events.some((e) => e.tpl === "arcMamaMarch"); i++) { s.month++; castArcsMonthly(s, subRng(4001, "a", i)); s.flags["arcLast:general"] = s.month; s.flags["arcLast:godfather"] = s.month; s.flags["arcLast:journo"] = s.month; s.flags["arcLast:governor"] = s.month; s.flags["arcLast:vp"] = s.month; }
-    const e = s.events.find((x) => x.tpl === "arcMamaMarch")!; expect(e).toBeDefined(); expect(e.title).toMatch(/Nkechi/);
+    const e = s.events.find((x) => x.tpl === "arcMamaMarch")!; expect(e).toBeDefined(); expect(e.title).toMatch(/Mama|Iya|Hajiya/);
     const before = favour(s, "mama"); respond(s, e.id, "police", true as never);
     expect(favour(s, "mama")).toBeLessThan(before);
     expect(cast(s).find((f) => f.id === "mama")!.mood).toBeLessThan(40);

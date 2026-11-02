@@ -248,13 +248,29 @@ function portraitOf(seed: number, key: string): Portrait {
 }
 const emotion = (mood: number, scheming: boolean): Face["emotion"] => (mood >= 72 ? "😊" : mood >= 50 ? "🙂" : mood >= 32 ? "😕" : scheming ? "😈" : "😠");
 const tier = (m: number) => (m >= 62 ? 0 : m >= 36 ? 1 : 2);
+const MARKET = ["Mama Nkechi", "Iya Oloja Basira", "Hajiya Ladi", "Mama Ebere", "Iya Kemi", "Mama Tari"];
+/** extra lines for each face, by mood: [happy, uneasy, angry] */
+const CAST_LINES: Record<string, string[][]> = {
+  cos: [["Your schedule is clean this week. That has never happened before.", "The ministers are actually delivering. Do not tell them I said so.", "I moved three crises off your desk before breakfast."], ["Two ministers are not speaking to each other. I am refereeing.", "Everybody wants five minutes with you. I am saying no to most of them.", "The desk is heavy this month. Pick your battles."], ["I am hearing things in the corridors I do not like.", "Half the Villa is leaking to the press. I am trying to find out who.", "If this continues, I cannot hold the team together."]],
+  vp: [["The party is calm. I made sure of it.", "I opened your road project in the north. They cheered your name.", "Use me, Oga. I am ready for any assignment."], ["Some governors are visiting my house. I am only being polite.", "The party wants to know my plans for the future. I tell them nothing.", "I hope I will be consulted on the next big decision."], ["People are saying the ticket needs a change. I did not start it.", "I am the Vice President, not a ceremonial ornament.", "Some of my supporters are getting impatient. I cannot always control them."]],
+  rival: [["He has gone quiet. Insiders say his donors are drifting.", "He is touring Europe. Nobody back home noticed.", "Even his own party is praising your power projects."], ["He is holding town halls in your strongholds.", "His new slogan is everywhere: 'Enough is Enough'.", "He says the price of rice, {rice}, is your fault."], ["His rallies are bigger than yours now.", "He is promising to probe everything you have done.", "He told CNN your government is 'a disaster in agbada'."]],
+  godfather: [["You are a good son. My people are happy.", "The contracts are flowing. Everybody is eating, and quietly.", "Come for dinner on Sunday. Bring nobody."], ["Some of my boys say you are forgetting them.", "A small favour, Mr President: my nephew needs a board seat.", "Remember, a tree does not grow without roots."], ["You are listening to the wrong people.", "I have funded your opponents before. I can do it again.", "Do not make me come to Abuja myself."]],
+  mama: [["Customers are buying again. God bless you, Oga!", "Rice is {rice}. We can manage that.", "My women are dancing in the market. Come and see."], ["The dollar is {fx}. My suppliers are crying.", "Transport fares ate all our profit this month.", "We are patient, but patience has a price."], ["The market will shut down on Monday. You have been warned.", "Rice is {rice}. Who can afford that?", "My women are tired of promises."]],
+  general: [["Morale is high. The new equipment has arrived.", "The North-East front is quiet. The boys are doing well.", "The forces salute you, Commander-in-Chief."], ["Some officers complain about promotions.", "The boys need boots, not speeches.", "We are stretched across too many fronts."], ["I am hearing whispers in the mess halls.", "Some officers are asking who really runs the country.", "If the pay does not come, I cannot promise discipline."]],
+  journo: [["The procurement files you published were boring. That is a compliment.", "I have no scandal to write about. My editor is worried.", "Your press office actually answered my questions. Strange times."], ["I am looking into a road contract in your home state.", "Three sources, one story. Expect a call.", "A minister's wife just bought a hotel in Dubai. Interesting."], ["Two of my colleagues were arrested this month. I will keep writing.", "We will publish, with or without your comment.", "You cannot jail every journalist in Nigeria."]],
+  governor: [["My state is grateful. The new road changed everything.", "Count on my delegates at the next convention.", "The people of my state sing your praises."], ["We are still waiting for the federal allocation.", "My workers have not been paid in two months.", "A little support from Abuja would go a long way."], ["My colleagues are discussing a new alliance.", "Abuja treats us like a colony.", "Do not expect my state's votes next time."]],
+};
 
 export function cast(s: FixState): Face[] {
   const out: Face[] = [];
   const seed = s.meta.seed;
   const push = (id: string, name: string, role: string, icon: string, portrait: Portrait, mood: number, scheming: boolean, line: string) => {
     const m = Math.round(clamp100(mood + Number(s.flags[`fav:${id}`] ?? 0)));
-    out.push({ id, name, role, icon, portrait, mood: m, trend: s.cap && s.cap.castPrev[id] !== undefined ? m - s.cap.castPrev[id] : 0, emotion: emotion(m, scheming), line });
+    // rotate through several lines per mood so the same person does not say the same thing every month
+    const extra = CAST_LINES[id]?.[tier(m)] ?? [];
+    const pool = [line, ...extra.map((x) => x.replace("{fuel}", `₦${fuel}`).replace("{rice}", `₦${Math.round(90000 * s.eco.foodPriceIdx / 100).toLocaleString("en-NG")}`).replace("{fx}", `₦${Math.round(s.eco.fx).toLocaleString("en-NG")}`))];
+    let h = 7; for (const ch of `${id}${s.month}${seed}`) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    out.push({ id, name, role, icon, portrait, mood: m, trend: s.cap && s.cap.castPrev[id] !== undefined ? m - s.cap.castPrev[id] : 0, emotion: emotion(m, scheming), line: pool[h % pool.length] });
   };
   const fuel = Math.round(s.fuel.pump);
   const cos = s.staff?.cos;
@@ -273,7 +289,7 @@ export function cast(s: FixState): Face[] {
   if (gf) push("godfather", gf.name, gf.title, "🎩", portraitOf(seed, `gf:${gf.id}`), gf.mood, gf.mood < 40, [
     "My boy, you are doing well. Remember who put you there, and we will be fine.", "You have forgotten the road that brought you, Mr President. Visit me soon.", "I made you. I can unmake you. Think carefully.",
   ][tier(gf.mood)]);
-  push("mama", "Mama Nkechi", "Market women's leader", "🧺", portraitOf(seed, "mama"), 50 + s.groupMood.traders * 1.25, false, [
+  push("mama", MARKET[Math.abs(seed >> 5) % MARKET.length], "Market women's leader", "🧺", portraitOf(seed, "mama"), 50 + s.groupMood.traders * 1.25, false, [
     "Oga, market dey move small small. Keep am so.", `Petrol is ₦${fuel}. My women say the profit is gone, Sir.`, "We will block the road at Balogun if nothing changes. Abeg listen!",
   ][tier(50 + s.groupMood.traders * 1.25)]);
   const gen = GEN[Math.abs(seed) % GEN.length];

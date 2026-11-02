@@ -21,6 +21,7 @@ const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const VOICE: Record<AideKind, string> = {
   friend: "Oga,", technocrat: "Mr President, the numbers:", chieftain: "Politically speaking,", general: "From a security point of view,", cleric: "With respect, Sir,",
   regional: "My people in the zone say:", loyalist: "The party feels:", defector: "I know how the other side thinks:",
+  tycoon: "As a business matter,", activist: "Speaking for ordinary Nigerians,", spymaster: "My sources tell me:", diaspora: "Looking at how other countries did it,", royal: "The traditional rulers would say:",
 };
 const LEAD: Record<Stance, string[]> = {
   go: ["I say do it.", "This is a good move.", "Go ahead."],
