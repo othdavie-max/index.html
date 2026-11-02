@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "../Brief";
 import { useState, type ReactNode } from "react";
 import { RATE_LABEL, rateLevel, setRate } from "../../engine/dials";
 import { useFix, useS } from "../store";
@@ -112,14 +113,14 @@ function Money({ s, fcLabel }: { s: FixState; fcLabel: string }) {
         </Card>
         <Card title="Borrow or repay">
           <div className="g-col">
-            <div className="g-small g-muted">Borrowing buys time but is not free. Local loans crowd out business lending; dollar bonds carry currency risk.</div>
+            <Tip>Borrowing buys time but is not free. Local loans crowd out business lending; dollar bonds carry currency risk.</Tip>
             <div className="g-row g-wrap"><select className="g-select" style={{ width: 160 }} value={dom} onChange={(e) => setDom(Number(e.target.value))} aria-label="Amount to borrow locally">{[500, 1000, 2000, 3000].map((n) => <option key={n} value={n}>{nb(n)}</option>)}</select><Button onClick={() => run("domestic", dom)}>Borrow locally</Button><Button onClick={() => run("repay", dom)}>Repay local debt</Button></div>
             <div className="g-row g-wrap"><select className="g-select" style={{ width: 160 }} value={bond} onChange={(e) => setBond(Number(e.target.value))} aria-label="Dollar bond size">{[0.5, 1, 2, 3].map((n) => <option key={n} value={n}>${n}bn</option>)}</select><Button onClick={() => run("bond", bond)}>Issue dollar bonds</Button></div>
           </div>
         </Card>
         <Card title="Defending the naira">
           <div className="g-col">
-            <div className="g-small g-muted">The central bank can sell dollars to slow a fall. That uses reserves, which cannot be spent twice, and only buys time if the underlying gap is fixed.</div>
+            <Tip>The central bank can sell dollars to slow a fall. That uses reserves, which cannot be spent twice, and only buys time if the underlying gap is fixed.</Tip>
             <input type="range" min={0} max={1} step={0.05} value={s.eco.fxDefence} onChange={(e) => act((x) => setFxDefence(x, Number(e.target.value)), { silent: true })} aria-label="How hard to defend the naira" />
             <div className="g-row g-between g-small"><span>Let it float</span><b>{s.eco.fxDefence < 0.05 ? "Float" : s.eco.fxDefence < 0.45 ? "Light defence" : s.eco.fxDefence < 0.8 ? "Strong defence" : "All-out defence"}</b><span>Defend hard</span></div>
             <div className="g-small"><b>Reserves:</b> ${s.eco.reserves.toFixed(1)}bn. <b>Real wage index:</b> {realWage(s).toFixed(0)}.</div>

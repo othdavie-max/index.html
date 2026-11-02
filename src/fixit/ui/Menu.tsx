@@ -1,4 +1,6 @@
 "use client";
+import { LangPicker } from "./LangPicker";
+import { Tip } from "./Brief";
 import { serialise, deserialise } from "../persistence";
 import { isMuted, isMusicOn, setMuted, setMusicOn, sfx, startMusic } from "./sound";
 import { SANDBOX_TOOLS } from "../engine/sandbox";
@@ -83,14 +85,14 @@ export function HowTo({ onClose }: { onClose: () => void }) {
     <Modal title="How to play (one minute)" onClose={onClose} footer={<Button variant="primary" onClick={onClose}>Got it</Button>}>
       <div className="g-col">
         {steps.map(([t, b], i) => <div key={t} className="fx-step"><i>{i + 1}</i><div><b>{t}</b><div className="g-small g-muted">{b}</div></div></div>)}
-        <div className="g-small g-muted">You have four years (48 months) and three promises. Keeping promises and keeping people happy raise your re-election chance (the green circle). At the end, your legacy report shows what you really changed.</div>
+        <Tip>You have four years (48 months) and three promises. Keeping promises and keeping people happy raise your re-election chance (the green circle). At the end, your legacy report shows what you really changed.</Tip>
       </div>
     </Modal>
   );
 }
 
 export function MenuModal({ onClose }: { onClose: () => void }) {
-  const { state, quit, startNew, saveSlot, toast, act, saves, loadState, lang, setLang } = useFix();
+  const { state, quit, startNew, saveSlot, toast, act, saves, loadState } = useFix();
   const [snd, setSnd] = useState(!isMuted());
   const [mus, setMus] = useState(isMusicOn());
   const [sub, setSub] = useState<"slots" | "about" | "how" | "new" | null>(null);
@@ -110,8 +112,9 @@ export function MenuModal({ onClose }: { onClose: () => void }) {
             <Button size="sm" onClick={() => { const on = !snd; setSnd(on); setMuted(!on); if (on) sfx("tap"); }}>{snd ? "🔊 Sound on" : "🔇 Sound off"}</Button>
             <Button size="sm" onClick={() => { const on = !mus; setMus(on); setMusicOn(on); if (on) startMusic(); }}>{mus ? "🎵 Music on" : "🎵 Music off"}</Button>
             <Button size="sm" onClick={() => act((g) => { g.flags.noTimer = !g.flags.noTimer; return { ok: true, message: g.flags.noTimer ? "Crisis timers off." : "Crisis timers on." }; })}>{state.flags.noTimer ? "⏱️ Crisis timer off" : "⏱️ Crisis timer on"}</Button>
-            <Button size="sm" onClick={() => setLang(lang === "pcm" ? "en" : "pcm")}>{lang === "pcm" ? "🗣️ Naija Pidgin" : "🗣️ English"}</Button>
           </div>
+          <div className="g-small g-muted">🗣️ Language</div>
+          <LangPicker />
           <div className="g-row g-wrap" style={{ borderTop: "1px solid #e2e8f0", paddingTop: 10 }}>
             <Button onClick={() => { const blob = new Blob([serialise(state)], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `nigeria-${state.meta.president.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-${monthShort(state.month).replace(" ", "-")}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Save file downloaded. Keep it somewhere safe."); }}>Export save file</Button>
             <label className="g-btn" style={{ cursor: "pointer" }}>Import save file<input type="file" accept=".json,application/json" style={{ display: "none" }} onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; try { const { state: g } = deserialise(await f.text()); loadState(g); toast("Save loaded."); onClose(); } catch { toast("That file is not a valid save.", true); } }} /></label>

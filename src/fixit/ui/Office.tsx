@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "./Brief";
 /** The President's Office: intelligence briefings (some of it true) and the things a president can simply do. */
 import { useState } from "react";
 import { Button, Card } from "../../game/ui/kit";
@@ -19,7 +20,7 @@ export function OfficePanel() {
     <div className="g-col" style={{ gap: 14 }}>
       <Card title="🕵️ The briefing room">
         <div className="g-col" style={{ gap: 8 }}>
-          <div className="g-small g-muted">The intelligence service brings you whispers. Some are true and some are not, and acting on a false one does real harm. Dig deeper before you move, or call the National Security Council to sharpen the service.</div>
+          <Tip>The intelligence service brings you whispers. Some are true and some are not, and acting on a false one does real harm. Dig deeper before you move, or call the National Security Council to sharpen the service.</Tip>
           {live.length === 0 && <div className="g-small g-muted">Nothing on the table this month.</div>}
           {live.map((r) => (
             <div key={r.id} className="fx-rumour" data-real={r.revealed ? (r.real ? "1" : "0") : undefined}>

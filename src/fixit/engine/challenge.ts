@@ -4,7 +4,9 @@
  */
 import { MEASURE_BY_ID, POLICY_BY_ID, PROJECT_BY_ID } from "../data/catalogue";
 import type { FixState } from "./types";
-import { openEvents } from "./events";
+import { openEvents, TEMPLATE_BY_ID } from "./events";
+import { fxChips } from "./fxchips";
+import { previewChips } from "./preview";
 import { debtServiceRatio, foodAffordIdx, lever, nb, powerRatio, realWage, round } from "./util";
 import { priceMult, previewFuel, recentUses } from "./actions";
 import { refChips, type Chip } from "./forecast";
@@ -188,6 +190,7 @@ export function decorate(s: FixState, a: ChallengeAction): ChallengeAction {
   if (r.type === "respond") tpl = s.events.find((e) => e.id === r.eventId)?.tpl;
   if (r.type === "fuel") c = r.action === "increase" ? [{ label: "Petrol price", up: false, good: true }, { label: "Budget", up: false, good: false }] : [{ label: "Petrol price", up: true, good: false }, { label: "Budget", up: true, good: true }, ...(r.action === "reform" ? [{ label: "Help for the poor", up: true, good: true }] : [{ label: "Protest risk", up: true, good: false }])];
   if (r.type === "bond") c = [{ label: "Cash now", up: true, good: true }, { label: "Dollar debt", up: true, good: false }];
+  if (r.type === "respond" && !c.length) { c = previewChips(s, r.eventId, r.optionId); if (!c.length) c = fxChips(TEMPLATE_BY_ID[tpl ?? ""]?.options.find((o) => o.id === r.optionId)?.win); }
   const later = futureHint({ type: r.type, id: "id" in r ? r.id : undefined, action: r.type === "fuel" ? r.action : undefined, eventTpl: tpl, optionId: r.type === "respond" ? r.optionId : undefined });
   return { ...a, chips: c, later };
 }

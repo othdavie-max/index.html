@@ -14,6 +14,7 @@ import { pidgin } from "../engine/pidgin";
 import { socialSync } from "../engine/social";
 import { track } from "./analytics";
 import { because } from "../engine/because";
+import { isLang, type Lang } from "../engine/i18n";
 
 export type Tab = "world" | "presidency" | "map" | "policies" | "projects" | "nation" | "news" | "assembly" | "power" | "cabinet" | "moves" | "street" | "advisers" | "oil" | "deals" | "enemies" | "timeline" | "foreign" | "party" | "sectors" | "debt" | "lending" | "military" | "governors" | "plans" | "x" | "league" | "grand" | "trade";
 export interface Change { label: string; from: string; to: string; tone: "good" | "bad" | "neutral"; because?: string[] }
@@ -46,8 +47,8 @@ interface Ctx {
   error: string | null;
   clearError: () => void;
   /** Naija Pidgin for flavour text */
-  lang: "en" | "pcm";
-  setLang: (l: "en" | "pcm") => void;
+  lang: Lang;
+  setLang: (l: Lang) => void;
   tx: (text: string) => string;
 }
 const C = createContext<Ctx | null>(null);
@@ -86,8 +87,8 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const [lastSaved, setLastSaved] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasAuto, setHasAuto] = useState(false);
-  const [lang, setLangState] = useState<"en" | "pcm">(() => { try { return typeof window !== "undefined" && window.localStorage.getItem("fix:lang") === "pcm" ? "pcm" : "en"; } catch { return "en"; } });
-  const setLang = useCallback((l: "en" | "pcm") => { setLangState(l); try { window.localStorage.setItem("fix:lang", l); } catch { /* ignore */ } }, []);
+  const [lang, setLangState] = useState<Lang>(() => { try { const v = typeof window !== "undefined" ? window.localStorage.getItem("fix:lang") : null; return isLang(v) ? v : "en"; } catch { return "en"; } });
+  const setLang = useCallback((l: Lang) => { setLangState(l); try { window.localStorage.setItem("fix:lang", l); } catch { /* ignore */ } }, []);
   const tx = useCallback((text: string) => (lang === "pcm" ? pidgin(text) : text), [lang]);
   const saves = useMemo(() => new FixSaves(), []);
   const gameRef = useRef<FixState | null>(null);

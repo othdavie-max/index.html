@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "./Brief";
 /** National debt and the road to being debt-free, lending abroad, and the armed forces. */
 import { useState } from "react";
 import { THEATRES, STRATEGIES, commanders, endOp, launchOp, monthlyCost, opsOf } from "../engine/ops";
@@ -119,7 +120,7 @@ function OpsCard() {
   return (
     <Card title="Operations in the field" icon={<span aria-hidden>🗺️</span>}>
       <div className="g-col" style={{ gap: 10 }}>
-        <div className="g-small g-muted">Run up to two operations. Pick the strategy, the money and the commander. A skilled, honest commander wins; a corrupt one steals the rations; a popular one starts to look like a rival.</div>
+        <Tip>Run up to two operations. Pick the strategy, the money and the commander. A skilled, honest commander wins; a corrupt one steals the rations; a popular one starts to look like a rival.</Tip>
         {THEATRES.map((t) => {
           const o = ops.find((x) => x.theatre === t.id);
           const cm = commanders(s, t.id);

@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "./Brief";
 /** Adviser comments: portraits, a stance chip and what they think. Used on events, big moves, laws and strongman tools. */
 import { useState } from "react";
 import { Button, Portrait } from "../../game/ui/kit";
@@ -80,7 +81,7 @@ function ProposalsCard() {
   return (
     <div className="g-card-flat g-col" style={{ gap: 8 }}>
       <b>Ideas from your advisers</b>
-      <div className="g-small g-muted">Every month or two a smart adviser may bring you something to build. Say yes and you run it; tell them to handle it and their skill, honesty and loyalty decide how it goes. Switch on &quot;acts on their own&quot; to stop being asked.</div>
+      <Tip>Every month or two a smart adviser may bring you something to build. Say yes and you run it; tell them to handle it and their skill, honesty and loyalty decide how it goes. Switch on &quot;acts on their own&quot; to stop being asked.</Tip>
       {team.map((a) => (
         <div key={a.id} className="g-row g-between g-wrap" style={{ gap: 8 }}>
           <span className="g-small"><b>{a.name}</b> <span className="g-muted">{a.revealed || s.month - a.since >= 6 ? `skill ${a.skill}, honesty ${a.integrity}, loyalty ${a.loyalty}` : "(you do not know them well yet)"}</span></span>

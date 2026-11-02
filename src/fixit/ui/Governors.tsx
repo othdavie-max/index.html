@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "./Brief";
 /** State of the States: every governor, how good they are and how their state is doing. */
 import { useState } from "react";
 import { Portrait } from "../../game/ui/kit";
@@ -23,7 +24,7 @@ export function GovernorsPanel() {
   rows.sort((a, b) => sort === "state" ? (STATE_BY_ID[a.g.stateId]?.name ?? "").localeCompare(STATE_BY_ID[b.g.stateId]?.name ?? "") : sort === "progress" ? order[a.p?.verdict ?? "flat"] - order[b.p?.verdict ?? "flat"] : (b.g.skill * 1.2 + b.g.integrity) - (a.g.skill * 1.2 + a.g.integrity));
   return (
     <div className="g-col" style={{ gap: 10 }}>
-      <div className="g-small g-muted">Each state has its own governor. A good one makes every project you build there work better; a weak or corrupt one wastes it. Tap a row to open the state on the map.</div>
+      <Tip>Each state has its own governor. A good one makes every project you build there work better; a weak or corrupt one wastes it. Tap a row to open the state on the map.</Tip>
       <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Sort governors">
         {([["grade", "Best first"], ["progress", "By progress"], ["state", "A to Z"]] as const).map(([k, l]) => <button key={k} className="fx-subtab" aria-pressed={sort === k} onClick={() => setSort(k)}>{l}</button>)}
       </div>

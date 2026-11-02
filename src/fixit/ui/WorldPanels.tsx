@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "./Brief";
 import { useState } from "react";
 /** Foreign relations, your party, and the first family. */
 import { useFix, useS } from "./store";
@@ -120,7 +121,7 @@ function TradeCard() {
   return (
     <Card title="🚢 Trade and visits">
       <div className="g-col" style={{ gap: 10 }}>
-        <div className="g-small g-muted">What you can sell depends on what you have built: mills, hubs, plants, studios. Every partner wants something in return. Sign deals, or go in person.</div>
+        <Tip>What you can sell depends on what you have built: mills, hubs, plants, studios. Every partner wants something in return. Sign deals, or go in person.</Tip>
         <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Trading partner">{TRADE_PARTNERS.map((p) => <button key={p.id} className="fx-subtab" aria-pressed={partner === p.id} onClick={() => setPartner(p.id)}>{p.icon} {p.name} · {Math.round(p.warm(s))}</button>)}</div>
         <div className="g-tiny g-muted">{TP_BY_ID[partner].strings}</div>
         <div className="fx-trade">

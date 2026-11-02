@@ -14,6 +14,8 @@ import type { ActionRef, Challenge, ChallengeAction } from "../engine/challenge"
 import { nb, monthLabel } from "../engine/util";
 import { SymbolIcon } from "./MapView";
 import { Chips, UncBadge } from "./parts";
+import { Brief, shorten } from "./Brief";
+import { iconFor } from "./icons";
 import { EventAdvisers } from "./AdvisorStrip";
 import { EVENT_MINIS, MiniHost } from "./Minigames";
 import { billFor } from "../engine/politics";
@@ -23,17 +25,26 @@ import type { Portfolio } from "../engine/types";
 const ADVISER_PORTFOLIO: Record<string, Portfolio> = { "Finance Minister": "finance", "Central Bank Governor": "cbn", "Agriculture Minister": "agriculture", "Power Minister": "power", "National Security Adviser": "security" };
 
 export function ActionCard({ a, onDo }: { a: ChallengeAction; onDo: () => void }) {
+  const [open, setOpen] = useState(false);
+  const { short, cut } = shorten(a.explain, 64);
+  const more = cut || !!a.later || !!a.tradeoff;
+  const cta = a.blocked ?? (a.ref.type === "wait" ? "Hold steady" : a.ref.type === "project" ? "Choose site…" : billFor(a.ref as { type: string; id?: string; action?: string }) ? "Put to a vote" : "Do it");
   return (
-    <div className="fx-act">
-      <b>{a.label}</b>
-      <div className="g-small" style={{ color: "#475569" }}>{a.explain}</div>
-      {a.chips && <Chips chips={a.chips} label="Now" />}
-      {a.later && <div className="fx-later"><Hourglass size={14} style={{ flex: "none", marginTop: 1 }} aria-hidden /><span><b>Later:</b> {a.later}</span></div>}
-      <div className="g-tiny" style={{ color: "#64748b" }}><b style={{ color: "#334155" }}>Downside:</b> {a.tradeoff}</div>
-      <div className="fx-row" style={{ justifyContent: "space-between", marginTop: 2 }}>
-        <span className="g-row" style={{ gap: 6, flexWrap: "wrap" }}><span className="g-badge">{a.costLabel}</span><UncBadge u={a.uncertainty} /></span>
-        <Button size="sm" variant="primary" disabled={!!a.blocked} onClick={onDo} title={a.blocked}>{a.blocked ?? (a.ref.type === "wait" ? "Hold steady" : a.ref.type === "project" ? "Choose site…" : billFor(a.ref as { type: string; id?: string; action?: string }) ? "Send to Assembly" : "Do this")}</Button>
+    <div className="fx-act fx-act2" data-open={open ? "1" : undefined}>
+      <div className="fx-act2-top"><span className="fx-act2-ic" aria-hidden>{iconFor(a.label)}</span><b>{a.label}</b></div>
+      <div className="fx-act2-sum">{short}</div>
+      {a.chips && a.chips.length > 0 && <Chips chips={a.chips} />}
+      <div className="fx-act2-foot">
+        <span className="fx-act2-meta"><span className="g-badge">{a.costLabel}</span><UncBadge u={a.uncertainty} />{more && <button type="button" className="fx-info" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? "Hide details" : "Show details"}>{open ? "−" : "ⓘ"}</button>}</span>
+        <Button size="sm" variant="primary" disabled={!!a.blocked} onClick={onDo} title={a.blocked}>{cta}</Button>
       </div>
+      {open && (
+        <div className="fx-act2-more g-small">
+          <div>{a.explain}</div>
+          {a.later && <div className="fx-later"><Hourglass size={14} style={{ flex: "none", marginTop: 1 }} aria-hidden /><span><b>Later:</b> {a.later}</span></div>}
+          <div className="g-tiny"><b>Downside:</b> {a.tradeoff}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -90,7 +101,7 @@ export function EventCard({ e, compact }: { e: GameEvent; compact?: boolean }) {
         <Badge tone={left <= 1 ? "red" : "amber"}><Clock size={12} /> {left <= 0 ? "answer now" : `${left} month${left === 1 ? "" : "s"} left`}</Badge>
         <Badge><MapPin size={12} /> {STATE_BY_ID[e.stateId]?.name}</Badge>
       </div>
-      <div className="g-small" style={{ color: "#334155" }}>{e.cause}</div>
+      <div style={{ color: "#334155" }}><Brief text={e.cause} max={96} /></div>
       {!compact && isCrisis(e.tpl) && <CrisisTimer e={e} />}
       {!compact && e.status === "open" && mg && <button className="fx-play" onClick={() => setMini(true)}>🎮 {mg.label}<span>{mg.blurb}</span></button>}
       {mini && mg && <MiniHost game={mg.game} seed={e.id} onClose={() => setMini(false)} onDone={(ok) => { setMini(false); act((s) => respond(s, e.id, mg.opt, ok)); }} />}

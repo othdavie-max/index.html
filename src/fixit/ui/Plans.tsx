@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "./Brief";
 /** Plans: every big problem as a short ladder of solutions, with the payoff at the top. */
 import { useState } from "react";
 import { Button, Card } from "../../game/ui/kit";
@@ -24,7 +25,7 @@ export function PlansPanel() {
   const jobs = jobsCreated(s);
   return (
     <div className="g-col" style={{ gap: 14 }}>
-      <div className="g-small g-muted">Every big problem has a ladder: a few steps, with a big payoff at the top. Start a step and it is the same project or policy you would find under Projects and Policies, just in the order that works.</div>
+      <Tip>Every big problem has a ladder: a few steps, with a big payoff at the top. Start a step and it is the same project or policy you would find under Projects and Policies, just in the order that works.</Tip>
       {LADDERS.map((l) => {
         const pr = ladderProgress(s, l);
         return (

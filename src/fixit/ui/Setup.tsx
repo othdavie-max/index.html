@@ -1,5 +1,6 @@
 "use client";
 /** The new start: four short steps, one decision each. */
+import { LangPicker } from "./LangPicker";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Shuffle } from "lucide-react";
 import { Button, Portrait, PORTRAIT_NAMES, PORTRAIT_OPTIONS } from "../../game/ui/kit";
@@ -22,7 +23,7 @@ const BG_STORY: Record<string, string> = {
 };
 
 export function Setup({ onBack }: { onBack: () => void }) {
-  const { startNew, saves, lang, setLang } = useFix();
+  const { startNew, saves } = useFix();
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [portrait, setPortrait] = useState<PortraitT>({ skin: 3, hair: 0, style: 0, accent: 0 });
@@ -139,7 +140,7 @@ export function Setup({ onBack }: { onBack: () => void }) {
                 <div className="fx-wiz-label">How you take over</div>
                 <div className="fx-chips">{STARTS.map((x) => { const need = START_NEED[x.id] ?? 0, lock = progress < need; return <button key={x.id} className="fx-opt" aria-pressed={start === x.id} disabled={lock} onClick={() => setStart(x.id)}><b>{lock ? "🔒" : x.icon} {x.name}</b><i>{lock ? `Finish ${need - progress} more` : x.blurb}</i></button>; })}</div>
                 <div className="fx-wiz-label">Street voices in</div>
-                <div className="fx-chips"><button className="fx-opt" aria-pressed={lang === "en"} onClick={() => setLang("en")}><b>English</b></button><button className="fx-opt" aria-pressed={lang === "pcm"} onClick={() => setLang("pcm")}><b>Naija Pidgin</b></button></div>
+                <LangPicker />
                 <div className="fx-wiz-label">Legacy perks from past games</div>
                 <PerksCard onChange={setPerks} />
               </div>

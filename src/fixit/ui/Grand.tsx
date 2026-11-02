@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "./Brief";
 /** Grand plans: mega-projects that never run out, the sovereign fund, the naira's journey, and the world's shocks. */
 import { Button, Card } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
@@ -17,7 +18,7 @@ export function GrandPanel() {
   return (
     <div className="g-col" style={{ gap: 14 }}>
       <Card title="Mega-projects" icon={<span aria-hidden>🏗️</span>}>
-        <div className="g-small g-muted" style={{ marginBottom: 8 }}>Huge, slow and costly. Every one can be built again at a bigger scale, so there is always another summit. Three at a time.</div>
+        <Tip>Huge, slow and costly. Every one can be built again at a bigger scale, so there is always another summit. Three at a time.</Tip>
         {st.run.length > 0 && <div className="g-col" style={{ gap: 6, marginBottom: 10 }}>{st.run.map((r) => { const m = MEGAS.find((x) => x.id === r.id)!; const total = m.cost * Math.pow(1.7, r.level - 1) * (0.6 + 0.4 * s.eco.priceLevel / 100); const pct = Math.min(100, Math.round(r.spent / total * 100)); return (
           <div key={r.id} className="fx-mega-run"><span style={{ fontSize: 22 }} aria-hidden>{m.icon}</span><div className="g-grow"><b className="g-small">{m.name}{r.level > 1 ? ` ${roman[r.level] ?? r.level}` : ""}</b><div className="fx-bar"><i style={{ width: `${pct}%` }} /></div><div className="g-tiny g-muted">{pct}% · started {monthLabel(r.start)}{r.paused ? " · PAUSED: out of cash" : ""}</div></div><Button size="sm" onClick={() => { sfx("tap"); act((g) => cancelMega(g, r.id)); }}>Cancel</Button></div>); })}</div>}
         <div className="fx-powers">
@@ -40,13 +41,13 @@ export function GrandPanel() {
         <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Bold styles can lose money in a bad year. A big fund is the best defence in a global crisis.</div>
       </Card>
       <Card title="The naira abroad" icon={<span aria-hidden>₦</span>}>
-        <div className="g-small g-muted">Persuade countries to join the African Prosperity Zone, then to trade in naira. Do that for enough of the world and the naira becomes a currency other countries save in. Visit them under Power → World league.</div>
+        <Tip>Persuade countries to join the African Prosperity Zone, then to trade in naira. Do that for enough of the world and the naira becomes a currency other countries save in. Visit them under Power → World league.</Tip>
         <div className="fx-bar" style={{ marginTop: 8 }}><i style={{ width: `${Math.min(100, Math.round(share / 34 * 100))}%` }} /></div>
         <div className="g-tiny g-muted">{share}% of world trade weight uses naira · {w.bloc.length} in the Prosperity Zone · {w.naira.length} using naira</div>
         <div className="g-col" style={{ gap: 4, marginTop: 6 }}>{NAIRA_STEPS.map((x, i) => <div key={x.label} className="g-small" style={{ opacity: Number(s.flags.nairaStep ?? 0) > i ? 1 : 0.55 }}>{Number(s.flags.nairaStep ?? 0) > i ? "✅" : "⬜"} <b>{x.label}</b> at {x.at}%</div>)}</div>
       </Card>
       <Card title="Shocks that shake the world" icon={<span aria-hidden>🌪️</span>}>
-        {w.eraLog.length === 0 ? <div className="g-small g-muted">None yet. Every three to five years something hits every country at once, and the league table is reshuffled by who copes best.</div> : <div className="g-col" style={{ gap: 4 }}>{[...w.eraLog].reverse().map((e, i) => <div key={i} className="g-small"><b>{ERA_NAME[Object.keys(ERA_NAME).find((k) => ERA_NAME[k] === e.text) ?? ""] ?? e.text}</b> <span className="g-muted">· {monthLabel(e.month)}</span></div>)}</div>}
+        {w.eraLog.length === 0 ? <Tip>None yet. Every three to five years something hits every country at once, and the league table is reshuffled by who copes best.</Tip> : <div className="g-col" style={{ gap: 4 }}>{[...w.eraLog].reverse().map((e, i) => <div key={i} className="g-small"><b>{ERA_NAME[Object.keys(ERA_NAME).find((k) => ERA_NAME[k] === e.text) ?? ""] ?? e.text}</b> <span className="g-muted">· {monthLabel(e.month)}</span></div>)}</div>}
         {next > 0 && <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Next shock: sometime after {monthLabel(next)}. Savings and spare cash help.</div>}
       </Card>
     </div>

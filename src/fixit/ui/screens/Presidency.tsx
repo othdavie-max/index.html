@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "../Brief";
 import { useState } from "react";
 import { AlertTriangle, Banknote, BriefcaseBusiness, CalendarClock, Coins, Fuel, HeartHandshake, ShieldAlert, Target, TrendingUp, X } from "lucide-react";
 import { useFix, useS, type Tab } from "../store";
@@ -75,7 +76,7 @@ function StatusBar() {
       <div className="fx-odds" style={{ ["--p" as string]: odds }} aria-label={`Re-election chance if the vote were today: ${odds}%`}><span>{odds}%</span></div>
       <div>
         <div style={{ fontWeight: 800 }}>{s.term >= 2 ? "Final term" : "Re-election chance if the vote were today"}</div>
-        <div className="g-small g-muted">{left} month{left === 1 ? "" : "s"} until {s.term >= 2 ? "you leave office" : "election day"}. It rises with happiness, trust and promises kept. Unkept promises start to count against you in the final year.</div>
+        <div className="g-small g-muted">⏳ {left} month{left === 1 ? "" : "s"} to {s.term >= 2 ? "the end" : "election day"}</div><Tip label="What moves this?">It rises with happiness, trust and promises kept. Unkept promises start to count against you in the final year.</Tip>
       </div>
       </div>
       <div>
@@ -196,8 +197,7 @@ export function Presidency() {
           <div className="g-grid g-grid-2" style={{ gap: 8 }}>
             {issuesOf(s).map((x) => <div key={x.id} className="g-card-flat" style={{ borderLeft: `4px solid ${x.good ? "#00c875" : "#e11d48"}` }}><b className="g-small">{x.good ? "✅" : "⚠️"} {x.name}</b><div className="g-tiny g-muted">{x.brief}</div></div>)}
           </div>
-          <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Every new game rolls a different mix. Replaying the same world keeps it.</div>
-        </Card>
+                  </Card>
       )}
       {budgetDue(s) && s.month > 0 && <div className="g-card-flat g-row g-wrap" style={{ background: "#fff8e6", borderColor: "#f5c86b", gap: 10 }}><span className="g-grow g-small"><b>The {calYear(s.month)} budget is due.</b> Decide how much goes to schools, health, security, roads and social support, then get it through the Assembly.</span><Button size="sm" variant="primary" onClick={() => setTab("policies")}>Open the budget</Button></div>}
       <CampaignPanel />

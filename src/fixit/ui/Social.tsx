@@ -1,4 +1,5 @@
 "use client";
+import { Tip } from "./Brief";
 /** Naija X: the feed, the trending list, your own posts, accounts that remember you, the bot army and the off switch. */
 import { useEffect, useState } from "react";
 import { Heart, MessageCircle, Repeat2 } from "lucide-react";
@@ -96,7 +97,7 @@ export function XPanel() {
         </div>
       </Card>
       <Card title="Bots" icon={<span aria-hidden>🤖</span>}>
-        <div className="g-small g-muted">A paid army can fill the feed with praise and cool the streets a little. It costs money every month, the feed will look better than the country feels, and sooner or later a journalist follows the payments.</div>
+        <Tip>A paid army can fill the feed with praise and cool the streets a little. It costs money every month, the feed will look better than the country feels, and sooner or later a journalist follows the payments.</Tip>
         <div className="g-row g-wrap" style={{ gap: 6, marginTop: 8 }}>
           {BOT_LEVELS.map((b) => <Button key={b.lvl} size="sm" variant={x.bots === b.lvl ? "primary" : "default"} onClick={() => { sfx("tap"); act((g) => setBots(g, b.lvl as 0 | 1 | 2 | 3)); }}>{b.label}{b.cost ? ` · ₦${b.cost}bn/mo` : ""}</Button>)}
         </div>
@@ -104,7 +105,7 @@ export function XPanel() {
         {x.hostileUntil >= s.month && <div className="g-row" style={{ gap: 8, marginTop: 8 }}><span className="g-small">🚩 Hostile accounts are pushing a trend against you.</span><Button size="sm" onClick={() => { sfx("tap"); act(reportBots); }}>Report them ⚡1</Button></div>}
       </Card>
       <Card title="The off switch" icon={<span aria-hidden>🔌</span>}>
-        <div className="g-small g-muted">You can switch Naija X off nationwide. The feed goes quiet and so does the street, for a while. Then investors, the young and foreign governments push back, and the anger arrives anyway.</div>
+        <Tip>You can switch Naija X off nationwide. The feed goes quiet and so does the street, for a while. Then investors, the young and foreign governments push back, and the anger arrives anyway.</Tip>
         <div style={{ marginTop: 8 }}>{x.banned === null ? <Button size="sm" onClick={() => { sfx("tap"); act(banX); }}>Switch it off ⚡8</Button> : <Button size="sm" variant="primary" onClick={() => { sfx("tap"); act(unbanX); }}>Switch it back on ⚡2</Button>}</div>
       </Card>
       {prof && (

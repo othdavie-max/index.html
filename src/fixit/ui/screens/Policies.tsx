@@ -1,4 +1,6 @@
 "use client";
+import { Brief, Tip } from "../Brief";
+import { iconFor } from "../icons";
 import { useState } from "react";
 import { Fuel, Hourglass } from "lucide-react";
 import { useFix, useS } from "../store";
@@ -39,7 +41,7 @@ export function FuelPanel() {
           <div className="g-card-flat"><div className="g-tiny g-muted">Leakage &amp; smuggling</div><b className="g-num" style={{ fontSize: 20 }}>{Math.round(f.leak * 100)}%</b><div className="g-tiny g-muted">{f.transfers ? "Targeted transfers in place" : "Blanket subsidy"}</div></div>
           <div className="g-card-flat"><div className="g-tiny g-muted">Made at home</div><b className="g-num" style={{ fontSize: 20 }}>{Math.round((1 - f.importShare) * 100)}%</b><div className="g-tiny g-muted">The rest is imported with dollars</div></div>
         </div>
-        <div className="g-small g-muted">The right move depends on the situation: how much room the budget has, the debt burden, the naira, how much fuel comes from abroad, inflation, households&apos; purchasing power, how well transfers can be targeted and leakage. Pick an option to see what it would do <i>today</i>.</div>
+        <Tip>The right move depends on the situation: how much room the budget has, the debt burden, the naira, how much fuel comes from abroad, inflation, households&apos; purchasing power, how well transfers can be targeted and leakage. Pick an option to see what it would do <i>today</i>.</Tip>
         <div className="g-row g-wrap" role="group" aria-label="Subsidy option" style={{ gap: 6 }}>
           {FUEL_OPTS.map((o) => <button key={o.id} className="g-chip" aria-pressed={pick === o.id} onClick={() => setPick(o.id as FuelAction)} title={o.blurb}>{o.label}</button>)}
         </div>
@@ -91,8 +93,8 @@ export function Policies() {
           const later = futureHint({ type: "policy", id: p.id });
           return (
             <Card key={p.id} className="g-col">
-              <div className="g-row g-between g-wrap"><b>{p.name}</b><Badge>{CATEGORIES.find((c) => c.id === p.cat)?.label}</Badge></div>
-              <div className="g-small" style={{ color: "#475569" }}>{p.what}</div>
+              <div className="g-row g-between g-wrap"><b><span aria-hidden>{iconFor(p.name + " " + p.cat)}</span> {p.name}</b><Badge>{CATEGORIES.find((c) => c.id === p.cat)?.label}</Badge></div>
+              <div style={{ color: "#475569" }}><Brief text={p.what} max={68} /></div>
               <Chips chips={chips(p.effects)} label="Effect" />
               {later && <div className="fx-later"><Hourglass size={14} style={{ flex: "none", marginTop: 1 }} aria-hidden /><span><b>Later:</b> {later}</span></div>}
               <div className="g-row g-wrap" style={{ gap: 6 }}><span className="g-badge">{nb(cost)} setup{p.monthly ? ` · ${p.monthly > 0 ? nb(p.monthly * priceMult(s)) + "/month" : "saves " + nb(-p.monthly * priceMult(s)) + "/month"}` : ""}</span><span className="g-badge g-badge-blue">{p.delay <= 1 ? "Works at once" : `Full effect in ${p.delay} months`}</span></div>

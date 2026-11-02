@@ -1,0 +1,101 @@
+/* ====================================================================================================================
+   THEME: "Naija Gold & Emerald". Warm sand surfaces, deep emerald and indigo chrome, gold trim, a signature colour for
+   every section (Build amber, Economy emerald, Power royal purple, People coral, News sky), soft depth and a faint
+   adire-style pattern. Loaded after fix.css so it overrides the plain white/navy look.
+   ==================================================================================================================== */
+.gm {
+  --g-navy: #0d1b3d; --g-navy-2: #14305e; --g-navy-3: #1b4a86;
+  --g-emerald: #00c27a; --g-emerald-d: #009a60; --g-emerald-soft: #dcf7ea;
+  --g-bg: #f7f0e1; --g-card: #fffdf7; --g-border: #ecdfc4; --g-muted: #6b6482; --g-text: #1d1639;
+  --g-danger: #e5365a; --g-danger-soft: #ffe1e8; --g-warn: #e08a00; --g-warn-soft: #ffefc9; --g-info: #3b6ef5; --g-info-soft: #e1eaff;
+  --gold: #e9b44c; --gold-d: #b8801c; --ink: #1d1639; --indigo: #2a2468; --plum: #5b21b6; --coral: #f4506a; --sky: #1aa3e0; --amber: #f59e0b;
+  --g-radius: 18px; --g-shadow: 0 1px 2px rgba(60,40,10,.06), 0 8px 24px rgba(60,40,10,.09);
+  background: var(--g-bg);
+  color: var(--g-text);
+}
+/* ------------------------------------------------------------------ chrome: HUD and toolbar */
+.gm .fx-hud { background: radial-gradient(120% 220% at 0% 0%, #17806a 0%, #0f4c75 38%, #1a1a5e 100%); border-bottom: 3px solid var(--gold); box-shadow: 0 6px 24px rgba(8,10,40,.35); }
+.gm .fx-hud-date b { color: #ffe08a; text-shadow: 0 1px 0 rgba(0,0,0,.3); } .gm .fx-hud-date span { color: #b9d4e8; }
+.gm .fx-hud-date .fx-term { background: rgba(255,255,255,.18); } .gm .fx-hud-date .fx-term > span { background: linear-gradient(90deg, #ffd873, #ffb020); }
+.gm .fx-res { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); backdrop-filter: blur(6px); border-radius: 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.2); transition: transform .12s ease, background .15s ease; }
+.gm .fx-res:hover { background: rgba(255,255,255,.22); transform: translateY(-1px); }
+.gm .fx-res i { color: #b9d4e8; }
+.gm .fx-res[data-bad] { background: linear-gradient(180deg, rgba(244,80,106,.45), rgba(180,20,60,.45)); border-color: #ff8aa0; }
+.gm .fx-res[data-gold] { background: linear-gradient(180deg, rgba(255,216,115,.35), rgba(233,180,76,.25)); border-color: var(--gold); }
+.gm .fx-icon-btn { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.28); border-radius: 12px; }
+.gm .fx-toolbar { background: linear-gradient(180deg, #1a1a5e, #0d1b3d); border-top: 3px solid var(--gold); box-shadow: 0 -6px 24px rgba(8,10,40,.35); gap: 4px; }
+.gm .fx-tool { border-radius: 14px; color: #c9d6f2; transition: transform .12s ease, background .15s ease; --tc: var(--gold); }
+.gm .fx-tool[data-g="build"] { --tc: #f59e0b; } .gm .fx-tool[data-g="economy"] { --tc: #10d38a; } .gm .fx-tool[data-g="power"] { --tc: #a78bfa; } .gm .fx-tool[data-g="people"] { --tc: #fb7185; } .gm .fx-tool[data-g="news"] { --tc: #38bdf8; }
+.gm .fx-tool svg { color: var(--tc); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tc) 55%, transparent)); }
+.gm .fx-tool[aria-pressed="true"] { background: linear-gradient(180deg, var(--tc), color-mix(in srgb, var(--tc) 70%, #000)); color: #fff; box-shadow: 0 6px 18px color-mix(in srgb, var(--tc) 50%, transparent); transform: translateY(-3px); } .gm .fx-tool[aria-pressed="true"] svg { color: #fff; filter: none; }
+.gm .fx-tool:hover { background: rgba(255,255,255,.1); }
+/* ------------------------------------------------------------------ the map stage */
+.gm .fx-stage { background: radial-gradient(120% 100% at 50% 0%, #cfeee6 0%, #b5dcea 55%, #9cc6e4 100%); }
+.gm .fx-stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; z-index: 0; background-image: radial-gradient(circle at 20% 15%, rgba(255,255,255,.7) 0, transparent 35%), radial-gradient(circle at 85% 80%, rgba(255,216,115,.35) 0, transparent 40%); }
+.gm .fx-lens { background: rgba(26,26,94,.92); border-color: var(--gold); backdrop-filter: blur(8px); box-shadow: 0 6px 20px rgba(8,10,40,.35); }
+.gm .fx-chip[aria-pressed="true"] { background: linear-gradient(180deg, #ffd873, #e9a623); color: #2b1a00; }
+.gm .fx-note { background: linear-gradient(180deg, rgba(26,26,94,.96), rgba(13,27,61,.96)); border-color: var(--gold); box-shadow: 0 6px 18px rgba(8,10,40,.35); }
+.gm .fx-advisor { background: linear-gradient(180deg, #fffdf7, #fbf0d4); border-color: var(--gold); }
+/* ------------------------------------------------------------------ drawers: a signature colour per section */
+.gm .fx-drawer { --dc: var(--gold); background: var(--g-bg); border-left: 4px solid var(--dc); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 2l20 20-20 20L2 22z' fill='none' stroke='%23b8801c' stroke-opacity='.07' stroke-width='1.5'/%3E%3Ccircle cx='22' cy='22' r='3' fill='%23b8801c' fill-opacity='.06'/%3E%3C/svg%3E"); }
+.gm .fx-drawer[data-group="build"] { --dc: #f59e0b; --dc2: #b45309; } .gm .fx-drawer[data-group="economy"] { --dc: #10b981; --dc2: #047857; } .gm .fx-drawer[data-group="power"] { --dc: #8b5cf6; --dc2: #5b21b6; } .gm .fx-drawer[data-group="people"] { --dc: #f43f5e; --dc2: #be123c; } .gm .fx-drawer[data-group="news"] { --dc: #0ea5e9; --dc2: #0369a1; }
+.gm .fx-drawer-head { background: linear-gradient(120deg, var(--dc2, #14305e), var(--dc, #e9b44c)); color: #fff; padding: 12px 16px; font-size: 18px; text-shadow: 0 1px 2px rgba(0,0,0,.25); box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+.gm .fx-subtab { background: #fffdf7; border: 1px solid var(--g-border); color: var(--ink); border-radius: 999px; font-weight: 700; box-shadow: 0 1px 2px rgba(60,40,10,.06); }
+.gm .fx-subtab[aria-pressed="true"] { background: linear-gradient(180deg, var(--dc, #14305e), var(--dc2, #0d1b3d)); color: #fff; border-color: transparent; box-shadow: 0 4px 12px color-mix(in srgb, var(--dc, #14305e) 45%, transparent); }
+.gm .fx-subtabs { border-bottom-color: color-mix(in srgb, var(--dc, #e9b44c) 35%, transparent); }
+/* ------------------------------------------------------------------ cards, titles, buttons */
+.gm .g-card { background: var(--g-card); border: 1px solid var(--g-border); border-radius: 20px; box-shadow: var(--g-shadow); position: relative; overflow: hidden; }
+.gm .fx-drawer-body .g-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px; background: linear-gradient(90deg, var(--dc, #e9b44c), color-mix(in srgb, var(--dc, #e9b44c) 30%, #fff)); }
+.gm .g-card-flat { background: var(--g-card); border: 1px solid var(--g-border); border-radius: 16px; }
+.gm .g-card h3, .gm .fx-drawer-body .g-card > header h3 { color: var(--ink); }
+.gm .g-section-title { color: var(--dc2, #6b5a2c); letter-spacing: .08em; }
+.gm .g-btn-primary { background: linear-gradient(180deg, #19d68d, #00a862); color: #032b1b; border: 0; box-shadow: 0 6px 16px rgba(0,168,98,.35), inset 0 1px 0 rgba(255,255,255,.4); font-weight: 800; }
+.gm .g-btn-primary:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.gm .g-btn:not(.g-btn-primary):not(.g-btn-ghost):not(.g-btn-danger):not(.g-btn-navy):not(.g-btn-light) { background: #fffdf7; border: 1px solid #e3d3ae; color: var(--ink); box-shadow: 0 1px 0 rgba(60,40,10,.08); }
+.gm .g-btn-navy { background: linear-gradient(180deg, #2a2468, #14305e); color: #fff; }
+.gm .g-badge { background: #f4ead0; color: #6a4a08; border: 1px solid #e7d6a8; }
+.gm .fx-bar { background: #eadfc4; } .gm .fx-bar i { background: linear-gradient(90deg, #00a862, #19d68d, #ffd873); }
+.gm .fx-power, .gm .fx-ask, .gm .fx-act, .gm .fx-good, .gm .fx-msg, .gm .fx-mega-run, .gm .fx-aide-stat { border-color: var(--g-border); }
+.gm .fx-power, .gm .fx-ask, .gm .fx-good, .gm .fx-act { background: linear-gradient(180deg, #fffdf7, #fff9ea); border-radius: 16px; }
+/* ------------------------------------------------------------------ the big gold button gets a glow */
+.gm .fx-next { background: linear-gradient(180deg, #ffe08a, #ee9e1a); border-color: #8a5a06; box-shadow: 0 5px 0 #8a5a06, 0 14px 34px rgba(233,180,76,.55); }
+.gm .fx-skip { background: linear-gradient(180deg, #2a2468, #14305e); border-color: var(--gold); }
+/* ------------------------------------------------------------------ start screens and the dark wizards */
+.gm .fx-hero { background: radial-gradient(900px 520px at 85% -10%, rgba(233,180,76,.35), transparent 60%), radial-gradient(800px 600px at 5% 105%, rgba(0,194,122,.45), transparent 60%), linear-gradient(160deg, #0d1b3d 0%, #1a1a5e 55%, #0f4c4a 100%); }
+.gm .fx-dayone { background: radial-gradient(circle at 50% 0%, #3a2f8a 0%, #14305e 45%, #0d1b3d 100%); }
+.gm .fx-big-btn { background: linear-gradient(180deg, #19d68d, #00a862); color: #032b1b; box-shadow: 0 6px 0 #00714a, 0 16px 34px rgba(0,194,122,.45); }
+/* ------------------------------------------------------------------ modals and event cards */
+.gm .g-modal, .gm [role="dialog"] .g-card-flat { border-radius: 22px; }
+.gm .fx-paper { box-shadow: 0 10px 28px rgba(60,40,10,.2); }
+.gm .fx-path[data-won="1"] .fx-bar i { background: linear-gradient(90deg, #f59e0b, #ffd873); }
+@media (prefers-reduced-motion: reduce) { .gm .fx-res, .gm .fx-tool, .gm .g-btn { transition: none; } }
+/* the Nigeria map: a rich sea behind the land instead of pale grey */
+.gm .fx-stage .g-map-wrap { background: radial-gradient(110% 90% at 50% 30%, #2aa6b8 0%, #1b7fa8 45%, #144a82 100%); border: 0; border-radius: 0; }
+.gm .fx-stage .g-map-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 20% 80%, rgba(255,255,255,.12), transparent 40%), radial-gradient(circle at 85% 15%, rgba(255,216,115,.18), transparent 45%); }
+.gm .fx-stage .g-map-path { stroke: rgba(255,253,247,.9); stroke-width: 1.2px; }
+.gm .fx-stage { background: #144a82; } .gm .fx-stage::before { display: none; }
+
+/* ------------------------------------------------------------------ less text: compact choices, icon chips, ⓘ */
+.gm .fx-act2 { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-left: 6px solid var(--dc, #e9b44c); }
+.gm .fx-act2-top { display: flex; gap: 8px; align-items: center; } .gm .fx-act2-top b { font-size: 15px; line-height: 1.2; } .gm .fx-act2-ic { font-size: 22px; width: 30px; height: 30px; display: grid; place-items: center; background: color-mix(in srgb, var(--dc, #e9b44c) 18%, #fff); border-radius: 10px; flex: 0 0 auto; }
+.gm .fx-act2-sum { font-size: 13px; color: #4b4468; line-height: 1.35; }
+.gm .fx-act2-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; } .gm .fx-act2-meta { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.gm .fx-act2-more { background: #fff7e0; border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.gm .fx-info { background: #fff3c4; color: #7a5200; border: 1px solid #eac45a; border-radius: 999px; min-width: 22px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: 800; line-height: 1; cursor: pointer; margin-left: 4px; vertical-align: middle; }
+.gm .fx-chips { gap: 5px; } .gm .fx-chips .fx-chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 700; background: #eefaf3; color: #0a6a41; border: 1px solid #b6ead0; }
+.gm .fx-chips .fx-chip[data-good="0"] { background: #fff0f2; color: #a31233; border-color: #f7c1cc; } .gm .fx-chips .fx-chip b { font-size: 9px; }
+.gm .fx-tip-btn { background: transparent; border: 0; color: var(--dc2, #6b5a2c); font-weight: 700; font-size: 12.5px; padding: 2px 0; cursor: pointer; } .gm .fx-tip-body { margin-top: 4px; background: #fff7e0; border-radius: 12px; padding: 8px 10px; color: #4b4468; }
+.gm .fx-pj-facts { display: flex; flex-wrap: wrap; gap: 5px; } .gm .fx-pj-facts .g-badge[data-warn="1"] { background: #ffe1e8; color: #a31233; border-color: #f7c1cc; }
+
+/* language picker */
+.fx-lang { gap: 6px; flex-wrap: wrap; justify-content: center; }
+.fx-lang .fx-opt { padding: 6px 12px; min-width: 0; }
+.fx-hero-lang { display: flex; justify-content: center; margin: 10px 0 16px; }
+.fx-hero-lang .fx-opt { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.35); padding: 4px 10px; font-size: 12px; }
+.fx-hero-lang .fx-opt[aria-pressed="true"] { background: var(--gold); color: #1d1639; border-color: var(--gold); }
+
+/* globe: deep-space backdrop with soft stars */
+.gm .fx-globe-wrap { border-radius: 16px; overflow: hidden; background:
+  radial-gradient(1.2px 1.2px at 12% 20%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 78% 14%, #fff 50%, transparent 51%), radial-gradient(1.4px 1.4px at 88% 70%, #fde68a 50%, transparent 51%),
+  radial-gradient(1px 1px at 24% 82%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 55% 90%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 42% 8%, #bae6fd 50%, transparent 51%),
+  radial-gradient(ellipse at 50% 40%, #12305a 0%, #070d24 75%); }

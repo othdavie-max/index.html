@@ -1,6 +1,7 @@
 "use client";
 /** The Civilization-style main screen: a living map, a HUD of resources and danger meters, a notification stack,
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
+import { LANGS } from "../engine/i18n";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Crown, FastForward, HelpCircle, Lock, Hammer, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, } from "lucide-react";
 import { useFix, useS, type Tab } from "./store";
@@ -89,12 +90,12 @@ function lensFill(s: FixState, lens: Lens): (id: string) => string {
   return (id) => stressColor(stateLayerValue(s, id, layer));
 }
 
-function Drawer({ title, onClose, children, wide }: { title: ReactNode; onClose: () => void; children: ReactNode; wide?: boolean }) {
+function Drawer({ title, onClose, children, wide, group }: { title: ReactNode; onClose: () => void; children: ReactNode; wide?: boolean; group?: string }) {
   useEffect(() => { const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h); }, [onClose]);
   return (
     <div className="fx-drawer-wrap" role="dialog" aria-label={typeof title === "string" ? title : "Panel"}>
       <button className="fx-drawer-scrim" aria-label="Close panel" onClick={onClose} />
-      <aside className={`fx-drawer ${wide ? "fx-drawer-wide" : ""}`}>
+      <aside className={`fx-drawer ${wide ? "fx-drawer-wide" : ""}`} data-group={group}>
         <header className="fx-drawer-head"><b>{title}</b><button className="g-btn g-btn-ghost" onClick={onClose} aria-label="Close" style={{ padding: 6 }}><X size={20} /></button></header>
         <div className="fx-drawer-body">{children}</div>
       </aside>
@@ -233,7 +234,7 @@ export function World() {
         <div className="fx-hud-tools">
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music">{music ? "🎵" : "🔇"}</button>
-          <button className="fx-icon-btn fx-hud-opt" style={{ fontSize: 11, fontWeight: 800 }} onClick={() => { setLang(lang === "pcm" ? "en" : "pcm"); sfx("tap"); }} aria-label={lang === "pcm" ? "Switch to English" : "Switch to Naija Pidgin"} title="Naija Pidgin for street voices, feed, advisers">{lang === "pcm" ? "PCM" : "EN"}</button>
+          <button className="fx-icon-btn fx-hud-opt" style={{ fontSize: 11, fontWeight: 800 }} onClick={() => { const ids = LANGS.map((l) => l.id); setLang(ids[(ids.indexOf(lang) + 1) % ids.length]); sfx("tap"); }} aria-label="Change language" title="Language: English, Pidgin, Hausa, Yoruba, Igbo">{LANGS.find((l) => l.id === lang)?.short}</button>
           <button className="fx-icon-btn" onClick={() => setTab("trade")} aria-label="The world and trade" title="The world and trade">🌍</button>
           <button className="fx-icon-btn" onClick={() => setHow(true)} aria-label="How to play"><HelpCircle size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setMenu(true)} aria-label="Menu and saves"><MenuIcon size={18} /></button>
@@ -276,12 +277,12 @@ export function World() {
       </div>
 
       <nav className="fx-toolbar" aria-label="Government">
-        {GROUPS.map((b) => { const open = b.tabs.find((x) => !tabLock(s, x.id)); return <button key={b.id} data-locked={open ? undefined : "1"} className={`fx-tool ${cstep >= 0 && COACH[cstep].target === "build" && b.id === "build" ? "fx-coach-hl" : ""}`} aria-pressed={group?.id === b.id} onClick={() => { sfx("tap"); if (!open) { toast(`🔒 ${tabLock(s, b.tabs[0].id)}`, true); return; } setTab(group?.id === b.id ? "world" : open.id); }}>{open ? b.icon : <Lock size={22} />}<span>{b.label}</span>{!!b.badge && !!open && <i className="fx-dot-red" aria-label="needs attention" />}</button>; })}
+        {GROUPS.map((b) => { const open = b.tabs.find((x) => !tabLock(s, x.id)); return <button key={b.id} data-g={b.id} data-locked={open ? undefined : "1"} className={`fx-tool ${cstep >= 0 && COACH[cstep].target === "build" && b.id === "build" ? "fx-coach-hl" : ""}`} aria-pressed={group?.id === b.id} onClick={() => { sfx("tap"); if (!open) { toast(`🔒 ${tabLock(s, b.tabs[0].id)}`, true); return; } setTab(group?.id === b.id ? "world" : open.id); }}>{open ? b.icon : <Lock size={22} />}<span>{b.label}</span>{!!b.badge && !!open && <i className="fx-dot-red" aria-label="needs attention" />}</button>; })}
       </nav>
 
       {select.state && <Drawer title="Location" onClose={() => setSelect({ state: null, lga: null })}><StatePanel s={s} id={select.state} lga={select.lga} /></Drawer>}
       {drawer && group && (
-        <Drawer title={title[group.id]} onClose={close} wide={!!group.wide}>
+        <Drawer title={title[group.id]} group={group.id} onClose={close} wide={!!group.wide}>
           {group.tabs.length > 1 && <div className="fx-subtabs" role="group" aria-label="Sections">{group.tabs.map((x) => { const lk = tabLock(s, x.id); return <button key={x.id} className="fx-subtab" data-locked={lk ? "1" : undefined} title={lk ?? undefined} aria-pressed={drawer === x.id} onClick={() => { sfx("tap"); setTab(x.id); }}>{lk ? "🔒 " : ""}{x.label}</button>; })}</div>}
           {drawer === "presidency" && <div className="g-col" style={{ gap: 14 }}><AgendaProgress /><Presidency /><TitlesCard /></div>}
           {drawer === "plans" && <PlansPanel />}

@@ -1,8 +1,10 @@
 "use client";
+import { Brief, Tip } from "../Brief";
+import { iconFor } from "../icons";
 import { useState } from "react";
 import { Hammer } from "lucide-react";
 import { useFix, useS } from "../store";
-import { Badge, Button, Callout, Card, EmptyState, Tabs } from "../../../game/ui/kit";
+import { Badge, Button, Card, EmptyState, Tabs } from "../../../game/ui/kit";
 import { STATE_BY_ID } from "../../../game/data/states";
 import { FUNDING_LABEL, PROJECTS, PROJECT_BY_ID } from "../../data/catalogue";
 import { cancelProject, projectCost } from "../../engine/actions";
@@ -50,22 +52,20 @@ export function Projects() {
       {tab === "done" && (done.length === 0 ? <EmptyState title="Nothing finished yet" /> : <div className="g-grid g-grid-2">{done.map((p) => <ProjectCard key={p.id} p={p} />)}</div>)}
       {tab === "new" && (
         <>
-          <Callout tone="info">Every project can slip: delays, cost overruns and leakage depend on government capacity, procurement quality and corruption. Benefits arrive only when it is finished, and often fall short of the promise.</Callout>
+          <Tip label="How projects work">Every project can slip: delays, cost overruns and leakage depend on government capacity, procurement quality and corruption. Benefits arrive only when it is finished, and often fall short of the promise.</Tip>
           <div className="g-grid g-grid-2">
             {[...PROJECTS].filter((d) => !d.retired).sort((a, b) => Number(a.cat === "National dreams") - Number(b.cat === "National dreams")).map((d) => {
               const count = s.projects.filter((p) => p.defId === d.id && p.status !== "cancelled").length;
               const lock = d.unlock?.(s) ?? null;
               return (
                 <Card key={d.id} className="g-col">
-                  <div className="g-row g-between g-wrap"><b>{d.name}</b><Badge>{d.cat}</Badge></div>
-                  <div className="g-small">{d.what}</div>
+                  <div className="g-row g-between g-wrap"><b><span aria-hidden>{iconFor(d.name + " " + d.cat)}</span> {d.name}</b><Badge>{d.cat}</Badge></div>
+                  <Brief text={d.what} max={68} />
                   <Chips chips={chips(d.benefit)} label="When done" />
-                  <div className="fx-act-meta">
-                    <span><b>Cost:</b> about {nb(projectCost(s, d.id, "treasury"))} over {d.months} months</span>
-                    <span><b>Benefit:</b> {d.benefitText}</span>
-                    <span><b>Needs capacity:</b> {d.capacityNeed} (you have {Math.round(s.gov.capacity)}) · <b>Risk of delay/overrun:</b> {d.risk >= 0.55 ? "high" : d.risk >= 0.35 ? "medium" : "lower"}</span>
-                    <span><b>Funding options:</b> {d.funding.map((f) => FUNDING_LABEL[f]).join(", ")}</span>
-                  </div>
+                  <div className="fx-pj-facts"><span className="g-badge">💰 {nb(projectCost(s, d.id, "treasury"))}</span><span className="g-badge">⏳ {d.months} months</span><span className="g-badge" data-warn={s.gov.capacity < d.capacityNeed ? "1" : undefined}>🏛️ needs {d.capacityNeed}/{Math.round(s.gov.capacity)}</span><span className="g-badge">⚠️ {d.risk >= 0.55 ? "high" : d.risk >= 0.35 ? "medium" : "low"} risk</span></div>
+                  <details><summary className="g-small" style={{ cursor: "pointer", fontWeight: 700 }}>More detail</summary>
+                    <div className="fx-act-meta" style={{ marginTop: 6 }}><span><b>Benefit:</b> {d.benefitText}</span><span><b>Funding options:</b> {d.funding.map((f) => FUNDING_LABEL[f]).join(", ")}</span></div>
+                  </details>
                   {lock && <div className="g-small" style={{ color: "#92400e" }}>🔒 {lock}</div>}
                   <div className="g-row g-between"><span className="g-tiny g-muted">{count}/{d.max ?? "∞"} started</span><Button size="sm" variant="primary" disabled={!!lock} onClick={() => { setCountAtOpen(s.projects.length); setDefId(d.id); }}>Choose site &amp; funding</Button></div>
                 </Card>

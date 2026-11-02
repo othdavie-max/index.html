@@ -1,4 +1,5 @@
 "use client";
+import { chipIcon } from "./icons";
 /** Small shared UI pieces for the Fix-It game. */
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import type { ReactNode } from "react";
@@ -38,7 +39,7 @@ export function Chips({ chips, label }: { chips: { label: string; up: boolean; g
   return (
     <div className="fx-chips" aria-label={label ?? "Effects"}>
       {label && <span className="fx-chips-label">{label}</span>}
-      {chips.map((c) => <span key={c.label} className="fx-chip" data-good={c.good ? "1" : "0"}>{c.label} {c.up ? "↑" : "↓"}</span>)}
+      {chips.map((c) => <span key={c.label} className="fx-chip" data-good={c.good ? "1" : "0"} title={`${c.label} ${c.up ? "goes up" : "goes down"}: ${c.good ? "good" : "bad"}`}><span aria-hidden>{chipIcon(c.label)}</span> {c.label} <b>{c.up ? "▲" : "▼"}</b></span>)}
     </div>
   );
 }

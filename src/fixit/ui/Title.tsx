@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { BookOpen, FolderOpen, Info, Landmark, CalendarDays } from "lucide-react";
 import { useFix } from "./store";
+import { LangPicker } from "./LangPicker";
 import { Modal } from "../../game/ui/kit";
 import { HowTo, SaveSlots } from "./Menu";
 import { DEFAULT_PROMISES } from "../engine/promises";
@@ -42,6 +43,7 @@ export function Title() {
         <button className="fx-big-btn fx-hero-go" onClick={() => setSetup(true)}>Start your presidency</button>
         {hasAuto && <button className="fx-hero-sub" onClick={() => void loadSlot("auto")}>Continue your last game</button>}
       </div>
+      <div className="fx-hero-lang"><LangPicker compact /></div>
       <nav className="fx-hero-icons" aria-label="More">
         <button onClick={() => setSlots(true)}><FolderOpen size={20} /><span>Load</span></button>
         <button onClick={daily}><CalendarDays size={20} /><span>Daily</span></button>

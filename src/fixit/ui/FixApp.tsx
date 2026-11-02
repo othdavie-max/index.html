@@ -2,14 +2,17 @@
 import { useEffect } from "react";
 import "../../game/ui/game.css";
 import "./fix.css";
+import "./theme.css";
 import { FixProvider, useFix } from "./store";
 import { Title } from "./Title";
 import { World } from "./World";
+import { startTranslator } from "./domTranslate";
 import { Button, Modal } from "../../game/ui/kit";
 
 function Router() {
-  const { screen, state, toasts, error, clearError, version } = useFix();
+  const { screen, state, toasts, error, clearError, version, lang } = useFix();
   void version;
+  useEffect(() => { document.documentElement.lang = ({ en: "en", pcm: "pcm", ha: "ha", yo: "yo", ig: "ig" })[lang]; return startTranslator(lang); }, [lang]);
   return (
     <>
       {screen === "title" && <Title />}
