@@ -1,5 +1,5 @@
 /**
- * NIGERIA: CAN YOU FIX IT? — state model.
+ * ASO ROCK (Can you fix it?) — state model.
  * Everything is plain JSON so a save is just the state. All numbers are SIMULATED game values for a fictional,
  * internally consistent scenario; they are not real statistics.
  */

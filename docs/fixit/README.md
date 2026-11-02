@@ -1,4 +1,4 @@
-# NIGERIA: CAN YOU FIX IT?
+# ASO ROCK: CAN YOU FIX IT?
 
 A presidential strategy/economic simulation at `/fix` (the earlier life-to-presidency game remains at `/game`). All values are simulated game numbers for a fictional, internally consistent scenario. Map boundaries are real (geoBoundaries, CC BY 4.0).
 

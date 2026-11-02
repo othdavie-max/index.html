@@ -32,7 +32,7 @@ export function drawShareCard(canvas: HTMLCanvasElement, s: FixState, title: str
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = "#00c875"; ctx.fillRect(0, 0, W, 14);
   const font = (w: number, px: number) => `${w} ${px}px Inter, system-ui, sans-serif`;
-  ctx.fillStyle = "#9db3c9"; ctx.font = font(800, 30); ctx.fillText("NIGERIA: CAN YOU FIX IT?", 70, 100);
+  ctx.fillStyle = "#9db3c9"; ctx.font = font(800, 30); ctx.fillText("ASO ROCK · CAN YOU FIX IT?", 70, 100);
   // portrait
   const p = s.meta.portrait, cx = 170, cy = 260;
   ctx.fillStyle = "#cfe0ee"; ctx.beginPath(); ctx.arc(cx, cy, 100, 0, Math.PI * 2); ctx.fill();
@@ -77,7 +77,7 @@ export function ShareButton({ s, title, a, b, verdict }: { s: FixState; title: s
     const file = new File([blob], "my-presidency.png", { type: "image/png" });
     const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean };
     try {
-      if (nav.share && nav.canShare?.({ files: [file] })) { await nav.share({ files: [file], title: "My presidency", text: `I was ${title} in Nigeria: Can You Fix It?` }); setMsg("Shared."); return; }
+      if (nav.share && nav.canShare?.({ files: [file] })) { await nav.share({ files: [file], title: "My presidency", text: `I was ${title} in Aso Rock: Can You Fix It?` }); setMsg("Shared."); return; }
     } catch { /* user cancelled or sharing blocked */ }
     // inside a published claude.ai page, files are offered through the viewer's downloads capability
     const host = (window as unknown as { claude?: { use?: (n: string) => Promise<{ save: (r: { filename: string; data: Blob }) => Promise<unknown> } | null> } }).claude;

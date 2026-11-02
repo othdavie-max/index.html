@@ -66,7 +66,7 @@ export function Legacy() {
       <div style={{ maxWidth: 900, margin: "0 auto" }} className="g-col">
         {ending && s.meta.daily && (() => {
           const h = hallEntry(s);
-          const text = `Nigeria: Can You Fix It? Daily ${s.meta.daily.slice(0, 4)}-${s.meta.daily.slice(4, 6)}-${s.meta.daily.slice(6)}: ${ending.name} · score ${h?.score ?? 0} · approval ${h?.approval ?? 0}%`;
+          const text = `Aso Rock Daily ${s.meta.daily.slice(0, 4)}-${s.meta.daily.slice(4, 6)}-${s.meta.daily.slice(6)}: ${ending.name} · score ${h?.score ?? 0} · approval ${h?.approval ?? 0}%`;
           return <div className="g-card-flat" style={{ background: "#0b1f36", color: "#fff", borderColor: "#c8a24a" }}><b>📅 Daily challenge result</b><div className="g-small" style={{ color: "#cfe0ee", marginTop: 4 }}>{text}</div><Button size="sm" variant="primary" style={{ marginTop: 6 }} onClick={() => { try { void navigator.clipboard.writeText(text); toast("Result copied. Paste it to challenge a friend."); } catch { toast("Could not copy. Select the text above.", true); } }}>Copy result to share</Button></div>;
         })()}
         {ending && (

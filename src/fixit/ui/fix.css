@@ -1,4 +1,4 @@
-/* NIGERIA: CAN YOU FIX IT? — additions on top of the shared .gm design system (navy #0B1F36, emerald #00C875, white, #F4F7FA, slate #64748B). */
+/* ASO ROCK: CAN YOU FIX IT? — additions on top of the shared .gm design system (navy #0B1F36, emerald #00C875, white, #F4F7FA, slate #64748B). */
 .gm .fx-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 980px) { .gm .fx-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .gm .fx-kpi { text-align: left; background: #fff; border: 1px solid var(--g-border); border-radius: 14px; padding: 12px 14px; border-left-width: 5px; display: flex; flex-direction: column; gap: 3px; min-height: 108px; }
