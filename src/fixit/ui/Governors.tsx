@@ -27,6 +27,7 @@ export function GovernorsPanel() {
       <Tip>Each state has its own governor. A good one makes every project you build there work better; a weak or corrupt one wastes it. Tap a row to open the state on the map.</Tip>
       <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Sort governors">
         {([["grade", "Best first"], ["progress", "By progress"], ["state", "A to Z"]] as const).map(([k, l]) => <button key={k} className="fx-subtab" aria-pressed={sort === k} onClick={() => setSort(k)}>{l}</button>)}
+        <span className="g-tiny g-muted" style={{ alignSelf: "center" }}>Grade A–F = skill + honesty</span>
       </div>
       <div className="g-col" style={{ gap: 6 }}>
         {rows.map(({ g, p }) => (
@@ -35,7 +36,7 @@ export function GovernorsPanel() {
             <span className="g-grow"><b className="g-small">{g.name.replace("Gov. ", "")}</b>{g.nickname && <i className="fx-nick"> "{g.nickname}"</i>} <span className="g-tiny g-muted">· {STATE_BY_ID[g.stateId]?.name} · {g.party}{g.backed ? " · you backed them" : ""}</span>
               <span className="g-tiny g-muted" style={{ display: "block" }}>Skill {g.skill} · Honesty {g.integrity} · Loyal to you {Math.round(g.loyalty)}</span></span>
             <span title={p?.verdict}>{p ? VERDICT[p.verdict] : ""}</span>
-            <span className="fx-grade" style={{ background: GRADE_COLOR[govGrade(g)] }}>{govGrade(g)}</span>
+            <span className="fx-grade" title="Grade A to F: how skilled and honest this governor is" style={{ background: GRADE_COLOR[govGrade(g)] }}>{govGrade(g)}</span>
           </button>
         ))}
       </div>
@@ -53,7 +54,7 @@ export function StateGovCard({ id }: { id: string }) {
     <div className="fx-govcard">
       <div className="g-row" style={{ gap: 10 }}><Portrait p={g.portrait} size={44} name={g.name} />
         <div className="g-grow"><b>{g.name}</b>{g.nickname && <i className="fx-nick"> "{g.nickname}"</i>} <span className="g-tiny g-muted">· {g.party}{g.terms > 1 ? ` · term ${g.terms}` : ""}</span><div className="g-tiny g-muted">{g.bio}</div>{g.quirk && <div className="g-tiny g-muted">🔹 {g.quirk}</div>}</div>
-        <span className="fx-grade" style={{ background: GRADE_COLOR[govGrade(g)] }}>{govGrade(g)}</span></div>
+        <span className="fx-grade" title="Grade A to F: how skilled and honest this governor is" style={{ background: GRADE_COLOR[govGrade(g)] }}>{govGrade(g)}</span></div>
       <div className="g-tiny g-muted">Skill {g.skill} · Honesty {g.integrity} · Loyal to you {Math.round(g.loyalty)} · Ambition {g.ambition}</div>
       <div className="g-row g-wrap" style={{ gap: 6 }}>
         {GOV_ACTIONS.map((a) => <Button key={a.id} size="sm" title={a.explain} onClick={() => act((x) => govAction(x, id, a.id))}>{a.label}{a.cost ? ` · ${nb(a.cost)}` : ""} ⚡{a.pc}</Button>)}

@@ -190,6 +190,7 @@ export function FixProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("pagehide", h);
   }, [saves]);
 
+  useEffect(() => { if (/[?&]dev=1/.test(window.location.search)) (window as unknown as { __fix?: unknown }).__fix = { act }; }, [act]); // test hook, off unless ?dev=1
   const value: Ctx = {
     state: game, version, screen, tab, setTab, act, advance, summary, closeSummary: () => setSummary(null), startNew, continueTerm, loadSlot, loadState, saveSlot, saves, hasAuto, quit,
     toast, toasts, select, setSelect, lastSaved, error, clearError: () => setError(null), lang, setLang, tx,

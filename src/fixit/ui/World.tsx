@@ -3,7 +3,7 @@
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
 import { LANGS } from "../engine/i18n";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Banknote, BarChart3, Briefcase, CreditCard, Crown, FastForward, Globe2, HelpCircle, Landmark, Smile, Vote, Wallet, Zap, Lock, Hammer, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, } from "lucide-react";
+import { Banknote, BarChart3, Music, Briefcase, CreditCard, Crown, FastForward, Globe2, HelpCircle, Landmark, Smile, Vote, Wallet, Zap, Lock, Hammer, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, } from "lucide-react";
 import { useFix, useS, type Tab } from "./store";
 import { Button, Modal } from "../../game/ui/kit";
 import { STATES } from "../../game/data/states";
@@ -234,7 +234,7 @@ export function World() {
         <DangerChip hl={cstep >= 0 && COACH[cstep].target === "danger"} onClick={() => setTab("power")} />
         <div className="fx-hud-tools">
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !muted; setMuted(m); setM(m); if (!m) sfx("tap"); }} aria-label={muted ? "Turn sound on" : "Turn sound off"}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
-          <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music">{music ? "🎵" : "🔇"}</button>
+          <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music"><Music size={18} style={{ opacity: music ? 1 : 0.4 }} /></button>
           <button className="fx-icon-btn fx-hud-opt" style={{ fontSize: 11, fontWeight: 800 }} onClick={() => { const ids = LANGS.map((l) => l.id); setLang(ids[(ids.indexOf(lang) + 1) % ids.length]); sfx("tap"); }} aria-label="Change language" title="Language: English, Pidgin, Hausa, Yoruba, Igbo">{LANGS.find((l) => l.id === lang)?.short}</button>
           <button className="fx-icon-btn" onClick={() => setTab("trade")} aria-label="The world and trade" title="The world and trade"><Globe2 size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setHow(true)} aria-label="How to play"><HelpCircle size={18} /></button>

@@ -139,3 +139,14 @@
 .fx-step[data-state="done"] { background: #10b981; color: #fff; border-color: #10b981; }
 .fx-step[data-state="building"] { background: #fef3c7; border-color: #f59e0b; }
 .fx-step[data-state="locked"] { background: #f1f5f9; border-color: #cbd5e1; font-size: 12px; }
+
+/* agenda cards: icon beside the words, one line each */
+.gm .fx-agenda { flex-direction: row; align-items: center; gap: 12px; }
+.gm .fx-agenda-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gm .fx-agenda-ic { font-size: 30px; flex: none; }
+/* the tour card steps out of the way of what it points at */
+.gm .fx-coach[data-pos="top"] { bottom: auto; top: 150px; }
+@media (max-width: 640px) { .gm .fx-coach { padding: 10px 12px; } .gm .fx-coach p { font-size: 13px; } .gm .fx-coach-face { font-size: 26px; } }
+
+/* a choice that cannot be used right now: show the reason as plain grey words, not a faded button */
+.gm .fx-act2 .g-btn:disabled, .gm .fx-act2 button:disabled { background: #eef2f7 !important; color: #475569 !important; opacity: 1; box-shadow: none !important; border: 1px dashed #cbd5e1; font-weight: 600; white-space: normal; text-align: left; height: auto; min-height: 32px; }

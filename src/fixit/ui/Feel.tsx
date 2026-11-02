@@ -24,7 +24,7 @@ export function Coach({ step }: { step: number }) {
   const c = COACH[step];
   if (!c) return null;
   return (
-    <div className="fx-coach" role="status">
+    <div className="fx-coach" data-pos={c.target === "next" || c.target === "build" ? "top" : "bottom"} role="status">
       <div className="fx-coach-face" aria-hidden>🧑🏾‍💼</div>
       <div className="g-grow"><b>Chief of Staff</b><p>{c.text}</p>
         <div className="g-row" style={{ gap: 8 }}>

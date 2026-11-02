@@ -43,16 +43,17 @@ export function AgendaModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal title={`Year ${year}: set your agenda`} wide footer={<><Button variant="primary" disabled={sel.length === 0} onClick={confirm}>Set my agenda ({sel.length}/{AGENDA_PICKS})</Button><Button onClick={() => { act((x) => { x.cap.agendaDue = false; return { ok: true, message: "" }; }, { silent: true }); onClose(); }}>Skip this year</Button></>}>
       <div className="g-col" style={{ gap: 10 }}>
-        <div className="g-small">Pick up to {AGENDA_PICKS} priorities for the next 12 months. Each gives a small boost in its area. At the year-end review you are judged: <b>keep it for +12 political capital and a bump in approval</b>, miss it and lose some trust.</div>
+        <div className="g-small">🎯 Pick up to {AGENDA_PICKS} priorities for the year. <b>Keep one: +12 capital and more approval.</b> Miss it: lose trust.</div>
         {last.length > 0 && <div className="g-card-flat g-small">Last year: {last.map((l) => `${AGENDA_BY_ID[l.id].icon} ${AGENDA_BY_ID[l.id].name} ${l.ok ? "✅ kept" : "❌ missed"}`).join(" · ")}</div>}
         <div className="fx-agenda-grid" role="group" aria-label="Agenda cards">
           {s.cap.offer.map((id) => { const d = AGENDA_BY_ID[id]; return (
             <button key={id} className="fx-agenda" aria-pressed={sel.includes(id)} onClick={() => toggle(id)}>
               <span className="fx-agenda-ic" aria-hidden>{d.icon}</span>
-              <b>{d.name}</b>
-              <i>{d.blurb}</i>
-              <span className="g-tiny"><b>Goal:</b> {d.goal}</span>
-              <span className="g-tiny" style={{ color: "#047857" }}><b>Boost:</b> {d.bonusText}</span>
+              <span className="fx-agenda-tx">
+                <b>{d.name}</b>
+                <span className="g-tiny">🎯 {d.goal}</span>
+                <span className="g-tiny" style={{ color: "#047857" }}>✨ {d.bonusText}</span>
+              </span>
             </button>
           ); })}
         </div>
