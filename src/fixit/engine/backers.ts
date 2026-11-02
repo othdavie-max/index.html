@@ -10,7 +10,7 @@ import { createEvent } from "./spawn";
 
 export const BACKER_DEFS: Omit<Backer, "mood" | "owed">[] = [
   { id: "godfather", name: "Chief Obiora 'Ozo' Eze", title: "The Godfather", zone: "SE", power: 1.2, bio: "Paid for your campaign planes and the posters in every ward. Sits at the head of the table at every party meeting." },
-  { id: "kingmaker", name: "Alhaji Danladi Mai-Gida", title: "The Northern Kingmaker", zone: "NW", power: 1.0, bio: "Delivered three states' worth of votes and a river of cash. Receives governors in his compound on Fridays." },
+  { id: "kingmaker", name: "Alhaji Danladi Mai-Gida", title: "The Northern Kingmaker", zone: "NW", power: 1.0, bio: "Delivered three states' worth of votes and a river of cash. Receives governors at the family compound on Fridays." },
   { id: "financier", name: "Otunba Kayode Bakare", title: "The Lagos Financier", zone: "SW", power: 0.9, bio: "Bankrolled your TV ads and your private jet. Owns half a port and wants the other half." },
 ];
 
