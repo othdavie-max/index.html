@@ -28,6 +28,8 @@ const LEAD: Record<Stance, string[]> = {
   caution: ["Proceed with care.", "Think twice.", "It can work, but it is risky."],
   stop: ["I advise against it.", "Please do not do this.", "This could finish us."],
 };
+/** after a lead-in that ends in a comma ("Politically speaking,") the sentence continues in lower case */
+const lowerAfter = (voice: string, text: string) => (voice.endsWith(",") && /^[A-Z][a-z]/.test(text) ? text[0].toLowerCase() + text.slice(1) : text);
 const stanceOf = (risk: number): Stance => (risk < 0.35 ? "go" : risk < 0.65 ? "caution" : "stop");
 
 // ---------------------------------------------------------------- facts about an action
@@ -135,7 +137,7 @@ export function briefing(s: FixState): Advice[] {
     if (a.kind === "friend" && a.skill < 62 && first.sev > 0.35 && !first.good && rng.chance(0.65)) { res.push({ by: a, stance: "go", text: `${VOICE[a.kind]} Everything is under control, Sir. The people love you, nobody is complaining.`, sound: false }); continue; }
     const flip = a.skill < 45 && rng.chance(0.4) && seen[1];
     const pick = flip ? seen[1] : first;
-    res.push({ by: a, stance: pick.good ? "go" : pick.sev > 0.6 ? "stop" : "caution", text: `${VOICE[a.kind]} ${pick.text}`, sound: !flip });
+    res.push({ by: a, stance: pick.good ? "go" : pick.sev > 0.6 ? "stop" : "caution", text: `${VOICE[a.kind]} ${lowerAfter(VOICE[a.kind], pick.text)}`, sound: !flip });
   }
   return res;
 }

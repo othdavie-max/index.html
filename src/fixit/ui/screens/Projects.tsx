@@ -46,7 +46,7 @@ export function Projects() {
   const done = s.projects.filter((p) => p.status === "done" || p.status === "cancelled");
   return (
     <div className="g-col" style={{ gap: 14 }}>
-      <div className="g-row g-between g-wrap"><div className="g-page-title">Projects</div><div className="g-small g-muted">Government cash {nb(s.fin.treasury)} · delivery capacity {Math.round(s.gov.capacity)}/100 · procurement quality {Math.round(s.gov.procurement)}/100</div></div>
+      <div className="g-row g-between g-wrap"><div className="g-small g-muted">💰 Cash {nb(s.fin.treasury)} · 🏛️ delivery capacity {Math.round(s.gov.capacity)}/100 · procurement quality {Math.round(s.gov.procurement)}/100</div></div>
       <Tabs tabs={[{ id: "active", label: `Under way (${active.length})` }, { id: "new", label: "Start a project" }, { id: "done", label: `Finished (${done.length})` }]} value={tab} onChange={setTab} />
       {tab === "active" && (active.length === 0 ? <EmptyState icon={<Hammer size={30} />} title="No projects under way" body="Projects take many months and cost real money, but they are how lasting change happens." action={<Button variant="primary" onClick={() => setTab("new")}>Start a project</Button>} /> : <div className="g-grid g-grid-2">{active.map((p) => <ProjectCard key={p.id} p={p} />)}</div>)}
       {tab === "done" && (done.length === 0 ? <EmptyState title="Nothing finished yet" /> : <div className="g-grid g-grid-2">{done.map((p) => <ProjectCard key={p.id} p={p} />)}</div>)}
@@ -62,7 +62,7 @@ export function Projects() {
                   <div className="g-row g-between g-wrap"><b><span aria-hidden>{iconFor(d.name + " " + d.cat)}</span> {d.name}</b><Badge>{d.cat}</Badge></div>
                   <Brief text={d.what} max={68} />
                   <Chips chips={chips(d.benefit)} label="When done" />
-                  <div className="fx-pj-facts"><span className="g-badge">💰 {nb(projectCost(s, d.id, "treasury"))}</span><span className="g-badge">⏳ {d.months} months</span><span className="g-badge" data-warn={s.gov.capacity < d.capacityNeed ? "1" : undefined}>🏛️ needs {d.capacityNeed}/{Math.round(s.gov.capacity)}</span><span className="g-badge">⚠️ {d.risk >= 0.55 ? "high" : d.risk >= 0.35 ? "medium" : "low"} risk</span></div>
+                  <div className="fx-pj-facts"><span className="g-badge">💰 {nb(projectCost(s, d.id, "treasury"))}</span><span className="g-badge">⏳ {d.months} months</span><span className="g-badge" data-warn={s.gov.capacity < d.capacityNeed ? "1" : undefined}>🏛️ {s.gov.capacity < d.capacityNeed ? `needs capacity ${d.capacityNeed} (you have ${Math.round(s.gov.capacity)})` : `capacity ${d.capacityNeed} ✓`}</span><span className="g-badge">⚠️ {d.risk >= 0.55 ? "high" : d.risk >= 0.35 ? "medium" : "low"} risk</span></div>
                   <details><summary className="g-small" style={{ cursor: "pointer", fontWeight: 700 }}>More detail</summary>
                     <div className="fx-act-meta" style={{ marginTop: 6 }}><span><b>Benefit:</b> {d.benefitText}</span><span><b>Funding options:</b> {d.funding.map((f) => FUNDING_LABEL[f]).join(", ")}</span></div>
                   </details>

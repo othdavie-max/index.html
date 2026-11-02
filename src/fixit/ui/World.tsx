@@ -286,6 +286,7 @@ export function World() {
       {drawer && group && (
         <Drawer title={title[group.id]} group={group.id} onClose={close} wide={!!group.wide}>
           {group.tabs.length > 1 && <div className="fx-subtabs" role="group" aria-label="Sections">{group.tabs.map((x) => { const lk = tabLock(s, x.id); return <button key={x.id} className="fx-subtab" data-locked={lk ? "1" : undefined} title={lk ?? undefined} aria-pressed={drawer === x.id} onClick={() => { sfx("tap"); setTab(x.id); }}>{lk ? "🔒 " : ""}{x.label}</button>; })}</div>}
+          {(() => { const lk = group.tabs.map((x) => tabLock(s, x.id)).find(Boolean); return lk ? <div className="fx-lockhint"><Lock size={14} /> <span>{lk}</span></div> : null; })()}
           {drawer === "presidency" && <div className="g-col" style={{ gap: 14 }}><AgendaProgress /><Presidency /><TitlesCard /></div>}
           {drawer === "plans" && <PlansPanel />}
           {drawer === "policies" && <div className="g-col" style={{ gap: 14 }}><Policies /><SectorsPanel /></div>}
@@ -301,7 +302,7 @@ export function World() {
           {drawer === "street" && <div className="g-col" style={{ gap: 14 }}><StreetPanel /><div><div className="g-section-title">What I caused</div><TimelinePanel /></div></div>}
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}
           {drawer === "power" && <div className="g-col" style={{ gap: 14 }}><OfficePanel /><PowerPanel /></div>}
-                    {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><UnityCard /><CastPanel /><StaffCard /><FirstFamilyCard /><CabinetCard /><GroupsCard /></div>}
+                    {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><CastPanel /><StaffCard /><CabinetCard /><UnityCard /><FirstFamilyCard /><GroupsCard /></div>}
           {drawer === "governors" && <GovernorsPanel />}
           {drawer === "advisers" && <BriefingPanel />}
           {drawer === "enemies" && <EnemiesPanel />}

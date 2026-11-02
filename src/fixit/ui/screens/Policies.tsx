@@ -68,7 +68,7 @@ export function Policies() {
   const start = (id: string) => { const bill = billFor({ type: "policy", id }); if (bill) setVote({ bill, exec: (x) => enactPolicy(x, id) }); else act((x) => enactPolicy(x, id)); };
   return (
     <div className="g-col" style={{ gap: 14 }}>
-      <div className="g-row g-between g-wrap"><div className="g-page-title">Policies</div><div className="g-small g-muted">{active.length} in force · most take months to reach full effect</div></div>
+      <div className="g-row g-between g-wrap"><div className="g-small g-muted">📜 {active.length} in force · most take months to reach full effect</div></div>
       <FuelPanel />
       <BudgetCard />
       <div className="g-row g-wrap g-chip-row" style={{ gap: 6 }} role="group" aria-label="Policy area">

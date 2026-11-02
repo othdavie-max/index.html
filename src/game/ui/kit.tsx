@@ -268,7 +268,7 @@ export function LineChart({ series, height = 150, format = (v: number) => v.toFi
         <text x={pad.l} y={H - 4} fontSize="10" fill="#64748b">{xLabel ? xLabel(x0) : x0}</text>
         <text x={W - pad.r} y={H - 4} fontSize="10" fill="#64748b" textAnchor="end">{xLabel ? xLabel(x1) : x1}</text>
       </svg>
-      <div className="g-row g-wrap g-tiny" style={{ gap: 12 }}>
+      <div className="g-row g-wrap g-tiny" style={{ gap: 12, display: series.length < 2 ? "none" : undefined }}>
         {series.map((s) => (
           <span key={s.label} className="g-row" style={{ gap: 5 }}><i style={{ width: 10, height: 10, borderRadius: 3, background: s.color, display: "inline-block" }} />{s.label}
             {hoverPt && <b className="g-num">{format(s.points.find((p) => p.x === hoverPt.x)?.y ?? NaN)}</b>}</span>

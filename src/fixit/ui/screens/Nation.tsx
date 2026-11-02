@@ -28,7 +28,6 @@ export function Nation() {
   const fc = fiscalCondition(s);
   return (
     <div className="g-col" style={{ gap: 14 }}>
-      <div className="g-page-title">Nation &amp; Economy</div>
       <Tabs<Tab> tabs={[{ id: "overview", label: "Overview" }, { id: "money", label: "Money & debt" }, { id: "oil", label: "Oil & fuel" }, { id: "food", label: "Food" }, { id: "power", label: "Power & roads" }, { id: "jobs", label: "Jobs & industry" }, { id: "security", label: "Security" }, { id: "people", label: "People & government" }]} value={tab} onChange={setTab} />
       {tab === "overview" && (
         <>

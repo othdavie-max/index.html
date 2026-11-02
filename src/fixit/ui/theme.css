@@ -125,3 +125,17 @@
 
 /* the main buttons of a pop-up stay in view while its content scrolls */
 .gm .gm-foot { position: sticky; bottom: -1px; z-index: 2; background: linear-gradient(to top, #fffdf7 78%, rgba(255,253,247,0)); padding: 14px 0 6px; margin-top: 8px; }
+
+/* phones: stat boxes sit two by two, locked tabs explain themselves */
+@media (max-width: 640px) {
+  .fx-drawer-body .g-grid-4, .fx-drawer-body .g-grid-3 { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  .fx-drawer-body .g-grid-4 .g-card-flat, .fx-drawer-body .g-grid-3 .g-card-flat { padding: 10px; }
+  .fx-drawer-body .g-grid-4 .g-num { font-size: 17px !important; }
+}
+.fx-lockhint { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #7a6a45; background: #fff4d6; border: 1px dashed #e9b44c; border-radius: 10px; padding: 6px 10px; margin: 6px 0 2px; }
+
+/* plan steps: numbered, so it reads as a ladder, not a tick-list */
+.fx-step { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; background: #fff; color: #1d1639; border: 2px solid #e9b44c; }
+.fx-step[data-state="done"] { background: #10b981; color: #fff; border-color: #10b981; }
+.fx-step[data-state="building"] { background: #fef3c7; border-color: #f59e0b; }
+.fx-step[data-state="locked"] { background: #f1f5f9; border-color: #cbd5e1; font-size: 12px; }
