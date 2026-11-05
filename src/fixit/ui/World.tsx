@@ -121,7 +121,7 @@ function advisor(s: FixState, open: number): { text: string; label: string; go: 
 
 export function World() {
   const s = useS();
-  const { tab, setTab: rawSetTab, advance, select, setSelect, summary, version, act, toast, tx } = useFix();
+  const { tab, setTab: rawSetTab, advance, select, setSelect, summary, version, act, toast, tx, toasts } = useFix();
   const setTab = (t: Tab) => { const h = tabLock(s, t); if (h) { toast(`🔒 ${h}`, true); sfx("bad"); return; } rawSetTab(t); };
   const [why, setWhy] = useState<WhyKey | null>(null);
   const [moreHud, setMoreHud] = useState(false);
@@ -219,7 +219,7 @@ export function World() {
   const title: Record<string, string> = { build: "Build", economy: "Nation & economy", power: "Power", people: "People around you", news: "News" };
 
   return (
-    <div className={`fx-world ${shake ? "fx-shake" : ""}`} data-lens={lens}>
+    <div className={`fx-world ${shake ? "fx-shake" : ""}`} data-lens={lens} data-pops={fresh || toasts.length || summary?.changes?.length ? "1" : undefined}>
       <header className="fx-hud" aria-label="Status">
         <div className="fx-hud-date"><b>{monthLabel(s.month)}</b><span>Term {s.term} · {left} months to {s.cap.quick ? "the verdict" : "election"}</span><span className="fx-term" role="progressbar" aria-label="Progress through the term" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${pct}%` }} /></span></div>
         <div className={`fx-hud-res ${cstep >= 0 && COACH[cstep].target === "hud" ? "fx-coach-hl" : ""}`}>
@@ -261,9 +261,13 @@ export function World() {
           {all.length > 1 && <button className={`fx-note fx-note-more ${all.length <= 3 ? "fx-desk-hide" : ""}`} onClick={() => setQueue(true)}><span className="fx-phone-only">+{all.length - 1} more</span><span className="fx-desk-only">+{all.length - 3} more</span></button>}
         </div>
         {banner && <div className="fx-turn-banner" aria-hidden><span>{banner}</span></div>}
-        <TurnChips />
         {cstep >= 0 && !s.ended && !drawer && <Coach step={cstep} />}
         {bq[0] && <BreakingBanner item={bq[0]} onDone={() => setBq((q) => q.slice(1))} />}
+        <div className="fx-popstack" aria-live="polite">
+          {toasts.slice(-2).map((x) => <div key={x.id} className={`fx-pop fx-pop-toast ${x.bad ? "fx-pop-bad" : ""}`}>{x.text}</div>)}
+          <TurnChips />
+          {fresh && UNLOCK_BY_ID[fresh] && <button className="fx-unlock fx-pop" onClick={() => { setFresh(null); const u = UNLOCK_BY_ID[fresh]; rawSetTab(u.tabs[0] as Tab); }}><b>{UNLOCK_BY_ID[fresh].icon} New: {UNLOCK_BY_ID[fresh].label}</b><span>{UNLOCK_BY_ID[fresh].why} Tap to open.</span></button>}
+        </div>
         {say && !blocked && cos && cstep < 0 && (
           <div className="fx-advisor" role="status">
             <Portrait p={cos.portrait} size={42} name={cos.name} />
@@ -334,7 +338,6 @@ export function World() {
       {!!s.flags.primary && !s.flags.primarySeen && !s.ended && <PrimaryModal />}
       {!s.staff.picked && (!s.flags.primary || !!s.flags.primarySeen) && <DayOne />}
       {s.staff.picked && s.promises.length === 0 && !s.ended && <PlatformModal />}
-      {fresh && UNLOCK_BY_ID[fresh] && <button className="fx-unlock" onClick={() => { setFresh(null); const u = UNLOCK_BY_ID[fresh]; rawSetTab(u.tabs[0] as Tab); }}><b>{UNLOCK_BY_ID[fresh].icon} New: {UNLOCK_BY_ID[fresh].label}</b><span>{UNLOCK_BY_ID[fresh].why} Tap to open.</span></button>}
       {why && <WhyModal k={why} onClose={() => setWhy(null)} onOpen={WHYTAB[why] ? () => { const w = why; setWhy(null); setTab(WHYTAB[w]!); } : undefined} />}
       {!s.ended && s.cap.agendaDue && s.staff.picked && !summary && !(s.flags.reviewDue !== undefined && s.flags.reviewDue !== s.flags.reviewSeen) && <AgendaModal onClose={() => undefined} />}
       {menu && <MenuModal onClose={() => setMenu(false)} />}
