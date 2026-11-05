@@ -200,3 +200,26 @@
 .gm .fx-hero-icons { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; max-width: 520px; }
 .gm .fx-hero-icons button { padding: 8px 2px; font-size: 12px; line-height: 1.15; text-align: center; justify-content: center; min-height: 58px; }
 @media (max-width: 340px) { .gm .fx-hero-icons button { font-size: 11px; } }
+
+.fx-splash { min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 8px; background: linear-gradient(160deg, #0d1b3d, #1a1a5e 55%, #0f4c4a); color: #fff; text-align: center; }
+.fx-splash b { font-size: 34px; font-weight: 900; letter-spacing: .04em; } .fx-splash span { color: #f5d57a; font-weight: 700; }
+
+/* install button + guide */
+.fx-hero-lang { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.fx-install { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; background: linear-gradient(180deg, #f6c75d, #e9b44c); color: #1d1639; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 6px 16px rgba(233,180,76,.35); }
+.fx-install i { font-style: normal; font-weight: 600; font-size: 11px; opacity: .75; border-left: 1px solid rgba(29,22,57,.3); padding-left: 8px; }
+.fx-install-light { align-self: flex-start; }
+.fx-guide { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; counter-reset: s; }
+.fx-guide li { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.fx-guide-ic { flex: none; width: 40px; height: 40px; border-radius: 12px; background: #e8f7ef; color: #047857; display: grid; place-items: center; font-weight: 900; }
+
+/* category bar: pinned, wraps (never needs sideways scrolling), icon first */
+.fx-catbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 2px 8px; margin: 0 -2px; background: linear-gradient(180deg, #f7f0e1 82%, rgba(247,240,225,0)); }
+.fx-cat { position: relative; display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 0 10px 0 6px; border-radius: 999px; border: 1.5px solid #e6d8b5; background: #fffdf7; color: #1d1639; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
+.fx-cat-ic { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #fff1c9; font-size: 14px; }
+.fx-cat-n { font-style: normal; font-size: 11px; font-weight: 800; background: #1d163910; border-radius: 999px; padding: 1px 7px; color: #5b4d86; }
+.fx-cat[aria-selected="true"] { background: linear-gradient(180deg, #1f9d6b, #0f7a52); border-color: #0f7a52; color: #fff; box-shadow: 0 4px 12px rgba(15,122,82,.35); }
+.fx-cat[aria-selected="true"] .fx-cat-ic { background: rgba(255,255,255,.2); } .fx-cat[aria-selected="true"] .fx-cat-n { background: rgba(255,255,255,.22); color: #fff; }
+.fx-cat-badge { position: absolute; top: -5px; right: -3px; min-width: 18px; height: 18px; border-radius: 9px; background: #f59e0b; color: #1d1639; font-size: 11px; display: grid; place-items: center; padding: 0 4px; }
+
+.fx-globe-wait { min-height: 260px; display: grid; place-items: center; border-radius: 16px; background: radial-gradient(ellipse at 50% 40%, #12305a, #070d24); color: #bae6fd; font-weight: 700; }

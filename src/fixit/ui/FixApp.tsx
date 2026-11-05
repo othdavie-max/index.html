@@ -15,6 +15,7 @@ function Router() {
   useEffect(() => { document.documentElement.lang = ({ en: "en", pcm: "pcm", ha: "ha", yo: "yo", ig: "ig" })[lang]; return startTranslator(lang); }, [lang]);
   return (
     <>
+      {screen === "loading" && <div className="fx-splash" role="status"><b>ASO ROCK</b><span>Resuming your presidency…</span></div>}
       {screen === "title" && <Title />}
       {screen === "play" && state && <World />}
       <div className="g-toast-wrap" aria-live="polite">{toasts.map((t) => <div key={t.id} className={`g-toast ${t.bad ? "g-toast-bad" : ""}`}>{t.text}</div>)}</div>
@@ -25,7 +26,7 @@ function Router() {
 
 export function FixApp() {
   useEffect(() => {
-    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator && !(window as unknown as { __FIX_SITE?: boolean }).__FIX_SITE) {
       navigator.serviceWorker.register("/game-sw.js", { scope: "/fix" }).then(() => navigator.serviceWorker.ready).then((reg) => {
         const urls = performance.getEntriesByType("resource").map((e) => e.name).filter((n) => n.startsWith(location.origin));
         reg.active?.postMessage({ type: "cache-urls", urls });

@@ -1,4 +1,5 @@
 "use client";
+import { CardTabs } from "./CardTabs";
 import { Tip } from "./Brief";
 /** Naija X: the feed, the trending list, your own posts, accounts that remember you, the bot army and the off switch. */
 import { useEffect, useState } from "react";
@@ -45,7 +46,7 @@ export function XPanel() {
   };
   const prof = profile ? profileOf(s, profile) : null;
   return (
-    <div className="g-col" style={{ gap: 14 }}>
+    <CardTabs>
       <Card title="Naija X today" icon={<span aria-hidden>🐦</span>}>
         <div className="fx-xmood">
           <div><div className="g-tiny g-muted">What your feed says</div><div className="fx-xface" aria-label={`Feed mood ${shown}`}>{face(shown)} <b className="g-num">{shown > 0 ? "+" : ""}{shown}</b></div></div>
@@ -119,6 +120,6 @@ export function XPanel() {
           </div>
         </Modal>
       )}
-    </div>
+    </CardTabs>
   );
 }

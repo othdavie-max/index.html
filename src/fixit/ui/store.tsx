@@ -24,7 +24,7 @@ export interface Toast { id: number; text: string; bad: boolean }
 interface Ctx {
   state: FixState | null;
   version: number;
-  screen: "title" | "play";
+  screen: "title" | "play" | "loading";
   tab: Tab;
   setTab: (t: Tab) => void;
   act: (fn: (s: FixState) => Result, opts?: { silent?: boolean }) => Result;
@@ -78,7 +78,7 @@ function diffSummary(a: Snap, b: Snap, g?: FixState): Change[] {
 export function FixProvider({ children }: { children: ReactNode }) {
   const [game, setGame] = useState<FixState | null>(null);
   const [version, setVersion] = useState(0);
-  const [screen, setScreen] = useState<"title" | "play">("title");
+  const [screen, setScreen] = useState<"title" | "play" | "loading">(() => { try { return typeof window !== "undefined" && window.localStorage.getItem("fix:playing") === "1" ? "loading" : "title"; } catch { return "title"; } });
   const [tab, setTabRaw] = useState<Tab>("world");
   const setTab = useCallback((t: Tab) => { setTabRaw(t); if (t !== "world") track(`open/${t}`, true); }, []);
   const [summary, setSummary] = useState<MonthSummary | null>(null);
@@ -183,12 +183,34 @@ export function FixProvider({ children }: { children: ReactNode }) {
 
   const quit = useCallback(() => { void saveSlot("auto").then(() => setScreen("title")); }, [saveSlot]);
 
-  // autosave when leaving the page
+  // Keep progress safe on phones: save whenever the app is hidden, switched away from or closed, and shortly after any change.
   useEffect(() => {
     const h = () => { const g = gameRef.current; if (g) void saves.save("auto", g).catch(() => undefined); };
-    window.addEventListener("pagehide", h);
-    return () => window.removeEventListener("pagehide", h);
+    const vis = () => { if (document.visibilityState === "hidden") h(); };
+    window.addEventListener("pagehide", h); document.addEventListener("visibilitychange", vis); document.addEventListener("freeze", h);
+    const tick = setInterval(h, 30000);
+    return () => { window.removeEventListener("pagehide", h); document.removeEventListener("visibilitychange", vis); document.removeEventListener("freeze", h); clearInterval(tick); };
   }, [saves]);
+  useEffect(() => {
+    if (screen !== "play") return;
+    const id = setTimeout(() => { const g = gameRef.current; if (g) void saves.save("auto", g).then(() => setLastSaved(Date.now())).catch(() => undefined); }, 1500);
+    return () => clearTimeout(id);
+  }, [version, screen, saves]);
+  // remember "I was in the middle of a game" so reopening the app drops you straight back in
+  useEffect(() => {
+    try { if (screen === "play") window.localStorage.setItem("fix:playing", "1"); else if (screen === "title") window.localStorage.setItem("fix:playing", "0"); } catch { /* ignore */ }
+    if (screen === "play") { try { void navigator.storage?.persist?.(); } catch { /* ignore */ } }
+  }, [screen]);
+  useEffect(() => {
+    if (screen !== "loading") return;
+    let live = true;
+    saves.load("auto").then((g) => { if (!live) return; setGame(g); setScreen("play"); setTab("world"); bump(); }).catch(async () => {
+      const b = await saves.backup().catch(() => null);
+      if (!live) return;
+      if (b) { setGame(b); setScreen("play"); setTab("world"); bump(); } else setScreen("title");
+    });
+    return () => { live = false; };
+  }, [screen, saves, bump, setTab]);
 
   useEffect(() => { if (/[?&]dev=1/.test(window.location.search)) (window as unknown as { __fix?: unknown }).__fix = { act }; }, [act]); // test hook, off unless ?dev=1
   const value: Ctx = {

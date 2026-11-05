@@ -3,6 +3,7 @@ import { useState } from "react";
 import { BookOpen, FolderOpen, Info, Landmark, CalendarDays } from "lucide-react";
 import { useFix } from "./store";
 import { LangPicker } from "./LangPicker";
+import { InstallButton } from "./Install";
 import { Modal } from "../../game/ui/kit";
 import { HowTo, SaveSlots } from "./Menu";
 import { DEFAULT_PROMISES } from "../engine/promises";
@@ -10,9 +11,9 @@ import { PRESIDENTS } from "../engine/setup";
 import { Hall } from "./Hall";
 import { Setup } from "./Setup";
 import { Button } from "../../game/ui/kit";
-import worldMap from "../data/worldMap.json";
+import ngShape from "../data/ngShape.json";
 
-const NG_SHAPE = worldMap.c.find((c) => c.id === "NG")!;
+const NG_SHAPE = ngShape.c[0];
 /** a glowing Nigeria on the title screen, drawn from the same map data as the world view */
 function HeroMap() {
   const [cx, cy] = NG_SHAPE.c;
@@ -43,7 +44,7 @@ export function Title() {
         <button className="fx-big-btn fx-hero-go" onClick={() => setSetup(true)}>Start your presidency</button>
         {hasAuto && <button className="fx-hero-sub" onClick={() => void loadSlot("auto")}>Continue your last game</button>}
       </div>
-      <div className="fx-hero-lang"><LangPicker up /></div>
+      <div className="fx-hero-lang"><InstallButton /><LangPicker up /></div>
       <nav className="fx-hero-icons" aria-label="More">
         <button onClick={() => setSlots(true)}><FolderOpen size={20} /><span>Load</span></button>
         <button onClick={daily}><CalendarDays size={20} /><span>Daily</span></button>

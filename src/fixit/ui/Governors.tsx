@@ -1,4 +1,5 @@
 "use client";
+import { CategoryBar } from "./CategoryBar";
 import { Tip } from "./Brief";
 /** State of the States: every governor, how good they are and how their state is doing. */
 import { useState } from "react";
@@ -15,16 +16,20 @@ export const govGrade = (g: StateGov) => { const v = (g.skill * 1.2 + g.integrit
 const GRADE_COLOR: Record<string, string> = { A: "#047857", B: "#0f766e", C: "#a16207", D: "#c2410c", F: "#be123c" };
 const VERDICT: Record<string, string> = { thriving: "🌟", improving: "📈", flat: "😐", slipping: "📉" };
 
+const ZONE_LIST: { id: string; short: string }[] = [{ id: "NW", short: "North-West" }, { id: "NE", short: "North-East" }, { id: "NC", short: "North-Central" }, { id: "SW", short: "South-West" }, { id: "SE", short: "South-East" }, { id: "SS", short: "South-South" }];
+
 export function GovernorsPanel() {
   const s = useS();
   const { setSelect } = useFix();
   const [sort, setSort] = useState<"grade" | "state" | "progress">("grade");
-  const rows = s.govs.map((g) => ({ g, p: stateProgress(s, g.stateId) }));
+  const [zone, setZone] = useState<string>("all");
+  const rows = s.govs.filter((g) => zone === "all" || STATE_BY_ID[g.stateId]?.zone === zone).map((g) => ({ g, p: stateProgress(s, g.stateId) }));
   const order = { thriving: 0, improving: 1, flat: 2, slipping: 3 } as const;
   rows.sort((a, b) => sort === "state" ? (STATE_BY_ID[a.g.stateId]?.name ?? "").localeCompare(STATE_BY_ID[b.g.stateId]?.name ?? "") : sort === "progress" ? order[a.p?.verdict ?? "flat"] - order[b.p?.verdict ?? "flat"] : (b.g.skill * 1.2 + b.g.integrity) - (a.g.skill * 1.2 + a.g.integrity));
   return (
     <div className="g-col" style={{ gap: 10 }}>
       <Tip>Each state has its own governor. A good one makes every project you build there work better; a weak or corrupt one wastes it. Tap a row to open the state on the map.</Tip>
+      <CategoryBar label="Region" value={zone} onChange={setZone} cats={[{ id: "all", label: "All", icon: "🇳🇬", count: s.govs.length }, ...ZONE_LIST.map((z) => ({ id: z.id, label: z.short, icon: "📍", count: s.govs.filter((g) => STATE_BY_ID[g.stateId]?.zone === z.id).length }))]} />
       <div className="g-row g-wrap" style={{ gap: 6 }} role="group" aria-label="Sort governors">
         {([["grade", "Best first"], ["progress", "By progress"], ["state", "A to Z"]] as const).map(([k, l]) => <button key={k} className="fx-subtab" aria-pressed={sort === k} onClick={() => setSort(k)}>{l}</button>)}
         <span className="g-tiny g-muted" style={{ alignSelf: "center" }}>Grade A–F = skill + honesty</span>

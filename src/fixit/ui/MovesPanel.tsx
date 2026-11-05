@@ -9,6 +9,10 @@ import { MOVES, moveBlock, doMove, pegged, shadowFx, type Move } from "../engine
 import { nb } from "../engine/util";
 import { sfx } from "./sound";
 import { AskAdvisers } from "./AdvisorStrip";
+import { CategoryBar } from "./CategoryBar";
+
+const AREA: Record<string, string> = { peg: "money", print: "money", sackcbn: "money", redesign: "money", pricecap: "money", jets: "gov", lawpay: "gov", treatment: "gov", probe: "gov", relocate: "gov", privatise: "gov", borders: "people", importban: "people", school: "people", youthservice: "people", amnesty: "people" };
+const AREAS = [{ id: "money", label: "Money & prices", icon: "💱" }, { id: "gov", label: "Government", icon: "🏛️" }, { id: "people", label: "People & trade", icon: "🧑🏾‍🤝‍🧑🏾" }];
 
 export function MovesPanel() {
   const s = useS();
@@ -16,12 +20,14 @@ export function MovesPanel() {
   const [ask, setAsk] = useState<Move | null>(null);
   const [ok, setOk] = useState<Move | null>(null);
   const [val, setVal] = useState(800);
+  const [area, setArea] = useState("money");
   const run = (m: Move, arg?: number) => { const r = act((x) => doMove(x, m.id, arg)); sfx(r.ok ? (m.id === "peg" ? "doom" : "good") : "bad"); };
   return (
     <div className="g-col" style={{ gap: 12 }}>
       <Callout tone="info">Everyone in Nigeria has said "if I were president, I would…". Now you are. Each of these really happens in the game, and some of them do not end the way the beer parlour thinks.</Callout>
       {pegged(s) && <Callout tone="warn">Naira peg in force at ₦{Math.round(Number(s.flags.peg)).toLocaleString()}. Without the peg the rate would be about ₦{Math.round(shadowFx(s)).toLocaleString()}. Reserves: ${s.eco.reserves.toFixed(1)}bn.</Callout>}
-      {MOVES.map((m) => {
+      <CategoryBar label="Kind of move" value={area} onChange={setArea} cats={[...AREAS.map((a) => ({ id: a.id, label: a.label, icon: a.icon, count: MOVES.filter((m) => (AREA[m.id] ?? "gov") === a.id).length })), { id: "all", label: "All", icon: "📋", count: MOVES.length }]} />
+      {MOVES.filter((m) => area === "all" || (AREA[m.id] ?? "gov") === area).map((m) => {
         const block = moveBlock(s, m);
         return (
           <div key={m.id} className="fx-move">

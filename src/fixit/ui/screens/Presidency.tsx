@@ -1,4 +1,5 @@
 "use client";
+import { CategoryBar } from "../CategoryBar";
 import { Tip } from "../Brief";
 import { useState } from "react";
 import { AlertTriangle, Banknote, BriefcaseBusiness, CalendarClock, Coins, Fuel, HeartHandshake, ShieldAlert, Target, TrendingUp, X } from "lucide-react";
@@ -179,6 +180,7 @@ export function Presidency() {
   const evs = openEvents(s).filter((e) => `event:${e.id}` !== ch.id);
   const [layer, setLayer] = useState<Layer>("overview");
   const [open, setOpen] = useState<string | null>(null);
+  const [sec, setSec] = useState<string>("now");
   const last = s.reports[s.reports.length - 1];
   const showBrief = !s.flags.briefed && s.month === 0;
   return (
@@ -191,6 +193,8 @@ export function Presidency() {
           <Button size="sm" onClick={() => act((x) => { x.flags.briefed = true; return { ok: true, message: "" }; }, { silent: true })}><X size={14} /> Got it</Button>
         </div>
       )}
+      <CategoryBar label="Overview part" value={sec} onChange={setSec} cats={[{ id: "now", label: "Now", icon: "📊" }, { id: "promises", label: "Promises", icon: "🤞🏾", badge: undefined }, { id: "situations", label: "Situations", icon: "⚠️", count: evs.length }, { id: "gov", label: "Government", icon: "🏛️" }, { id: "report", label: "Report & map", icon: "🗺️" }]} />
+      {sec === "now" && <>
       <StatusBar />
       {s.month <= 2 && issuesOf(s).length > 0 && (
         <Card title="🎲 What you inherited: this Nigeria's starting problems">
@@ -203,11 +207,17 @@ export function Presidency() {
       <CampaignPanel />
       <Kpis />
       <ChallengePanel ch={ch} />
+      </>}
+      {sec === "promises" && <>
       <div className="fx-two">
         <ComingUp />
         <div className="g-col" style={{ gap: 14 }}>
           <Promises />
-          <Card title="Situations on the ground" icon={<AlertTriangle size={16} />} action={<Button size="sm" onClick={() => setTab("map")}>Map</Button>}>
+        </div>
+      </div>
+      </>}
+      {sec === "situations" && <>
+      <Card title="Situations on the ground" icon={<AlertTriangle size={16} />} action={<Button size="sm" onClick={() => setTab("map")}>Map</Button>}>
             {evs.length === 0 ? <EmptyState title="Nothing else urgent" body="New situations appear when conditions on the ground warrant them." /> : (
               <div className="g-col">
                 {evs.slice(0, 4).map((e) => (
@@ -219,10 +229,11 @@ export function Presidency() {
               </div>
             )}
           </Card>
-        </div>
-      </div>
+      </>}
+      {sec === "gov" && <>
       <GovernmentTabs />
-      <div className="fx-two">
+      </>}
+      {sec === "report" && <div className="g-col" style={{ gap: 14 }}>
         <Card title={last ? last.title : "Latest report"} action={<Button size="sm" onClick={() => setTab("news")}>All decisions</Button>}>
           {last ? <><div className="g-tiny g-muted">{monthLabel(last.month)}</div><ul className="fx-why" style={{ marginTop: 6 }}>{last.lines.map((l, i) => <li key={i}>{l}</li>)}</ul></> : <div className="g-small g-muted">Your decisions and what they did will be explained here.</div>}
         </Card>
@@ -233,7 +244,7 @@ export function Presidency() {
           <MapView s={s} layer={layer} selectedState={null} selectedLga={null} onSelectState={(id) => { setSelect({ state: id, lga: null }); setTab("map"); }} onSelectLga={() => undefined} height={320} labels={false} />
           <div style={{ marginTop: 8 }}><MapLegend layerLabel={layer === "overview" ? "Overall stress" : layer} /></div>
         </Card>
-      </div>
+      </div>}
       {open && <Modal title="Respond" wide onClose={() => setOpen(null)}>{s.events.filter((e) => e.id === open && e.status === "open").map((e) => <EventCard key={e.id} e={e} />)}{!s.events.some((e) => e.id === open && e.status === "open") && <div className="g-small">Dealt with. <Button size="sm" onClick={() => setOpen(null)}>Close</Button></div>}</Modal>}
     </div>
   );

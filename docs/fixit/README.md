@@ -258,3 +258,9 @@ Run tests: `npx vitest run src/fixit`.
 - **Less text**: `ui/icons.ts`, `ui/Brief.tsx` (`Brief`, `Tip`, `shorten`), `engine/fxchips.ts` and `engine/preview.ts` (plays a choice on a copy of the game to show what it moves). Compact choice cards with an ⓘ for detail.
 - **Languages**: English, Naija Pidgin (rule-based), Hausa, Yoruba, Igbo. `engine/i18n.ts` holds the interface dictionary and `ui/domTranslate.ts` swaps matching text as the screen changes. Long story text stays English. The Hausa, Yoruba and Igbo wording is a careful first pass and wants native-speaker review. Add rows to `ROWS` to extend.
 - **Map**: globe has atmosphere glow, sphere shading and a starfield backdrop.
+
+## Install, saving, speed, category screens
+- **Install button** (`ui/Install.tsx`): one tap on Android/desktop Chrome (uses the browser's install prompt, captured early in the page), a step-by-step guide on iPhone (Apple has no install prompt). Hidden once installed or inside an iframe.
+- **Progress is kept**: autosave on hide/pagehide/freeze, every 30s and 1.5s after any change; the app remembers "in a game" and reopens straight into it (backup save as fallback); asks the browser for persistent storage.
+- **Speed**: the offline site is built as split ES modules (`scripts/build-site.mjs`): a 3 KB page with an instant splash, the app code, the geo data as its own cached file and the globe loaded only when opened. The service worker opens the saved page first and refreshes it quietly in the background.
+- **Category screens**: `ui/CategoryBar.tsx` (pinned icon chips), `ui/Sections.tsx` and `ui/CardTabs.tsx` split long screens so one tap shows just one part.

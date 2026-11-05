@@ -1,4 +1,5 @@
 "use client";
+import { CategoryBar } from "../CategoryBar";
 import { Brief, Tip } from "../Brief";
 import { iconFor } from "../icons";
 import { useState } from "react";
@@ -58,24 +59,23 @@ export function FuelPanel() {
   );
 }
 
+const POLICY_ICON: Record<string, string> = { fiscal: "💰", money: "💱", fuel: "⛽", agri: "🌾", power: "⚡", infra: "🛣️", industry: "🏭", jobs: "👷", security: "🛡️", education: "🏫", health: "🏥", welfare: "🤝", governance: "⚖️" };
+
 export function Policies() {
   const s = useS();
   const { act } = useFix();
-  const [cat, setCat] = useState<Category | "all">("all");
+  const [cat, setCat] = useState<Category | "all">("agri");
   const list = POLICIES.filter((p) => !p.retired && (cat === "all" || p.cat === cat));
   const active = POLICIES.filter((p) => s.policies[p.id]?.active);
   const [vote, setVote] = useState<{ bill: string; exec: (x: FixState) => Result } | null>(null);
   const start = (id: string) => { const bill = billFor({ type: "policy", id }); if (bill) setVote({ bill, exec: (x) => enactPolicy(x, id) }); else act((x) => enactPolicy(x, id)); };
   return (
     <div className="g-col" style={{ gap: 14 }}>
+      <CategoryBar label="Policy area" value={cat} onChange={(v) => setCat(v as Category | "all")} cats={[...CATEGORIES.map((c) => ({ id: c.id, label: c.label, icon: POLICY_ICON[c.id] ?? "📜", count: POLICIES.filter((p) => !p.retired && p.cat === c.id).length, badge: POLICIES.filter((p) => p.cat === c.id && s.policies[p.id]?.active).length })), { id: "all", label: "All", icon: "📋", count: POLICIES.filter((p) => !p.retired).length }]} />
       <div className="g-row g-between g-wrap"><div className="g-small g-muted">📜 {active.length} in force · most take months to reach full effect</div></div>
-      <FuelPanel />
-      <BudgetCard />
-      <div className="g-row g-wrap g-chip-row" style={{ gap: 6 }} role="group" aria-label="Policy area">
-        <button className="g-chip" aria-pressed={cat === "all"} onClick={() => setCat("all")}>All areas</button>
-        {CATEGORIES.map((c) => <button key={c.id} className="g-chip" aria-pressed={cat === c.id} onClick={() => setCat(c.id)}>{c.label}</button>)}
-      </div>
-      {active.length > 0 && (
+      {(cat === "fuel" || cat === "all") && <FuelPanel />}
+      {(cat === "fiscal" || cat === "all") && <BudgetCard />}
+      {active.filter((p) => cat === "all" || p.cat === cat).length > 0 && (
         <Card title={`In force (${active.length}) · running cost ${nb(active.reduce((a, d) => a + d.monthly * priceMult(s), 0))}/month`}>
           <div className="g-col" style={{ gap: 8 }}>
             {active.map((d) => { const k = policyStrength(s, d.id); return (

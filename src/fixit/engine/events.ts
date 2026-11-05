@@ -255,7 +255,15 @@ const TEMPLATES: Tpl[] = [
     expire: { scandal: 1, evidence: 10, trust: -6, opposition: 4 }, expireText: () => "Silence was read as guilt and the allegations grew.",
   },
 ];
-export const TEMPLATE_BY_ID: Record<string, Tpl> = Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(PROPOSAL_TEMPLATES as unknown as Tpl[]), ...(ARC_TEMPLATES as unknown as Tpl[]), ...(MINISTER_TEMPLATES as unknown as Tpl[]), ...(GOV_TEMPLATES as unknown as Tpl[]), ...(TRADE_TEMPLATES as unknown as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[]), ...(MIL_TEMPLATES as unknown as Tpl[]), ...(LEND_TEMPLATES as unknown as Tpl[]), ...(STATE_TEMPLATES as unknown as Tpl[]), ...(LEDGER_TEMPLATES as unknown as Tpl[]), ...(LATE_TEMPLATES as unknown as Tpl[]), ...(FUN_TEMPLATES as unknown as Tpl[]), ...(ID_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
+/** built on first use: several template files import each other, so building at load time depends on the order files happen to load in */
+let _tby: Record<string, Tpl> | null = null;
+const buildTemplates = (): Record<string, Tpl> => Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(PROPOSAL_TEMPLATES as unknown as Tpl[]), ...(ARC_TEMPLATES as unknown as Tpl[]), ...(MINISTER_TEMPLATES as unknown as Tpl[]), ...(GOV_TEMPLATES as unknown as Tpl[]), ...(TRADE_TEMPLATES as unknown as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[]), ...(MIL_TEMPLATES as unknown as Tpl[]), ...(LEND_TEMPLATES as unknown as Tpl[]), ...(STATE_TEMPLATES as unknown as Tpl[]), ...(LEDGER_TEMPLATES as unknown as Tpl[]), ...(LATE_TEMPLATES as unknown as Tpl[]), ...(FUN_TEMPLATES as unknown as Tpl[]), ...(ID_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
+export const TEMPLATE_BY_ID: Record<string, Tpl> = new Proxy({} as Record<string, Tpl>, {
+  get: (_t, k) => (_tby ??= buildTemplates())[k as string],
+  has: (_t, k) => k in (_tby ??= buildTemplates()),
+  ownKeys: () => Reflect.ownKeys(_tby ??= buildTemplates()),
+  getOwnPropertyDescriptor: (_t, k) => { const d = Reflect.getOwnPropertyDescriptor(_tby ??= buildTemplates(), k); return d ? { ...d, configurable: true } : undefined; },
+});
 
 export function eventOptions(t: Tpl, s: FixState): EventOption[] {
   return t.options.map((o) => {

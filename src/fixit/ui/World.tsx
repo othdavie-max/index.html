@@ -2,6 +2,7 @@
 /** The Civilization-style main screen: a living map, a HUD of resources and danger meters, a notification stack,
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
 import { LangPicker } from "./LangPicker";
+import { Sections } from "./Sections";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Banknote, BarChart3, Music, Briefcase, CreditCard, Crown, FastForward, Globe2, HelpCircle, Landmark, Smile, Vote, Wallet, Zap, Lock, Hammer, Menu as MenuIcon, Newspaper, ShieldAlert, TrendingUp, Users, Volume2, VolumeX, X, } from "lucide-react";
 import { useFix, useS, type Tab } from "./store";
@@ -301,8 +302,8 @@ export function World() {
           {drawer === "deals" && <InvestorsPanel />}
           {drawer === "street" && <div className="g-col" style={{ gap: 14 }}><StreetPanel /><div><div className="g-section-title">What I caused</div><TimelinePanel /></div></div>}
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}
-          {drawer === "power" && <div className="g-col" style={{ gap: 14 }}><OfficePanel /><PowerPanel /></div>}
-                    {drawer === "cabinet" && <div className="g-col" style={{ gap: 14 }}><CastPanel /><StaffCard /><CabinetCard /><UnityCard /><FirstFamilyCard /><GroupsCard /></div>}
+          {drawer === "power" && <Sections label="President's office" items={[{ id: "do", label: "What I can do", icon: "🏛️", node: <OfficePanel /> }, { id: "danger", label: "Danger & power", icon: "🚨", node: <PowerPanel />, badge: s.rule.coupRisk >= 45 || s.rule.streetAnger >= 65 ? 1 : 0 }]} />}
+                    {drawer === "cabinet" && <Sections label="My team" items={[{ id: "circle", label: "Inner circle", icon: "🧑🏾‍💼", node: <div className="g-col" style={{ gap: 14 }}><CastPanel /><StaffCard /></div> }, { id: "cabinet", label: "Cabinet", icon: "🗂️", node: <CabinetCard /> }, { id: "unity", label: "One Nigeria", icon: "🤝", node: <UnityCard /> }, { id: "family", label: "Family", icon: "👨🏾‍👩🏾‍👧🏾", node: <FirstFamilyCard /> }, { id: "groups", label: "Groups", icon: "👥", node: <GroupsCard /> }]} />}
           {drawer === "governors" && <GovernorsPanel />}
           {drawer === "advisers" && <BriefingPanel />}
           {drawer === "enemies" && <EnemiesPanel />}

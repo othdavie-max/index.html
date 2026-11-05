@@ -1,5 +1,6 @@
 "use client";
 import { LangPicker } from "./LangPicker";
+import { InstallButton } from "./Install";
 import { Tip } from "./Brief";
 import { serialise, deserialise } from "../persistence";
 import { isMuted, isMusicOn, setMuted, setMusicOn, sfx, startMusic } from "./sound";
@@ -113,6 +114,7 @@ export function MenuModal({ onClose }: { onClose: () => void }) {
             <Button size="sm" onClick={() => { const on = !mus; setMus(on); setMusicOn(on); if (on) startMusic(); }}>{mus ? "🎵 Music on" : "🎵 Music off"}</Button>
             <Button size="sm" onClick={() => act((g) => { g.flags.noTimer = !g.flags.noTimer; return { ok: true, message: g.flags.noTimer ? "Crisis timers off." : "Crisis timers on." }; })}>{state.flags.noTimer ? "⏱️ Crisis timer off" : "⏱️ Crisis timer on"}</Button>
           </div>
+          <InstallButton className="fx-install-light" />
           <div className="g-small g-muted">🗣️ Language</div>
           <LangPicker />
           <div className="g-row g-wrap" style={{ borderTop: "1px solid #e2e8f0", paddingTop: 10 }}>

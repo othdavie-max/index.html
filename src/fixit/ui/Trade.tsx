@@ -1,8 +1,9 @@
 "use client";
 /** Trade and the world: what we import, what we can make ourselves, and who will buy from us. */
+import { CardTabs } from "./CardTabs";
 import { Button, Card } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
-import { Globe } from "./Globe";
+import { Globe } from "./GlobeLazy";
 import { GOODS, buildFactory, canExport, exportBlock, factoryBlock, factoryCost, imp, importFlow, exportFlow, localShare, nbUsd, setPolicy, signExport, totalExports, totalImports, type Policy } from "../engine/imports";
 import { W } from "../engine/world";
 import { nb } from "../engine/util";
@@ -15,7 +16,7 @@ export function TradePanel() {
   const st = imp(s); const w = W(s);
   const bill = totalImports(s), ex = totalExports(s);
   return (
-    <div className="g-col" style={{ gap: 14 }}>
+    <CardTabs>
       <Card title="Nigeria and the world" icon={<span aria-hidden>🌍</span>}>
         <Globe lens="trade" />
       </Card>
@@ -58,6 +59,6 @@ export function TradePanel() {
           })}
         </div>
       </Card>
-    </div>
+    </CardTabs>
   );
 }

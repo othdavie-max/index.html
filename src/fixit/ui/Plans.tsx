@@ -1,4 +1,5 @@
 "use client";
+import { CategoryBar } from "./CategoryBar";
 import { Tip } from "./Brief";
 /** Plans: every big problem as a short ladder of solutions, with the payoff at the top. */
 import { useState } from "react";
@@ -22,10 +23,12 @@ export function PlansPanel() {
   const [vote, setVote] = useState<{ bill: string; exec: (x: FixState) => Result } | null>(null);
   const startPolicy = (id: string) => { sfx("tap"); const bill = billFor({ type: "policy", id }); if (bill) setVote({ bill, exec: (x) => enactPolicy(x, id) }); else act((x) => enactPolicy(x, id)); };
   const jobs = jobsCreated(s);
+  const [lid, setLid] = useState<string>(LADDERS[0]?.id ?? "");
   return (
     <div className="g-col" style={{ gap: 14 }}>
       <Tip>Every big problem has a ladder: a few steps, with a big payoff at the top. Start a step and it is the same project or policy you would find under Projects and Policies, just in the order that works.</Tip>
-      {LADDERS.map((l) => {
+      <CategoryBar label="Big problem" value={lid} onChange={setLid} cats={LADDERS.map((l) => ({ id: l.id, label: ({ food: "Food", jobs: "Jobs", power: "Electricity", fuel: "Fuel", money: "Dollars" } as Record<string, string>)[l.id] ?? l.title, icon: l.icon, badge: l.rungs.filter((r) => rungState(s, r).state === "building").length }))} />
+      {LADDERS.filter((l) => l.id === lid).map((l) => {
         const pr = ladderProgress(s, l);
         return (
           <Card key={l.id} title={`${l.icon} ${l.title}`}>

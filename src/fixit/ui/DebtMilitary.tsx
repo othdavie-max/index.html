@@ -1,4 +1,5 @@
 "use client";
+import { CardTabs } from "./CardTabs";
 import { Tip } from "./Brief";
 /** National debt and the road to being debt-free, lending abroad, and the armed forces. */
 import { useState } from "react";
@@ -85,7 +86,7 @@ export function MilitaryPanel() {
   const { act } = useFix();
   const M = s.mil, sn = strongestNeighbour(s), rank = regionalRank(s);
   return (
-    <div className="g-col" style={{ gap: 12 }}>
+    <CardTabs>
       <Card title="The armed forces" icon={<span aria-hidden>🪖</span>}>
         <div className="g-row g-between g-wrap"><div><div style={{ fontSize: 30, fontWeight: 900 }}>{Math.round(M.strength)}/100</div><div className="g-small g-muted">strength · #{rank} of {M.neighbours.length + 1} in the region</div></div><Badge tone={rank === 1 ? "green" : "amber"}>{rank === 1 ? "Regional power" : `Behind ${M.neighbours.filter((n) => n.strength > M.strength).length} neighbour(s)`}</Badge></div>
         <Bar value={M.strength / 100} label={`Military strength ${Math.round(M.strength)}`} />
@@ -108,7 +109,7 @@ export function MilitaryPanel() {
         <div className="g-col" style={{ gap: 8 }}>{M.neighbours.map((n) => <div key={n.id}><div className="g-row g-between g-small"><b>{n.name}</b><span className="g-muted">army {Math.round(n.strength)} · mood to you {Math.round(n.mood)} · stability {Math.round(n.stability)}</span></div><Bar value={n.strength / 100} tone={n.strength > M.strength ? "red" : undefined} label={`${n.name} strength ${Math.round(n.strength)}`} /></div>)}</div>
       </Card>
       {(statesCreated(s) > 0) && <Callout tone="info">You have created {statesCreated(s)} new state{statesCreated(s) > 1 ? "s" : ""}, costing about {nb(statesCost(s))} a month.</Callout>}
-    </div>
+    </CardTabs>
   );
 }
 

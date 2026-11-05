@@ -1,10 +1,11 @@
 "use client";
 /** The world league: where Nigeria stands against everyone else, and who is next. */
+import { CardTabs } from "./CardTabs";
 import { useState } from "react";
 import { Card } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
 import { VisitModal } from "./Visit";
-import { Globe } from "./Globe";
+import { Globe } from "./GlobeLazy";
 import { InboxCard } from "./Inbox";
 import { StageCard, VictoryCard } from "./Stage";
 import { TIERS, W, africaRank, league, nextTarget, type Row } from "../engine/world";
@@ -23,7 +24,7 @@ export function LeaguePanel() {
   const tgt = nextTarget(s);
   const Cell = ({ r, k }: { r: Row; k: "econ" | "mil" | "tech" | "inf" }) => <span className="fx-lg-cell" data-me={r.me ? "1" : undefined}><i style={{ width: `${Math.round(r[k])}%` }} /><b>{Math.round(r[k])}</b></span>;
   return (
-    <div className="g-col" style={{ gap: 14 }}>
+    <CardTabs>
       <Card title="Where Nigeria stands" icon={<span aria-hidden>🌍</span>}>
         <div className="fx-lg-head">
           <div><div className="g-tiny g-muted">World rank</div><div className="fx-lg-big">#{me.rank}</div></div>
@@ -59,6 +60,6 @@ export function LeaguePanel() {
         </div>
       </Card>
       {pick && <VisitModal id={pick} onClose={() => setPick(null)} />}
-    </div>
+    </CardTabs>
   );
 }
