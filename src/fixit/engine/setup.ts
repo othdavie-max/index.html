@@ -5,8 +5,8 @@
  */
 import type { Rng } from "../../game/engine/rng";
 import { subRng } from "../../game/engine/rng";
-import type { Difficulty, FixState, Inherit, Portrait } from "./types";
-import { clamp, clamp100 } from "./util";
+import type { Difficulty, Effects, FixState, Inherit, Portrait } from "./types";
+import { addMod, clamp, clamp100, removeMods } from "./util";
 
 export interface Issue {
   id: string;
@@ -88,8 +88,25 @@ function tidy(s: FixState) {
 export const DIFFICULTY: Record<Difficulty, { label: string; blurb: string; cash: number; events: number; vote: number }> = {
   easy: { label: "Easy", blurb: "More money, fewer crises, kinder voters.", cash: 1.6, events: 0.7, vote: 2.5 },
   normal: { label: "Normal", blurb: "The intended challenge.", cash: 1, events: 1, vote: 0 },
-  hard: { label: "Hard", blurb: "Less money, more crises, tougher voters.", cash: 0.6, events: 1.3, vote: -2.5 },
+  hard: { label: "Hard", blurb: "Half the money, a crisis most months, voters who do not forgive. Prices and corruption push back all the time.", cash: 0.5, events: 1.8, vote: -7 },
+  nigeria: { label: "Real Nigeria", blurb: "As close to the real thing as a game can get. Empty treasury, constant crises, a hostile elite. Most presidents do not finish well.", cash: 0.25, events: 2.6, vote: -14 },
 };
+/** a constant background pressure the harder levels add every month (on top of the starting cash and crisis rate) */
+export const PRESSURE: Record<Difficulty, { eff: Effects; anger: number; coup: number; drain: number }> = {
+  easy: { eff: {}, anger: 0, coup: 0, drain: 0 },
+  normal: { eff: {}, anger: 0, coup: 0, drain: 0 },
+  hard: { eff: { inflation: 0.9, revenue: -22, corruption: 0.8, security: -0.8, trust: -0.5, capacity: -1.2, fxDemand: 0.5, taxCompl: -0.5 }, anger: 0.35, coup: 0.3, drain: 0.05 },
+  nigeria: { eff: { inflation: 1.8, revenue: -45, corruption: 1.6, security: -1.8, trust: -1.1, capacity: -2.4, fxDemand: 1.1, taxCompl: -1.2, foodPrice: 0.8 }, anger: 0.8, coup: 0.7, drain: 0.12 },
+};
+export function difficultyMonthly(s: FixState) {
+  const p = PRESSURE[s.meta.difficulty ?? "normal"]; if (!p) return;
+  removeMods(s, "difficulty");
+  if (Object.keys(p.eff).length) addMod(s, "difficulty", "How hard the country is to run", p.eff, { duration: null, ramp: 1 });
+  if (p.anger) s.rule.streetAnger = clamp100(s.rule.streetAnger + p.anger);
+  if (p.coup) s.rule.coupRisk = clamp100(s.rule.coupRisk + p.coup);
+  // the system skims: part of every month's revenue never reaches the treasury (this is the structural leakage a clean president has to fight)
+  if (p.drain && s.fin.revenue > 0) s.fin.treasury = Math.max(0, s.fin.treasury - p.drain * s.fin.revenue / 12 * (1 - 0.6 * Math.min(1, s.gov.transparency / 100)));
+}
 
 export interface SetupOptions { difficulty?: Difficulty; portrait?: Portrait; president?: string; /** force a particular mix (tests) */ issues?: string[]; archetype?: string; start?: string; daily?: string; quick?: boolean; legacy?: boolean; perks?: string[]; inherit?: Inherit; /** sandbox: no term limits, deep pockets, everything open */ sandbox?: boolean; homeZone?: string; faith?: string }
 
@@ -126,12 +143,14 @@ export function applySetup(s: FixState, o: SetupOptions) {
   const ids = (o.issues ?? pickIssues(rng)).filter((x) => ISSUE_BY_ID[x]);
   s.meta.scenario = ids.join(",");
   s.meta.difficulty = o.difficulty ?? "normal";
-  s.meta.hard = s.meta.difficulty === "hard";
+  s.meta.hard = s.meta.difficulty === "hard" || s.meta.difficulty === "nigeria";
   if (o.portrait) s.meta.portrait = o.portrait;
   if (o.president?.trim()) s.meta.president = o.president.trim().slice(0, 40);
   jitter(s, rng);
   for (const id of ids) ISSUE_BY_ID[id].apply(s, rng.range(0.7, 1.3));
   s.fin.treasury *= DIFFICULTY[s.meta.difficulty].cash;
+  if (s.meta.difficulty === "nigeria") { s.eco.reserves = Math.max(6, s.eco.reserves * 0.6); s.fin.foreignDebt *= 1.25; s.gov.approval = clamp100(s.gov.approval - 8); s.gov.trust = clamp100(s.gov.trust - 8); s.eco.inflation += 4; s.eco.fx *= 1.08; }
+  else if (s.meta.difficulty === "hard") { s.eco.reserves = Math.max(8, s.eco.reserves * 0.85); s.gov.approval = clamp100(s.gov.approval - 3); }
   s.meta.homeZone = o.homeZone ?? "SW"; s.meta.faith = o.faith ?? "christian";
   s.meta.archetype = o.archetype ?? "career"; s.meta.start = o.start ?? "normal"; if (o.daily) s.meta.daily = o.daily;
   applyArchetype(s, s.meta.archetype);

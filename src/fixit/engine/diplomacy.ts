@@ -8,6 +8,7 @@ import type { Effects, FixState } from "./types";
 import { addMod, clamp, clamp100, nb, pushNews } from "./util";
 import { payPc } from "./meta";
 import { W, league, myRank, saveW, type Country, type WorldState } from "./world";
+import { visaBanned } from "./feuds";
 
 export type Arch = "dealmaker" | "hawk" | "technocrat" | "nationalist" | "charmer" | "strongman" | "skeptic";
 export const ARCH: Record<Arch, { label: string; icon: string; wants: string; refuse: string[]; yes: string[]; poor: string[] }> = {
@@ -75,6 +76,7 @@ export function askBlock(s: FixState, c: Country, a: Ask): string | null {
 export function tripBlock(s: FixState, id: string): string | null {
   const c = W(s).c.find((x) => x.id === id); if (!c) return "Unknown country.";
   const w = W(s); if (w.at === id) return "You are already there.";
+  if (visaBanned(s, id)) return `${c.name} has banned visas for your delegation. Repair the quarrel first.`;
   const last = w.trips[id]; if (last !== undefined && s.month - last < TRIP_GAP && !w.invites.includes(id)) return `You were there ${s.month - last} month(s) ago. Wait ${TRIP_GAP - (s.month - last)} more.`;
   if (TRIP_COST > s.fin.treasury) return "Not enough cash for the trip.";
   return null;

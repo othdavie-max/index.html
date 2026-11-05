@@ -170,13 +170,15 @@ export const LM_ACTIONS: LmAction[] = [
   { id: "protect", label: "Protect them", explain: "Shield them from investigators. They owe you; you share the guilt.", cost: 0 },
   { id: "cut", label: "Demand a cut", explain: "Take your share of what they steal. You get rich, and leave a trail.", cost: 0, need: (l) => (l.stolen < 5 ? "They have not stolen anything worth a cut." : null) },
 ];
+/** the price of an action on this lawmaker: bribes get dearer every time, because he now knows you pay */
+export const lmCost = (lm: Lawmaker, a: LmAction) => (a.id === "bribe" ? Math.round(a.cost * (1 + 0.7 * (lm.bribed ?? 0))) : a.cost);
 export function lmActionBlock(s: FixState, lm: Lawmaker, a: LmAction): string | null {
   if (lm.status === "jailed" || lm.status === "executed") return "No longer in the Assembly.";
   const n = a.need?.(lm); if (n) return n;
   if (a.id === "blackmail" && lm.status === "controlled") return "Already under your thumb.";
   if (a.id === "protect" && lm.status === "protected") return "Already protected.";
   if (a.id === "expose" && lm.status === "exposed") return "Already exposed.";
-  if (a.cost * mult(s) > s.fin.treasury) return "Not enough cash.";
+  if (lmCost(lm, a) * mult(s) > s.fin.treasury) return "Not enough cash.";
   return null;
 }
 export function lawmakerAction(s: FixState, id: string, action: LmAction["id"]): PResult {
@@ -185,7 +187,7 @@ export function lawmakerAction(s: FixState, id: string, action: LmAction["id"]):
   if (!lm || !def) return fail("Unknown lawmaker or action.");
   const block = lmActionBlock(s, lm, def); if (block) return fail(block);
   const pcE = payPc(s, PC_COST.lawmaker, "move against a lawmaker"); if (pcE) return fail(pcE);
-  const err = def.cost ? pay(s, def.cost) : null; if (err) return fail(err);
+  const err = lmCost(lm, def) ? pay(s, lmCost(lm, def)) : null; if (err) return fail(err);
   const rng = subRng(s.meta.seed, "lm-act", lm.id, action, s.month);
   switch (action) {
     case "investigate": {
@@ -194,9 +196,9 @@ export function lawmakerAction(s: FixState, id: string, action: LmAction["id"]):
       return { ok: true, message: lm.stolen > 5 ? `Agents found a trail: ${lm.name} has hidden about ${nb(lm.stolen)}. Proof ${Math.round(lm.evidence)}/100.` : `Agents found little on ${lm.name}. Proof ${Math.round(lm.evidence)}/100.` };
     }
     case "bribe": {
-      lm.loyalty = clamp100(lm.loyalty + 22); lm.greed = clamp100(lm.greed + 4);
-      s.gov.corruption = clamp100(s.gov.corruption + 0.4); s.me.evidence = clamp100(s.me.evidence + 1.5);
-      return { ok: true, message: `${lm.name} is now much friendlier to your bills. (Loyalty ${Math.round(lm.loyalty)})` };
+      lm.loyalty = clamp100(lm.loyalty + 22); lm.greed = clamp100(lm.greed + 5); lm.bribed = (lm.bribed ?? 0) + 1; lm.lastBribe = s.month;
+      s.gov.corruption = clamp100(s.gov.corruption + 0.5); s.me.evidence = clamp100(s.me.evidence + 3);
+      return { ok: true, message: `${lm.name} is now much friendlier to your bills for a while. Bought loyalty fades, and the next envelope will cost ${lmCost(lm, def)}. (Loyalty ${Math.round(lm.loyalty)})` };
     }
     case "arrest": {
       const political = lm.evidence < 40;

@@ -8,6 +8,7 @@ import type { Effects, FixState } from "./types";
 import { addMod, clamp, clamp100, jflag, powerRatio, pushNews, removeMods } from "./util";
 import { payPc } from "./meta";
 import { W, saveW } from "./world";
+import { coverage, crudeExtra, embargoed, priceMult } from "./agreements";
 
 export type Policy = "open" | "tariff" | "ban";
 export interface ImportGood {
@@ -50,8 +51,8 @@ export function localShare(s: FixState, id: string): number {
 }
 const POLICY_FLOW: Record<Policy, number> = { open: 1, tariff: 0.78, ban: 0.3 };
 /** yearly dollars still flowing out for this product */
-export const importFlow = (s: FixState, id: string) => { const g = GOOD_BY_ID[id]; return g.bill * (1 - localShare(s, id)) * POLICY_FLOW[g.fixed ? "open" : imp(s)[id].policy]; };
-export const exportFlow = (s: FixState, id: string) => imp(s)[id].exports.length * GOOD_BY_ID[id].bill * 0.25;
+export const importFlow = (s: FixState, id: string) => { const g = GOOD_BY_ID[id]; return g.bill * (1 - localShare(s, id)) * POLICY_FLOW[g.fixed ? "open" : imp(s)[id].policy] * coverage(s, id) * priceMult(s, id); };
+export const exportFlow = (s: FixState, id: string) => imp(s)[id].exports.filter((c) => !embargoed(s, c)).length * GOOD_BY_ID[id].bill * 0.25;
 export const totalImports = (s: FixState) => GOODS.reduce((a, g) => a + importFlow(s, g.id), 0);
 export const totalExports = (s: FixState) => GOODS.reduce((a, g) => a + exportFlow(s, g.id), 0);
 const BASE = GOODS.reduce((a, g) => a + g.bill * (1 - g.local0), 0);
@@ -116,6 +117,9 @@ export function importsMonthly(s: FixState, rng: Rng) {
   let tariffRev = 0, shortage = 0, foodShort = 0, smuggle = 0, factories = 0;
   for (const g of GOODS) {
     const x = st[g.id]; const l = localShare(s, g.id); factories += x.factory;
+    // suppliers lost or cancelled: what home production cannot cover becomes a shortage
+    const gap = (1 - coverage(s, g.id)) * (1 - l);
+    if (gap > 0.02) { if (g.fixed) s.oil.scarcity = clamp100(s.oil.scarcity + gap * 6); else { shortage += gap * (g.bill / 2); if (g.food) foodShort += gap; smuggle += gap * 0.3; } }
     if (g.fixed) continue;
     if (x.policy === "tariff") { tariffRev += g.bill * (1 - l) * 0.78 * 0.18; shortage += Math.max(0, 0.6 - l) * 0.3 * (g.bill / 2); }
     if (x.policy === "ban") { const gap = Math.max(0, 0.75 - l); shortage += gap * (g.bill / 2); smuggle += gap; if (g.food) foodShort += gap; }
@@ -129,8 +133,9 @@ export function importsMonthly(s: FixState, rng: Rng) {
     jobs: -0.22 * factories,
     manuf: 0.5 * factories,
     exports: ex * 0.03,
-    fxSupply: ex * 0.06,
+    fxSupply: ex * 0.06 + 0.35 * crudeExtra(s),
   };
+  if (crudeExtra(s) !== 0) e.revenue = (e.revenue ?? 0) + 25 * crudeExtra(s);
   addMod(s, "imports", "Trade and home production", e, { duration: null, ramp: 1 });
   if (foodShort > 0.25 && rng.chance(0.1)) { for (const r of Object.values(s.regions)) r.food = clamp100(r.food + 1); }
   if (smuggle > 0.6) s.rule.streetAnger = clamp100(s.rule.streetAnger + 0.2);

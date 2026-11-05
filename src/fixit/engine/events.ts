@@ -34,6 +34,7 @@ import { PROPOSAL_TEMPLATES } from "./proposals";
 import { ARC_TEMPLATES, MINISTER_TEMPLATES } from "./castarcs";
 import { LATE_TEMPLATES } from "./late";
 import { FUN_TEMPLATES } from "./fun";
+import { HEIST_TEMPLATES } from "./empire";
 import { ID_TEMPLATES } from "./identity";
 import { GOV_TEMPLATES } from "./govs";
 import { TRADE_TEMPLATES } from "./trade";
@@ -257,7 +258,7 @@ const TEMPLATES: Tpl[] = [
 ];
 /** built on first use: several template files import each other, so building at load time depends on the order files happen to load in */
 let _tby: Record<string, Tpl> | null = null;
-const buildTemplates = (): Record<string, Tpl> => Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(PROPOSAL_TEMPLATES as unknown as Tpl[]), ...(ARC_TEMPLATES as unknown as Tpl[]), ...(MINISTER_TEMPLATES as unknown as Tpl[]), ...(GOV_TEMPLATES as unknown as Tpl[]), ...(TRADE_TEMPLATES as unknown as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[]), ...(MIL_TEMPLATES as unknown as Tpl[]), ...(LEND_TEMPLATES as unknown as Tpl[]), ...(STATE_TEMPLATES as unknown as Tpl[]), ...(LEDGER_TEMPLATES as unknown as Tpl[]), ...(LATE_TEMPLATES as unknown as Tpl[]), ...(FUN_TEMPLATES as unknown as Tpl[]), ...(ID_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
+const buildTemplates = (): Record<string, Tpl> => Object.fromEntries([...TEMPLATES, ...STORY_TEMPLATES, ...POWER_TEMPLATES, ...(BACKER_TEMPLATES as Tpl[]), ...(STAFF_TEMPLATES as Tpl[]), ...(PROPOSAL_TEMPLATES as unknown as Tpl[]), ...(ARC_TEMPLATES as unknown as Tpl[]), ...(MINISTER_TEMPLATES as unknown as Tpl[]), ...(GOV_TEMPLATES as unknown as Tpl[]), ...(TRADE_TEMPLATES as unknown as Tpl[]), ...(BIG_TEMPLATES as Tpl[]), ...(INVESTOR_TEMPLATES as Tpl[]), ...(ENEMY_TEMPLATES as Tpl[]), ...(DESK_TEMPLATES as unknown as Tpl[]), ...(ALL_OFFICIAL as unknown as Tpl[]), ...(FAMILY_TEMPLATES as unknown as Tpl[]), ...(FOREIGN_TEMPLATES as unknown as Tpl[]), ...(PARTY_TEMPLATES as unknown as Tpl[]), ...(HOME_TEMPLATES as unknown as Tpl[]), ...(MIL_TEMPLATES as unknown as Tpl[]), ...(LEND_TEMPLATES as unknown as Tpl[]), ...(STATE_TEMPLATES as unknown as Tpl[]), ...(LEDGER_TEMPLATES as unknown as Tpl[]), ...(LATE_TEMPLATES as unknown as Tpl[]), ...(FUN_TEMPLATES as unknown as Tpl[]), ...(HEIST_TEMPLATES as unknown as Tpl[]), ...(ID_TEMPLATES as unknown as Tpl[])].map((t) => [t.id, t]));
 export const TEMPLATE_BY_ID: Record<string, Tpl> = new Proxy({} as Record<string, Tpl>, {
   get: (_t, k) => (_tby ??= buildTemplates())[k as string],
   has: (_t, k) => k in (_tby ??= buildTemplates()),

@@ -5,7 +5,7 @@ import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, Portrait } from "../../game/ui/kit";
 import { STATE_BY_ID } from "../../game/data/states";
-import { LM_ACTIONS, STATUS_LABEL, lawmakerAction, lmActionBlock, relationLabel, sitting } from "../engine/power";
+import { LM_ACTIONS, STATUS_LABEL, lawmakerAction, lmActionBlock, lmCost, relationLabel, sitting } from "../engine/power";
 import { nb } from "../engine/util";
 import { sfx } from "./sound";
 import type { Lawmaker } from "../engine/types";
@@ -70,7 +70,7 @@ function Dossier({ lm }: { lm: Lawmaker }) {
           const block = lmActionBlock(s, lm, a);
           return (
             <div key={a.id} className="g-row" style={{ gap: 8 }}>
-              <div className="g-grow"><b className="g-small">{a.label}</b>{a.cost > 0 && <span className="g-tiny g-muted"> · {nb(a.cost)}</span>}<div className="g-tiny g-muted">{block ?? a.explain}</div></div>
+              <div className="g-grow"><b className="g-small">{a.label}</b>{a.cost > 0 && <span className="g-tiny g-muted"> · {nb(lmCost(lm, a))}</span>}<div className="g-tiny g-muted">{block ?? a.explain}</div></div>
               <Button size="sm" variant={a.id === "arrest" || a.id === "expose" ? "danger" : "default"} disabled={!!block} onClick={() => { const r = act((x) => lawmakerAction(x, lm.id, a.id)); sfx(r.ok ? (a.id === "arrest" ? "gavel" : "good") : "bad"); if (!r.ok) toast(r.message, true); }}>Do it ⚡{PC_COST.lawmaker}</Button>
             </div>
           );

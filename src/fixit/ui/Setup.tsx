@@ -14,8 +14,8 @@ import { PerksCard } from "./Meta";
 import { FAITH_NAME, ZONE_IDS, ZONE_INFO, type Faith, type ZoneId } from "../engine/identity";
 import { sfx } from "./sound";
 
-const DIFFS: Difficulty[] = ["easy", "normal", "hard"];
-const DIFF_NAME: Record<Difficulty, string> = { easy: "Kind", normal: "Fair", hard: "Brutal" };
+const DIFFS: Difficulty[] = ["easy", "normal", "hard", "nigeria"];
+const DIFF_NAME: Record<Difficulty, string> = { easy: "Kind", normal: "Fair", hard: "Brutal", nigeria: "Real Nigeria" };
 const ATTR: { k: keyof PortraitT; label: string }[] = [{ k: "skin", label: "Skin" }, { k: "style", label: "Hairstyle" }, { k: "hair", label: "Hair colour" }, { k: "wear", label: "Headwear" }, { k: "outfit", label: "Outfit" }, { k: "accent", label: "Colour" }, { k: "glasses", label: "Glasses" }, { k: "beard", label: "Beard" }];
 const BG_STORY: Record<string, string> = {
   career: "Thirty years in the system. You know every door and every dossier.", general: "You have given orders all your life. The barracks still answers your calls.",
@@ -123,7 +123,7 @@ export function Setup({ onBack }: { onBack: () => void }) {
             </div>
             <div className="fx-diff">
               <div className="fx-wiz-label">How hard should Nigeria be?</div>
-              <input type="range" min={0} max={2} step={1} value={DIFFS.indexOf(difficulty)} onChange={(e) => setDifficulty(DIFFS[Number(e.target.value)])} aria-label="Difficulty" list="diffs" />
+              <input type="range" min={0} max={3} step={1} value={DIFFS.indexOf(difficulty)} onChange={(e) => setDifficulty(DIFFS[Number(e.target.value)])} aria-label="Difficulty" list="diffs" />
               <div className="fx-diff-ticks">{DIFFS.map((d) => <span key={d} data-on={difficulty === d ? "1" : undefined}>{DIFF_NAME[d]}</span>)}</div>
               <div className="g-small" style={{ color: "#cfe0ee" }}>{DIFFICULTY[difficulty].blurb}</div>
             </div>

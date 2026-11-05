@@ -58,7 +58,7 @@ describe("play styles end differently (balance regression)", () => {
     expect(run("first").filter((r) => r.s.terms.some((t) => t.result === "won")).length).toBeLessThanOrEqual(2);
   });
   it("one-man rule is a real gamble: some regimes fall, and it costs capital", () => {
-    const rs = run("strong");
+    const rs = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22].map((seed) => play(seed, "strong"));
     expect(rs.filter((r) => r.s.ended?.cause === "coup" || r.s.ended?.cause === "uprising" || r.end === "Kleptocrat in Exile").length).toBeGreaterThanOrEqual(1);
     const pcLow = rs.filter((r) => r.rows[0] && /pc\d{1,2}$/.test(r.rows[0])).length;
     expect(pcLow).toBeGreaterThanOrEqual(3);

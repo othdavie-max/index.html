@@ -39,7 +39,22 @@ export function billLabel(bill: string, year?: number): string {
 }
 
 export function initAssembly(s: FixState) { s.assembly = { support: 55, lobby: {}, passed: 0, defeats: 0 }; }
+/** bought votes are rented: they fade, they demand more, and sometimes they talk */
+function bribesMonthly(s: FixState) {
+  const rng = subRng(s.meta.seed, "bribes", s.month);
+  for (const lm of sitting(s)) {
+    if (!lm.bribed || lm.status === "controlled") continue;
+    const since = s.month - (lm.lastBribe ?? s.month);
+    if (since >= 1 && since <= 10) lm.loyalty = clamp100(lm.loyalty - 2.2);
+    if (lm.greed > 70 && lm.bribed >= 2 && rng.chance(0.05)) { lm.loyalty = clamp100(lm.loyalty - 15); pushNews(s, { source: `envelope:${lm.id}:${s.month}`, headline: `${lm.name} is said to be "reconsidering" support for the government`, body: "Insiders say he wants another envelope, a bigger one.", tone: "neutral", stateId: lm.stateId }); }
+    if (rng.chance(0.01 * lm.bribed)) {
+      lm.loyalty = clamp100(lm.loyalty - 40); lm.bribed = 0; s.me.scandals += 1; s.me.evidence = clamp100(s.me.evidence + 8); s.gov.trust = clamp100(s.gov.trust - 3); s.rule.streetAnger = clamp100(s.rule.streetAnger + 2);
+      pushNews(s, { source: `caught:${lm.id}:${s.month}`, headline: `Video: ${lm.name} counts cash from the Villa`, body: "The clip is everywhere. The opposition demands an inquiry, and the lawmaker has turned against the government.", tone: "bad", stateId: lm.stateId });
+    }
+  }
+}
 export function assemblyMonthly(s: FixState) {
+  bribesMonthly(s);
   const target = clamp100(50 + 3 * loyalistCount(s) + governorAssembly(s) + lawmakerLoyalty(s) + 0.25 * (s.gov.approval - 50) - 0.1 * (s.rival.popularity - 45) - 2 * s.me.scandals + staffAssembly(s) + backerSupport(s));
   s.assembly.support = clamp100(s.assembly.support + 0.1 * (target - s.assembly.support));
 }

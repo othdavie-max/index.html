@@ -6,6 +6,8 @@ import type { Effects, FixState } from "./types";
 import { addMod, clamp100, nb, pushNews, removeMods } from "./util";
 import { payPc } from "./meta";
 import { createEvent } from "./spawn";
+import { embargoed } from "./agreements";
+export const PARTNER_COUNTRY: Record<string, string> = { china: "cn", usa: "us", eu: "de", india: "in", ecowas: "gh" };
 
 const done = (s: FixState, def: string) => s.projects.filter((p) => p.defId === def && p.status === "done").length;
 export interface Product { id: string; name: string; icon: string; cap: (s: FixState) => number; blurb: string; effects: Effects }
@@ -60,7 +62,8 @@ export function tradeMonthly(s: FixState) {
     const p = TP_BY_ID[x.partner]; if (!p) continue;
     const breach = (x.partner === "usa" && (s.rule.executions > 0 || s.rule.democracy < 45 || s.rule.stolenElection)) || (x.partner === "eu" && (s.rule.democracy < 50 || s.sec.humanRights < 30)) || (x.partner === "ecowas" && s.flags.illegitimate !== undefined);
     if (breach && !x.suspended) { x.suspended = true; removeMods(s, `trade:${x.partner}:${x.product}`); changed = true; pushNews(s, { source: `tradesus:${s.month}:${x.partner}`, headline: `${p.name} suspends its ${PRODUCT_BY_ID[x.product].name.toLowerCase()} deal with Nigeria`, body: "Officials cite how the country is being governed.", tone: "bad" }); }
-    if (!breach && x.suspended && p.warm(s) > 55) { x.suspended = false; changed = true; const pr = PRODUCT_BY_ID[x.product]; const eff: Effects = {}; for (const [k, v] of Object.entries(pr.effects)) eff[k as keyof Effects] = (v as number) * pr.cap(s) * 0.8; addMod(s, `trade:${x.partner}:${x.product}`, `${pr.name} to ${p.name}`, eff, { duration: null, ramp: 4 }); }
+    if (embargoed(s, PARTNER_COUNTRY[x.partner] ?? "") && !x.suspended) { x.suspended = true; removeMods(s, `trade:${x.partner}:${x.product}`); changed = true; }
+    if (!breach && x.suspended && p.warm(s) > 55 && !embargoed(s, PARTNER_COUNTRY[x.partner] ?? "")) { x.suspended = false; changed = true; const pr = PRODUCT_BY_ID[x.product]; const eff: Effects = {}; for (const [k, v] of Object.entries(pr.effects)) eff[k as keyof Effects] = (v as number) * pr.cap(s) * 0.8; addMod(s, `trade:${x.partner}:${x.product}`, `${pr.name} to ${p.name}`, eff, { duration: null, ramp: 4 }); }
     if (!x.suspended) { if (x.partner === "china") s.foreign.rel.china = clamp100(s.foreign.rel.china + 0.03); }
   }
   if (changed) saveDeals(s, d);

@@ -8,6 +8,7 @@ import { GOODS, buildFactory, canExport, exportBlock, factoryBlock, factoryCost,
 import { W } from "../engine/world";
 import { nb } from "../engine/util";
 import { sfx } from "./sound";
+import { DealsPanel } from "./Deals";
 
 const P_LABEL: Record<Policy, string> = { open: "Open", tariff: "Tariff", ban: "Ban" };
 export function TradePanel() {
@@ -27,6 +28,7 @@ export function TradePanel() {
         </div>
         <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Every dollar of imports you replace with a Nigerian factory strengthens the naira and creates jobs. Ban or tax an import before home production is ready, and prices rise and smugglers get rich.</div>
       </Card>
+      <Card title="Trade deals" icon={<span aria-hidden>🤝</span>}><DealsPanel /></Card>
       <Card title="What we import, and what we could make" icon={<span aria-hidden>🏭</span>}>
         <div className="g-col" style={{ gap: 10 }}>
           {GOODS.map((g) => {

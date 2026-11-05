@@ -235,13 +235,15 @@ export function freshCandidates(s: FixState) {
   s.cabinet.pool = pool;
 }
 
-/** your chief of staff quietly fills the posts you did not choose with the most capable non-crony available */
+/** posts you did not choose are filled at random from the candidates: skipping the cabinet screen is a gamble, not a shortcut */
 export function autoFillRest(s: FixState) {
   for (const p of PORTFOLIOS) {
     if (KEY_PORTFOLIOS.includes(p.id)) continue;
-    const cur = s.cabinet.members[p.id];
-    const best = s.cabinet.pool.filter((m) => m.portfolio === p.id && m.faction !== "crony").sort((a, b) => b.skill - a.skill)[0];
-    if (best && (!cur || best.skill > cur.skill + 6)) appoint(s, p.id, best.id);
+    if (s.cabinet.members[p.id]) continue;
+    const cands = s.cabinet.pool.filter((m) => m.portfolio === p.id && m.faction !== "crony");
+    if (!cands.length) continue;
+    const pick = cands[Math.floor(subRng(s.meta.seed, "autofill", p.id).next() * cands.length)];
+    appoint(s, p.id, pick.id);
   }
 }
 

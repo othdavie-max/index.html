@@ -14,8 +14,9 @@ import topo50 from "world-atlas/countries-50m.json";
 import topo110 from "world-atlas/countries-110m.json";
 import { useS } from "./store";
 import { NG, W, league } from "../engine/world";
-import { GOODS, imp, importFlow, exportFlow } from "../engine/imports";
-import { dealsOf } from "../engine/trade";
+import { PORT, tradeRoutes, type Route } from "../engine/deals";
+import { feudList, heatOf, mood, measuresAgainst, MEASURE, repairFeud, repairCost, feudOf } from "../engine/feuds";
+import { useFix } from "./store";
 import type { FixState } from "../engine/types";
 
 type F = Feature<Geometry, { name: string }>;
@@ -23,26 +24,9 @@ type F = Feature<Geometry, { name: string }>;
 const feats = (t: any): F[] => (feature(t, t.objects.countries) as unknown as { features: F[] }).features.filter((f) => f.properties.name !== "Antarctica");
 const HI = feats(topo50), LO = feats(topo110);
 const IDS: Record<number, string> = { 840: "us", 156: "cn", 276: "de", 356: "in", 392: "jp", 826: "gb", 250: "fr", 76: "br", 643: "ru", 682: "sa", 792: "tr", 410: "kr", 360: "id", 484: "mx", 124: "ca", 36: "au", 784: "ae", 818: "eg", 710: "za", 231: "et", 404: "ke", 288: "gh", 566: NG };
-/** where ships and planes leave from: the main port or airport of each country */
-export const PORT: Record<string, [number, number]> = { us: [-74, 40.6], cn: [121.5, 31.2], in: [72.8, 18.9], br: [-46.3, -23.9], ru: [30.2, 59.9], ca: [-79.4, 43.6], gb: [0.4, 51.5], fr: [0.1, 49.5], de: [9.9, 53.5], jp: [139.8, 35.6], kr: [129, 35.1], au: [151.2, -33.9], sa: [39.2, 21.5], ae: [55.1, 25], tr: [28.9, 41], eg: [32.3, 31.2], za: [18.4, -33.9], ke: [39.7, -4], gh: [0, 5.6], et: [38.8, 9], id: [106.8, -6.1], mx: [-96.1, 19.2] };
-const LAGOS: [number, number] = [3.4, 6.45], ABUJA: [number, number] = [7.5, 9.06];
+export { PORT };
+const ABUJA: [number, number] = [7.5, 9.06];
 const VW = 600, VH = 420;
-
-export interface Route { from: [number, number]; to: [number, number]; out: boolean; plane: boolean; icon: string; vol: number; label: string; who: string }
-export function tradeRoutes(s: FixState): Route[] {
-  const r: Route[] = []; const st = imp(s);
-  for (const g of GOODS) {
-    const f = importFlow(s, g.id); if (f < 0.05) continue;
-    const sup = g.suppliers.filter((x) => PORT[x]).slice(0, 2);
-    for (const c of sup) r.push({ from: PORT[c], to: LAGOS, out: false, plane: !!g.plane, icon: g.icon, vol: f / sup.length, label: `${g.name} in`, who: c });
-    for (const b of st[g.id].exports) if (PORT[b]) r.push({ from: LAGOS, to: PORT[b], out: true, plane: false, icon: g.icon, vol: exportFlow(s, g.id) / Math.max(1, st[g.id].exports.length), label: `${g.name} out`, who: b });
-  }
-  const MAP: Record<string, string> = { china: "cn", usa: "us", eu: "de", india: "in", ecowas: "gh" };
-  for (const d of dealsOf(s)) { const to = MAP[d.partner]; if (to && PORT[to] && !d.suspended) r.push({ from: LAGOS, to: PORT[to], out: true, plane: false, icon: d.product === "crude" ? "🛢️" : "📦", vol: 0.8, label: `${d.product} out`, who: to }); }
-  if (!r.some((x) => x.out)) r.push({ from: LAGOS, to: PORT.in, out: true, plane: false, icon: "🛢️", vol: 1.2, label: "Crude oil out", who: "in" }, { from: LAGOS, to: PORT.fr, out: true, plane: false, icon: "🛢️", vol: 0.8, label: "Crude oil out", who: "fr" });
-  return r.sort((a, b) => b.vol - a.vol).slice(0, 18);
-}
-
 type Lens = "trade" | "power" | "friendship";
 type RGB = [number, number, number];
 const RAMP: RGB[] = [[220, 38, 38], [245, 158, 11], [132, 204, 22], [16, 185, 129]];
@@ -59,6 +43,8 @@ const META = new Map<F, Meta>();
 for (const f of HI) { const n = num(f); META.set(f, { c: geoCentroid(f) as [number, number], area: geoArea(f), tone: EARTH[n % EARTH.length], id: IDS[n], name: f.properties.name }); }
 const LO_META = new Map<F, Meta>();
 for (const f of LO) { const n = num(f); const hi = HI.find((h) => num(h) === n); LO_META.set(f, hi ? META.get(hi)! : { c: geoCentroid(f) as [number, number], area: geoArea(f), tone: EARTH[n % EARTH.length], id: IDS[n], name: f.properties.name }); }
+const CENTRE: Record<string, [number, number]> = {};
+for (const f of HI) { const m = META.get(f)!; if (m.id) CENTRE[m.id] = m.c; }
 const SHORT_NAME: Record<string, string> = { "United States of America": "USA", "Dem. Rep. Congo": "DR Congo", "Central African Rep.": "CAR", "United Kingdom": "UK", "Bosnia and Herz.": "Bosnia", "Dominican Rep.": "Dominican Rep.", "S. Sudan": "South Sudan", "W. Sahara": "W. Sahara", "Eq. Guinea": "Eq. Guinea", "eSwatini": "Eswatini" };
 const LABEL_ORDER = [...HI].sort((a, b) => (META.get(b)!.id ? 1 : 0) - (META.get(a)!.id ? 1 : 0) || META.get(b)!.area - META.get(a)!.area);
 
@@ -94,7 +80,7 @@ export function Globe({ lens: lens0 = "trade", onPick, compact }: { lens?: Lens;
   const pinch = useRef<{ d: number; k: number } | null>(null);
   const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-  const w = W(s); const rows = league(s);
+  const w = W(s); const rows = league(s); const feuds = feudList(s); const { act } = useFix();
   const routes = useMemo(() => tradeRoutes(s), [s, s.month]); // eslint-disable-line react-hooks/exhaustive-deps
   const involved = useMemo(() => { const m = new Map<string, "in" | "out" | "both">(); for (const r of routes) { const prev = m.get(r.who); m.set(r.who, prev && prev !== (r.out ? "out" : "in") ? "both" : r.out ? "out" : "in"); } return m; }, [routes]);
   const colour = (m: Meta): RGB => {
@@ -272,11 +258,12 @@ export function Globe({ lens: lens0 = "trade", onPick, compact }: { lens?: Lens;
             const seg: string[] = []; let cur = "";
             for (let j = 0; j <= 40; j++) { const u = j / 40; const p = lifted(interp(u) as [number, number], H * Math.sin(Math.PI * u)); if (!p) { if (cur) { seg.push(cur); cur = ""; } continue; } cur += `${cur ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`; }
             if (cur) seg.push(cur);
-            return seg.map((d, j) => <path key={`${i}-${j}`} d={d} fill="none" stroke={r.out ? "#6ee7b7" : "#fdba74"} strokeOpacity={r.plane ? 0.85 : 0.6} strokeWidth={Math.min(2.6, 0.7 + r.vol * 0.7)} strokeDasharray={r.plane ? "1 3.5" : undefined} strokeLinecap="round" />);
+            return seg.map((d, j) => <path key={`${i}-${j}`} d={d} fill="none" stroke={r.state === "blocked" ? "#f87171" : r.out ? "#6ee7b7" : "#fdba74"} strokeOpacity={r.state === "blocked" ? 0.9 : r.plane ? 0.85 : 0.6} strokeWidth={Math.min(2.6, 0.7 + r.vol * 0.7)} strokeDasharray={r.state === "blocked" ? "2 5" : r.plane ? "1 3.5" : undefined} strokeLinecap="round" />);
           })}
           {/* the ships and planes themselves */}
           {routes.flatMap((r, i) => {
             const interp = geoInterpolate(r.from, r.to); const dist = geoDistance(r.from, r.to); const H = r.plane ? 0.06 + 0.16 * dist / Math.PI : 0.012; const n = r.vol > 1 ? 2 : 1;
+            if (r.state === "blocked") return [];
             return Array.from({ length: n }, (_, j) => {
               const u = reduce ? 0.45 : ((tNow * (r.plane ? 0.06 : 0.022) + i * 0.137 + j / n) % 1);
               const h = H * Math.sin(Math.PI * u);
@@ -308,6 +295,14 @@ export function Globe({ lens: lens0 = "trade", onPick, compact }: { lens?: Lens;
               );
             });
           })}
+          {/* grudges: a red pulse over any country that is angry with Nigeria, and a red line home */}
+          {feuds.map((fd) => { const c = CENTRE[fd.id]; if (!c) return null; const p = lifted(c, 0); if (!p || (mode === "3d" && p[2] < 0.1)) return null; const interp = geoInterpolate(c, [7.5, 9.06]); let d = ""; for (let j = 0; j <= 24; j++) { const q = lifted(interp(j / 24) as [number, number], 0.02 * Math.sin(Math.PI * j / 24)); if (!q) { d += ""; continue; } d += `${d ? "L" : "M"}${q[0].toFixed(1)},${q[1].toFixed(1)}`; } const strong = fd.heat >= 50; return (
+            <g key={`fd${fd.id}`}>
+              {d && <path d={d} fill="none" stroke="#ef4444" strokeOpacity={0.55} strokeWidth={1.4} strokeDasharray="4 4" />}
+              <circle cx={p[0]} cy={p[1]} r={(strong ? 15 : 11) * Math.min(1.5, vs.k)} fill="none" stroke="#ef4444" strokeWidth={2} className="fx-globe-pulse" />
+              <text x={p[0]} y={p[1] - 14 * Math.min(1.4, vs.k)} textAnchor="middle" fontSize={13} aria-hidden>{strong ? "🔥" : "⚡"}</text>
+            </g>
+          ); })}
           {/* country names */}
           {labels.map((l, i) => <text key={i} x={l.x} y={l.y} textAnchor="middle" dominantBaseline="middle" fontSize={l.size} fontWeight={l.me ? 900 : 700} fill={l.me ? "#fff7cc" : "#f1f5f9"} fillOpacity={l.me ? 1 : 0.86} stroke="#0b1f36" strokeOpacity={0.75} strokeWidth={2.4} paintOrder="stroke" letterSpacing={l.size < 9 ? 0 : 0.3}>{l.me ? "NIGERIA" : l.t}</text>)}
           {hub && <g><circle cx={hub[0]} cy={hub[1]} r={22 * Math.min(1.6, vs.k)} fill="url(#fxglow)" className="fx-globe-pulse" /><circle cx={hub[0]} cy={hub[1]} r={3.6} fill="#facc15" stroke="#0b1f36" strokeWidth={1.2} /></g>}
@@ -322,6 +317,16 @@ export function Globe({ lens: lens0 = "trade", onPick, compact }: { lens?: Lens;
                 <div className="fx-ccard-bar"><i style={{ width: `${cardInfo.c.rel}%`, background: `rgb(${ramp(cardInfo.c.rel / 100).join(",")})` }} /></div>
                 <div className="g-tiny g-muted">World rank #{cardInfo.row?.rank} · stability {Math.round(cardInfo.c.stab)}/100</div>
                 <div className="g-small" style={{ marginTop: 4 }}>{cardInfo.c.blurb}</div>
+                {(() => { const fd = feudOf(s, cardInfo.m.id!); const ms = measuresAgainst(s, cardInfo.m.id!); if (fd.heat < 12 && !ms.length) return null; const mo = mood(fd.heat); return (
+                  <div className="fx-ccard-feud">
+                    <div style={{ color: mo.col }}><b>{mo.icon} {mo.word}</b> · grudge {Math.round(fd.heat)}/100</div>
+                    {fd.why.slice(-2).map((x, i) => <div key={i} className="g-tiny g-muted">• {x.text}</div>)}
+                    {ms.map((x) => <div key={x.id} className="g-tiny" style={{ color: "#b91c1c" }}>{MEASURE[x.kind].icon} {MEASURE[x.kind].label} until month {x.until}</div>)}
+                    <div className="g-row g-wrap" style={{ gap: 6, marginTop: 4 }}>
+                      <button className="g-btn g-btn-sm" onClick={() => act((g2) => repairFeud(g2, cardInfo.m.id!, "apologise"))}>🕊️ Apologise ⚡3</button>
+                      <button className="g-btn g-btn-sm" onClick={() => act((g2) => repairFeud(g2, cardInfo.m.id!, "sweeten"))}>🎁 Sweeten · ₦{repairCost(s, cardInfo.c!)}bn</button>
+                    </div>
+                  </div>); })()}
                 {cardInfo.trade.length > 0 && <div className="g-tiny" style={{ marginTop: 4 }}>{cardInfo.trade.slice(0, 3).map((r) => `${r.icon} ${r.label}`).join(" · ")}</div>}
                 {onPick && <button className="g-btn g-btn-primary g-btn-sm" style={{ marginTop: 8 }} onClick={() => { setCard(null); onPick(cardInfo.m.id!); }}>Visit · talk · trade</button>}
               </>
