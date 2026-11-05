@@ -28,6 +28,12 @@ export interface GeoMapProps {
   ariaLabel?: string;
   /** extra SVG drawn on top (markers, symbols); coordinates are the same as the geometry's */
   overlay?: (ctx: { pxPerUnit: number; zoom: number }) => ReactNode;
+  /** extra SVG drawn underneath the regions (neighbouring land, sea labels, rivers) */
+  under?: (ctx: { pxPerUnit: number; zoom: number }) => ReactNode;
+  /** raised, 3D-looking regions: a side wall and shadow under each, and the hovered or chosen one lifts up */
+  relief?: boolean;
+  /** rich card shown while hovering a region (desktop); falls back to the plain name */
+  hoverCard?: (id: string) => ReactNode;
 }
 
 const pad = (bb: [number, number, number, number], f = 0.12): View => {
@@ -159,9 +165,16 @@ export function GeoMap(p: GeoMapProps) {
 
   return (
     <div className="g-map-wrap" ref={wrap} style={{ height: p.height ?? "min(68vh, 640px)" }} onKeyDown={onKey} tabIndex={0} role="application" aria-label={p.ariaLabel ?? "Map of Nigeria. Use arrow keys to pan, plus and minus to zoom, zero to reset."}>
-      <svg ref={svg} className="g-map-svg" viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} preserveAspectRatio="xMidYMid meet" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+      <svg ref={svg} className="g-map-svg" viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} preserveAspectRatio="xMidYMid meet" onPointerDown={onDown} onPointerMove={(e) => { onMove(e); if (hover && !(e.target as Element).classList?.contains("g-map-path")) setHover(null); }} onPointerUp={onUp} onPointerCancel={onUp}
         onPointerLeave={() => setHover(null)} onClick={(e) => { if ((e.target as Element).tagName === "svg" && !dragged.current && p.selectedState) { /* background click keeps selection */ } }}>
+        {p.under?.({ pxPerUnit, zoom })}
         <g>
+          {p.relief && (
+            <g pointerEvents="none" aria-hidden>
+              <g transform={`translate(${3 / pxPerUnit} ${16 / pxPerUnit})`} opacity={0.22}>{geo.states.map((s) => <path key={`sh${s.id}`} d={s.d} fill="#0b1f36" />)}</g>
+              <g transform={`translate(0 ${7 / pxPerUnit})`}>{geo.states.map((s) => <path key={`wl${s.id}`} d={s.d} style={{ fill: `color-mix(in srgb, ${p.fillState(s.id)} 52%, #2b1a08)` }} stroke="rgba(0,0,0,.25)" strokeWidth={1} vectorEffect="non-scaling-stroke" />)}</g>
+            </g>
+          )}
           {geo.states.map((s) => {
             const dim = p.selectedState && p.selectedState !== s.id;
             const sel = p.selectedState === s.id;
@@ -180,6 +193,15 @@ export function GeoMap(p: GeoMapProps) {
           ))}
           {/* state outline on top when drilled in */}
           {p.selectedState && geo.states.filter((s) => s.id === p.selectedState).map((s) => <path key={`o${s.id}`} d={s.d} fill="none" stroke="#0b1f36" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none" />)}
+          {/* the raised state: hovered (desktop) or chosen, lifted off the map with its own wall */}
+          {p.relief && !selLgas.length && (() => { const id = p.selectedState ?? (hover?.kind === "s" ? hover.id : null); const s = id ? geo.states.find((x) => x.id === id) : null; if (!s) return null; const up = 9 / pxPerUnit; return (
+            <g pointerEvents="none" key={`lift${s.id}`} className="g-map-lift">
+              <path d={s.d} transform={`translate(${4 / pxPerUnit} ${18 / pxPerUnit})`} fill="#0b1f36" opacity={0.3} />
+              <path d={s.d} transform={`translate(0 ${2 / pxPerUnit})`} style={{ fill: `color-mix(in srgb, ${p.fillState(s.id)} 45%, #2b1a08)` }} />
+              <path d={s.d} transform={`translate(0 ${-up / 2})`} style={{ fill: `color-mix(in srgb, ${p.fillState(s.id)} 55%, #2b1a08)` }} />
+              <path d={s.d} transform={`translate(0 ${-up})`} fill={p.fillState(s.id)} stroke="#fff7cc" strokeWidth={2.5} vectorEffect="non-scaling-stroke" />
+            </g>
+          ); })()}
           {/* highlights */}
           {(p.highlightStates ?? []).map((id) => { const s = geo.states.find((x) => x.id === id); return s ? <path key={`hs${id}`} d={s.d} fill="none" stroke="#00c875" strokeWidth={3} vectorEffect="non-scaling-stroke" pointerEvents="none" /> : null; })}
           {(p.highlightLgas ?? []).map((id) => { const l = geo.lgas.find((x) => x.id === id); return l && (zoom > 1.6 || p.selectedState === l.s) ? <path key={`hl${id}`} d={l.d} fill="none" stroke="#00c875" strokeWidth={3.5} strokeDasharray="6 3" vectorEffect="non-scaling-stroke" pointerEvents="none" /> : null; })}
@@ -205,7 +227,9 @@ export function GeoMap(p: GeoMapProps) {
         <button aria-label="Zoom out" onClick={() => zoomAt(1.4, view.x + view.w / 2, view.y + view.h / 2)}><Minus size={18} /></button>
         <button aria-label="Reset view to all of Nigeria" onClick={reset}><Maximize2 size={17} /></button>
       </div>
-      {hover && hoverText && (
+      {hover && hover.kind === "s" && p.hoverCard ? (
+        <div className="g-map-card" style={{ left: Math.min(hover.x + 14, (typeof window !== "undefined" ? window.innerWidth : 1200) - 270), top: Math.min(hover.y + 14, (typeof window !== "undefined" ? window.innerHeight : 800) - 190) }}>{p.hoverCard(hover.id)}</div>
+      ) : hover && hoverText && (
         <div style={{ position: "fixed", left: hover.x + 12, top: hover.y + 12, background: "#0b1f36", color: "#fff", padding: "5px 9px", borderRadius: 8, fontSize: 12, fontWeight: 600, pointerEvents: "none", zIndex: 60 }}>{hoverText}</div>
       )}
     </div>

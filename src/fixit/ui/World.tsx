@@ -127,6 +127,8 @@ export function World() {
   const seenUnlocks = useRef(s.cap.unlocked.length);
   const lootSeen = useRef(String(s.flags.lootToast ?? ""));
   const [lens, setLens] = useState<Lens>("mood");
+  const [relief3d, setRelief3d] = useState<boolean>(() => { try { return localStorage.getItem("fix:map3d") !== "0"; } catch { return true; } });
+  const toggle3d = () => setRelief3d((v) => { try { localStorage.setItem("fix:map3d", v ? "0" : "1"); } catch { /* ignore */ } return !v; });
   const [how, setHow] = useState(false);
   const [menu, setMenu] = useState(false);
   const [queue, setQueue] = useState(false);
@@ -244,8 +246,9 @@ export function World() {
       </header>
 
       <div className="fx-stage">
-        <MapView s={s} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels />
+        <MapView s={s} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels relief={relief3d} life />
         <MapKey />
+        <button className="fx-3d-btn" onClick={toggle3d} aria-pressed={relief3d} aria-label={relief3d ? "Flat map" : "3D map"} title={relief3d ? "Flat map" : "3D map"}>{relief3d ? "3D" : "2D"}</button>
         <div className={`fx-lens ${cstep >= 0 && COACH[cstep].target === "map" ? "fx-coach-hl" : ""}`} role="group" aria-label="Map lens">{LENSES.map((l) => <button key={l.id} className="fx-chip" aria-pressed={lens === l.id} onClick={() => setLens(l.id)}>{l.label}</button>)}</div>
         <div className={`fx-notes ${cstep >= 0 && COACH[cstep].target === "notes" ? "fx-coach-hl" : ""}`} aria-label="Notifications">
           {all.slice(0, 3).map((e) => (
