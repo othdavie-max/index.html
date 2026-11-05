@@ -216,7 +216,7 @@
 /* category bar: pinned, wraps (never needs sideways scrolling), icon first */
 .fx-catbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 2px 8px; margin: 0 -2px; background: linear-gradient(180deg, #f7f0e1 82%, rgba(247,240,225,0)); }
 .fx-cat { position: relative; display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 0 10px 0 6px; border-radius: 999px; border: 1.5px solid #e6d8b5; background: #fffdf7; color: #1d1639; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
-.fx-cat-ic { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #fff1c9; font-size: 14px; }
+.fx-cat-ic { flex: none; overflow: hidden; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #fff1c9; font-size: 14px; }
 .fx-cat-n { font-style: normal; font-size: 11px; font-weight: 800; background: #1d163910; border-radius: 999px; padding: 1px 7px; color: #5b4d86; }
 .fx-cat[aria-selected="true"] { background: linear-gradient(180deg, #1f9d6b, #0f7a52); border-color: #0f7a52; color: #fff; box-shadow: 0 4px 12px rgba(15,122,82,.35); }
 .fx-cat[aria-selected="true"] .fx-cat-ic { background: rgba(255,255,255,.2); } .fx-cat[aria-selected="true"] .fx-cat-n { background: rgba(255,255,255,.22); color: #fff; }
