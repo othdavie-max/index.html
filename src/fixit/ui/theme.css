@@ -302,3 +302,35 @@
   .gm .fx-popstack .fx-chip2 i { display: none; }
   .gm .fx-pop { padding: 7px 12px; font-size: 13px; } .gm .fx-pop span { font-size: 12px; }
 }
+
+/* loan book */
+.fx-loan-sum { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fx-loan-sum > div { background: #fff7e0; border: 1px solid #f1dca0; border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; }
+.fx-loan-sum span { font-size: 11.5px; color: #6b5f8a; } .fx-loan-sum b { font-size: 18px; } .fx-loan-sum i { font-style: normal; font-size: 11px; color: #92400e; }
+.fx-loan-soon { background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; font-size: 13px; } .fx-loan-soon i { font-style: normal; font-size: 11.5px; color: #9f1239; }
+.fx-loan { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border: 1.5px solid #ecdfc4; border-radius: 12px; background: #fffdf7; } .fx-loan[data-dear="1"] { border-color: #fca5a5; background: #fff7f7; }
+.fx-loan-ic { font-size: 22px; width: 30px; text-align: center; flex: none; }
+.fx-lender { display: flex; gap: 10px; align-items: center; text-align: left; padding: 10px 12px; border: 1.5px solid #e6d8b5; border-radius: 14px; background: #fff; cursor: pointer; font: inherit; width: 100%; } .fx-lender[data-blocked="1"] { opacity: .6; }
+.fx-block { background: #fffdf7; border: 1.5px solid #ecdfc4; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
+
+/* slim picker rows: a whole choice fits on one screen */
+.fx-pr { background: #fff; color: #0f172a; border: 2px solid transparent; border-radius: 14px; overflow: hidden; }
+.fx-pr[data-on="1"] { border-color: #c8a24a; background: #fffaf0; box-shadow: 0 0 0 3px rgba(200,162,74,.35); }
+.fx-pr-row { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "pic main tick" "pic stats stats"; align-items: center; gap: 4px 10px; padding: 8px 10px; cursor: pointer; min-height: 56px; }
+.fx-pr-pic { grid-area: pic; position: relative; display: block; } .fx-pr-pic i { position: absolute; right: -6px; bottom: -4px; font-style: normal; font-size: 15px; background: #fff; border-radius: 50%; line-height: 1; padding: 1px; }
+.fx-pr-main { grid-area: main; display: flex; flex-direction: column; min-width: 0; } .fx-pr-main b { font-size: 14px; line-height: 1.2; } .fx-pr-tag { font-size: 11.5px; font-weight: 800; color: #7a5b12; text-transform: uppercase; letter-spacing: .03em; } .fx-pr-sub { font-size: 11.5px; color: #5b6475; }
+.fx-pr-stats { grid-area: stats; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.fx-pr-stats > span { display: grid; grid-template-columns: 12px 1fr 20px; align-items: center; gap: 4px; font-size: 11px; } .fx-pr-stats em { font-style: normal; font-weight: 800; color: #64748b; } .fx-pr-stats b { text-align: right; font-size: 11px; }
+.fx-pr-bar { height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; } .fx-pr-bar i { display: block; height: 100%; border-radius: 4px; }
+.fx-pr-hid { grid-area: stats; font-size: 11.5px; color: #64748b; }
+.fx-pr-tick { grid-area: tick; align-self: start; min-width: 52px; height: 30px; display: grid; place-items: center; border-radius: 999px; background: #fdf0c8; color: #5c4208; font-weight: 800; font-size: 12.5px; padding: 0 12px; }
+.fx-pr[data-on="1"] .fx-pr-tick { background: #10b981; color: #fff; min-width: 34px; padding: 0; }
+.fx-pr-more { width: 100%; display: flex; align-items: center; gap: 4px; padding: 5px 10px; background: #f8fafc; border: 0; border-top: 1px solid #eef2f7; font: inherit; font-size: 11.5px; color: #475569; cursor: pointer; text-align: left; } .fx-pr-hint { margin-left: auto; font-size: 11px; }
+.fx-pr-detail { padding: 8px 12px 10px; font-size: 12.5px; display: flex; flex-direction: column; gap: 6px; background: #fff; }
+.fx-pr-list { display: flex; flex-direction: column; gap: 8px; }
+@media (min-width: 900px) { .fx-pr-list { display: grid; grid-template-columns: repeat(2, 1fr); } }
+.fx-dayone .fx-catbar { background: transparent; position: static; }
+.fx-dayone .fx-cat { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.28); }
+.fx-dayone .fx-cat-ic { background: rgba(255,255,255,.15); }
+.fx-dayone .fx-cat[aria-selected="true"] { background: linear-gradient(180deg, #1f9d6b, #0f7a52); border-color: #34d399; }
+.gm .fx-coach { z-index: 10; }

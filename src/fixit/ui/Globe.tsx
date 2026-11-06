@@ -14,10 +14,9 @@ import topo50 from "world-atlas/countries-50m.json";
 import topo110 from "world-atlas/countries-110m.json";
 import { useS } from "./store";
 import { NG, W, league } from "../engine/world";
-import { PORT, tradeRoutes, type Route } from "../engine/deals";
-import { feudList, heatOf, mood, measuresAgainst, MEASURE, repairFeud, repairCost, feudOf } from "../engine/feuds";
+import { PORT, tradeRoutes } from "../engine/deals";
+import { feudList, mood, measuresAgainst, MEASURE, repairFeud, repairCost, feudOf } from "../engine/feuds";
 import { useFix } from "./store";
-import type { FixState } from "../engine/types";
 
 type F = Feature<Geometry, { name: string }>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

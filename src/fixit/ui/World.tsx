@@ -3,6 +3,7 @@
  *  a toolbar that opens drawers, an advisor, and one big NEXT TURN button. */
 import { LangPicker } from "./LangPicker";
 import { Sections } from "./Sections";
+import { OilOwnerCard } from "./OilOwner";
 import { MinisterWorkCard } from "./MinisterWork";
 import { EmpireCard, LooksCard } from "./Empire";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -307,7 +308,7 @@ export function World() {
           {drawer === "nation" && <Nation />}
           {drawer === "debt" && <div className="g-col" style={{ gap: 14 }}><DebtPanel />{tabLock(s, "lending") ? <div className="g-card-flat g-small">🔒 <b>Lending abroad</b> opens when national debt falls under 10% of GDP. Clear the debt trap first.</div> : <LendingPanel />}</div>}
           {drawer === "military" && <MilitaryPanel />}
-                    {drawer === "oil" && <FuelPanel />}
+                    {drawer === "oil" && <Sections label="Fuel and oil" items={[{ id: "fuel", label: "Fuel & refineries", icon: "⛽", node: <FuelPanel /> }, { id: "own", label: "Who owns the oil", icon: "🛢️", node: <OilOwnerCard /> }]} />}
           {drawer === "deals" && <InvestorsPanel />}
           {drawer === "street" && <div className="g-col" style={{ gap: 14 }}><StreetPanel /><div><div className="g-section-title">What I caused</div><TimelinePanel /></div></div>}
           {drawer === "assembly" && <div className="g-col" style={{ gap: 14 }}><AssemblyPanel /><BudgetCard /><SpeechButton /><GovernorsCard /></div>}

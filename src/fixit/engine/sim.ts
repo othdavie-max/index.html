@@ -22,6 +22,8 @@ import { ministerWorkMonthly } from "./ministerwork";
 import { difficultyMonthly } from "./setup";
 import { empireMonthly } from "./empire";
 import { looksMonthly } from "./looks";
+import { loansMonthly } from "./loans";
+import { oilShareMonthly } from "./oilshare";
 import { dealsMonthly } from "./deals";
 import { unMonthly } from "./un";
 import { funMonthly } from "./fun";
@@ -79,6 +81,8 @@ export function advanceMonth(s: FixState): boolean {
   phase3(s, subRng(s.meta.seed, "prices", m));
   phase4(s, subRng(s.meta.seed, "people", m));
   difficultyMonthly(s);
+  loansMonthly(s, subRng(s.meta.seed, "loans", m));
+  oilShareMonthly(s);
   looksMonthly(s);
   empireMonthly(s, subRng(s.meta.seed, "empire", m));
   ministerWorkMonthly(s, subRng(s.meta.seed, "mwork", m));

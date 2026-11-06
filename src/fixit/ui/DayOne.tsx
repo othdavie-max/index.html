@@ -4,7 +4,7 @@ import { FAITH_NAME, ZONE_INFO, type Faith, type ZoneId } from "../engine/identi
 import { useState } from "react";
 import { PC_COST } from "../engine/meta";
 import { useFix, useS } from "./store";
-import { Bar, Button, Callout, Portrait } from "../../game/ui/kit";
+import { Bar, Button, Callout } from "../../game/ui/kit";
 import { AIDE_KINDS, cosCandidates, finishDayOne, pickChiefOfStaff, pickVice, vpCandidates } from "../engine/dayone";
 import { FACTION_FLAW, FACTION_LABEL, KEY_PORTFOLIOS, PORTFOLIOS, appoint, signatureOf } from "../engine/cabinet";
 import { backerLabel, cosMood, hireMood } from "../engine/backers";
@@ -12,6 +12,8 @@ import { BACKER_GIFTS, giftBlock, giveGift } from "../engine/officials";
 import { warnMinister } from "../engine/cabinet";
 import type { Minister } from "../engine/types";
 import { sfx } from "./sound";
+import { PickRow } from "./PickRow";
+import { CategoryBar } from "./CategoryBar";
 
 const FACE = (v: number) => (v >= 75 ? "😍" : v >= 55 ? "🙂" : v >= 35 ? "😐" : v >= 20 ? "😠" : "🤬");
 
@@ -47,40 +49,20 @@ function Candidate({ m, current, onPick }: { m: Minister; current: boolean; onPi
   const crony = m.faction === "crony";
   const d = hireMood(m.faction, true);
   return (
-    <button className="fx-cand fx-aide fx-min" data-kind={m.faction === "technocrat" ? "technocrat" : crony ? "activist" : m.faction === "heavyweight" ? "chieftain" : "loyalist"} data-on={current ? "1" : undefined} onClick={onPick} aria-pressed={current}>
-      <div className="fx-aide-top">
-        {m.portrait && <div className="fx-aide-pic"><Portrait p={m.portrait} size={50} name={m.name} /></div>}
-        <div className="g-grow"><b className="fx-aide-name" style={{ fontSize: 14 }}>{m.name}</b><div className="fx-aide-tag">{FACTION_LABEL[m.faction].label}</div>{m.zone && <div className="g-tiny g-muted">📍 {ZONE_INFO[m.zone as ZoneId]?.name}{m.faith ? ` · ${FAITH_NAME[m.faith as Faith]}` : ""}</div>}{m.quirk && <div className="g-tiny g-muted">🔹 {m.quirk}</div>}</div>
-        {current && <span className="fx-aide-check" aria-hidden>✓</span>}
-      </div>
-      {m.quote && !crony && <q className="fx-quote">{m.quote}</q>}
-      {m.bio && <div className="g-tiny" style={{ color: "#334155" }}>{m.bio}</div>}
-      {crony ? <div className="fx-aide-hidden">🔒 Your own person: skill and honesty unknown.</div> : <><div className="fx-aide-stats"><Stat label="Skill" v={m.skill} shown /><Stat label="Honesty" v={m.integrity} shown /></div><div className="fx-sig"><span>✨ {signatureOf(m).label}</span><span>⚠️ {FACTION_FLAW[m.faction]}</span></div></>}
-      <Hint d={d} />
-    </button>
+    <PickRow portrait={m.portrait} name={m.name} tag={FACTION_LABEL[m.faction].label} sub={m.zone ? `📍 ${ZONE_INFO[m.zone as ZoneId]?.name}${m.faith ? ` · ${FAITH_NAME[m.faith as Faith]}` : ""}` : undefined}
+      stats={crony ? undefined : [{ label: "Skill", v: m.skill }, { label: "Honesty", v: m.integrity }]} hidden={crony ? "Your own person: skill and honesty unknown" : undefined}
+      selected={current} onPick={onPick} cta="Appoint" hint={<Hint d={d} />}
+      detail={<>{m.quote && !crony && <q className="fx-quote">{m.quote}</q>}{m.bio && <div>{m.bio}</div>}<div className="fx-sig"><span>✨ {signatureOf(m).label}</span><span>⚠️ {FACTION_FLAW[m.faction]}</span></div></>} />
   );
 }
 
-function Stat({ label, v, shown }: { label: string; v: number; shown: boolean }) {
-  const tone = v >= 70 ? "good" : v >= 45 ? "ok" : "bad";
-  return <div className="fx-aide-stat" data-tone={shown ? tone : undefined}><span>{label}</span><div className="fx-aide-bar"><i style={{ width: shown ? `${v}%` : "0%" }} /></div><b>{shown ? v : "?"}</b></div>;
-}
 function AideCard({ a, on, onPick }: { a: ReturnType<typeof cosCandidates>[number]; on: boolean; onPick: () => void }) {
   const k = AIDE_KINDS[a.kind];
   return (
-    <button className="fx-cand fx-aide" data-kind={a.kind} data-on={on ? "1" : undefined} onClick={onPick} aria-pressed={on}>
-      <div className="fx-aide-top">
-        <div className="fx-aide-pic"><Portrait p={a.portrait} size={64} name={a.name} /><span aria-hidden>{k.icon}</span></div>
-        <div className="g-grow"><b className="fx-aide-name">{a.name}</b><div className="fx-aide-tag">{k.tag}</div>{a.zone && <div className="g-tiny g-muted">📍 {ZONE_INFO[a.zone as ZoneId]?.name} · {FAITH_NAME[a.faith as Faith]}</div>}{a.quirk && <div className="g-tiny g-muted">🔹 {a.quirk}</div>}</div>
-        {on && <span className="fx-aide-check" aria-hidden>✓</span>}
-      </div>
-      {a.quote && <q className="fx-quote">{a.quote}</q>}
-      <div className="g-tiny" style={{ color: "#334155" }}>{a.bio}</div>
-      {a.revealed ? <div className="fx-aide-stats"><Stat label="Skill" v={a.skill} shown /><Stat label="Honesty" v={a.integrity} shown /><Stat label="Loyalty" v={a.loyalty} shown /></div>
-        : <div className="fx-aide-hidden">🔒 Skill, honesty and loyalty unknown. You find out what they are really like after a few months.</div>}
-      <div className="fx-sig"><span>✨ {k.perk}</span><span>⚠️ {k.flaw}</span></div>
-      <Hint d={cosMood(a.kind)} />
-    </button>
+    <PickRow portrait={a.portrait} name={a.name} tag={k.tag} badge={k.icon} sub={a.zone ? `📍 ${ZONE_INFO[a.zone as ZoneId]?.name} · ${FAITH_NAME[a.faith as Faith]}` : undefined}
+      stats={a.revealed ? [{ label: "Skill", v: a.skill }, { label: "Honesty", v: a.integrity }, { label: "Loyal", v: a.loyalty }] : undefined} hidden={a.revealed ? undefined : "Skill, honesty and loyalty unknown until you work together"}
+      selected={on} onPick={onPick} cta="Choose" hint={<Hint d={cosMood(a.kind)} />}
+      detail={<>{a.quote && <q className="fx-quote">{a.quote}</q>}<div>{a.bio}</div>{a.quirk && <div className="g-muted">Quirk: {a.quirk}</div>}<div className="fx-sig"><span>✨ {k.perk}</span><span>⚠️ {k.flaw}</span></div></>} />
   );
 }
 
@@ -89,6 +71,7 @@ export function DayOne() {
   const { act } = useFix();
   const [step, setStep] = useState(0);
   const [charge, setCharge] = useState(false);
+  const [port, setPort] = useState<string>(KEY_PORTFOLIOS[0]);
   const cands = cosCandidates(s);
   return (
     <div className="fx-dayone" role="dialog" aria-modal="true" aria-label="Day One">
@@ -98,7 +81,7 @@ export function DayOne() {
           <>
             <h2>Who runs your villa?</h2>
             <p className="g-small" style={{ color: "#cfe0ee" }}>Everybody who helped you win is in the waiting room, and each one wants the job. The Chief of Staff decides who sees you, what reaches your desk, and who gets the contracts.</p>
-            <div className="fx-cand-grid">
+            <div className="fx-pr-list">
               {cands.map((a) => <AideCard key={a.id} a={a} on={s.staff.cos?.id === a.id} onPick={() => { sfx("tap"); act((x) => pickChiefOfStaff(x, a.id), { silent: true }); }} />)}
             </div>
             <p className="g-tiny" style={{ color: "#9db3c9" }}>Advisers tell you what they think of every big decision. A clever, honest one warns you with real numbers. A flatterer says "Great idea, Sir" to everything.</p>
@@ -109,7 +92,7 @@ export function DayOne() {
           <>
             <h2>Who is your Vice President?</h2>
             <p className="g-small" style={{ color: "#cfe0ee" }}>The VP balances the ticket, gets a second opinion on everything, and stands one heartbeat from your chair. Choose someone you can live with, and who will not want your job.</p>
-            <div className="fx-cand-grid">
+            <div className="fx-pr-list">
               {vpCandidates(s).map((a) => <AideCard key={a.id} a={a} on={s.staff.vp?.id === a.id} onPick={() => { sfx("tap"); act((x) => pickVice(x, a.id), { silent: true }); }} />)}
             </div>
             <div className="g-row g-between"><Button onClick={() => setStep(0)}>Back</Button><Button variant="primary" disabled={!s.staff.vp} onClick={() => setStep(2)}>Next: your ministers</Button></div>
@@ -121,18 +104,17 @@ export function DayOne() {
             <p className="g-small" style={{ color: "#cfe0ee" }}>Qualified strangers run the economy well. Your own people are loyal and your backers love them, but nobody knows how honest they are. <b>Choose carefully: the people who funded you are watching.</b> Each one has a signature strength and a flaw, and runs their sector from now on. Your Chief of Staff fills the other two posts (the central bank and works) with the most capable people available.</p>
             <div className="fx-backers"><BackerRow /></div>
             <label className="fx-charge"><input type="checkbox" checked={charge} onChange={(e) => setCharge(e.target.checked)} /> <span><b>Charge every appointee:</b> "You are not here to eat. You are here to work. Steal and you answer for it." <i>They steal less, but your own people will be offended, and you must act if one steals.</i></span></label>
-            <div className="g-col" style={{ gap: 12 }}>
-              {PORTFOLIOS.filter((p) => KEY_PORTFOLIOS.includes(p.id)).map((p) => {
-                const cur = s.cabinet.members[p.id];
-                const all = [cur, ...s.cabinet.pool.filter((m) => m.portfolio === p.id)].filter(Boolean) as Minister[];
-                return (
-                  <div key={p.id}>
-                    <div className="g-row g-between"><b>{p.title}</b><span className="g-tiny" style={{ color: "#9db3c9" }}>{p.area}</span></div>
-                    <div className="fx-cand-grid fx-cand-4">{all.map((m) => <Candidate key={m.id} m={m} current={cur?.id === m.id} onPick={() => { if (cur?.id !== m.id) { sfx("tap"); act((x) => appoint(x, p.id, m.id), { silent: true }); } }} />)}</div>
-                  </div>
-                );
-              })}
-            </div>
+            <CategoryBar label="Ministry" value={port} onChange={setPort} cats={PORTFOLIOS.filter((p) => KEY_PORTFOLIOS.includes(p.id)).map((p) => ({ id: p.id, label: p.title.replace(" Minister", "").replace("Central Bank Governor", "Central Bank"), icon: ({ finance: "💰", power: "💡", agriculture: "🌾", security: "🛡️", cbn: "🏦", works: "🛣️" } as Record<string, string>)[p.id] ?? "🗂️" }))} />
+            {PORTFOLIOS.filter((p) => p.id === port).map((p) => {
+              const cur = s.cabinet.members[p.id];
+              const all = [cur, ...s.cabinet.pool.filter((m) => m.portfolio === p.id)].filter(Boolean) as Minister[];
+              return (
+                <div key={p.id} className="g-col" style={{ gap: 8 }}>
+                  <div className="g-row g-between"><b>{p.title}</b><span className="g-tiny" style={{ color: "#9db3c9" }}>{p.area}</span></div>
+                  <div className="fx-pr-list">{all.map((m) => <Candidate key={m.id} m={m} current={cur?.id === m.id} onPick={() => { if (cur?.id !== m.id) { sfx("tap"); act((x) => appoint(x, p.id, m.id), { silent: true }); } }} />)}</div>
+                </div>
+              );
+            })}
             <div className="g-row g-between"><Button onClick={() => setStep(1)}>Back</Button><Button variant="primary" onClick={() => setStep(3)}>Next: see the reaction</Button></div>
           </>
         )}

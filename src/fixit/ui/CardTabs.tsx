@@ -2,7 +2,7 @@ import { Children, isValidElement, useState, type ReactElement, type ReactNode }
 import { CategoryBar } from "./CategoryBar";
 
 const SHORT: Record<string, string> = {
-  "Nigeria and the world": "World", "Trade deals": "Deals", "The trade balance": "Balance", "What we import, and what we could make": "Imports & factories", "Where Nigeria stands": "Standing", "The world": "Map", "The league": "League", "Invitations": "Invites",
+  "Nigeria and the world": "World", "Trade deals": "Deals", "Does Nigeria owe money?": "Overview", "Loan book": "Loans", "Stolen and recovered": "Stolen", "Debt over time (% of the economy)": "History", "The trade balance": "Balance", "What we import, and what we could make": "Imports & factories", "Where Nigeria stands": "Standing", "The world": "Map", "The league": "League", "Invitations": "Invites",
   "Naija X today": "Today", "Trending in Nigeria": "Trending", "Post as the President": "Post", "The feed": "Feed", "Bots": "Bots", "The off switch": "Off switch",
   "The armed forces": "Forces", "Programmes": "Programmes", "Your neighbours (fictional)": "Neighbours", "Operations in the field": "Operations",
 };

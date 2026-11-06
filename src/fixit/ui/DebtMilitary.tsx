@@ -7,8 +7,7 @@ import { THEATRES, STRATEGIES, commanders, endOp, launchOp, monthlyCost, opsOf }
 import { SUPPLIERS, armsDeal } from "../engine/trade";
 import { useFix, useS } from "./store";
 import { Badge, Bar, Button, Callout, Card, EmptyState, LineChart } from "../../game/ui/kit";
-import { debtView, DEBT_FREE_AT, repayForeign } from "../engine/debt";
-import { borrow } from "../engine/actions";
+import { debtView, DEBT_FREE_AT } from "../engine/debt";
 import { LEND_OPEN_AT, depositFund, earnedTotal, lendingOpen, outstanding, withdrawFund } from "../engine/lending";
 import { MIL_PROGRAMMES, milLeak, milOn, regionalRank, strongestNeighbour, toggleMil } from "../engine/military";
 import { statesCost, statesCreated } from "../engine/newstates";
@@ -17,16 +16,15 @@ import { monthLabel, monthShort, nb } from "../engine/util";
 import { chips } from "../engine/forecast";
 import { Chips } from "./parts";
 import { sfx } from "./sound";
+import { LoanBookCard, BorrowCard } from "./LoanBook";
 
 export function DebtPanel() {
   const s = useS();
   const { act } = useFix();
   const d = debtView(s);
-  const [usd, setUsd] = useState(1);
-  const [bn, setBn] = useState(500);
   const pts = s.history.map((h) => ({ x: h.month, y: h.debtGdp }));
   return (
-    <div className="g-col" style={{ gap: 12 }}>
+    <CardTabs>
       <Card title="Does Nigeria owe money?" icon={<span aria-hidden>💳</span>}>
         <div className="g-row g-between g-wrap"><div><div style={{ fontSize: 30, fontWeight: 900 }}>{d.pctGdp.toFixed(1)}%</div><div className="g-small g-muted">of the whole economy</div></div><Badge tone={d.tone === "good" ? "green" : d.tone === "bad" ? "red" : "amber"}>{d.label}</Badge></div>
         <div style={{ marginTop: 8 }}><div className="g-row g-between g-tiny"><span>Road to debt-free ({DEBT_FREE_AT}% of the economy)</span><b>{d.pctGdp <= DEBT_FREE_AT ? "Done" : `${Math.max(0, Math.round(((s.baseline.debtGdp - d.pctGdp) / Math.max(1, s.baseline.debtGdp - DEBT_FREE_AT)) * 100))}% of the way`}</b></div><Bar value={Math.max(0, Math.min(1, (s.baseline.debtGdp - d.pctGdp) / Math.max(1, s.baseline.debtGdp - DEBT_FREE_AT)))} label="Progress to debt-free" /></div>
@@ -42,20 +40,10 @@ export function DebtPanel() {
         {s.ledger.log.length > 0 && <div className="g-col" style={{ gap: 4, marginTop: 8 }}>{[...s.ledger.log].reverse().slice(0, 5).map((l, i) => <div key={i} className="g-small"><span className="g-tiny g-muted">{monthLabel(l.month)}</span> {l.text} <b style={{ color: l.amount > 0 ? "#047857" : "#475569" }}>{l.amount > 0 ? "+" : "−"}{nb(Math.abs(l.amount))}</b></div>)}</div>}
         <div className="g-tiny g-muted" style={{ marginTop: 6 }}>Lawmakers, ministers and governors who steal are counted here. Prosecute them under a strong law and the money comes back. You choose where it goes.</div>
       </Card>
-      <Card title="What is owed">
-        <div className="g-col" style={{ gap: 0 }}>
-          {[["Total debt", nb(d.total)], ["Local debt (naira)", `${nb(d.domestic)} · about ${d.rate.toFixed(1)}% interest`], ["Foreign debt (dollars)", `$${d.foreignUsd.toFixed(1)}bn = ${nb(d.foreign)}`], ["Interest and repayments each month", nb(d.interest)], ["Share of revenue spent on debt", `${d.dsr.toFixed(0)}%`], ["Credit rating", `${Math.round(d.rating)}/100`]].map(([k, v]) => <div key={k} className="g-list-row"><div className="g-grow g-small">{k}</div><b className="g-num g-small">{v}</b></div>)}
-        </div>
-      </Card>
+      <Card title="Loan book" icon={<span aria-hidden>📒</span>}><LoanBookCard /></Card>
       <Card title="Debt over time (% of the economy)"><LineChart series={[{ label: "Debt as % of economy", color: "#b45309", points: pts }]} height={130} format={(v) => `${v.toFixed(0)}%`} xLabel={monthShort} /></Card>
-      <Card title="Pay it down, or borrow more">
-        <div className="g-col" style={{ gap: 10 }}>
-          <div className="g-row g-wrap"><select className="g-select" style={{ width: 150 }} value={bn} onChange={(e) => setBn(Number(e.target.value))} aria-label="Local debt amount">{[500, 1000, 2000, 3000].map((n) => <option key={n} value={n}>{nb(n)}</option>)}</select><Button onClick={() => { const r = act((x) => borrow(x, "repay", bn)); sfx(r.ok ? "good" : "bad"); }}>Repay local debt</Button><Button onClick={() => { const r = act((x) => borrow(x, "domestic", bn)); sfx(r.ok ? "tap" : "bad"); }}>Borrow locally</Button></div>
-          <div className="g-row g-wrap"><select className="g-select" style={{ width: 150 }} value={usd} onChange={(e) => setUsd(Number(e.target.value))} aria-label="Foreign debt amount">{[1, 2, 5, 10].map((n) => <option key={n} value={n}>${n}bn</option>)}</select><Button variant="primary" onClick={() => { const r = act((x) => repayForeign(x, usd)); sfx(r.ok ? "good" : "bad"); }}>Repay foreign debt</Button></div>
-          <div className="g-tiny g-muted">Repaying keeps a cash buffer, so you cannot spend the last of the treasury. Inflation slowly erodes naira debt on its own; dollar debt does not shrink unless you repay it, and it costs more if the naira falls. Debt-free is {DEBT_FREE_AT}% of the economy or less.</div>
-        </div>
-      </Card>
-    </div>
+      <Card title="Borrow" icon={<span aria-hidden>🤝</span>}><BorrowCard /></Card>
+    </CardTabs>
   );
 }
 

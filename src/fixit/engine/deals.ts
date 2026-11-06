@@ -10,7 +10,7 @@ import { clamp, clamp100, pushNews, addMod } from "./util";
 import { payPc } from "./meta";
 import { W, saveW } from "./world";
 import { GOOD_BY_ID, GOODS, canExport, exportBlock, imp, importFlow, exportFlow } from "./imports";
-import { CRUDE_BUYERS, MAX_CRUDE, SEED_CRUDE, TERMS, agreements, crudeBuyers, embargoed, saveAgreements, type Agreement, type Terms } from "./agreements";
+import { CRUDE_BUYERS, MAX_CRUDE, TERMS, agreements, crudeBuyers, embargoed, saveAgreements, type Terms } from "./agreements";
 import { addHeat, measuresAgainst, sizeOf } from "./feuds";
 import { dealsOf } from "./trade";
 import { noteStolen } from "./ledger";

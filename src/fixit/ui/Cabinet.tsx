@@ -10,6 +10,7 @@ import type { Minister, Portfolio } from "../engine/types";
 import { ZONE_NAME } from "../engine/rival";
 import { chips } from "../engine/forecast";
 import { Chips } from "./parts";
+import { PickRow } from "./PickRow";
 
 const FACTION_COLOR: Record<string, string> = { technocrat: "#1d4ed8", loyalist: "#0b1f36", heavyweight: "#b45309", crony: "#9f1239" };
 
@@ -79,13 +80,12 @@ function CabinetModal({ start, onClose }: { start: Portfolio | "all"; onClose: (
         <Chips chips={chips(ministerEffects(cur, p))} label="Effect" />
       </> : <div className="g-small" style={{ color: "#9f1239" }}>Vacant. Their area suffers until you appoint someone.</div>}
       <div className="g-section-title" style={{ marginTop: 6 }}>Available</div>
-      <div className="g-col" style={{ gap: 12 }}>
+      <div className="fx-pr-list">
         {cands.map((m) => (
-          <div key={m.id} className="g-card-flat g-col" style={{ gap: 6 }}>
-            <MinisterRow m={m} action={<Button size="sm" variant="primary" onClick={() => act((x) => appoint(x, p, m.id))}>Appoint</Button>} />
-            <Chips chips={chips(ministerEffects(m, p))} label="Would" />
-            <div className="g-tiny g-muted">{FACTION_LABEL[m.faction].blurb}{m.integrity < 45 ? " Low honesty: expect leaks and a risk of scandal." : ""}</div>
-          </div>
+          <PickRow key={m.id} portrait={m.portrait} name={m.name} tag={FACTION_LABEL[m.faction].label} sub={m.zone ? `📍 ${ZONE_NAME[m.zone] ?? m.zone}` : undefined}
+            stats={m.hidden ? undefined : [{ label: "Skill", v: m.skill }, { label: "Honesty", v: m.integrity }]} hidden={m.hidden ? "Skill and honesty unknown" : undefined}
+            selected={false} onPick={() => act((x) => appoint(x, p, m.id))} cta="Appoint"
+            detail={<><Chips chips={chips(ministerEffects(m, p))} label="Would" /><div className="g-muted">{FACTION_LABEL[m.faction].blurb}{m.integrity < 45 && !m.hidden ? " Low honesty: expect leaks and a risk of scandal." : ""}</div>{m.bio && <div>{m.bio}</div>}</>} />
         ))}
       </div>
     </Modal>
