@@ -30,6 +30,8 @@ import { AssemblyPanel } from "./AssemblyPanel";
 import { PowerPanel } from "./PowerPanel";
 import { EventCard } from "./Decisions";
 import { HowTo, MenuModal } from "./Menu";
+import { openGuide, tourSeen } from "./Guide";
+import { ABOUT } from "./guideData";
 import { Legacy } from "./Legacy";
 import { ElectionNight } from "./ElectionNight";
 import { MonthSummaryModal } from "./Shell";
@@ -95,14 +97,14 @@ function lensFill(s: FixState, lens: Lens): (id: string) => string {
   return (id) => stressColor(stateLayerValue(s, id, layer));
 }
 
-function Drawer({ title, onClose, children, wide, group }: { title: ReactNode; onClose: () => void; children: ReactNode; wide?: boolean; group?: string }) {
+function Drawer({ title, onClose, children, wide, group, about }: { title: ReactNode; onClose: () => void; children: ReactNode; wide?: boolean; group?: string; about?: string }) {
   useEffect(() => { const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h); }, [onClose]);
   return (
     <div className="fx-drawer-wrap" role="dialog" aria-label={typeof title === "string" ? title : "Panel"}>
       <button className="fx-drawer-scrim" aria-label="Close panel" onClick={onClose} />
       <aside className={`fx-drawer ${wide ? "fx-drawer-wide" : ""}`} data-group={group}>
         <header className="fx-drawer-head"><b>{title}</b><button className="g-btn g-btn-ghost" onClick={onClose} aria-label="Close" style={{ padding: 6 }}><X size={20} /></button></header>
-        <div className="fx-drawer-body">{children}</div>
+        <div className="fx-drawer-body">{about && <p className="gx-about">💡 {about}</p>}{children}</div>
       </aside>
     </div>
   );
@@ -243,7 +245,7 @@ export function World() {
           <button className="fx-icon-btn fx-hud-opt" onClick={() => { const m = !music; setMusicOn(m); setMusic(m); if (m) startMusic(); }} aria-label={music ? "Turn music off" : "Turn music on"} title="Music"><Music size={18} style={{ opacity: music ? 1 : 0.4 }} /></button>
           <span className="fx-hud-opt"><LangPicker compact align="right" /></span>
           <button className="fx-icon-btn" onClick={() => setTab("trade")} aria-label="The world and trade" title="The world and trade"><Globe2 size={18} /></button>
-          <button className="fx-icon-btn" onClick={() => setHow(true)} aria-label="How to play"><HelpCircle size={18} /></button>
+          <button className={`fx-icon-btn fx-guide-btn ${tourSeen() ? "" : "fx-guide-new"}`} onClick={() => openGuide("hub")} aria-label="Guide: how to play" title="Guide"><HelpCircle size={18} /></button>
           <button className="fx-icon-btn" onClick={() => setMenu(true)} aria-label="Menu and saves"><MenuIcon size={18} /></button>
         </div>
       </header>
@@ -295,7 +297,7 @@ export function World() {
 
       {select.state && <Drawer title="Location" onClose={() => setSelect({ state: null, lga: null })}><StatePanel s={s} id={select.state} lga={select.lga} /></Drawer>}
       {drawer && group && (
-        <Drawer title={title[group.id]} group={group.id} onClose={close} wide={!!group.wide}>
+        <Drawer title={title[group.id]} group={group.id} onClose={close} wide={!!group.wide} about={ABOUT[drawer]}>
           {group.tabs.length > 1 && <div className="fx-subtabs" role="group" aria-label="Sections">{group.tabs.map((x) => { const lk = tabLock(s, x.id); return <button key={x.id} className="fx-subtab" data-locked={lk ? "1" : undefined} title={lk ?? undefined} aria-pressed={drawer === x.id} onClick={() => { sfx("tap"); setTab(x.id); }}>{lk ? "🔒 " : ""}{x.label}</button>; })}</div>}
           {(() => { const lk = group.tabs.map((x) => tabLock(s, x.id)).find(Boolean); return lk ? <div className="fx-lockhint"><Lock size={14} /> <span>{lk}</span></div> : null; })()}
           {drawer === "presidency" && <div className="g-col" style={{ gap: 14 }}><AgendaProgress /><Presidency /><TitlesCard /></div>}

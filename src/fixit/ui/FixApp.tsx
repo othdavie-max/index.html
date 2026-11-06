@@ -6,6 +6,7 @@ import "./theme.css";
 import { FixProvider, useFix } from "./store";
 import { Title } from "./Title";
 import { World } from "./World";
+import { GuideLayer } from "./Guide";
 import { startTranslator } from "./domTranslate";
 import { Button, Modal } from "../../game/ui/kit";
 
@@ -18,6 +19,7 @@ function Router() {
       {screen === "loading" && <div className="fx-splash" role="status"><b>ASO ROCK</b><span>Resuming your presidency…</span></div>}
       {screen === "title" && <Title />}
       {screen === "play" && state && <World />}
+      <GuideLayer />
       <div className="g-toast-wrap" aria-live="polite" style={screen === "play" ? { display: "none" } : undefined}>{toasts.map((t) => <div key={t.id} className={`g-toast ${t.bad ? "g-toast-bad" : ""}`}>{t.text}</div>)}</div>
       {error && <Modal title="Something went wrong" onClose={clearError} footer={<Button variant="primary" onClick={clearError}>OK</Button>}><p className="g-small">{error}</p></Modal>}
     </>

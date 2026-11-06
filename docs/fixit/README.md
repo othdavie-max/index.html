@@ -292,3 +292,9 @@ Run tests: `npx vitest run src/fixit`.
 - The face picker has a Male/Female toggle that filters the grid.
 - **You own your face.** The face you pick is never given to the VP, Chief of Staff, ministers or any other painted person (`setClaimed` in `src/game/ui/photos.ts`, kept in step with the game state in `ui/store.tsx`). The VP and Chief of Staff get a persisted face that differs from yours and from each other.
 - Hairstyle swapping and hair colour are not done in code: they need separate AI-painted variants of a face.
+
+### The in-game Guide
+- The gold **?** button (top right) opens the Guide: **Take the tour**, **Explain as I tap**, and plain-language topics (the goal, a month, the numbers, the map, each desk, money, people, power, world, election, ten beginner tips, glossary). The old long list is kept under "Every feature, in detail". The title screen's "How to play" opens the same Guide.
+- **Tour** (`ui/Guide.tsx`, steps in `ui/guideData.ts`): a spotlight over the real screen, including opening each desk. New players are offered it once, when nothing else covers the map (`localStorage fix:tourSeen`).
+- **Explain mode**: captures taps and shows what the control does (rules in `RULES`, matched on its label); "Do it now" exits and performs the tap.
+- Each screen shows a one-line note under its title (`ABOUT`).

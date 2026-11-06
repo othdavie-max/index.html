@@ -8,6 +8,7 @@ import { SANDBOX_TOOLS } from "../engine/sandbox";
 import { monthShort } from "../engine/util";
 import { useEffect, useState } from "react";
 import { useFix } from "./store";
+import { GuideHub } from "./Guide";
 import { Badge, Button, ConfirmDialog, Modal } from "../../game/ui/kit";
 import { SLOTS, type Slot } from "../persistence";
 import { About } from "./Title";
@@ -39,7 +40,8 @@ export function SaveSlots({ mode, onDone }: { mode: "load" | "both"; onDone: () 
   );
 }
 
-export function HowTo({ onClose }: { onClose: () => void }) {
+export function HowTo({ onClose }: { onClose: () => void }) { return <GuideHub onClose={onClose} />; }
+export function HowToFull() {
   const steps = [
     ["Continue this Nigeria", "When your time ends you do not have to start again. Pick a successor and the same country carries on: the same naira, projects and governors. Only the president changes: new team, new promises."],
     ["Your promises have numbers and a deadline", "Three promises, each with a target and a date (the end of year three). Keep one and you get a moment and a boost; miss it and the opposition quotes you back."],
@@ -83,12 +85,10 @@ export function HowTo({ onClose }: { onClose: () => void }) {
     ["Build for later", "Policies and Projects take months to work. The Map shows where trouble is brewing, and where your projects are."],
   ];
   return (
-    <Modal title="How to play (one minute)" onClose={onClose} footer={<Button variant="primary" onClick={onClose}>Got it</Button>}>
-      <div className="g-col">
-        {steps.map(([t, b], i) => <div key={t} className="fx-step"><i>{i + 1}</i><div><b>{t}</b><div className="g-small g-muted">{b}</div></div></div>)}
-        <Tip>You have four years (48 months) and three promises. Keeping promises and keeping people happy raise your re-election chance (the green circle). At the end, your legacy report shows what you really changed.</Tip>
-      </div>
-    </Modal>
+    <div className="g-col" style={{ paddingTop: 6 }}>
+      {steps.map(([t, b], i) => <div key={t} className="fx-step"><i>{i + 1}</i><div><b>{t}</b><div className="g-small g-muted">{b}</div></div></div>)}
+      <Tip>You have four years (48 months) and three promises. Keeping promises and keeping people happy raise your re-election chance (the green circle). At the end, your legacy report shows what you really changed.</Tip>
+    </div>
   );
 }
 
