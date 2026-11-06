@@ -2,6 +2,7 @@
 /** Reusable UI building blocks for the game (buttons, cards, meters, tabs, dialogs, charts, states). */
 import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Loader2, X, AlertTriangle, Inbox } from "lucide-react";
+import { photoFailed, photoFile, photoUrl, photosBroken } from "./photos";
 
 export const naira = (n: number, compact = false): string => {
   const sign = n < 0 ? "-" : "";
@@ -170,9 +171,11 @@ export function Spinner({ label = "Loading…" }: { label?: string }) {
 const SKINS = ["#f3d2b3", "#e0ac84", "#c68642", "#a1683a", "#7b4a2a", "#4a2f1d"];
 const HAIRS = ["#0d0d0d", "#2b1b12", "#4a3426", "#6b6b6b"];
 const ACCENTS = ["#00c875", "#2563eb", "#e11d48", "#f59e0b", "#7c3aed", "#0f766e", "#b45309", "#111827"];
-export type PortraitData = { skin: number; hair: number; style: number; accent: number; wear?: number; glasses?: number; beard?: number; outfit?: number };
+export type PortraitData = { skin: number; hair: number; style: number; accent: number; wear?: number; glasses?: number; beard?: number; outfit?: number; face?: string; look?: string; top?: string };
 /** a hand-drawn SVG portrait: 8 hairstyles, headwear (fila, gele, headscarf, red cap), glasses, beards and outfits (shirt, agbada, suit, kaftan) */
 export function Portrait({ p, size = 64, name }: { p: PortraitData; size?: number; name?: string }) {
+  const [photoBad, setPhotoBad] = useState(false);
+  if (!photoBad && !photosBroken()) return <img src={photoUrl(photoFile(p))} width={size} height={size} alt={name ? `Portrait of ${name}` : "Character portrait"} loading="lazy" decoding="async" onError={() => { photoFailed(); setPhotoBad(true); }} style={{ borderRadius: 999, objectFit: "cover", objectPosition: "50% 6%", background: "#dce6ec", flex: "0 0 auto", boxShadow: "inset 0 0 0 1px rgba(0,0,0,.08)" }} />;
   const skin = SKINS[p.skin % SKINS.length], hair = HAIRS[p.hair % HAIRS.length], acc = ACCENTS[p.accent % ACCENTS.length];
   const style = p.style % 8, wear = (p.wear ?? 0) % 5, gl = (p.glasses ?? 0) % 3, beard = (p.beard ?? 0) % 3, outfit = (p.outfit ?? 0) % 4;
   const covered = wear === 2 || wear === 3;

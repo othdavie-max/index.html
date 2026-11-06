@@ -1,6 +1,6 @@
 // Builds the offline, installable version of the game into ./site (host that folder anywhere static).
 import { build } from "esbuild";
-import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 
 const out = "site"; rmSync(out, { recursive: true, force: true }); mkdirSync(out, { recursive: true });
@@ -27,8 +27,9 @@ const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta n
 <script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 </body></html>`;
 writeFileSync(`${out}/index.html`, html);
+mkdirSync(`${out}/avatars`, { recursive: true }); const avatars = readdirSync("public/avatars").filter((f) => f.endsWith(".webp")); for (const f of avatars) copyFileSync(`public/avatars/${f}`, `${out}/avatars/${f}`);
 mkdirSync(`${out}/game`, { recursive: true }); copyFileSync("public/game/geo.json", `${out}/game/geo.json`);
-writeFileSync(`${out}/sw.js`, readFileSync("scripts/site/sw.js", "utf8").replace("__VERSION__", version).replace("__ASSETS__", JSON.stringify([...outs, "game/geo.json"])));
+writeFileSync(`${out}/sw.js`, readFileSync("scripts/site/sw.js", "utf8").replace("__VERSION__", version).replace("__ASSETS__", JSON.stringify([...outs, "game/geo.json", ...avatars.map((f) => `avatars/${f}`)])));
 for (const f of ["manifest.webmanifest", "config.js", "privacy.html", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"]) copyFileSync(`scripts/site/${f}`, `${out}/${f}`);
 writeFileSync(`${out}/.nojekyll`, "");
 console.log(`site built: page ${(html.length / 1024).toFixed(0)} KB, app ${(readFileSync(`${out}/${appJs}`).length / 1024).toFixed(0)} KB, ${outs.length} files, version ${version}`);

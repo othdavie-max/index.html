@@ -3,8 +3,9 @@
 import { Button, Card, Portrait } from "../../game/ui/kit";
 import { useFix, useS } from "./store";
 import { ASSETS, FEE, buryEvidence, buyAsset, empire, lavishParty, moveOffshore, netWorth, richList, richRank } from "../engine/empire";
-import { OUTFIT, WEAR, changeLook, imageOf } from "../engine/looks";
+import { changeLook, imageOf } from "../engine/looks";
 import { sfx } from "./sound";
+import { FacePicker } from "./FacePicker";
 
 const GROUP_NAME: Record<string, string> = { traders: "Traders", farmers: "Farmers", youth: "Youth", workers: "Workers", business: "Business", military: "Army", faith: "Faith" };
 export function EmpireCard() {
@@ -51,7 +52,6 @@ export function LooksCard() {
   const s = useS(); const { act } = useFix();
   const p = s.meta.portrait; const im = imageOf(p);
   const chips = Object.entries(im.tilt).filter(([, v]) => Math.abs(v as number) >= 0.2).sort((a, b) => (b[1] as number) - (a[1] as number));
-  const pick = (patch: Record<string, number>) => { sfx("tap"); act((g) => changeLook(g, patch)); };
   return (
     <Card title="Your look" icon={<span aria-hidden>🪞</span>}>
       <div className="g-row" style={{ gap: 12, alignItems: "flex-start" }}>
@@ -61,15 +61,7 @@ export function LooksCard() {
           <div className="fx-chips" style={{ marginTop: 6 }}>{chips.map(([g, v]) => <span key={g} className="fx-chip" data-good={(v as number) > 0 ? "1" : undefined} data-bad={(v as number) < 0 ? "1" : undefined}>{GROUP_NAME[g]} {(v as number) > 0 ? "▲" : "▼"}</span>)}{im.investor > 0 && <span className="fx-chip" data-good="1">Investors ▲</span>}</div>
         </div>
       </div>
-      <div className="g-col" style={{ gap: 8, marginTop: 10 }}>
-        <div><div className="g-tiny g-muted">Outfit</div><div className="g-row g-wrap" style={{ gap: 6 }}>{Object.entries(OUTFIT).map(([k, o]) => <button key={k} className="fx-subtab" aria-pressed={(p.outfit ?? 0) % 4 === Number(k)} title={o.blurb} onClick={() => pick({ outfit: Number(k) })}>{o.icon} {o.label}</button>)}</div></div>
-        <div><div className="g-tiny g-muted">Headwear</div><div className="g-row g-wrap" style={{ gap: 6 }}>{Object.entries(WEAR).map(([k, o]) => <button key={k} className="fx-subtab" aria-pressed={(p.wear ?? 0) % 5 === Number(k)} title={o.blurb} onClick={() => pick({ wear: Number(k) })}>{o.icon} {o.label}</button>)}</div></div>
-        <div className="g-row g-wrap" style={{ gap: 6 }}>
-          <button className="fx-subtab" aria-pressed={(p.glasses ?? 0) % 3 > 0} onClick={() => pick({ glasses: (p.glasses ?? 0) % 3 > 0 ? 0 : 1 })}>👓 Glasses</button>
-          <button className="fx-subtab" aria-pressed={(p.beard ?? 0) % 3 > 0} onClick={() => pick({ beard: (p.beard ?? 0) % 3 > 0 ? 0 : 1 })}>🧔🏾 Beard</button>
-        </div>
-        <div className="g-tiny g-muted">Change your style often and people stop trusting that you have one.</div>
-      </div>
+      <div style={{ marginTop: 10 }}><FacePicker p={p} onChange={(n) => { sfx("tap"); act((g) => changeLook(g, n)); }} /><div className="g-tiny g-muted" style={{ marginTop: 6 }}>Change your style often and people stop trusting that you have one.</div></div>
     </Card>
   );
 }

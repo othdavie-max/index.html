@@ -152,7 +152,7 @@ export interface Ledger { stolen: number; recovered: number; pending: number; us
 export interface Staff { cos: Aide | null; vp?: Aide | null; picked: boolean }
 export interface ElectionResult { month: number; national: number; states: Record<string, number>; statesOver25: number; won: boolean; runoff: boolean; chance: number; honest?: number; rigged?: boolean; stolen?: boolean }
 export type Difficulty = "easy" | "normal" | "hard" | "nigeria";
-export interface Portrait { skin: number; hair: number; style: number; accent: number; wear?: number; glasses?: number; beard?: number; outfit?: number }
+export interface Portrait { skin: number; hair: number; style: number; accent: number; wear?: number; glasses?: number; beard?: number; outfit?: number; face?: string; look?: string; top?: string }
 export type GroupId = "traders" | "farmers" | "youth" | "workers" | "business" | "military" | "faith";
 export type Trait = "reformer" | "populist" | "strongman" | "clean" | "builder" | "borrower";
 export type BudgetHead = "education" | "health" | "security" | "infrastructure" | "social";
