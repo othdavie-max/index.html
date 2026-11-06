@@ -375,3 +375,8 @@
 .gx-explain-card[data-top="1"] { bottom: auto; top: 56px; }
 .fx-lens-key { position: absolute; top: 58px; left: 10px; z-index: 3; display: flex; flex-wrap: wrap; gap: 4px 10px; max-width: calc(100% - 80px); padding: 5px 9px; border-radius: 10px; background: rgba(11,31,54,.85); color: #fff; font-size: 11px; font-weight: 700; pointer-events: none; }
 .fx-lens-key i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+
+/* low-power phones: no endless animations, glows or heavy shadows (set by device.ts) */
+html[data-lite="1"] .gm .fx-next, html[data-lite="1"] .gm .fx-guide-new, html[data-lite="1"] .gm .fx-ticker-move, html[data-lite="1"] .gm .fx-hero-map,
+html[data-lite="1"] .gm .fx-dot-red, html[data-lite="1"] .gm .fx-crisis, html[data-lite="1"] .gm .fx-globe-pulse, html[data-lite="1"] .gm .fx-coach-hl, html[data-lite="1"] .gm .fx-danger { animation: none !important; }
+html[data-lite="1"] .gm .fx-hero-map, html[data-lite="1"] .gm .fx-tool svg { filter: none; }

@@ -7,6 +7,7 @@ import { FixProvider, useFix } from "./store";
 import { Title } from "./Title";
 import { World } from "./World";
 import { GuideLayer } from "./Guide";
+import { isLite } from "./device";
 import { startTranslator } from "./domTranslate";
 import { Button, Modal } from "../../game/ui/kit";
 
@@ -27,6 +28,7 @@ function Router() {
 }
 
 export function FixApp() {
+  useEffect(() => { if (isLite()) document.documentElement.dataset.lite = "1"; }, []);
   useEffect(() => {
     if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator && !(window as unknown as { __FIX_SITE?: boolean }).__FIX_SITE) {
       navigator.serviceWorker.register("/game-sw.js", { scope: "/fix" }).then(() => navigator.serviceWorker.ready).then((reg) => {

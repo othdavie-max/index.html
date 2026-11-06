@@ -302,3 +302,6 @@ Run tests: `npx vitest run src/fixit`.
 ### Home map lenses (no lorries)
 - The animated lorries on the home map were removed: they repainted the whole map and made phones lag. The globe's ships and planes are unchanged.
 - The map always opens on **Mood**. **Security** dims the map and shows red glows with ⚠️ where it is unsafe. **Politics** shows a green ✓ (your party's governors) or red ✗ (opposition) on every state, with a yellow ring where the governor has turned against you; each has a small key. **Electricity** keeps its city lights.
+
+### Low-power phones
+`ui/device.ts` (`isLite`) detects touch phones with 4 GB or less memory or six cores or fewer. They start on the flat map and `html[data-lite]` turns off the endless pulses, glows and the title-screen map shadow. Players can still switch to 3D with the map button.

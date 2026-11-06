@@ -31,6 +31,7 @@ import { PowerPanel } from "./PowerPanel";
 import { EventCard } from "./Decisions";
 import { HowTo, MenuModal } from "./Menu";
 import { openGuide, tourSeen } from "./Guide";
+import { isLite } from "./device";
 import { ABOUT } from "./guideData";
 import { Legacy } from "./Legacy";
 import { ElectionNight } from "./ElectionNight";
@@ -132,7 +133,7 @@ export function World() {
   const seenUnlocks = useRef(s.cap.unlocked.length);
   const lootSeen = useRef(String(s.flags.lootToast ?? ""));
   const [lens, setLens] = useState<Lens>("mood");
-  const [relief3d, setRelief3d] = useState<boolean>(() => { try { return localStorage.getItem("fix:map3d") !== "0"; } catch { return true; } });
+  const [relief3d, setRelief3d] = useState<boolean>(() => { try { const v = localStorage.getItem("fix:map3d"); return v === null ? !isLite() : v !== "0"; } catch { return true; } });
   const toggle3d = () => setRelief3d((v) => { try { localStorage.setItem("fix:map3d", v ? "0" : "1"); } catch { /* ignore */ } return !v; });
   const [how, setHow] = useState(false);
   const [menu, setMenu] = useState(false);
