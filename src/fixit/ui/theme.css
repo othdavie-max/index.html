@@ -337,11 +337,11 @@
 
 /* face picker */
 .fx-facepick { display: flex; flex-direction: column; gap: 10px; }
-.fx-faces { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; justify-items: center; }
+.fx-faces { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; justify-items: center; }
 .fx-face { padding: 2px; border-radius: 50%; border: 3px solid transparent; background: none; cursor: pointer; line-height: 0; }
 .fx-face[aria-pressed="true"] { border-color: #e9b44c; box-shadow: 0 0 0 3px rgba(233,180,76,.35); }
 .fx-swatch { width: 32px; height: 32px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1.5px #94a3b8; cursor: pointer; } .fx-swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px #e9b44c; }
-@media (max-width: 420px) { .fx-faces { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 420px) { .fx-faces { grid-template-columns: repeat(5, 1fr); } }
 .gm .fx-face { background: rgba(255,255,255,.1); box-shadow: none; border-radius: 18px; padding: 4px; line-height: 0; min-height: 0; }
 .gm .fx-face[aria-pressed="true"] { background: rgba(233,180,76,.25); }
 .gm .fx-swatch { padding: 0; min-height: 0; }

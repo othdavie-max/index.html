@@ -2,6 +2,7 @@
 /** UI ↔ engine bridge. The engine mutates one FixState in place; a version counter triggers re-renders. */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { newGame } from "../engine/init";
+import { setClaimed } from "../../game/ui/photos";
 import { advanceMonth } from "../engine/sim";
 import { advance as advanceCmd, type Result } from "../engine/actions";
 import type { Achievement, Echo, FixState, GameEvent, NewsItem, Snap } from "../engine/types";
@@ -93,6 +94,8 @@ export function FixProvider({ children }: { children: ReactNode }) {
   const saves = useMemo(() => new FixSaves(), []);
   const gameRef = useRef<FixState | null>(null);
   useEffect(() => { gameRef.current = game; }, [game]);
+  // faces held by the president, VP and Chief of Staff are never given to anyone else
+  if (game) setClaimed([game.meta.portrait?.face, game.staff.vp?.portrait?.face, game.staff.cos?.portrait?.face]); else setClaimed([]);
   const toastId = useRef(0);
 
   const bump = useCallback(() => setVersion((v) => v + 1), []);

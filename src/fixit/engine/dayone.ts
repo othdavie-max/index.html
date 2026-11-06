@@ -10,6 +10,9 @@ import { addMod, clamp100, nb, pushNews, removeMods } from "./util";
 import { createEvent } from "./spawn";
 import { portraitFor, type Zone } from "./people";
 import { faithFor } from "./identity";
+import { freeFace, photoFile } from "../../game/ui/photos";
+/** the person gets a painted face nobody else holds (not yours, not the VP's, not the Chief of Staff's) */
+const ownFace = (s: FixState, a: Aide, salt: number): Aide => { const taken = [s.meta.portrait?.face, s.staff.vp?.portrait?.face, s.staff.cos?.portrait?.face]; const shown = photoFile(a.portrait).split("-")[0]; const face = taken.includes(shown) ? freeFace(a.portrait, taken, salt) : shown; return { ...a, portrait: { ...a.portrait, face } }; };
 
 const FIRST_M = ["Tunde", "Emeka", "Musa", "Segun", "Chinedu", "Bala", "Kelechi", "Yusuf", "Femi", "Ikenna", "Sani", "Dapo", "Uche", "Abba", "Gbolahan", "Nnamdi", "Ibrahim", "Obinna", "Kunle", "Ahmed", "Tamuno", "Ebuka", "Babatunde", "Aminu"];
 const FIRST_F = ["Ngozi", "Amina", "Funke", "Zainab", "Chioma", "Hauwa", "Bisi", "Adaeze", "Halima", "Yetunde", "Ifeoma", "Fatima", "Kemi", "Nneka", "Aisha", "Tari", "Folake", "Ebere"];
@@ -117,7 +120,7 @@ export function vpCandidates(s: FixState): Aide[] {
 export function pickVice(s: FixState, id: string): { ok: boolean; message: string } {
   const a = vpCandidates(s).find((x) => x.id === id);
   if (!a) return { ok: false, message: "That person is not available." };
-  s.staff.vp = { ...a, since: s.month };
+  s.staff.vp = { ...ownFace(s, a, 7), since: s.month };
   if (a.kind === "regional") s.assembly.support = Math.min(100, s.assembly.support + 4);
   if (a.kind === "defector") s.rival.popularity = Math.max(0, s.rival.popularity - 4);
   if (a.kind === "cleric") s.groupMood.faith = Math.min(40, s.groupMood.faith + 6);
@@ -158,7 +161,7 @@ export const staffCoup = (s: FixState) => { const a = s.staff?.cos; if (a?.kind 
 export function pickChiefOfStaff(s: FixState, id: string): { ok: boolean; message: string } {
   const a = cosCandidates(s).find((x) => x.id === id);
   if (!a) return { ok: false, message: "That person is not available." };
-  s.staff.cos = { ...a, since: s.month };
+  s.staff.cos = { ...ownFace(s, a, 11), since: s.month };
   if (a.kind === "cleric") s.groupMood.faith = Math.min(40, s.groupMood.faith + 8);
   if (a.kind === "general") s.groupMood.military = Math.min(40, s.groupMood.military + 6);
   if (a.kind === "technocrat" || a.kind === "tycoon" || a.kind === "diaspora") s.groupMood.business = Math.min(40, s.groupMood.business + 5);

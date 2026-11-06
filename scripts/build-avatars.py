@@ -43,6 +43,13 @@ def recolour(img, hue, sat_scale=1.0, val_scale=1.0, white=False):
     return Image.fromarray((np.clip(a * (1 - m) + out * m, 0, 1) * 255).astype("uint8"))
 
 TOPS = {"t": None, "n": (0.62, 0.9, 0.55), "m": (0.97, 0.85, 0.7), "o": (0.19, 0.7, 0.62), "c": (0.60, 0.12, 0.42), "w": "white"}
+def cut4(name, i):
+    """sheets that are 4 columns x 2 rows on a 1536x1024 canvas"""
+    xs = [(14, 374), (397, 757), (780, 1140), (1163, 1523)]; row = i // 4
+    top = 8 if row == 0 else (512 if name == "newA" else 521)
+    x0, x1 = xs[i % 4]; w = x1 - x0; h = int(w * H / W)
+    return Image.open(f"{RAW}/{name}.png").convert("RGB").crop((x0, top, x1, top + h)).resize((W, H), Image.LANCZOS)
+
 os.makedirs(OUT, exist_ok=True); manifest = {"faces": [], "outfits": [], "tops": list(TOPS)}
 for sheet, prefix, female in (("men", "m", False), ("women", "w", True)):
     for i in range(6):
@@ -50,6 +57,15 @@ for sheet, prefix, female in (("men", "m", False), ("women", "w", True)):
         for key, spec in TOPS.items():
             img = base if spec is None else recolour(base, spec[0], spec[1], spec[2]) if spec != "white" else recolour(base, 0.1, 1, 1, white=True)
             img.save(f"{OUT}/{fid}-{key}.webp", "WEBP", quality=82, method=6)
+        manifest["faces"].append({"id": fid, "female": female, "sheet": sheet, "n": i + 1})
+# new sheets: row 1 = four men, row 2 = four women. Faces m7..m10 / w7..w10 (batch A), m11..m14 / w11..w14 (batch B)
+for sheet, mstart, wstart in (("newA", 7, 7), ("newB", 11, 11)):
+    for i in range(8):
+        female = i >= 4; fid = f"{'w' if female else 'm'}{(wstart if female else mstart) + (i - 4 if female else i)}"
+        base = cut4(sheet, i)
+        for key, spec in TOPS.items():
+            img = base if spec is None else recolour(base, spec[0], spec[1], spec[2]) if spec != "white" else recolour(base, 0.1, 1, 1, white=True)
+            img.save(f"{OUT}/{fid}-{key}.webp", "WEBP", quality=80, method=6)
         manifest["faces"].append({"id": fid, "female": female, "sheet": sheet, "n": i + 1})
 names = ["agbada", "suit", "kaftan", "casual", "senator", "ankara"]
 for i, n in enumerate(names):

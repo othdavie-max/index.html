@@ -286,3 +286,9 @@ Run tests: `npx vitest run src/fixit`.
 - `public/avatars/raw/*.png` are the AI-generated sheets (men, women, one man in six outfits). `python3 scripts/build-avatars.py` cuts them into `public/avatars/*.webp` (300×400): 12 base faces × 6 top colours (the teal top is recoloured), plus six full outfits for face m2 (man, grey beard) and six for face w2 (woman, low bun: gele, blazer, hijab, casual, jacket, ankara).
 - `src/game/ui/photos.ts` maps any old drawn-face `Portrait` to a painting (gender from hairstyle, skin tone, a stable hash for the face, accent for the top colour), so every minister, governor and aide gets a face with no engine changes. If the files cannot load, the drawn SVG face is used.
 - The player's avatar picks a face and an outfit (`FacePicker`); outfits still tilt group moods through `engine/looks.ts`. More outfits per face: generate them (see the prompt pack) and add them to `OUTFITS` in `photos.ts`.
+
+### Painted avatars: 28 faces and face ownership
+- 14 men and 14 women (`m1`–`m14`, `w1`–`w14`), each in six top colours; `m2` and `w2` also have full outfits. Sheets live in `public/avatars/raw/`, built by `scripts/build-avatars.py`.
+- The face picker has a Male/Female toggle that filters the grid.
+- **You own your face.** The face you pick is never given to the VP, Chief of Staff, ministers or any other painted person (`setClaimed` in `src/game/ui/photos.ts`, kept in step with the game state in `ui/store.tsx`). The VP and Chief of Staff get a persisted face that differs from yours and from each other.
+- Hairstyle swapping and hair colour are not done in code: they need separate AI-painted variants of a face.
