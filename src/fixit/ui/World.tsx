@@ -251,7 +251,7 @@ export function World() {
       </header>
 
       <div className="fx-stage">
-        <MapView s={s} lens={lens} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={lens === "politics" || lens === "security" ? undefined : faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels relief={relief3d} life />
+        <MapView s={s} lens={lens} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={lens === "mood" ? faces : undefined} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels relief={relief3d} life />
         <MapKey />
         <button className="fx-3d-btn" onClick={toggle3d} aria-pressed={relief3d} aria-label={relief3d ? "Flat map" : "3D map"} title={relief3d ? "Flat map" : "3D map"}>{relief3d ? "3D" : "2D"}</button>
         <div className={`fx-lens ${cstep >= 0 && COACH[cstep].target === "map" ? "fx-coach-hl" : ""}`} role="group" aria-label="Map lens">{LENSES.map((l) => <button key={l.id} className="fx-chip" aria-pressed={lens === l.id} onClick={() => setLens(l.id)}>{l.label}</button>)}</div>
