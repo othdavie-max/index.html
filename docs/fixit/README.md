@@ -1,0 +1,307 @@
+# ASO ROCK: CAN YOU FIX IT?
+
+A presidential strategy/economic simulation at `/fix` (the earlier life-to-presidency game remains at `/game`). All values are simulated game numbers for a fictional, internally consistent scenario. Map boundaries are real (geoBoundaries, CC BY 4.0).
+
+## Layout
+- `src/fixit/engine` — pure TypeScript simulation, no UI imports. `sim.ts` (monthly turn: 1 scheduled progress → 2 production/supply/fiscal flows → 3 FX/prices/growth → 4 jobs/security/welfare/politics → 5 resolve events → 6 generate events → 7 news/snapshot), `events.ts`, `actions.ts` (all player commands), `challenge.ts` (dashboard problem + actions from live state), `legacy.ts` (re-election, removal, title), `views.ts`, `util.ts` (levers/modifiers).
+- `src/fixit/data/catalogue.ts` — 26 policies in 13 categories, 19 projects, 13 one-off measures, regional priors.
+- `src/fixit/ui` — React screens (Presidency, Nigeria Map, Policies, Projects, Nation & Economy, News), reusing the shared kit, `GeoMap` (now with an `overlay` prop) and geo data from `src/game`.
+- `src/fixit/persistence.ts` — local saves (IndexedDB → localStorage → memory), namespaced `fix:*`.
+
+## Key ideas
+- Every lasting effect is an additive **lever** carried by a *modifier* (policy, measure, project, event) with a ramp, an optional end and a realised scale (the result of uncertainty). Nothing is applied twice: effects are recomputed from state each month.
+- Randomness is seeded per (seed, system, month); a month already processed is refused.
+- Government funds, reserves, debt and personal wealth are separate numbers.
+- Fuel subsidy: pump price = import parity × (1 − 0.5 × coverage); cost depends on the naira, oil price, leakage (corruption, targeting) and consumption. `previewFuel` uses the same formulas as the simulation.
+- Naira: monthly drift from dollar supply/demand gap, inflation, investor confidence, reserves defence and noise. No control sets the rate.
+
+Run tests: `npx vitest run src/fixit`.
+
+## Decisions shape the future
+- **Delayed consequences** (`engine/echoes.ts`): many measures, policies, fuel and borrowing choices, event responses and favoured contracts schedule an *echo*. It is shown in advance ("Coming up", the yellow "Later" box on every choice) and resolved months later from the state at that time, so follow-through matters (e.g. releasing grain plants an "empty silos" risk for the next lean season that storage investment defuses; open contracting pays off after a year only if kept).
+- **Campaign promises** (`engine/promises.ts`): pick three at the start; each kept promise raises re-election odds, each broken one lowers them. Midterm report card at month 24; promises appear in the legacy report.
+- **Diminishing quick fixes**: repeating the same measure within 12 months is less effective each time.
+- **Milestones**: achievements awarded once from real outcomes.
+- **Advisers** give two (often conflicting) views on each challenge.
+
+## Cabinet, rival and election
+- **Cabinet** (`engine/cabinet.ts`): six portfolios (Finance, Central Bank, Agriculture, Power, Works, Security). Ministers have skill (scales their area's levers), honesty (low honesty adds corruption, cuts procurement quality and risks a minister-fraud event) and a faction: technocrat (skill, investor confidence), party loyalist (+0.7 vote points each, weakens the rival), regional heavyweight (+3 in their zone). Vacancies drag their area down. Moods fall when their area worsens; very unhappy ministers resign. Free reshuffles in the first three months.
+- **Rival** (`engine/rival.ts`): a named opposition leader whose popularity mirrors your approval and who attacks bad news in quotes generated from the numbers.
+- **Campaign**: opens six months before election day (term 1). Two activities a month: rallies by zone (diminishing returns), door-to-door drive, risky attack ads, plus a three-question debate.
+- **Election**: counted per state; win needs >50% nationally and ≥25% in 24 of 37 states, otherwise a run-off. Results are seeded and shown on an animated election-night map.
+- **Street voices and ticker** (`engine/voices.ts`): fictional citizens quote this month's real numbers; a breaking-news ticker shows the latest headlines.
+
+## Scenarios, Assembly, society and stories
+- **Setup** (`engine/setup.ts`): name, portrait and three difficulties (cash, crisis frequency, voter mood). There are no fixed scenarios: each new game rolls 3–4 national issues from a pool of 14 (naira, debt, food, fuel, power, banditry, insurgency, farmer-herder clashes, youth, strikes, oil theft, floods, a disputed election, a looted treasury), plus at most one piece of good news (oil windfall, bumper harvest, investor interest, a honeymoon), with clashing issues excluded and small random variation in the starting numbers. Seeded, so replaying a world repeats its mix.
+- **National Assembly** (`engine/politics.ts`): controversial policies, fuel-subsidy changes and the annual budget need a vote. Chance comes from Assembly support (loyalists, governors, popularity, rival, scandals) minus the bill's difficulty; lobby first (constituency projects, favours, public pressure). The gate is applied in the UI/command layer; engine actions remain directly callable.
+- **Budget**: five heads with levels from deep cut to big raise; running costs and levers via a `budget` modifier; due each January.
+- **Speeches**: honest / hopeful / tough / blame, judged against the moment (e.g. blame works only early; hopeful only if things are improving); three-month cooldown.
+- **Society** (`engine/society.ts`): seven groups with their own approval (traders, farmers, youth, workers, business, military, faith leaders). Decisions nudge them; very angry groups raise protest odds or cost investment/security. Reputation traits (Reformer, Populist, Strongman, Clean, Builder, Borrower) come from choices and carry effects. Six zone governors (party, relationship) affect project speed, votes and Assembly support, make funding requests and may defect.
+- **Story arcs** (`engine/stories.ts`): outbreak, oil crash, coup rumour, refugees, lithium discovery and a summit; multi-stage, branch on choice and outcome, once per game.
+- **Hall of Presidents** (local) and a **share card** (canvas PNG, Web Share when available).
+
+## Power, corruption and endings (Civilization-style)
+
+- **World screen** (`ui/World.tsx`): the map fills the screen. HUD with resources and five danger meters (democracy, street anger, coup risk, world pressure, elite loyalty), a notification stack, an advisor, a toolbar that opens drawers (Presidency, Policies, Projects, Economy, Assembly, Power, Cabinet, News) and a big NEXT TURN button that turns red when decisions are waiting. Lenses recolour the map (mood, politics, food, power, jobs, security, unrest). Sounds are WebAudio blips (`ui/sound.ts`), muted state saved in the browser.
+- **Lawmakers** (`engine/power.ts`): 30 named senators and reps (12 + 18), each with party, loyalty, greed, stolen money and proof held. They steal; corruption cases arrive as events (prosecute, blackmail, protect or take a cut). Dossier actions: investigate, buy loyalty, arrest (a political arrest without proof hurts democracy), leak, blackmail, protect, demand a cut.
+- **Law ladder**: weak laws, asset recovery, mandatory prison, life, death penalty. Each rung is a bill through the Assembly (or decree). Deterrence depends on the law and on how strong the courts are. The death penalty frightens officials but can execute the innocent and raises world pressure.
+- **Strongman toolkit**: buy INEC, postpone the election, state of emergency, silence the press, internet shutdown, arrest the rival, pay or purge the military, buy governors, decree, scrap term limits (amendment vote). Each lowers democracy and raises an abuse meter that feeds anger, coup risk and sanctions.
+- **Danger events** (`engine/powerEvents.ts`): mass protests, coup attempts, sanctions, elite revolts, leaked audio, kidnapped senators, ghost workers and other only-in-Nigeria moments. Coups and uprisings can end the game.
+- **Elections**: INEC control adds a rigging bonus; the honest vote is tracked, and a stolen election triggers protests. After losing you may annul the result, if you control INEC or hold emergency powers; the army decides. The story stops after four terms.
+- **Endings** (`engine/endings.ts`): 11 endings by how you ruled and how it ended, shown on the legacy screen and saved in the Hall of Presidents. Fallen presidents with loot choose: flee or face the music.
+- Tests: `src/fixit/tests/power.test.ts`.
+
+## Fun update: people, backers, advisers, records, big moves
+
+- **Day One** (`engine/dayone.ts`, `ui/DayOne.tsx`): pick a Chief of Staff (childhood friend, technocrat, party chairman's son, general or cleric) and a Vice President (regional power-broker, technocrat, opposition defector, loyalist or cleric), then your ministers. Each post also has a "your own person" candidate (friend, in-law, donor) whose skill and honesty are hidden. The chosen people come back as events: the friend's mansion, the technocrat who threatens to quit, the general's night dinners, the party chairman's contract list.
+- **Backers** (`engine/backers.ts`): three campaign financiers (Godfather, Northern Kingmaker, Lagos Financier) with a mood. Hiring your own people or loyalists pleases them; hiring technocrats or sacking loyalists angers them. Happy backers add Assembly votes. Angry ones sabotage: street anger, insecurity in their zone, a weaker Assembly, and sabotage events (reconcile, expose or arrest). They also demand contracts, and your own people in the cabinet loot, with the choice to confront or look away.
+- **Advisers** (`engine/advice.ts`, `ui/AdvisorStrip.tsx`): rule-based, deterministic and offline. Computes real facts for a law, tool or move (Assembly support, courts, reserves burn, coup risk) and each adviser comments in their own voice. Skilled and honest advisers cite the numbers and are usually right; flatterers say "go"; generals favour force; clerics oppose the death penalty. Advisers also give a monthly briefing (different people notice different problems) and recommend an option on every event.
+- **Records** (`engine/history.ts`): cards for "first time since 2016/2014/2007" moments (naira, petrol, inflation, power, reserves, jobs) and bad records too. Full-screen celebration with confetti.
+- **Big moves** (`engine/bigmoves.ts`): fix the naira by decree (the central bank burns reserves, a black market opens, then it collapses), sell the jets, cut lawmakers' pay, ban foreign medical trips, close the borders, print money, school meals, National Jollof Day, rice import ban. Plus new events: Christmas fuel scarcity, "japa", cash scarcity, highway kidnappings, exam leaks, checkpoint extortion, the Super Eagles final.
+- **Street** (`engine/street.ts`): a market board (rice, garri, bread, danfo fare, petrol, the dollar versus day one) and a "Naija X" feed generated from the state.
+- Tests: `src/fixit/tests/fun.test.ts`.
+
+## Living world update: fuel, investors, ripples, enemies, desk
+
+- **Fuel and refineries** (`engine/sim.ts`, `ui/LivingPanels.tsx`): refinery output is capacity times uptime. Uptime decays unless the country is maintained, and theft and corruption hurt it. Local fuel lowers the pump price by up to 24% and reduces a visible queue meter that affects the mood. The Fuel panel shows capacity, uptime, local output, imports, savings per litre and queues.
+- **Investor deals** (`engine/investors.ts`): when investor confidence is above about 40, named offers arrive (private refinery, solar park, garment hub, data centre, gas plant, fertiliser plant, light rail). You choose fair terms or a tax holiday. Deals build with a progress bar, stall in insecurity or dictatorship, and when they open they apply real effects, add jobs and pay taxes. A ribbon-cutting card follows.
+- **Ripples** (`engine/ripples.ts`): executions, jailings, wrongful arrests, press crackdowns, jailing the opposition leader, stolen elections, army purges, protest crackdowns and sackings schedule chains of timed reactions (senators fly abroad, cases drop with a visible counter, the home state erupts, rights groups condemn, a son swears revenge). The "What I caused" timeline records the trail.
+- **Enemies**: the people you wrong get a face, a grudge and a plan (paid protests, leaks, backing your rival, bandits, coup plotting) and act every season. Buy them off, make peace or crush them; crushing can fail and make a martyr. A strong enemy also sends an "enemy is making a move" event.
+- **Desk** (`engine/desk.ts`): a pacer keeps 1 to 2 cards on the desk when it would otherwise be empty. Cards remember promises (a promised road comes back kept or broken). When things go well, success cards appear (gridlock, "where are the jobs", poaching, inequality, an overvalued naira).
+- **Expectations and term crises**: a rising-expectations drag on the mood grows each year. Term 2 brings an oil crash, term 3 a plot by your VP, term 4 a succession fight.
+- **National dreams** (`data/catalogue.ts`): World Cup, Lagos–Calabar railway, 24-hour power, Silicon Lagos, peace in the north-east, and a Nigerian astronaut. They unlock after four other projects and give dream achievements.
+- **Simpler layout**: the bottom bar is now seven buttons (Desk, Govern, Economy, Assembly, Power, People, News) with tabs inside each.
+- Tests: `src/fixit/tests/living.test.ts`.
+
+## Accountability update: mortal officials, backers with consequences, overstaying
+
+- **Officials are mortal** (`engine/officials.ts`): ministers and governors can be prosecuted with the law as it stands (reprimand, seize the loot, prison, life, death). Jailed and executed officials leave the cabinet or governor's mansion and never come back (listed under "Gone for good"). Governors are replaced by a new person. Jailed lawmakers, ministers and governors are released after their sentence (30 months; 14 for political arrests) and return as enemies. Life and death sentences are final.
+- **Warn your appointees**: tell a minister "you are here to work, not to eat". Warned ministers steal less (the multiplier depends on the law level), but your own people are offended. If a warned minister steals and you do not prosecute, your warnings become worthless for two years and trust falls. Punishing one frightens the others (more honest, lower morale).
+- **Your own people are veiled**: skill and honesty are shown as "?" for six months after you hire them.
+- **Backers**: in the first month after Day One, an ultimatum arrives if your cabinet leaves them unhappy. Options: appease them (cost, corruption), give their nominees deputy posts (a way around it, but those deputies steal quietly and your ministers resent them), promise jobs in eight months (checked later), or hold the line, which has immediate effects: the Assembly turns against you, the budget is blocked for eight months, and a chain starts (the party chairman, senators staying away, a dossier, an enforcer who joins your opponents). You can also give a backer gifts at any time: a board seat, an ambassadorship, an oil-lifting licence, public praise.
+- **Overstaying**: scrapping term limits now needs two thirds of the Assembly firmly on your side plus lobbying, and sets off a chain (opposition walk-out, a Supreme Court challenge, ECOWAS alarm, governors splitting, generals "neutral"). At the end of your last legal term you can refuse to leave: no vote, only consequences (ECOWAS suspension, a ruling against you, governors refusing to recognise you, officers meeting, a general strike). Each repeat is worse. Obeying the court ends the story.
+- Tests: `src/fixit/tests/accountability.test.ts`.
+
+## "Interesting and interactive" update
+
+- **Mini-games** (`ui/Minigames.tsx`): haggle with the union, audit the padded budget, coup night (10-second decision), rally tapping, timed debate. They replace the dice roll via a forced outcome (`respond(..., force)`), or scale a rally or debate answer.
+- **Families** (`engine/families.ts`): five named families whose mood follows your decisions, yearly letters, and milestones (a shop opens or closes, a nurse leaves for Canada). Shown on the Street tab.
+- **Living map** (`engine/views.ts`, `ui/MapView.tsx`): landmarks for finished projects and investor deals, fire for unrest, flood icons in the rains, and a short state story when you tap a state.
+- **Foreign relations** (`engine/foreign.ts`): IMF programme with tranches and conditions (a floating naira, no subsidy after a year), Chinese rail-for-oil, American security help that needs clean hands, ECOWAS summits.
+- **Party** (`engine/party.ts`): four factions, demands, a primary, and a vice president whose ambition can lead to defection.
+- **Family and health** (`engine/home.ts`): spouse cards, a child scandal, a secret illness (hide it, disclose it, hand power to the VP), money abroad that can leak.
+- **Sectors** (`engine/sectors.ts`): three programmes each for agriculture, oil and gas, technology and manufacturing, with monthly costs and corruption leakage.
+- **Replay**: five president types with perks and weaknesses, challenge starts (after a coup, deep recession), a date-seeded daily challenge with a copyable result, and an endings gallery.
+- **Feel**: a coach for the first turns, "what changed" chips, TV-style breaking-news banner with a street reaction, generative music that turns tense when the danger meters rise, crowd sounds and vibration, and a 12-month review of your biggest decisions and what is now permanent.
+- Tests: `src/fixit/tests/world2.test.ts`.
+
+## Debt, lending, military and new states
+
+- **Debt** (`engine/debt.ts`, `ui/DebtMilitary.tsx`): Economy → Debt shows debt as a share of the economy, local versus foreign, interest, the credit rating, a chart, an estimate of years to debt-free and borrow/repay controls (including repaying foreign debt). A debt chip is in the top bar. Debt-free is 5% of the economy or less; there are record cards for low debt and debt traps, and an annual debt review in the news. Inflation erodes naira debt on its own (about 50% to about 20% over four idle years); dollar debt must be repaid.
+- **Lending** (`engine/lending.ts`): opens below 10% of the economy. A savings fund earns about 4% a year. Neighbours ask for three-year loans at 4–9%, with an optional harder deal (higher rate plus a vote at the AU). Loans earn monthly interest, may default (forgive, restructure or seize collateral), and repay at the end.
+- **Military** (`engine/military.ts`): strength 0–100 with four programmes (recruit, buy abroad, local arms industry, veterans' welfare) costing money every month. Neighbours (fictional) arm in response, strength above 55 adds coup risk unless veterans are looked after, and border clashes and peacekeeping calls test it.
+- **New states** (`engine/newstates.ts`): event-only. Regions petition; creating one costs about ₦14bn a month, pleases the region and invites the next petition. The map is unchanged.
+- Tests: `src/fixit/tests/debtmil.test.ts`.
+
+## Loot ledger
+
+- `engine/ledger.ts`: every amount stolen by lawmakers, ministers and governors is counted; every prosecution (any law level, for lawmakers, ministers and governors) recovers a share (60%, 40% or 30% depending on how harsh the law is) into a waiting pool. A "recovered loot" card lets you send it to schools, clinics, roads, local debt, the savings fund (or treasury) or cash; each does something real. If ignored it is swept into the treasury after four months. A "+₦X recovered" pop-up shows on the map, the Debt screen has a stolen/recovered ledger, and the year review reports it.
+- Fixed: jailing or executing ministers and governors used to recover no money at all.
+- Tests: `src/fixit/tests/ledger.test.ts`.
+
+## Focus and depth update (designer pass)
+
+- **Systems unlock** (`engine/meta.ts`, `UNLOCKS`): the game opens with the map, desk, policies and projects. Big Moves, Investors, Assembly, Seat of Power, Foreign, Party, Enemies, Military and Lending open on a schedule (or sooner when trouble starts). Locked tabs show 🔒 and when they open; opening one shows a toast. Quick games open them twice as fast. Old saves keep everything open.
+- **Political capital** (`PC_COST`, `payPc`, `pcIncome`): ⚡ 0–100. Power tools, lawmaker actions, warnings, lobbying, gifts, enemy deals, big moves and speeches cost it; it refills monthly (more with approval, trust, Assembly support, and the "capital" perk) and from finished projects, big wins and kept agendas. A move you cannot afford is refused, and nothing is charged for a move that is blocked for another reason.
+- **Yearly agenda** (`AGENDA`): pick up to two of four seeded cards each year (Feed the Nation, War on Corruption, Power for All, Defend the Naira, and others). Each gives a 12-month boost and a measurable goal; the year-end review pays +12 ⚡ and approval for a kept agenda and costs trust for a missed one.
+- **Why-chain** (`whyChain`): tap any HUD number to see what drives it, the modifiers in play and your recent big moves.
+- **Pacing director** (`directorMonthly`): tension rises after crises and decays; it sets an event-rate multiplier (0.4–2): breathing room after a storm, a harder turn after a calm spell and when you are doing well, and a slow ramp over the years. Shown as the country's mood in the capital screen.
+- **Inner circle** (`cast`): eight recurring faces (Chief of Staff, VP, rival, godfather, Mama Nkechi, the general, a journalist, a governor) with portraits, a feelings meter, emotion and a line that reacts to the state of play.
+- **Variety** (`engine/variety.ts`): ten crises have three openers each (never the same one twice in a row); repeats within a year say so, and the third repeat is escalated one level. Recent repeats of the same crisis are damped.
+- **Meta-progression** (`persistence.ts`): finished games earn legacy points (more for strong results, a new ending and each dynasty generation); spend them on seven perks, equip two. President types and challenge starts unlock as games are finished (with an unlock-all link). **Dynasty**: after any ending, pass the baton and your successor inherits the exchange rate, inflation, corruption, democracy, law level and debt you left.
+- **Naija Pidgin** (`engine/pidgin.ts`): toggle EN/PCM in the top bar or on the title screen; a rule-based pass for street voices, the X feed, adviser lines, the inner circle and breaking news.
+- **Quick term**: one four-year term, two months a turn, no re-election or overstay, ending in a verdict. About 20 minutes.
+- **Merged tabs**: Sectors now sits under Policies, Lending under Debt, "What I caused" under "Nigeria today" (the Street tab).
+- Tests: `src/fixit/tests/meta.test.ts`.
+
+## Advisers bring ideas (proposals)
+
+- `engine/proposals.ts`: every month or two your Chief of Staff or VP may bring a project or policy to the desk. A clever adviser (skill 60+) proposes what the country needs most (scored against food, power, jobs, fx, corruption, security, health, schools and fuel); a middling one picks among the top three; a weak one often proposes a vanity project. Only one proposal is open at a time, and declined ideas are not raised again for eight months.
+- Four choices: **build it myself** (you start it, normal rules); **go and handle it yourself** (the aide runs it: skill sets quality, delays and overruns, honesty sets what is skimmed into the loot ledger and may reveal them, loyalty sets effort; a corrupt, disloyal aide can wreck it); **handle things like this from now on** (they act without asking; a log under People then Advisers, with a per-adviser switch); **not now**.
+- Delegated projects carry notes ("Handled by …") and a real quality, delay and cost penalty; delegated policies get a weaker or stronger modifier.
+- Also fixed: the "Jobs, Jobs, Jobs" agenda boost had the wrong sign for the jobs lever.
+- Tests: `src/fixit/tests/meta.test.ts` (advisers section).
+
+## Balance pass, inner-circle stories and "because of you"
+
+- **Balance** (`tests/balance.test.ts`, an automated idle / careless / honest-competent / strongman player over six seeds). Findings and fixes: honest play was winning no elections, so the vote baseline is 2 points kinder; strongmen were never overthrown, so one-man rule now has a slow ratchet (`tyrantMonths`: coup risk and street anger creep up every month democracy is below 38), coup attempts start from 42 instead of 60 and INEC rigging is a little weaker; political capital never ran out, so starting a project costs ⚡3 and a policy ⚡4 (free when an aide handles it, which makes delegation attractive), and income is lower. Idle and careless play still lose; the regression test keeps it that way.
+- **Inner-circle stories** (`engine/castarcs.ts`): Mama Nkechi (march, or a rally for you), the general (restless barracks, or an offer to handle a hotspot), the godfather (calls in a favour), the journalist (a story and a deadline), the VP (builds his own camp), a governor (forms a bloc). How they feel decides what they do. Each answer adds favour or grudge (`fav:<id>`, fades 3% a month) that changes how they feel next time; repeats say so; each person waits six months between stories and only one story is open at a time.
+- **Because of you** (`engine/because.ts`): the "what changed" chips and the turn summary now say why, tying each change to the policy, project, measure or decision behind it, with the structural reason as the fallback.
+- Tests: `meta.test.ts` (arcs, because) and `balance.test.ts`.
+
+## Stage 1 of the big rebuild: Continue this Nigeria, states that change, a calmer main screen
+
+- **Continue this Nigeria** (`engine/succession.ts`, `ui/Legacy.tsx`): when a term ends (not if you fled), the same country carries on. Pick a successor (your VP, your two best ministers, a party compromise candidate, or the rival who beat you). The naira, inflation, debt, every finished and unfinished project, every governor and the map stay exactly as they are. Only the person changes: a clean personal record, a fresh set of candidates for chief of staff, VP and ministers (`era` keys the candidate lists), a new platform, enemies who cool off, backers who reset, and a small honeymoon. The old "pass the baton" new-game button is gone (it reset the world and capped the naira at ₦700, which is why it felt like everything scattered). `legacy` mode (`cap.legacy`, `terms.ts`) removes term limits; the title-screen switch comes with the new setup flow.
+- **States change when you build** (`sim.ts` `localEffects`, `LOCAL_TOTAL`): each finished project pulls its home state toward better numbers over ten months (and its zone a quarter as much); open investor deals cut local joblessness. State panels show "Since you took office": light hours a day, jobs, food, safety, finished projects and a verdict (thriving, improving, flat, slipping); the news celebrates milestones (`progress.ts`).
+- **Main screen**: the top bar shows four numbers (cash, naira, approval, capital) and a More toggle for inflation, jobs, mood and debt; one danger chip replaces the five meters; the ticker is gone; at most three notices show; and the bottom bar has five buttons: Build (overview, projects, policies), Economy, Power (president's office, assembly, big moves, foreign, military), People (team, party, advisers, enemies), News (news, Nigeria today). The desk opens from the big turn button.
+- New ending: **Nigeria Worse Off** (staying within the law while prices run away no longer earns "Respected Statesman").
+- Tests: `tests/stage1.test.ts`.
+
+## Stage 2: the new start, governors, promises with numbers, a team with character
+
+- **Title and setup** (`ui/Title.tsx`, `ui/Setup.tsx`): one big button on a quiet title screen with a row of small icons (load, daily, hall, how to play, about). Setup is four short steps: you (portrait with arrows, name), your background (five big cards, locked ones show how to unlock), your promises, and the oath (a summary, a Kind/Fair/Brutal slider, and a "More options" drawer for game length, legacy mode, how you take over, language and perks).
+- **Promises with numbers** (`engine/promises.ts`, `ui/Platform.tsx`): thirteen pledges (three new: cut petrol 30%, grow exports 40%, lift schools and clinics), each with a number, a hardness tag and a deadline at the end of year three. A pledge kept is celebrated once (+approval, +trust, +8 capital); a pledge missed at the deadline costs trust once. New presidents get a platform picker.
+- **Thirty-six governors** (`engine/govs.ts`, `ui/Governors.tsx`, `ui/Primary.tsx`): each state has its own governor (skill, honesty, loyalty to you, ambition). Before Day One your party holds primaries in six big states: back up to three candidates, they are much likelier to win and owe you. A governor's skill scales how much each of your finished projects does in their state (and in their zone, a quarter as much); their honesty leaks project money. People then Governors ranks all 36 with a grade and how their state is doing.
+- **A team with character** (`engine/dayone.ts`, `engine/cabinet.ts`): every aide has a quote, a strength and a flaw; every minister candidate has a signature ability with a real effect (only for ministers you pick) and a flaw. You choose the four key posts (finance, power, agriculture, security); your chief of staff fills the central bank and works with the most capable non-crony available.
+- Tests: `tests/stage2.test.ts`.
+
+## Stage 3: ladders, a reviewed catalogue, ministers who run their sectors
+
+- **Plans** (`engine/ladders.ts`, `ui/Plans.tsx`): Build then Plans organises everything by problem. Five ladders (food, jobs, power, fuel, dollars), each a short list of steps (the same projects and policies as elsewhere) with big milestones at the top that give permanent effects, a news moment, +capital and trust: rice self-sufficiency then rice exports (dollars every month), 100k / 500k / one million jobs (a live head-count of jobs created), 6,000 / 10,000 MW and 24-hour light in Lagos, refining most of our own petrol and the end of fuel queues, non-oil exports doubling and reaching half of oil. Locked steps say why (you cannot export what you have not processed).
+- **Catalogue review**: the education and health "trim" policies and the transit and pipeline-monitor projects are retired (hidden, still working for old saves). Ten new policies (CNG conversion, solid minerals licensing, startup act, creative fund, tourism visa, land reform, diaspora bonds, digital ID, navy-led oil-theft task force, ECOWAS trade) and thirteen new projects (fertiliser plant, rice mills, agro-export hub, garment hub, lithium plant, film and music city, tech hubs, tourism sites, modular refinery, CNG stations, broadband, housing, dams). Each project changes its state (`LOCAL_TOTAL`); dams cut flood risk. Laws about tax, land, ID, minerals and trade go through the Assembly; executive programmes do not.
+- **Big moves**: the Jollof joke is gone. New: probe the last government, sack the central bank governor (good or bad depending on who is there), redesign the naira and swap the cash, a Delta militant amnesty, reform national youth service, privatise the power companies (honest bidding matters), relocate a ministry to your home zone, cap the price of petrol. Several have delayed consequences.
+- **Ministers**: each minister has a report card (grade plus "because of them: +N MW" and so on) with their signature and flaw. They bring ideas from their own sector to your desk (build it, delegate it with their skill, honesty and mood deciding how it goes, put it off). Good ministers deliver breakthroughs (credit them or take it yourself); unhappy ones threaten to resign. Your chief of staff can handle routine requests for you (People then Advisers), well or badly (a corrupt one sometimes takes the dirty way out and leaves a trail).
+- Tests: `tests/stage3.test.ts`; the balance regression now allows an occasional win for a blind yes-man.
+
+## Stage 4: governors with lives, the President's Office, trade, operations, the whip count
+
+- **36 governors** (`engine/govs.ts`, People then Governors): each has skill, integrity, loyalty and ambition. A good governor improves jobs, food and security in his state; a corrupt one loots (and is sometimes exposed). You can release funds, withhold them, or send the anti-graft agency. Unrest asks for help; a disloyal ambitious governor can defect, taking Assembly support with him. Governorship elections run at the midterm, with incumbents.
+- **President's Office** (`engine/office.ts`, `ui/Office.tsx`, Power): about nine presidential powers, each with a political-capital cost, a cooldown and a story (commissions of inquiry report in six months and can recover money or flop if the courts are weak; pardons need someone actually jailed). The intelligence desk surfaces rumours (coup, minister, VP and so on), some true, some false; investigating reveals which, and acting on a false one does harm.
+- **Foreign trade** (`engine/trade.ts`): sell only what you have built (crude, rice, textiles, minerals, lithium and more) to partners who like you; partners suspend deals if you rule badly. State visits are scenes with real asks, once a year per partner. Arms deals add strength and carry strings.
+- **Military operations** (`engine/ops.ts`): up to two theatres, a strategy (offensive, defensive, hearts and minds), a funding level and a commander whose skill and honesty matter. Offensives cost human rights; hearts and minds earns them; corrupt commanders steal.
+- **Assembly whip count** (`engine/politics.ts`): the chamber split into yes, undecided and no, with a way to win over an undecided member before a vote.
+- **Interest-rate dial** (`engine/dials.ts`, Economy): high rates cool prices and cost jobs; changes are rate-limited.
+- Tests: `tests/stage4.test.ts`.
+
+## Stage 5: Naija X
+
+- **A living feed** (`engine/social.ts`, `ui/Social.tsx`, News then Naija X): 14 recurring accounts (a market woman, a danfo driver, a developer, a graduate, an importer, a farmer, two journalists, two activists, a loyalist influencer, a troll, an official stats account), each with a mood toward you that follows the real numbers for their topic, and a memory of what you did. They quote those memories back ("Remember ...?"). Every post can collect replies, shown as threads.
+- **Reactions to everything**: each decision, news item and report is turned into posts within the same click (`socialSync`), by the accounts that care about the topic. Trending hashtags (#FuelQueue, #RiceWatch, #NEPATookLight, #ShowTheReceipts ...) rise with real conditions and with what you do.
+- **Your own posts**: seven kinds (thank, public promise, explain, celebrate, apologise, joke, attack the media), one every two months, with real effects. A public promise is checked nine months later and quoted back, kept or broken.
+- **Accounts**: tap any avatar to read what they remember about you; reply kindly or sharply, block, or send the security service. Blocking and summoning journalists tends to backfire (the Streisand effect).
+- **Bots**: pay for a bot army (three levels) to fill the feed with praise and cool the streets a little. The feed then flatters you ("what your feed says" vs "what people really feel"), and a journalist eventually exposes the payments (#BotGate). Hostile bot campaigns appear when the country is angry; you can report them.
+- **Online mood to the street**: real online anger adds to street anger, and a very angry bad hashtag turns into a protest event. Switching Naija X off quiets things for about three months, then costs investors, young people and foreign goodwill.
+- Tests: `tests/stage5.test.ts`.
+
+## Stage 6: the world, and a game that does not end
+
+- **World league** (`engine/world.ts`, `ui/League.tsx`, Power then World league; also the "World rank" chip under More): 22 real countries with simulated numbers (economy, military, technology, influence, stability) that move on their own: booms, slumps, and what each is busy doing (China rising in tech, Russia losing influence). One composite power score (35% economy, 20% military, 20% technology, 25% influence). Nigeria starts around 21st of 23. Headlines when you pass a country, enter the top 20/15/10/5/3, or become Africa's number one. A "next to pass" card shows the biggest gap and what to build to close it.
+- **Visiting countries** (`engine/diplomacy.ts`, `ui/Visit.tsx`): tap a country to see its hex-map of regional health, its leader and temperament (dealmaker, hawk, technocrat, nationalist, charmer, strongman, skeptic), and how much they respect you. Weak Nigeria is turned away ("come back when your economy is stronger"). Strong countries invite you. Once there you can ask for a trade pact, investment, technology licences, a defence pact (their rivals will mind), a stake in their ports and firms, votes in international bodies, or a charm offensive. Success depends on respect, temperament and cost.
+- **Success creates problems** (`engine/late.ts`): a naira too strong for exporters, a property bubble, a tale of two Nigerias, robots at the factory gates, workers arriving from neighbours, the great powers asking you to pick a side, speculators attacking the naira, tariff threats, cyber-attacks, and foreign money behind rebels. Rivals are the countries just above and below you.
+- **World shocks**: every three to five years something hits everyone (recession, pandemic, AI revolution, oil collapse, climate shock, a new cold war). Each one leaves the rest of the world a little stronger.
+- **Mega-projects forever**: ten of them (a world-class university, a new capital, a bullet train, nuclear power, a space programme, the Olympics, a Moon base, fusion, a pan-African bank and more). Each can be built again at a bigger scale, 1.7 times the cost and a smaller prize, so there is always a new summit. Three at a time.
+- **Sovereign wealth fund** with safe, balanced and bold styles, and **the naira abroad**: win countries into the African Prosperity Zone, then to trade in naira. At 8%, 20% and 34% of world trade weight the naira becomes a regional currency, a major trade currency and a rival to the dollar.
+- Tests: `tests/world.test.ts`, `tests/late.test.ts`.
+
+## Stage 7: a world you can see, and a world that talks back
+
+- **World map** (`ui/WorldMap.tsx`, data from Natural Earth via `world-atlas`, projected by `scripts/build-world.mjs` into `data/worldMap.json`): real country shapes, coloured by power, friendship or naira bloc, with world ranks on every league country; zoom to Africa; tap a country to visit.
+- **Diplomatic inbox** (`engine/worldlife.ts`, `ui/Inbox.tsx`): countries ask for disaster aid, loans (repaid with interest, or not, depending on their stability), peacekeepers, your vote against a rival, or to take refugees. Unanswered requests expire and cost goodwill. Helped countries owe you and return favours later. Leaders call when you pass them. The Power button shows how many requests are waiting.
+- **The world's own news**: elections, coups, border clashes, trade deals, breakthroughs and financial crises in other countries, which also move their numbers.
+- **Seats and clubs, and UN resolutions** (`engine/un.ts`, `ui/Stage.tsx`): campaign for the G20, the African Union chair, a Security Council seat, the IMF board, the trade talks and finally a permanent Council seat. Each is won by votes from countries that like you (or owe you). With a Council seat you can table resolutions (debt relief, a climate fund, an arms embargo on the rival behind the rebels, Council reform, recognising the naira) and watch the tally.
+- **Ways to win**: five victory paths with progress bars (economic superpower, leader of Africa, the naira rules the world, diplomatic giant, clean statesman). A win is celebrated and the game goes on.
+- **Sandbox mode** (`engine/sandbox.ts`): no term limits, four times the cash, all screens open, cheat tools in the menu; not entered in the Hall of Presidents.
+- **Saves**: every autosave keeps the previous one as a backup (Menu, Restore last backup), and saves can be exported to a file and imported again.
+- **Faces**: foreign leaders and Naija X accounts now have portraits.
+- Tests: `tests/worldstage.test.ts`.
+
+## Quality pass
+
+- **Robot players** (`tests/fuzz.test.ts`): six games of ten years each, with every kind of action chosen at random every month (policies, projects, events, big moves, strongman tools, visits, UN, mega-projects, governors, operations, trade, X posts, bots, the ban), a save and reload every 17 months, and checks that nothing crashes, nothing becomes NaN, and meters stay in range.
+- Fixed: a successor inherited the overthrow countdown and was toppled within a month, over and over; new presidents now get a nine-month grace period and a cooler street.
+- Fixed: some answers that should change how a rival country feels were silently lost (cyber-attack, tariff threat, proxy rebels, debt-relief resolution).
+- Fixed: you could keep flying to a country that refuses to see you, paying capital each time; the trip cooldown now applies.
+- Fixed: the world ranking was computed from the previous month's numbers; a fake "Nigeria overtakes Ghana" headline at the start; duplicate leader calls.
+- Saved-game data is now read defensively everywhere (`jflag`), so a damaged save field falls back instead of crashing.
+- Charts no longer zoom into a tiny range that makes a 1% move look like a cliff; small icon fixes (governor trend, primary results, victory-path alignment).
+- Offline site: the game page is now network-first, so players get the newest version as soon as they are online, and still play fully offline.
+
+## Breathing room and a design pass
+
+- Successors get 18 months before impeachment or an uprising can remove them, a calmer street and barracks, approval of at least 35%, and a year-long honeymoon.
+- Phone layout: a two-row header (date, alert and menu on top; five equal number tiles below); sound, music and language moved into the menu; one notification card plus a "+N more" pill so the map stays visible; the duplicate "matters to decide" card is gone (the big button already says it); compact advisor; tabs scroll with a fade hint.
+- Look and feel: softer cards, hover lift on action cards, pressed-button feedback, gradient progress bars, clear keyboard focus, bigger tap targets on phones, single-column action grids on phones.
+- Title screen: a glowing Nigeria drawn from the world map, and a tagline that matches the game ("Fix Nigeria. Then take on the world."). "Surprise me" is readable on the dark setup screen.
+
+## The fun layer (`engine/fun.ts`, `ui/Fun.tsx`)
+
+- **Front page**: a satirical newspaper at the top of the News tab, built from the month's real news, prices and your record ("TOMATO GOES TO SPACE: PRICES HIT THE MOON"). After each turn, a "Read this month's paper" button opens it.
+- **Nigerian calendar**: Detty December (and Christmas fuel queues when supply is short), Ramadan and Sallah (moving each year), the rainy season (worse without dams), Independence Day, the JAMB results scandal every May, and AFCON every other January, where paying the team raises the odds of a national party.
+- **Press conferences** every few months, with the question drawn from your real record (broken promises, scandals, rice, petrol, insecurity). Answer honestly, dodge, blame the last government (works early, backfires later) or attack the journalist.
+- **Crisis rooms**: rare emergencies (tanks near the Villa, a stadium bomb threat, a naira crash) with a 20-second timer; when it runs out, the hesitant option is chosen for you. The timer can be switched off in the menu. Fumbling a coup night under one-man rule can end your presidency.
+- **Quarterly cabinet meeting**: Finance, Power and Security argue; whoever you overrule remembers.
+- **Story campaigns**: four three-chapter stories (The Oil Cartel, The Missing Billions, The General's Plot, The Prodigal Governor) that start by themselves, remember your choices and can be won.
+- **Titles**: sixteen nicknames Nigerians give you (Baba Light, Food Basket President, Coup Proof, Chief Borrower...), shown under Build, Overview.
+- Tests: `tests/funlayer.test.ts`.
+
+## People with more character
+
+- Day One candidates come from 13 kinds (adding business tycoon, civil-society activist, former spy chief, diaspora returnee and royal heir), dealt in a different line-up each game: one political pick, one clean pick and two surprises. Women and men, several life stories per kind, a quirk each, and kind-specific titles (Dr, Barr., Princess, Chief, Gen. (rtd)).
+- New kinds have real effects (investors, transparency, Assembly support, coup risk, group moods) and their own "true colours" moments.
+- Candidate cards are redesigned: coloured by kind, larger portrait with a badge, quote, life story, stat bars (or a clear "unknown" note).
+- The inner circle (Chief of Staff, VP, rival, godfather, market leader, general, journalist, governor) now rotates through several lines per mood, some quoting live prices; the market women's leader has a different name each game.
+- Ministers and governors come from a shared generator (`engine/people.ts`): names that fit their home zone (Hausa, Kanuri, Yoruba, Igbo, Ijaw/Efik/Urhobo, Tiv/Idoma/Berom), gender-correct titles (Alhaji/Hajiya, Chief/Mrs, Dr, Engr, Barr., Prof.), portraits, quirks. Ministers get life stories that fit their ministry and type, and a quote; governors get stories by how good they are, a nickname ("the Builder", "the Flyover Governor") and a quirk. Minister cards share the new card design.
+- The three godfathers have different names each game.
+- The oath screen is now an inauguration at Eagle Square: date, flag ribbon, your portrait in the flag colours, the oath of office with your name, and your three promises as your mandate.
+- **Avatar**: the portrait (`Portrait` in `src/game/ui/kit.tsx`) now has 8 hairstyles (crop, rounded, puffs, close cut, braids, afro, top bun, fade), headwear (fila cap, gele, headscarf, red cap), glasses, beards, outfits (shirt, agbada, suit, kaftan) and eight colours, each control labelled with its current choice. "Surprise me" makes coherent looks. Every generated character (ministers, governors, aides, the inner circle, Naija X, foreign leaders) uses the new options, with regional touches (caps and kaftans in the north, gele in the south, the red cap in the south-east).
+- **Promises**: grouped into Money and prices, Daily life, and Safety and honesty; each card shows where things stand today, what is at stake for its difficulty, and its deadline. A tray holds your three picks, writes your campaign slogan from them, and rates the platform Safe, Bold or Reckless.
+
+## Faith, region, and the world trade map
+
+- **Your story** (setup step 2): the background cards are redesigned, and you now choose your home region (six geopolitical zones, with their peoples and states) and your faith (Muslim or Christian).
+- **Faith and region** (`engine/identity.ts`, `ui/Unity.tsx` under People, My team): home-region pride, faith affinity and the ticket (North-South balance, same-faith or mixed) move votes state by state; every aide and minister has a region and faith; "federal character" counts which zones sit at the top table. Two meters, religious tension and ethnic/regional tension, drive events: farmer-herder clashes in the Middle Belt, a blasphemy mob, a separatist sit-at-home in the South-East, "where is our share" over lopsided appointments, the power-rotation debate, and an interfaith festival. All fictional, and every faith is treated with equal respect: what matters is how fairly you govern.
+- **The world** (`ui/Globe.tsx`, Economy, Trade & world, also the 🌍 button and Power, World league): a 3D globe you can spin and a 2D map you can pan, both drawn from Natural Earth, starting on Nigeria with a glowing home marker. Ships and planes travel along great-circle routes: imports in from suppliers, exports out to buyers. Colour by trade, power or friendship; tap a country to visit.
+- **Imports and home production** (`engine/imports.ts`): eleven imported goods (fuel, rice, wheat, sugar, fertiliser, medicines, textiles, steel, phones, cars, machinery), each with an import bill, a "made in Nigeria" share, a policy (open, tariff, ban) and factories you can build. Bans before you can make the good raise prices and smuggling; tariffs earn revenue; factories cut the dollar bill and create jobs (heavy industry needs electricity). At 80% home production, buyers appear and exports earn dollars.
+
+## Look, less text, languages and map (latest pass)
+- **Theme**: `ui/theme.css` ("Naija Gold & Emerald") loads after `fix.css`: gradient HUD, coloured toolbar groups, gold accents, adire pattern, glass resource chips.
+- **Less text**: `ui/icons.ts`, `ui/Brief.tsx` (`Brief`, `Tip`, `shorten`), `engine/fxchips.ts` and `engine/preview.ts` (plays a choice on a copy of the game to show what it moves). Compact choice cards with an ⓘ for detail.
+- **Languages**: English, Naija Pidgin (rule-based), Hausa, Yoruba, Igbo. `engine/i18n.ts` holds the interface dictionary and `ui/domTranslate.ts` swaps matching text as the screen changes. Long story text stays English. The Hausa, Yoruba and Igbo wording is a careful first pass and wants native-speaker review. Add rows to `ROWS` to extend.
+- **Map**: globe has atmosphere glow, sphere shading and a starfield backdrop.
+
+## Install, saving, speed, category screens
+- **Install button** (`ui/Install.tsx`): one tap on Android/desktop Chrome (uses the browser's install prompt, captured early in the page), a step-by-step guide on iPhone (Apple has no install prompt). Hidden once installed or inside an iframe.
+- **Progress is kept**: autosave on hide/pagehide/freeze, every 30s and 1.5s after any change; the app remembers "in a game" and reopens straight into it (backup save as fallback); asks the browser for persistent storage.
+- **Speed**: the offline site is built as split ES modules (`scripts/build-site.mjs`): a 3 KB page with an instant splash, the app code, the geo data as its own cached file and the globe loaded only when opened. The service worker opens the saved page first and refreshes it quietly in the background.
+- **Category screens**: `ui/CategoryBar.tsx` (pinned icon chips), `ui/Sections.tsx` and `ui/CardTabs.tsx` split long screens so one tap shows just one part.
+
+## Maps (detailed pass)
+- **Home map** (`ui/MapLife.tsx`, `src/game/ui/GeoMap.tsx` props `relief`, `under`, `hoverCard`): raised 3D states with side walls and shadow; the hovered/chosen state lifts. Around and across Nigeria: neighbouring countries and seas, the Niger, Benue, Kaduna, Sokoto and Cross rivers, Lake Chad and Kainji, trunk roads with moving lorries (busier when safe, faster and gold once highways are built), railways that grow with rail projects, capitals and big cities, and city lights that brighten with electricity (Electricity lens shows the country at night). Hover a state for a card with food, safety, jobs and power, its governor and what is happening there. A 3D/2D toggle is on the map. Context data: `scripts/build-map-context.mjs` → `src/fixit/data/ngContext.json` (Natural Earth neighbours; rivers/roads/rail are simplified hand traces).
+- **Globe** (`ui/Globe.tsx`): canvas planet with every country (Natural Earth 1:50m; 1:110m while moving), sunlight shading, atmosphere and night side, country names that thin out by size, slow auto-spin (pause button), inertia, pinch/scroll zoom. Routes lift off the surface for flights; container ships with wakes and cargo planes with ground shadows. Tap any country for a card: how it feels about Nigeria, rank, stability and the trade between you.
+
+## Deals, grudges, ministers, the dark side, difficulty
+- **Trade agreements** (`engine/agreements.ts`, `engine/deals.ts`, `ui/Deals.tsx`): the globe draws only signed deals. Start deals mirror today's suppliers and the two crude buyers. Sign or cancel suppliers and customers, choose terms (fair, cheap but risky, premium), optionally take a quiet cut. Missing suppliers cause shortages; a single supplier is a squeeze; new crude customers add dollars and revenue; cheap deals sometimes fail; kickbacks can leak.
+- **Grudges** (`engine/feuds.ts`): refusing or ignoring a country's request, cancelling a deal or voting against it adds heat. Hot countries retaliate short of war: tariffs, embargo, visa ban, cyberattack, funding your opposition, UN lobbying, border trouble. Favours owed hold them back. Repair with an apology, a sweetener or by standing firm. New request kinds: cheap oil, lift an import ban, Security Council seat. Feuds show on the globe as red pulses and lines, with repair buttons on the country card.
+- **Ministers** (`engine/ministerwork.ts`): capable, motivated ministers take initiatives on their own (roads, tax leaks, gangs, grids), weak ones blunder, dishonest ones pocket money; logged on People → My team → Their work. Skipping the cabinet screen now fills posts at random.
+- **Private empire** (`engine/empire.ts`): offshore transfers, assets, burying evidence, elite parties, an Africa rich list and four stealing opportunities as events.
+- **Looks** (`engine/looks.ts`): outfit, headwear, glasses and beard tilt each group's mood permanently.
+- **Difficulty**: Hard and a new Real Nigeria level add constant monthly pressure and a revenue drain (`PRESSURE` in `engine/setup.ts`). Assembly: bribes get dearer each time, fade, and can become video scandals.
+
+## Loans, oil ownership, slim pickers
+- **Loan book** (`engine/loans.ts`, `ui/LoanBook.tsx`): every creditor as its own line (World Bank, Eurobonds by year, China Exim, AfDB, IMF, France/Japan/Germany, an Afreximbank crude-backed facility, naira bonds, T-bills, central bank advances, sukuk). It always adds up to the two debt totals the rest of the game uses; other borrowing (deficits, events) lands as "new borrowing". Bonds roll over at maturity if the rating allows, else cash or arrears; crude-backed loans are paid in oil automatically; prepay any line (Eurobonds carry a 3% fee); borrow from named lenders with their own price, limits and strings; an optional kickback is a corruption temptation.
+- **Oil ownership** (`engine/oilshare.ts`, `ui/OilOwner.tsx`): JVs (NNPC ~55–60%), deep-water PSCs (~60% of profit oil) and Nigerian marginal fields; the state keeps about 58¢ of a barrel. Buy out partners, tighten terms, hand blocks to Nigerian firms (open bidding or to a friend), sell stakes. A bigger stake raises oil revenue but brings a monthly cash-call bill and nervous investors. Figures simplified from public reporting.
+- **Slim pickers** (`ui/PickRow.tsx`): governors, Chief of Staff, VP and ministers are one slim row each (face, name, tag, three mini bars, tick), with a "More about them" drawer. Primaries show one state at a time; Day One shows one ministry at a time.
+
+## Painted avatars
+- `public/avatars/raw/*.png` are the AI-generated sheets (men, women, one man in six outfits). `python3 scripts/build-avatars.py` cuts them into `public/avatars/*.webp` (300×400): 12 base faces × 6 top colours (the teal top is recoloured), plus six full outfits for face m2 (man, grey beard) and six for face w2 (woman, low bun: gele, blazer, hijab, casual, jacket, ankara).
+- `src/game/ui/photos.ts` maps any old drawn-face `Portrait` to a painting (gender from hairstyle, skin tone, a stable hash for the face, accent for the top colour), so every minister, governor and aide gets a face with no engine changes. If the files cannot load, the drawn SVG face is used.
+- The player's avatar picks a face and an outfit (`FacePicker`); outfits still tilt group moods through `engine/looks.ts`. More outfits per face: generate them (see the prompt pack) and add them to `OUTFITS` in `photos.ts`.
+
+### Painted avatars: 28 faces and face ownership
+- 14 men and 14 women (`m1`–`m14`, `w1`–`w14`), each in six top colours; `m2` and `w2` also have full outfits. Sheets live in `public/avatars/raw/`, built by `scripts/build-avatars.py`.
+- The face picker has a Male/Female toggle that filters the grid.
+- **You own your face.** The face you pick is never given to the VP, Chief of Staff, ministers or any other painted person (`setClaimed` in `src/game/ui/photos.ts`, kept in step with the game state in `ui/store.tsx`). The VP and Chief of Staff get a persisted face that differs from yours and from each other.
+- Hairstyle swapping and hair colour are not done in code: they need separate AI-painted variants of a face.
+
+### The in-game Guide
+- The gold **?** button (top right) opens the Guide: **Take the tour**, **Explain as I tap**, and plain-language topics (the goal, a month, the numbers, the map, each desk, money, people, power, world, election, ten beginner tips, glossary). The old long list is kept under "Every feature, in detail". The title screen's "How to play" opens the same Guide.
+- **Tour** (`ui/Guide.tsx`, steps in `ui/guideData.ts`): a spotlight over the real screen, including opening each desk. New players are offered it once, when nothing else covers the map (`localStorage fix:tourSeen`).
+- **Explain mode**: captures taps and shows what the control does (rules in `RULES`, matched on its label); "Do it now" exits and performs the tap.
+- Each screen shows a one-line note under its title (`ABOUT`).
+
+### Home map lenses (no lorries)
+- The animated lorries on the home map were removed: they repainted the whole map and made phones lag. The globe's ships and planes are unchanged.
+- The map always opens on **Mood**. **Security** dims the map and shows red glows with ⚠️ where it is unsafe. **Politics** shows a green ✓ (your party's governors) or red ✗ (opposition) on every state, with a yellow ring where the governor has turned against you; each has a small key. **Electricity** keeps its city lights.
+
+### Low-power phones
+`ui/device.ts` (`isLite`) detects touch phones with 4 GB or less memory or six cores or fewer. They start on the flat map and `html[data-lite]` turns off the endless pulses, glows and the title-screen map shadow. Players can still switch to 3D with the map button.

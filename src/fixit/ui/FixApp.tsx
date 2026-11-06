@@ -1,0 +1,41 @@
+"use client";
+import { useEffect } from "react";
+import "../../game/ui/game.css";
+import "./fix.css";
+import "./theme.css";
+import { FixProvider, useFix } from "./store";
+import { Title } from "./Title";
+import { World } from "./World";
+import { GuideLayer } from "./Guide";
+import { isLite } from "./device";
+import { startTranslator } from "./domTranslate";
+import { Button, Modal } from "../../game/ui/kit";
+
+function Router() {
+  const { screen, state, toasts, error, clearError, version, lang } = useFix();
+  void version;
+  useEffect(() => { document.documentElement.lang = ({ en: "en", pcm: "pcm", ha: "ha", yo: "yo", ig: "ig" })[lang]; return startTranslator(lang); }, [lang]);
+  return (
+    <>
+      {screen === "loading" && <div className="fx-splash" role="status"><b>ASO ROCK</b><span>Resuming your presidency…</span></div>}
+      {screen === "title" && <Title />}
+      {screen === "play" && state && <World />}
+      <GuideLayer />
+      <div className="g-toast-wrap" aria-live="polite" style={screen === "play" ? { display: "none" } : undefined}>{toasts.map((t) => <div key={t.id} className={`g-toast ${t.bad ? "g-toast-bad" : ""}`}>{t.text}</div>)}</div>
+      {error && <Modal title="Something went wrong" onClose={clearError} footer={<Button variant="primary" onClick={clearError}>OK</Button>}><p className="g-small">{error}</p></Modal>}
+    </>
+  );
+}
+
+export function FixApp() {
+  useEffect(() => { if (isLite()) document.documentElement.dataset.lite = "1"; }, []);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator && !(window as unknown as { __FIX_SITE?: boolean }).__FIX_SITE) {
+      navigator.serviceWorker.register("/game-sw.js", { scope: "/fix" }).then(() => navigator.serviceWorker.ready).then((reg) => {
+        const urls = performance.getEntriesByType("resource").map((e) => e.name).filter((n) => n.startsWith(location.origin));
+        reg.active?.postMessage({ type: "cache-urls", urls });
+      }).catch(() => undefined);
+    }
+  }, []);
+  return <FixProvider><div className="gm"><Router /></div></FixProvider>;
+}
