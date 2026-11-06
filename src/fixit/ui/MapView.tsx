@@ -48,10 +48,10 @@ export function ProjectIcon({ size = 18 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="-14 -14 28 28" aria-hidden><circle r={10} fill="#fff" stroke="#0b1f36" strokeWidth={3} /><path d="M-4,4V-4H3L4,0H0V4Z" fill="#0b1f36" /></svg>;
 }
 
-export function MapView({ s, layer, fill, selectedState, selectedLga, onSelectState, onSelectLga, height, showEvents = true, showProjects = true, labels = true, faces, marks, relief = false, life = false }: {
+export function MapView({ s, layer, fill, selectedState, selectedLga, onSelectState, onSelectLga, height, showEvents = true, showProjects = true, labels = true, faces, marks, relief = false, life = false, lens }: {
   s: FixState; layer: Layer; fill?: (id: string) => string; selectedState: string | null; selectedLga: string | null; onSelectState: (id: string | null) => void; onSelectLga: (id: string | null) => void;
   height?: number | string; showEvents?: boolean; showProjects?: boolean; labels?: boolean; faces?: (id: string) => string | null; marks?: { stateId: string; glyph: string; label: string; k: string }[];
-  /** raised 3D states */ relief?: boolean; /** roads, rivers, lights, capitals, traffic */ life?: boolean;
+  /** which map lens is showing (adds the security and politics overlays) */ lens?: string; /** raised 3D states */ relief?: boolean; /** roads, rivers, lights, capitals, traffic */ life?: boolean;
 }) {
   const [geo, setGeo] = useState<GeoData | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -84,7 +84,7 @@ export function MapView({ s, layer, fill, selectedState, selectedLga, onSelectSt
       hoverCard={(id) => <StateCard s={s} id={id} face={faces?.(id)} />}
       overlay={({ pxPerUnit, zoom }) => (
         <g>
-          {life && <MapOver s={s} px={pxPerUnit} zoom={zoom} power={layer === "power"} />}
+          {life && <MapOver s={s} px={pxPerUnit} zoom={zoom} power={layer === "power"} lens={lens ?? layer} />}
           {marks && marks.map((m, i) => { const c = centroid[m.stateId]; if (!c) return null; const k = 1 / pxPerUnit; const n = marks.filter((x, j) => x.stateId === m.stateId && j < i).length; return <g key={`m${m.k}`} transform={`translate(${c[0] - (14 + n * 15) * k},${c[1] - 16 * k}) scale(${k})`} pointerEvents="none"><text textAnchor="middle" fontSize={m.glyph === "🔥" ? 16 : 13}>{m.glyph}</text><title>{m.label}</title></g>; })}
           {faces && Object.entries(centroid).map(([id, c]) => { const f = faces(id); if (!f) return null; const k = 1 / pxPerUnit; return <g key={`f${id}`} transform={`translate(${c[0]},${c[1] + 11 * k}) scale(${k})`} pointerEvents="none"><circle r={8} fill="#fff" stroke="#0b1f36" strokeWidth={1.2} opacity={0.92} /><text textAnchor="middle" y={4.2} fontSize={11}>{f}</text></g>; })}
           {Object.entries(slots).flatMap(([key, items]) => {

@@ -4,10 +4,10 @@
  * with lorries that thin out when the roads are unsafe, railways that appear as you build them, city lights that grow
  * with electricity, capitals, and a rich card when you hover a state. All in the same grid units as public/game/geo.json.
  */
-import { useEffect, useMemo, useRef } from "react";
 import ctx from "../data/ngContext.json";
 import type { FixState } from "../engine/types";
 import { STATE_BY_ID } from "../../game/data/states";
+import { stateLayerValue } from "../engine/views";
 import { govGrade } from "./Governors";
 
 type Pt = [number, number];
@@ -33,56 +33,8 @@ export function MapUnder({ px }: { px: number }) {
 
 const done = (s: FixState, defId: string) => s.projects.filter((p) => p.defId === defId && p.status === "done").length;
 
-/** a lorry moving along a road: position and heading at fraction u of the polyline */
-function along(pts: Pt[], len: number[], total: number, u: number): { x: number; y: number; a: number } {
-  let d = u * total, i = 0;
-  while (i < len.length - 1 && d > len[i]) { d -= len[i]; i++; }
-  const [a, b] = [pts[i], pts[i + 1]], t = len[i] ? d / len[i] : 0;
-  return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, a: (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI };
-}
-
-function Traffic({ s, px }: { s: FixState; px: number }) {
-  const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  const roads = useMemo(() => CTX.roads.map((r) => { const len = r.pts.slice(1).map((p, i) => Math.hypot(p[0] - r.pts[i][0], p[1] - r.pts[i][1])); return { ...r, len, total: len.reduce((a, b) => a + b, 0) }; }), []);
-  // busier and faster roads when the country is safe, the economy moves and highways are built
-  const safety = Math.max(0, 1 - s.sec.index / 100);
-  const quality = Math.min(1, 0.35 + 0.22 * done(s, "highway") + (s.infra?.roads ?? 40) / 250);
-  const per = Math.max(1, Math.round(1 + 3 * safety * quality));
-  const f = 1 / px;
-  const root = useRef<SVGGElement>(null);
-  const cars = useMemo(() => roads.flatMap((r, ri) => Array.from({ length: per }, (_, k) => ({ r, ri, k, dir: k % 2 === 0 ? 1 : -1, colour: ["#f59e0b", "#e11d48", "#2563eb", "#10b981", "#f8fafc"][(ri + k) % 5] }))), [roads, per]);
-  // the lorries are moved straight on the page (no React re-render), about 24 times a second, and only while the map is on screen
-  useEffect(() => {
-    const g = root.current; if (!g) return;
-    const els = [...g.children] as SVGGElement[];
-    const place = (t: number) => cars.forEach((c, i) => {
-      const speed = (0.012 + 0.02 * quality) * (12000 / Math.max(3000, c.r.total));
-      const u0 = ((t * speed + c.ri * 0.173 + c.k / per) % 1 + 1) % 1, u = c.dir > 0 ? u0 : 1 - u0;
-      const p = along(c.r.pts, c.r.len, c.r.total, u);
-      els[i]?.setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${(p.a + (c.dir < 0 ? 180 : 0)).toFixed(0)}) scale(${f})`);
-    });
-    place(performance.now() / 1000);
-    if (reduce) return;
-    let raf = 0, last = 0, seen = true;
-    const io = new IntersectionObserver(([e]) => { seen = e.isIntersecting; }); io.observe(g.ownerSVGElement ?? g);
-    const loop = (ms: number) => { if (seen && !document.hidden && ms - last > 80) { last = ms; place(ms / 1000); } raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(raf); io.disconnect(); };
-  }, [cars, per, quality, f, reduce]);
-  return (
-    <g ref={root} pointerEvents="none" aria-hidden>
-      {cars.map((c) => (
-        <g key={`${c.r.id}${c.k}`} transform="translate(-999 -999)">
-          <rect x={-6} y={-2.4 + (c.dir > 0 ? -1.6 : 1.6)} width={9} height={4.2} rx={1} fill={c.colour} stroke="#1f2937" strokeWidth={0.6} />
-          <rect x={3} y={-2 + (c.dir > 0 ? -1.6 : 1.6)} width={3} height={3.4} rx={0.8} fill="#1f2937" />
-        </g>
-      ))}
-    </g>
-  );
-}
-
 /** on top of the states: water, roads, rail, lights and capitals (drawn under the event markers) */
-export function MapOver({ s, px, zoom, power }: { s: FixState; px: number; zoom: number; power: boolean }) {
+export function MapOver({ s, px, zoom, power, lens }: { s: FixState; px: number; zoom: number; power: boolean; lens?: string }) {
   const f = 1 / px;
   const hw = done(s, "highway") > 0, railBuilt = done(s, "rail");
   return (
@@ -97,7 +49,30 @@ export function MapOver({ s, px, zoom, power }: { s: FixState; px: number; zoom:
         {/* rail: the lines that exist today, plus one more for each rail project you finish */}
         {CTX.rails.filter((r, i) => r.built || i < 3 + railBuilt).map((r) => <g key={r.id}><path d={r.d} fill="none" stroke="#1f2937" strokeWidth={2.4} vectorEffect="non-scaling-stroke" /><path d={r.d} fill="none" stroke="#f8fafc" strokeWidth={1.2} strokeDasharray="3 4" vectorEffect="non-scaling-stroke" /></g>)}
       </g>
-      <Traffic s={s} px={px} />
+      {/* security: a dim map with red glows where it is unsafe, and a warning sign where it is worst */}
+      {lens === "security" && (
+        <g pointerEvents="none">
+          <rect x={-100000} y={-100000} width={300000} height={300000} fill="#1a0a0a" opacity={0.25} />
+          <defs><radialGradient id="fxdanger"><stop offset="0" stopColor="#ff4d4d" stopOpacity=".95" /><stop offset=".45" stopColor="#e11d48" stopOpacity=".55" /><stop offset="1" stopColor="#7f1d1d" stopOpacity="0" /></radialGradient></defs>
+          {CTX.capitals.map((c) => { const v = stateLayerValue(s, c.state, "security"); if (v < 48) return null; const r = (10 + 0.32 * v) * f * 1.15; return <circle key={`d${c.state}`} cx={c.at[0]} cy={c.at[1]} r={r} fill="url(#fxdanger)" opacity={Math.min(1, (v - 44) / 36)} />; })}
+          {CTX.capitals.map((c) => { const v = stateLayerValue(s, c.state, "security"); if (v < 66) return null; return <text key={`w${c.state}`} x={c.at[0]} y={c.at[1] + 5 * f} textAnchor="middle" fontSize={16 * f} stroke="#fff" strokeWidth={2 * f} paintOrder="stroke">⚠️</text>; })}
+        </g>
+      )}
+      {/* politics: a party flag on every state, ringed if the governor has turned against you */}
+      {lens === "politics" && (
+        <g pointerEvents="none">
+          {CTX.capitals.map((c) => {
+            const zone = STATE_BY_ID[c.state]?.zone; const g = s.governors.find((x) => x.zone === zone); if (!g) return null;
+            const mine = g.party === "NPP"; const hostile = g.relation < 35;
+            return (
+              <g key={`p${c.state}`} transform={`translate(${c.at[0]} ${c.at[1]}) scale(${f})`}>
+                <circle r={9} fill={mine ? "#16a34a" : "#dc2626"} stroke={hostile ? "#facc15" : "#fff"} strokeWidth={hostile ? 3 : 1.6} />
+                <text y={4} textAnchor="middle" fontSize={11} fontWeight={800} fill="#fff">{mine ? "✓" : "✗"}</text>
+              </g>
+            );
+          })}
+        </g>
+      )}
       {/* city lights: bright where the power is on (Electricity lens) */}
       {power && <rect x={-100000} y={-100000} width={300000} height={300000} fill="#0b1433" opacity={0.42} pointerEvents="none" />}
       {power && (

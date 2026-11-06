@@ -298,3 +298,7 @@ Run tests: `npx vitest run src/fixit`.
 - **Tour** (`ui/Guide.tsx`, steps in `ui/guideData.ts`): a spotlight over the real screen, including opening each desk. New players are offered it once, when nothing else covers the map (`localStorage fix:tourSeen`).
 - **Explain mode**: captures taps and shows what the control does (rules in `RULES`, matched on its label); "Do it now" exits and performs the tap.
 - Each screen shows a one-line note under its title (`ABOUT`).
+
+### Home map lenses (no lorries)
+- The animated lorries on the home map were removed: they repainted the whole map and made phones lag. The globe's ships and planes are unchanged.
+- The map always opens on **Mood**. **Security** dims the map and shows red glows with ⚠️ where it is unsafe. **Politics** shows a green ✓ (your party's governors) or red ✗ (opposition) on every state, with a yellow ring where the governor has turned against you; each has a small key. **Electricity** keeps its city lights.

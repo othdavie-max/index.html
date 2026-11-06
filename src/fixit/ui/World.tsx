@@ -251,10 +251,12 @@ export function World() {
       </header>
 
       <div className="fx-stage">
-        <MapView s={s} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels relief={relief3d} life />
+        <MapView s={s} lens={lens} layer={lens === "mood" || lens === "politics" ? "overview" : lens} fill={fill} faces={lens === "politics" || lens === "security" ? undefined : faces} marks={landmarks(s)} selectedState={select.state} selectedLga={select.lga} onSelectState={(id) => { setSelect({ state: id, lga: null }); if (id) sfx("tap"); }} onSelectLga={(id) => setSelect({ state: select.state, lga: id })} height="100%" labels relief={relief3d} life />
         <MapKey />
         <button className="fx-3d-btn" onClick={toggle3d} aria-pressed={relief3d} aria-label={relief3d ? "Flat map" : "3D map"} title={relief3d ? "Flat map" : "3D map"}>{relief3d ? "3D" : "2D"}</button>
         <div className={`fx-lens ${cstep >= 0 && COACH[cstep].target === "map" ? "fx-coach-hl" : ""}`} role="group" aria-label="Map lens">{LENSES.map((l) => <button key={l.id} className="fx-chip" aria-pressed={lens === l.id} onClick={() => setLens(l.id)}>{l.label}</button>)}</div>
+        {lens === "politics" && <div className="fx-lens-key" aria-hidden><span><i style={{ background: "#16a34a" }} />Your party governors</span><span><i style={{ background: "#dc2626" }} />Opposition</span><span><i style={{ background: "#facc15" }} />Ring: turned against you</span></div>}
+        {lens === "security" && <div className="fx-lens-key" aria-hidden><span><i style={{ background: "#e11d48" }} />Red glow: unsafe</span><span>⚠️ Worst hit</span></div>}
         <div className={`fx-notes ${cstep >= 0 && COACH[cstep].target === "notes" ? "fx-coach-hl" : ""}`} aria-label="Notifications">
           {all.slice(0, 3).map((e) => (
             <button key={e.id} className="fx-note" data-kind={e.kind} onClick={() => { sfx("tap"); setPick(e.id); }} aria-label={`${EVENT_SYMBOL[e.kind].label}: ${e.title}`}>
