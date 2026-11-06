@@ -12,11 +12,12 @@ GRID = {  # x ranges, y ranges of the cells (measured from the sheets)
     "men": ([(16, 408), (431, 827), (849, 1240)], [(0, 601), (604, 1191)]),
     "women": ([(16, 408), (431, 827), (849, 1240)], [(0, 601), (604, 1191)]),
     "outfits": ([(15, 413), (426, 827), (842, 1240)], [(0, 617), (620, 1239)]),
+    "outfits-w": ([(14, 413), (427, 829), (844, 1239)], [(0, 622), (644, 1235)]),
 }
 def cut(name, i):
     xs, ys = GRID[name]; im = Image.open(f"{RAW}/{name}.png").convert("RGB")
     (x0, x1), (y0, y1) = xs[i % 3], ys[i // 3]
-    w = x1 - x0; h = int(w * H / W); top = y0 + (8 if name == "outfits" else 48)
+    w = x1 - x0; h = int(w * H / W); top = y0 + (8 if name.startswith("outfits") else 48)
     box = (x0, top, x1, min(y1, top + h)); c = im.crop(box)
     if c.size[1] < h:  # pad the bottom with the last row if a cell is short
         pad = Image.new("RGB", (c.size[0], h)); pad.paste(c, (0, 0)); arr = np.asarray(c); pad.paste(Image.fromarray(np.repeat(arr[-1:], h - c.size[1], axis=0)), (0, c.size[1])); c = pad
@@ -53,5 +54,8 @@ for sheet, prefix, female in (("men", "m", False), ("women", "w", True)):
 names = ["agbada", "suit", "kaftan", "casual", "senator", "ankara"]
 for i, n in enumerate(names):
     cut("outfits", i).save(f"{OUT}/m2-o-{n}.webp", "WEBP", quality=84, method=6); manifest["outfits"].append({"face": "m2", "id": n})
+wnames = ["gele", "suit", "hijab", "casual", "jacket", "ankara"]
+for i, n in enumerate(wnames):
+    cut("outfits-w", i).save(f"{OUT}/w2-o-{n}.webp", "WEBP", quality=84, method=6); manifest["outfits"].append({"face": "w2", "id": n})
 json.dump(manifest, open(f"{OUT}/index.json", "w"))
 tot = sum(os.path.getsize(f"{OUT}/{f}") for f in os.listdir(OUT) if f.endswith(".webp")); print(f"{len(os.listdir(OUT)) - 2} files, {tot / 1024:.0f} KB")

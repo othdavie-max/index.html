@@ -283,6 +283,6 @@ Run tests: `npx vitest run src/fixit`.
 - **Slim pickers** (`ui/PickRow.tsx`): governors, Chief of Staff, VP and ministers are one slim row each (face, name, tag, three mini bars, tick), with a "More about them" drawer. Primaries show one state at a time; Day One shows one ministry at a time.
 
 ## Painted avatars
-- `public/avatars/raw/*.png` are the AI-generated sheets (men, women, one man in six outfits). `python3 scripts/build-avatars.py` cuts them into `public/avatars/*.webp` (300×400): 12 base faces × 6 top colours (the teal top is recoloured), plus six full outfits for face m2.
+- `public/avatars/raw/*.png` are the AI-generated sheets (men, women, one man in six outfits). `python3 scripts/build-avatars.py` cuts them into `public/avatars/*.webp` (300×400): 12 base faces × 6 top colours (the teal top is recoloured), plus six full outfits for face m2 (man, grey beard) and six for face w2 (woman, low bun: gele, blazer, hijab, casual, jacket, ankara).
 - `src/game/ui/photos.ts` maps any old drawn-face `Portrait` to a painting (gender from hairstyle, skin tone, a stable hash for the face, accent for the top colour), so every minister, governor and aide gets a face with no engine changes. If the files cannot load, the drawn SVG face is used.
 - The player's avatar picks a face and an outfit (`FacePicker`); outfits still tilt group moods through `engine/looks.ts`. More outfits per face: generate them (see the prompt pack) and add them to `OUTFITS` in `photos.ts`.
