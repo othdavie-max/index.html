@@ -17,7 +17,7 @@
 .gm .fx-hud { background: radial-gradient(120% 220% at 0% 0%, #17806a 0%, #0f4c75 38%, #1a1a5e 100%); border-bottom: 3px solid var(--gold); box-shadow: 0 6px 24px rgba(8,10,40,.35); }
 .gm .fx-hud-date b { color: #ffe08a; text-shadow: 0 1px 0 rgba(0,0,0,.3); } .gm .fx-hud-date span { color: #b9d4e8; }
 .gm .fx-hud-date .fx-term { background: rgba(255,255,255,.18); } .gm .fx-hud-date .fx-term > span { background: linear-gradient(90deg, #ffd873, #ffb020); }
-.gm .fx-res { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); backdrop-filter: blur(6px); border-radius: 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.2); transition: transform .12s ease, background .15s ease; }
+.gm .fx-res { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.2); transition: transform .12s ease, background .15s ease; }
 .gm .fx-res:hover { background: rgba(255,255,255,.22); transform: translateY(-1px); }
 .gm .fx-res i { color: #b9d4e8; }
 .gm .fx-res[data-bad] { background: linear-gradient(180deg, rgba(244,80,106,.45), rgba(180,20,60,.45)); border-color: #ff8aa0; }
@@ -32,7 +32,7 @@
 /* ------------------------------------------------------------------ the map stage */
 .gm .fx-stage { background: radial-gradient(120% 100% at 50% 0%, #cfeee6 0%, #b5dcea 55%, #9cc6e4 100%); }
 .gm .fx-stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; z-index: 0; background-image: radial-gradient(circle at 20% 15%, rgba(255,255,255,.7) 0, transparent 35%), radial-gradient(circle at 85% 80%, rgba(255,216,115,.35) 0, transparent 40%); }
-.gm .fx-lens { background: rgba(26,26,94,.92); border-color: var(--gold); backdrop-filter: blur(8px); box-shadow: 0 6px 20px rgba(8,10,40,.35); }
+.gm .fx-lens { background: rgba(26,26,94,.92); border-color: var(--gold); box-shadow: 0 6px 20px rgba(8,10,40,.35); }
 .gm .fx-chip[aria-pressed="true"] { background: linear-gradient(180deg, #ffd873, #e9a623); color: #2b1a00; }
 .gm .fx-note { background: linear-gradient(180deg, rgba(26,26,94,.96), rgba(13,27,61,.96)); border-color: var(--gold); box-shadow: 0 6px 18px rgba(8,10,40,.35); }
 .gm .fx-advisor { background: linear-gradient(180deg, #fffdf7, #fbf0d4); border-color: var(--gold); }

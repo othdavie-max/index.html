@@ -4,7 +4,7 @@
  * with lorries that thin out when the roads are unsafe, railways that appear as you build them, city lights that grow
  * with electricity, capitals, and a rich card when you hover a state. All in the same grid units as public/game/geo.json.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import ctx from "../data/ngContext.json";
 import type { FixState } from "../engine/types";
 import { STATE_BY_ID } from "../../game/data/states";
@@ -42,36 +42,41 @@ function along(pts: Pt[], len: number[], total: number, u: number): { x: number;
 }
 
 function Traffic({ s, px }: { s: FixState; px: number }) {
-  const [t, setT] = useState(0);
   const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  useEffect(() => {
-    if (reduce) return;
-    let raf = 0, last = 0;
-    const loop = (ms: number) => { if (ms - last > 60) { setT(ms / 1000); last = ms; } raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [reduce]);
   const roads = useMemo(() => CTX.roads.map((r) => { const len = r.pts.slice(1).map((p, i) => Math.hypot(p[0] - r.pts[i][0], p[1] - r.pts[i][1])); return { ...r, len, total: len.reduce((a, b) => a + b, 0) }; }), []);
   // busier and faster roads when the country is safe, the economy moves and highways are built
   const safety = Math.max(0, 1 - s.sec.index / 100);
   const quality = Math.min(1, 0.35 + 0.22 * done(s, "highway") + (s.infra?.roads ?? 40) / 250);
   const per = Math.max(1, Math.round(1 + 3 * safety * quality));
   const f = 1 / px;
+  const root = useRef<SVGGElement>(null);
+  const cars = useMemo(() => roads.flatMap((r, ri) => Array.from({ length: per }, (_, k) => ({ r, ri, k, dir: k % 2 === 0 ? 1 : -1, colour: ["#f59e0b", "#e11d48", "#2563eb", "#10b981", "#f8fafc"][(ri + k) % 5] }))), [roads, per]);
+  // the lorries are moved straight on the page (no React re-render), about 24 times a second, and only while the map is on screen
+  useEffect(() => {
+    const g = root.current; if (!g) return;
+    const els = [...g.children] as SVGGElement[];
+    const place = (t: number) => cars.forEach((c, i) => {
+      const speed = (0.012 + 0.02 * quality) * (12000 / Math.max(3000, c.r.total));
+      const u0 = ((t * speed + c.ri * 0.173 + c.k / per) % 1 + 1) % 1, u = c.dir > 0 ? u0 : 1 - u0;
+      const p = along(c.r.pts, c.r.len, c.r.total, u);
+      els[i]?.setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${(p.a + (c.dir < 0 ? 180 : 0)).toFixed(0)}) scale(${f})`);
+    });
+    place(performance.now() / 1000);
+    if (reduce) return;
+    let raf = 0, last = 0, seen = true;
+    const io = new IntersectionObserver(([e]) => { seen = e.isIntersecting; }); io.observe(g.ownerSVGElement ?? g);
+    const loop = (ms: number) => { if (seen && !document.hidden && ms - last > 80) { last = ms; place(ms / 1000); } raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); };
+  }, [cars, per, quality, f, reduce]);
   return (
-    <g pointerEvents="none" aria-hidden>
-      {roads.flatMap((r, ri) => Array.from({ length: per }, (_, k) => {
-        const dir = k % 2 === 0 ? 1 : -1;
-        const speed = (0.012 + 0.02 * quality) * (12000 / Math.max(3000, r.total));
-        const u0 = ((t * speed + ri * 0.173 + k / per) % 1 + 1) % 1, u = dir > 0 ? u0 : 1 - u0;
-        const p = along(r.pts, r.len, r.total, u);
-        const colour = ["#f59e0b", "#e11d48", "#2563eb", "#10b981", "#f8fafc"][(ri + k) % 5];
-        return (
-          <g key={`${r.id}${k}`} transform={`translate(${p.x} ${p.y}) rotate(${p.a + (dir < 0 ? 180 : 0)}) scale(${f})`}>
-            <rect x={-6} y={-2.4 + (dir > 0 ? -1.6 : 1.6)} width={9} height={4.2} rx={1} fill={colour} stroke="#1f2937" strokeWidth={0.6} />
-            <rect x={3} y={-2 + (dir > 0 ? -1.6 : 1.6)} width={3} height={3.4} rx={0.8} fill="#1f2937" />
-          </g>
-        );
-      }))}
+    <g ref={root} pointerEvents="none" aria-hidden>
+      {cars.map((c) => (
+        <g key={`${c.r.id}${c.k}`} transform="translate(-999 -999)">
+          <rect x={-6} y={-2.4 + (c.dir > 0 ? -1.6 : 1.6)} width={9} height={4.2} rx={1} fill={c.colour} stroke="#1f2937" strokeWidth={0.6} />
+          <rect x={3} y={-2 + (c.dir > 0 ? -1.6 : 1.6)} width={3} height={3.4} rx={0.8} fill="#1f2937" />
+        </g>
+      ))}
     </g>
   );
 }

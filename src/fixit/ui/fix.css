@@ -154,7 +154,7 @@
 .gm .fx-advisor { position: absolute; left: 10px; bottom: 12px; display: flex; gap: 10px; align-items: flex-start; background: #fffdf5; color: #0b1f36; border: 2px solid #c8a24a; border-radius: 16px; padding: 10px 12px; max-width: min(360px, calc(100% - 200px)); z-index: 4; box-shadow: 0 8px 24px rgba(0,0,0,.28); animation: fx-slide .4s ease-out; }
 .gm .fx-advisor-face { font-size: 34px; line-height: 1; } .gm .fx-advisor p { font-size: 13px; margin: 2px 0 6px; line-height: 1.3; }
 .gm .fx-turn { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 8px; align-items: center; z-index: 4; }
-.gm .fx-next { background: linear-gradient(180deg, #ffd873, #d6a023); color: #3a2a00; border: 3px solid #7a5b12; border-radius: 18px; padding: 12px 22px; font-size: 20px; font-weight: 900; letter-spacing: .05em; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0; box-shadow: 0 5px 0 #7a5b12, 0 12px 28px rgba(0,0,0,.35); animation: fx-pulse 2.2s ease-in-out infinite; }
+.gm .fx-next { background: linear-gradient(180deg, #ffd873, #d6a023); color: #3a2a00; border: 3px solid #7a5b12; border-radius: 18px; padding: 12px 22px; font-size: 20px; font-weight: 900; letter-spacing: .05em; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0; box-shadow: 0 5px 0 #7a5b12, 0 12px 28px rgba(0,0,0,.35); animation: fx-pulse 2.2s ease-in-out infinite; will-change: transform; }
 .gm .fx-next small { font-size: 11px; font-weight: 800; letter-spacing: .08em; opacity: .75; }
 .gm .fx-next:active { transform: translateY(3px); box-shadow: 0 2px 0 #7a5b12; }
 .gm .fx-next:disabled { filter: grayscale(.8); animation: none; }
@@ -440,7 +440,7 @@
   .gm .fx-powers { grid-template-columns: minmax(0, 1fr) !important; }
 }
 
-.gm .fx-hero-map { width: min(240px, 58vw); height: auto; margin: 0 auto 14px; display: block; filter: drop-shadow(0 0 24px rgba(0,200,117,.45)) drop-shadow(0 8px 18px rgba(0,0,0,.4)); animation: fx-float 6s ease-in-out infinite; }
+.gm .fx-hero-map { width: min(240px, 58vw); height: auto; margin: 0 auto 14px; display: block; filter: drop-shadow(0 0 24px rgba(0,200,117,.45)) drop-shadow(0 8px 18px rgba(0,0,0,.4)); animation: fx-float 6s ease-in-out infinite; will-change: transform; }
 @keyframes fx-float { 50% { transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { .gm .fx-hero-map { animation: none; } }
 .gm .fx-link-light { color: #f5d57a !important; text-decoration: none; font-weight: 700; }
@@ -457,7 +457,7 @@
 .gm .fx-crisis { background: #1f0a12; color: #fff; border-radius: 12px; padding: 10px 12px; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; }
 .gm .fx-crisis b { font-size: 28px; font-variant-numeric: tabular-nums; grid-row: span 2; } .gm .fx-crisis span { font-size: 12px; color: #fecdd3; }
 .gm .fx-crisis-bar { height: 10px; background: #4c0519; border-radius: 6px; overflow: hidden; } .gm .fx-crisis-bar i { display: block; height: 100%; background: #f43f5e; transition: width 1s linear; }
-.gm .fx-crisis[data-hot="1"] { animation: fx-pulse .5s ease-in-out infinite alternate; } @keyframes fx-pulse { to { background: #7f1d1d; } }
+.gm .fx-crisis[data-hot="1"] { animation: fx-crisispulse .5s ease-in-out infinite alternate; } @keyframes fx-crisispulse { to { background: #7f1d1d; } }
 .gm .fx-titles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
 .gm .fx-title { display: flex; gap: 8px; align-items: center; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 8px; opacity: .7; } .gm .fx-title[data-got="1"] { border: 1px solid #c8a24a; background: #fffaf0; opacity: 1; }
 .gm .fx-title span { font-size: 22px; } .gm .fx-title b { display: block; font-size: 13px; } .gm .fx-title i { font-style: normal; font-size: 11px; color: #64748b; }
@@ -499,7 +499,7 @@
 .gm .fx-looks { grid-template-columns: repeat(2, minmax(0, 1fr)); } .gm .fx-look span { display: flex; flex-direction: column; align-items: center; line-height: 1.15; } .gm .fx-look span b { font-size: 13px; } .gm .fx-look span i { font-style: normal; font-size: 11px; color: #f5d57a; }
 
 /* ---------------------------------------------------------------- promises */
-.gm .fx-mandate { position: sticky; top: 0; z-index: 2; background: rgba(11,31,54,.96); border: 1px solid rgba(245,213,122,.35); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(6px); }
+.gm .fx-mandate { position: sticky; top: 0; z-index: 2; background: rgba(11,31,54,.96); border: 1px solid rgba(245,213,122,.35); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 .gm .fx-mandate-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .gm .fx-slot { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; border: 2px dashed rgba(255,255,255,.25); background: transparent; color: #9db3c9; text-align: center; cursor: default; }
 .gm .fx-slot[data-on="1"] { border-style: solid; border-color: #c8a24a; background: rgba(245,213,122,.1); color: #fff; cursor: pointer; } .gm .fx-slot span { font-size: 22px; font-weight: 800; } .gm .fx-slot b { font-size: 12px; line-height: 1.2; } .gm .fx-slot i { font-style: normal; font-size: 10px; color: #9db3c9; }
