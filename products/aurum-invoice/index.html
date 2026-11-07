@@ -821,6 +821,15 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .inv .accept .lbl { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--p-muted); }
 .inv .accept i { display: block; height: 36px; border-bottom: 1px solid var(--p-ink); opacity: .55; }
 
+
+/* ---------- conversions ---------- */
+.from-block .chips .chip { border-style: dashed; color: var(--gold); }
+.from-block .chips .chip[aria-pressed="true"] { border-style: solid; }
+.next-doc { border-color: rgba(217,190,132,.4); background: linear-gradient(160deg, rgba(217,190,132,.09), transparent 70%), var(--surface); }
+.saved-item { flex-wrap: wrap; }
+.saved-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.act.late { border-color: rgba(240,133,122,.5); color: var(--danger); }
+
 /* ---------- Toast ---------- */
 .toast { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; z-index: 200; background: #F3ECDD; color: #0B0A09; padding: 12px 20px; border-radius: 99px; font-weight: 600; font-size: 13.5px; transition: .35s var(--ease); pointer-events: none; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -937,6 +946,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
       </div>
       <label class="field" id="f-cname"><span id="c-name-label">Client's name</span><input id="c-name" data-bind="doc.client.name" placeholder="Start typing — we'll remember them" autocomplete="off"></label>
       <div class="chips" id="recent-clients"></div>
+      <div class="field from-block" id="from-block"><span class="label" id="from-label">Start from an invoice</span><div class="chips" id="from-chips"></div></div>
       <label class="field"><span>Client's WhatsApp</span><input id="c-phone" data-bind="doc.client.phone" inputmode="tel" placeholder="0809 876 5432" autocomplete="off"></label>
       <div class="field" id="payby-block">
         <label class="toggle"><span>Pay-by date <em>(optional)</em></span><span class="switch"><input type="checkbox" id="payby-on"><i></i></span></label>
@@ -1002,6 +1012,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
     <!-- IV. SEND -->
     <section class="step" data-step="4" hidden>
       <div class="step-head"><span class="eyebrow">Chapter IV</span><h2>Send it beautifully</h2><p id="send-sub">Your invoice is ready.</p></div>
+      <button class="card-line next-doc" type="button" id="next-doc" style="text-align:left;color:inherit"><div><b id="next-doc-title"></b><small id="next-doc-sub"></small></div><span class="btn sm primary" id="next-doc-btn"></span></button>
       <button class="card-line" type="button" id="send-customise" style="text-align:left;color:inherit"><div><b>Customise the look</b><small>Watermark, title, what shows, terms</small></div><span class="btn sm">Customise</span></button>
       <div class="field"><span class="label">How it opens for your client</span><div class="reveal-grid" id="reveal-grid"></div></div>
       <div class="send-hero">
@@ -1238,6 +1249,7 @@ function invoiceHTML(P, D, opts = {}) {
     type === "invoice" && D.dueDate ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "quotation" ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "quotation" && D.timeline ? `<div><dt>Timeline</dt><dd>${esc(D.timeline)}</dd></div>` : "",
+    D.fromDoc && type !== "quotation" ? `<div><dt>${type === "receipt" ? "Invoice ref." : "Quotation ref."}</dt><dd>${esc(D.fromDoc)}</dd></div>` : "",
     type === "receipt" ? `<div><dt>Method</dt><dd>${esc(D.method || "Bank transfer")}</dd></div>` : "",
     type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${esc(statusClass)}">${statusText}</span></dd></div>` : "",
     type === "receipt" ? `<div><dt>Status</dt><dd><span class="pill paid">Paid in full</span></dd></div>` : "",
@@ -2007,6 +2019,11 @@ function syncChrome() {
   $("#s1-title").textContent = T === "receipt" ? "Who paid you?" : T === "quotation" ? "Who is the quote for?" : "Who is it for?";
   $("#c-name-label").textContent = T === "receipt" ? "Payer's name" : "Client's name";
   $("#due-block").hidden = T !== "invoice";
+  const srcType = T === "receipt" ? "invoice" : T === "invoice" ? "quotation" : null;
+  const srcs = srcType ? history.filter((h) => h.doc.type === srcType && (srcType === "quotation" || h.doc.status !== "paid")).slice(0, 6) : [];
+  $("#from-block").hidden = !srcs.length;
+  $("#from-label").textContent = T === "receipt" ? "Payment for an invoice? Tap it" : "Turn a quotation into this invoice";
+  chipRow($("#from-chips"), srcs.map((h) => ({ label: `${h.doc.number} · ${h.doc.client.name || "—"} · ${short(srcType === "invoice" ? dueOn(h.doc) : calc(h.doc).total)}${srcType === "invoice" ? " due" : ""}`, h })), (o) => D.fromId === o.h.id, (o) => convertFrom(o.h.id));
   // chapter II per type
   $("#s2-title").textContent = T === "receipt" ? "What was it for?" : T === "quotation" ? "What are you quoting for?" : "What did you sell?";
   $("#s2-sub").textContent = T === "receipt" ? "One line is enough. Switch to itemised if you prefer a list." : T === "quotation" ? "List what's included. You can attach terms in the next chapter." : "Type or pick from your saved items.";
@@ -2104,6 +2121,10 @@ function syncChrome() {
   const curR = REVEALS[D.reveal] ? D.reveal : "envelope";
   $("#reveal-grid").innerHTML = Object.entries(REVEALS).map(([k, v]) => `<button type="button" class="rv" data-reveal="${k}" aria-pressed="${k === curR}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">${RV_ICONS[k]}</svg>${v.name}</button>`).join("");
   $("#make-link").textContent = D.link ? "Update private link" : "Create private link";
+  $("#next-doc").hidden = D.type === "receipt" || (D.type === "invoice" && D.status === "paid");
+  $("#next-doc-title").textContent = D.type === "quotation" ? "Client accepted?" : "Payment came in?";
+  $("#next-doc-sub").textContent = D.type === "quotation" ? "Turn this quotation into an invoice. Everything carries over." : `Issue a receipt for ${D.number}. The invoice updates itself.`;
+  $("#next-doc-btn").textContent = D.type === "quotation" ? "Make invoice" : "Issue receipt";
   $("#link-box").hidden = !D.link; $("#link-text").textContent = D.link || "";
   // plan chip
   const chip = $("#plan-chip"); chip.classList.toggle("trial", isDemo()); $("#plan-text").textContent = isDemo() ? "Trial" : isPrestige() ? "Prestige" : "Signature";
@@ -2131,7 +2152,7 @@ $$("[data-rmode]").forEach((b) => b.addEventListener("click", () => {
   if (m === "simple" && !num(S.doc.receivedAmount)) { const tt = calc({ ...S.doc, receiptMode: "items" }).total; if (tt) S.doc.receivedAmount = tt; if (!S.doc.paidFor) S.doc.paidFor = S.doc.items.filter((it) => it.desc).map((it) => it.desc).join(", "); }
   S.doc.receiptMode = m; persist(); syncChrome(); if (m === "items") renderItemsEditor(); render();
 }));
-$("#r-amt").addEventListener("input", (e) => { const raw = e.target.value.replace(/[^\d.]/g, ""); S.doc.receivedAmount = raw; e.target.value = group(raw); e.target.closest(".field.error")?.classList.remove("error"); persist(); syncChrome(); render(); });
+$("#r-amt").addEventListener("input", (e) => { const raw = e.target.value.replace(/[^\d.]/g, ""); S.doc.receivedAmount = raw; if (num(S.doc.fromBalance) > 0) { const left = round2(num(S.doc.fromBalance) - num(raw)); S.doc.balanceLeft = left > 0 ? left : ""; } e.target.value = group(raw); e.target.closest(".field.error")?.classList.remove("error"); persist(); syncChrome(); render(); });
 $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
   const t = b.dataset.doctype; if (t === S.doc.type) return;
   if (t === "receipt" && !S.doc.receiptMode) S.doc.receiptMode = S.doc.items.some((it) => num(it.price) > 0) ? "items" : "simple";
@@ -2214,8 +2235,37 @@ function rememberDoc() {
   if (D.client.name.trim()) { const k = D.client.name.trim().toLowerCase(); S.clients = [{ ...D.client, last: Date.now() }, ...S.clients.filter((c) => c.name.toLowerCase() !== k)].slice(0, 200); }
   D.items.filter((it) => it.desc.trim() && num(it.price) > 0).forEach((it) => { const k = it.desc.trim().toLowerCase(); const ex = S.catalog.find((x) => x.desc.toLowerCase() === k); if (ex) { ex.price = it.price; ex.note = it.note || ex.note; ex.uses++; } else S.catalog.push({ desc: it.desc.trim(), price: it.price, note: it.note || "", uses: 1 }); });
   history = [{ id: D.id, savedAt: Date.now(), doc: structuredClone(D) }, ...history.filter((h) => h.id !== D.id)].slice(0, 100);
+  if (D.type === "receipt" && D.fromId && !D.settled) {
+    const src = history.find((h) => h.id === D.fromId);
+    if (src && src.doc.type === "invoice") {
+      const st = calc(src.doc); const already = src.doc.status === "part" ? num(src.doc.amountPaid) : 0; const got = calc(D).total;
+      const paidNow = round2(already + got);
+      if (paidNow >= st.total - 0.005) { src.doc.status = "paid"; src.doc.amountPaid = st.total; } else { src.doc.status = "part"; src.doc.amountPaid = paidNow; }
+      src.doc.receipts = [...(src.doc.receipts || []), D.number];
+      D.settled = true; history[0].doc.settled = true;
+    }
+  }
   LS.set("aurum.history", history); persist(); renderHistory();
 }
+/* one-tap conversions */
+const dueOn = (inv) => { const t = calc(inv); return inv.status === "paid" ? 0 : inv.status === "part" ? t.balance : t.total; };
+const itemSummary = (d) => d.items.filter((i) => i.desc).map((i) => i.desc).slice(0, 2).join(", ");
+function receiptFrom(inv) {
+  const due = dueOn(inv) || calc(inv).total; const fresh = newDocFor(S.profile, "receipt");
+  S.doc = { ...fresh, client: { ...inv.client }, currency: inv.currency, receiptMode: "simple", receivedAmount: due,
+    paidFor: `Invoice ${inv.number}${itemSummary(inv) ? " (" + itemSummary(inv) + ")" : ""}`,
+    items: inv.items.map((it) => ({ ...it, id: uid() })), fromDoc: inv.number, fromId: inv.id, fromBalance: due, balanceLeft: "", notes: "" };
+  lastTotal = null; persist(); showStep(2); swapAnim(); render({ enter: true });
+  toast(`Receipt for ${inv.number} is ready. Check the amount, then send.`);
+}
+function invoiceFrom(q) {
+  const fresh = newDocFor(S.profile, "invoice");
+  S.doc = { ...fresh, client: { ...q.client }, currency: q.currency, items: q.items.map((it) => ({ ...it, id: uid() })), discountType: q.discountType, discount: q.discount, delivery: q.delivery, vatOn: q.vatOn, vatRate: q.vatRate,
+    fromDoc: q.number, fromId: q.id, notes: num(q.depositPct) > 0 ? `A ${num(q.depositPct)}% deposit (${money(round2(calc(q).total * num(q.depositPct) / 100), q.currency)}) secures your order.` : q.notes || "" };
+  lastTotal = null; persist(); showStep(4); swapAnim(); render({ enter: true });
+  toast(`Invoice ${S.doc.number} created from ${q.number}. Ready to send.`);
+}
+function convertFrom(id) { const h = history.find((x) => x.id === id); if (!h) return; if (h.doc.type === "invoice") receiptFrom(h.doc); else if (h.doc.type === "quotation") invoiceFrom(h.doc); }
 function newDoc() {
   const t = S.doc.type || "invoice"; S.doc = newDocFor(S.profile, t); lastTotal = null; persist();
   showStep(1); swapAnim(); render({ enter: true }); toast(`New ${LABEL[t].toLowerCase()} ${S.doc.number}`); $("#c-name").focus();
@@ -2225,14 +2275,17 @@ function renderHistory() {
     const a = activity[h.id];
     const seen = a?.view_count ? `<span class="act">Opened ${a.view_count}× · ${new Date(a.last_viewed_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</span>` : "";
     const paid = a?.paid_claimed_at ? `<span class="act paid">${a.paid_method === "paystack" ? "Paid via Paystack" : a.paid_method === "accept" ? "Quote accepted" : "Client says paid"}</span>` : "";
-    return `<div class="saved-item"><div><b>${esc(h.doc.number)} · ${esc(h.doc.client.name || "No client")}</b><small>${LABEL[h.doc.type]} · ${money(calc(h.doc).total, h.doc.currency)} · ${fmtDate(h.doc.issueDate)}</small>${seen || paid ? `<div>${seen}${paid}</div>` : ""}</div>
-      <button class="btn sm" type="button" data-open="${h.id}">Open</button><button class="btn sm" type="button" data-copy="${h.id}">${h.doc.type === "quotation" ? "Make invoice" : "Copy"}</button></div>`;
+    const d = h.doc; const st = d.type === "invoice" ? (d.status === "paid" ? `<span class="act paid">Paid</span>` : d.status === "part" ? `<span class="act">Part-paid · ${short(calc(d).balance)} left</span>` : isExpired(d) ? `<span class="act late">Expired</span>` : `<span class="act">Unpaid</span>`) : d.fromDoc ? `<span class="act">From ${esc(d.fromDoc)}</span>` : "";
+    const conv = d.type === "invoice" && d.status !== "paid" ? `<button class="btn sm primary" type="button" data-conv="${h.id}">Issue receipt</button>` : d.type === "quotation" ? `<button class="btn sm primary" type="button" data-conv="${h.id}">Make invoice</button>` : "";
+    return `<div class="saved-item"><div><b>${esc(d.number)} · ${esc(d.client.name || "No client")}</b><small>${LABEL[d.type]} · ${money(calc(d).total, d.currency)} · ${fmtDate(d.issueDate)}</small><div>${st}${seen}${paid}</div></div>
+      <div class="saved-btns">${conv}<button class="btn sm" type="button" data-open="${h.id}">Open</button>${d.type !== "quotation" ? `<button class="btn sm ghost" type="button" data-copy="${h.id}">Copy</button>` : ""}</div></div>`;
   }).join("") : `<p class="hint">Everything you send is kept here. With private links you'll see when your client opens them.</p>`;
 }
 $("#saved-list").addEventListener("click", (e) => {
+  const cv = e.target.closest("[data-conv]"); if (cv) return convertFrom(cv.dataset.conv);
   const cp = e.target.closest("[data-copy]");
   if (cp) { const h = history.find((x) => x.id === cp.dataset.copy); if (!h) return; const t = h.doc.type === "quotation" ? "invoice" : h.doc.type; const fresh = newDocFor(S.profile, t);
-    S.doc = { ...structuredClone(h.doc), id: fresh.id, type: t, number: fresh.number, issueDate: fresh.issueDate, dueDate: "", payBy: "", status: t === "receipt" ? "paid" : "unpaid", amountPaid: "", link: "", shareId: "", items: h.doc.items.map((it) => ({ ...it, id: uid() })) };
+    S.doc = { ...structuredClone(h.doc), id: fresh.id, type: t, number: fresh.number, issueDate: fresh.issueDate, dueDate: "", payBy: "", status: t === "receipt" ? "paid" : "unpaid", amountPaid: "", link: "", shareId: "", fromDoc: "", fromId: "", settled: false, receipts: [], items: h.doc.items.map((it) => ({ ...it, id: uid() })) };
     lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(h.doc.type === "quotation" ? `Invoice ${S.doc.number} created from ${h.doc.number}` : `Copied into ${S.doc.number}. Check the details and send.`); return; }
   const o = e.target.closest("[data-open]"); if (!o) return; const h = history.find((x) => x.id === o.dataset.open); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); });
 async function fetchActivity() { if (!configured() || isDemo()) return; try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {} }
@@ -2383,6 +2436,7 @@ function refreshDrawerBits() { refreshCustomPreview(); const lt = $("#h-logo"); 
 $("#open-house").addEventListener("click", () => openHouse());
 $("#open-customise").addEventListener("click", () => openCustomise());
 $("#send-customise").addEventListener("click", () => openCustomise());
+$("#next-doc").addEventListener("click", () => { rememberDoc(); const src = structuredClone(S.doc); if (src.type === "invoice") receiptFrom(src); else if (src.type === "quotation") invoiceFrom(src); });
 $("#home-mark").addEventListener("click", (e) => { e.preventDefault(); showStep(1); });
 
 /* mobile preview */

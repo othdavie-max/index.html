@@ -30,6 +30,17 @@ It ends with a ceremony where their own wax seal is pressed.
 | Chapter III | Payment status, deposit, bank | Method, transaction reference, date paid, balance still owed | Price valid for, deposit to begin (%), delivery timeline |
 | On the document | Status, pay-by/expiry, bank box | Classic "Received from … the sum of … being payment for …" line, Amount received, Received by signature, PAID stamp | Valid until, timeline, deposit in naira, "To accept, pay the deposit to", Accepted by / Signature / Date block |
 
+## One tap from one document to the next
+**Quotation → Invoice:**
+- Tap **Make invoice** on a quotation's Send step or in the saved list, or tap the quotation chip when starting an invoice.
+- Items, client, discount and deposit note carry over, and the invoice shows "Quotation ref.".
+
+**Invoice → Receipt:**
+- Tap **Issue receipt** on an invoice's Send step or in the saved list, or tap the invoice chip ("INV-0042 · ₦325,000 due") when starting a receipt.
+- The receipt is pre-filled with the amount still owed and "being payment for Invoice INV-0042 (…)".
+- Change the amount for a part payment, and the balance outstanding updates itself.
+- **The invoice keeps itself up to date.** Each receipt adds to what's been paid, so the invoice shows "Part-paid · ₦125,000 left", then **Paid** once it's settled.
+
 ## Customise (separately for invoices, receipts and quotations)
 Open it from **Customise** above the preview, the Send chapter, or My house → Documents. A small live preview sits at the top of the panel.
 - **Title:** e.g. Invoice, Proforma Invoice, Sales Invoice, Bill; Receipt, Payment Receipt; Quotation, Estimate, Proposal; or their own.
