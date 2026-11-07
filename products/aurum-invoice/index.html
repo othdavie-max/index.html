@@ -481,12 +481,12 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .letter { position: absolute; left: 6.5%; right: 6.5%; top: 6%; height: 86%; border-radius: 3px; color: #2A251C; text-align: left;
   background: var(--grain-dark), linear-gradient(180deg, #FCF8EF, #F0E7D4); box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 0 0 1px rgba(0,0,0,.04);
   padding: 8% 9%; display: grid; align-content: start; gap: 7px; will-change: transform; }
-.letter .l-eye { font-size: 8.5px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #8C7F68; }
-.letter .l-name { font-family: var(--f-display); font-weight: 600; font-size: clamp(17px, 5vw, 22px); line-height: 1.1; color: #221D15;
+:is(.letter, .gift-card, .iback) .l-eye { font-size: 8.5px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #8C7F68; }
+:is(.letter, .gift-card, .iback) .l-name { font-family: var(--f-display); font-weight: 600; font-size: clamp(17px, 5vw, 22px); line-height: 1.1; color: #221D15;
   text-shadow: 0 1px 0 rgba(255,255,255,.9), 0 -1px 0 rgba(0,0,0,.12); }
-.letter .l-rule { height: 1px; width: 38%; background: linear-gradient(90deg, #B8935A, transparent); margin: 4px 0; }
-.letter .l-for { font-family: var(--f-display); font-style: italic; font-size: 12.5px; color: #5B5142; }
-.letter .l-line { height: 3px; border-radius: 2px; background: rgba(60,48,30,.09); }
+:is(.letter, .gift-card, .iback) .l-rule { height: 1px; width: 38%; background: linear-gradient(90deg, #B8935A, transparent); margin: 4px 0; }
+:is(.letter, .gift-card, .iback) .l-for { font-family: var(--f-display); font-style: italic; font-size: 12.5px; color: #5B5142; }
+:is(.letter, .gift-card, .iback) .l-line { height: 3px; border-radius: 2px; background: rgba(60,48,30,.09); }
 .env-pocket { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .env-flap { position: absolute; left: 0; right: 0; top: 0; height: 58%; transform-origin: 50% 0; transform-style: preserve-3d; will-change: transform; }
 .env-flap .face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: visible; }
@@ -693,14 +693,14 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 
 
 /* ---- Type pairing: Playfair Display for names & headings, Cormorant Garamond for the graceful accents ---- */
-.gate-copy h1 em, .steps button b, .item-head .no, .letter .l-for, .ty-card h2, .mark-preview small,
+.gate-copy h1 em, .steps button b, .item-head .no, :is(.letter, .gift-card, .iback) .l-for, .ty-card h2, .mark-preview small,
 .cv-brand .mono, .gstep .dot, .inv-foot .ty, .words p, .doc-type, .tagline-accent { font-family: var(--f-accent); }
 .gate-copy h1 em { font-weight: 500; font-size: 1.08em; letter-spacing: -.01em; }
 .steps button b { font-size: 19px; font-weight: 600; }
 .item-head .no { font-size: 18px; }
 .gstep .dot { font-size: 20px; font-weight: 600; }
 .ty-card h2 { font-weight: 500; font-size: clamp(46px, 13vw, 60px); }
-.letter .l-for { font-size: 14px; }
+:is(.letter, .gift-card, .iback) .l-for { font-size: 14px; }
 .inv .doc-type { font-weight: 500; font-size: 64px; letter-spacing: 0; }
 .t-atelier .doc-type { font-style: normal; font-weight: 600; font-size: 96px; letter-spacing: -.02em; }
 .inv .words p { font-size: 17px; font-weight: 500; }
@@ -717,6 +717,65 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 
 @media (max-width: 860px) { .gate-copy h1 { font-size: clamp(38px, 10.5vw, 56px); } }
 @media (max-width: 980px) { .step-head h2 { font-size: 28px; } }
+
+
+/* ---------- Envelope: the top half of the seal travels with the flap ---------- */
+.env-flap .face > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.seal-top-wrap { position: absolute; left: 50%; top: 100%; width: 30%; aspect-ratio: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 5px 6px rgba(0,0,0,.55)) drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
+.seal-top { position: absolute; inset: 0; }
+.seal-top svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.env-stage { display: grid; place-items: center; }
+.intro.is-gift .env-stage { margin-top: 70px; }
+.intro.is-card .env-stage { margin: 24px 0 18px; }
+
+/* ---------- Gift box ---------- */
+.gift { position: relative; width: min(290px, 72vw); aspect-ratio: .95; }
+.gift-base { position: absolute; left: 6%; right: 6%; top: 32%; bottom: 0; z-index: 3; border-radius: 3px 3px 6px 6px; overflow: hidden;
+  background: var(--grain), linear-gradient(90deg, var(--box-d), var(--box) 28%, var(--box-l) 52%, var(--box) 76%, var(--box-d));
+  box-shadow: 0 60px 80px -34px rgba(0,0,0,1), inset 0 22px 22px -16px rgba(0,0,0,.65), inset 0 -1px 0 rgba(255,255,255,.06); }
+.gift-lid { position: absolute; left: 2%; right: 2%; top: 20%; height: 15%; z-index: 4; border-radius: 4px; overflow: hidden;
+  background: var(--grain), linear-gradient(90deg, var(--box-d), var(--box-l) 42%, var(--box) 70%, var(--box-d));
+  box-shadow: 0 14px 16px -8px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.14); }
+.rib-v { position: absolute; left: 50%; top: 0; bottom: 0; width: 15%; transform: translateX(-50%); background: linear-gradient(90deg, #7E5F2C, #E9D39E 28%, #C29E62 52%, #F3E2B0 74%, #8A6A35); box-shadow: 0 0 8px rgba(0,0,0,.45); }
+.rib-h { position: absolute; left: 0; right: 0; top: 40%; height: 13%; background: linear-gradient(180deg, #7E5F2C, #E9D39E 28%, #C29E62 52%, #F3E2B0 74%, #8A6A35); box-shadow: 0 0 8px rgba(0,0,0,.45); }
+.gift-card { position: absolute; left: 14%; right: 14%; top: 36%; height: 58%; z-index: 2; border-radius: 3px; color: #2A251C; text-align: left;
+  background: var(--grain-dark), linear-gradient(180deg, #FCF8EF, #F0E7D4); padding: 9% 10%; display: grid; align-content: start; gap: 6px; }
+.bow { position: absolute; left: 50%; top: 20%; width: 64%; transform: translate(-50%, -62%); z-index: 6; overflow: visible; }
+.tag { position: absolute; left: 66%; top: 26%; z-index: 7; transform-origin: 0 50%; transform: rotate(8deg); max-width: 44%;
+  background: var(--grain-dark), #F6EEDC; color: #2A251C; padding: 7px 12px 7px 18px; display: grid; text-align: left; line-height: 1.2;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%); filter: drop-shadow(0 6px 6px rgba(0,0,0,.5)); }
+.tag i { position: absolute; left: 7px; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: #3A3127; }
+.tag span { font-size: 7.5px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #8C7F68; }
+.tag b { font-family: var(--f-accent); font-style: italic; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gift-btn { inset: -6% 0 0 0 !important; border-radius: 8px; z-index: 9; }
+.gift-btn::before { inset: 0 24% 66% 24% !important; border-radius: 50%; }
+
+/* ---------- Invitation card ---------- */
+.invite { position: relative; width: min(260px, 66vw); aspect-ratio: .7; perspective: 1300px; }
+.inv3d { position: absolute; inset: 0; transform-style: preserve-3d; }
+.iface { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 10px; overflow: hidden;
+  display: grid; align-content: center; justify-items: center; gap: 8px; padding: 14%; text-align: center; box-shadow: 0 50px 80px -30px rgba(0,0,0,1), 0 2px 4px rgba(0,0,0,.5); }
+.ifront { color: var(--cream); background: var(--grain), radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,.09), transparent 60%), linear-gradient(165deg, var(--card), var(--card-d)); }
+.iback { transform: rotateY(180deg); color: #2A251C; background: var(--grain-dark), linear-gradient(180deg, #FCF8EF, #EFE6D2); }
+.i-frame { position: absolute; inset: 12px; border: 1px solid rgba(217,190,132,.6); pointer-events: none; }
+.i-frame::after { content: ""; position: absolute; inset: 4px; border: 1px solid rgba(217,190,132,.22); }
+.i-frame.dark { border-color: rgba(176,141,87,.55); } .i-frame.dark::after { border-color: rgba(176,141,87,.22); }
+.i-wax { width: 40%; aspect-ratio: 1; filter: drop-shadow(0 6px 8px rgba(0,0,0,.6)); }
+.i-eye { margin-top: 8px; font-size: 9px; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); }
+.i-who { font-family: var(--f-display); font-weight: 500; font-size: clamp(19px, 5.6vw, 24px); line-height: 1.2; }
+.i-from { font-family: var(--f-accent); font-style: italic; font-size: 16px; color: var(--cream-dim); }
+.i-biz { font-family: var(--f-display); font-weight: 600; font-size: 19px; }
+.i-amt { font-family: var(--f-display); font-weight: 600; font-size: clamp(22px, 6.6vw, 28px); color: #1E1A13; font-variant-numeric: lining-nums; margin: 6px 0; }
+.iback .l-eye { justify-self: center; }
+.card-btn { inset: 0 !important; border-radius: 10px; z-index: 9; }
+.card-btn::before { display: none; }
+
+/* ---------- Opening-style picker (Send) ---------- */
+.reveal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rv { border: 1px solid var(--line); border-radius: 16px; background: var(--surface); padding: 14px 6px 12px; display: grid; justify-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #CFC7B6; text-align: center; line-height: 1.25; transition: border-color .2s, background .2s; }
+.rv svg { width: 30px; height: 30px; color: var(--gold); }
+.rv[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); background: rgba(217,190,132,.07); }
+@media (max-width: 440px) { .reveal-grid { grid-template-columns: 1fr 1fr; } }
 
 /* ---------- Toast ---------- */
 .toast { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; z-index: 200; background: #F3ECDD; color: #0B0A09; padding: 12px 20px; border-radius: 99px; font-weight: 600; font-size: 13.5px; transition: .35s var(--ease); pointer-events: none; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
@@ -868,10 +927,11 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
     <!-- IV. SEND -->
     <section class="step" data-step="4" hidden>
       <div class="step-head"><span class="eyebrow">Chapter IV</span><h2>Send it beautifully</h2><p id="send-sub">Your invoice is ready.</p></div>
+      <div class="field"><span class="label">How it opens for your client</span><div class="reveal-grid" id="reveal-grid"></div></div>
       <div class="send-hero">
         <span class="eyebrow">The Aurum private link</span>
-        <h3>A sealed envelope, delivered by link</h3>
-        <p>Your client taps your wax seal to open it. They see a short guide, pay in a tap, and get a thank-you card.</p>
+        <h3>Your invoice, delivered like a gift</h3>
+        <p>Your client opens it in the style you chose above, sees a short guide, pays in a tap, and gets a thank-you card.</p>
         <div class="link-box" id="link-box" hidden><code id="link-text"></code><button class="btn sm primary" type="button" id="copy-link">Copy</button></div>
         <div style="display:grid; gap:10px">
           <button class="btn primary block" type="button" id="make-link">Create private link</button>
@@ -1089,15 +1149,17 @@ function invoiceHTML(P, D, opts = {}) {
   const lineCol = G.template === "atelier" ? G.brand : "#C9A86A";
   const headLogo = B.logo ? `<img src="${B.logo}" alt="">`
     : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${lineCol}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${lineCol}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${G.template === "atelier" ? G.brand : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
-  const stampKind = type === "receipt" ? "paid" : type === "invoice" && (D.status === "paid" || D.status === "overdue") ? D.status : "";
-  const stampHTML = stampKind ? `<div class="stamp ${stampKind}${opts.stampIn ? " stamp-in" : ""}">${stampKind === "paid" ? "PAID" : "OVERDUE"}<small>${esc(stampKind === "paid" ? fmtDate(D.issueDate).toUpperCase() : "WAS DUE " + fmtDate(D.dueDate).toUpperCase())}</small></div>` : "";
+  const expired = isExpired(D);
+  const stampKind = type === "receipt" || (type === "invoice" && D.status === "paid") ? "paid" : expired ? "overdue" : "";
+  const stampHTML = stampKind ? `<div class="stamp ${stampKind}${opts.stampIn ? " stamp-in" : ""}">${stampKind === "paid" ? "PAID" : "EXPIRED"}<small>${esc(stampKind === "paid" ? fmtDate(D.issueDate).toUpperCase() : fmtDate(D.dueDate).toUpperCase())}</small></div>` : "";
   const partyLabel = type === "receipt" ? "Received from" : type === "quotation" ? "Prepared for" : "Billed to";
-  const statusText = { unpaid: "Unpaid", part: "Part-paid", paid: "Paid", overdue: "Overdue" }[D.status] || "Unpaid";
+  const statusText = expired ? "Expired" : ({ unpaid: "Unpaid", part: "Part-paid", paid: "Paid" }[D.status] || "Unpaid");
+  const statusClass = expired ? "overdue" : D.status === "overdue" ? "unpaid" : D.status;
   const dateRows = [
     `<div><dt>${type === "receipt" ? "Payment date" : "Issued"}</dt><dd>${fmtDate(D.issueDate)}</dd></div>`,
-    type === "invoice" ? `<div><dt>Pay by</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
+    type === "invoice" && D.dueDate ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "quotation" ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
-    type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${esc(D.status)}">${statusText}</span></dd></div>` : "",
+    type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${esc(statusClass)}">${statusText}</span></dd></div>` : "",
     type === "receipt" ? `<div><dt>Status</dt><dd><span class="pill paid">Paid in full</span></dd></div>` : "",
   ].join("");
   const items = D.items.filter((it) => it.desc || num(it.price));
@@ -1229,23 +1291,52 @@ function goldLeaf(canvas) {
   requestAnimationFrame(tick);
 }
 
+
 /* =========================================================
-   THE ENVELOPE — built in layers: back, gold-foil liner, letter,
-   front pocket, 3D flap and the wax seal that cracks and falls.
+   OPENING STYLES — what the client sees before the invoice.
+   Each one is built from layered parts and played in sequence.
    ========================================================= */
+const REVEALS = {
+  envelope: { name: "Wax-seal envelope", tap: "Break the seal" },
+  gift: { name: "Gift box", tap: "Untie the ribbon" },
+  card: { name: "Invitation card", tap: "Tap to reveal" },
+  none: { name: "Straight to invoice", tap: "" },
+};
+const isExpired = (D) => D.type !== "receipt" && !!D.dueDate && daysUntil(D.dueDate) < 0 && D.status !== "paid";
+const letterInner = (B, D) => `<span class="l-eye">${esc(LABEL[D.type])} · ${esc(D.number)}</span><span class="l-name">${esc(B.name)}</span><span class="l-rule"></span><span class="l-for">Prepared for ${esc(D.client.name || "you")}</span><span class="l-line" style="width:84%;margin-top:6px"></span><span class="l-line" style="width:68%"></span><span class="l-line" style="width:76%"></span>`;
+
+/* the final move shared by every style: the letter comes towards you and dissolves into the page */
+async function finale(el, base, onDone) {
+  el.style.zIndex = "8";
+  const r = el.getBoundingClientRect(); const s = Math.min(2.6, (innerWidth * .94) / r.width);
+  const dy = innerHeight / 2 - (r.top + r.height / 2);
+  el.animate([{ transform: `${base}`, opacity: 1, filter: "blur(0px)" }, { transform: `${base} translateY(${dy * .55}px) scale(${(1 + s) / 2})`, opacity: 1, offset: .55 }, { transform: `${base} translateY(${dy}px) scale(${s})`, opacity: 0, filter: "blur(3px)" }], { duration: 950, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
+  await wait(580); onDone();
+}
+function crumbs(host, color, n, spread = 1) {
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement("span"); c.className = "crumb"; const s = 2.2 + Math.random() * 4.5;
+    c.style.cssText = `width:${s}px;height:${s * (.7 + Math.random() * .5)}px;margin:${-s / 2}px 0 0 ${-s / 2}px;background:radial-gradient(circle at 35% 30%, ${shade(color, .4)}, ${color} 55%, ${shade(color, -.55)})`;
+    host.appendChild(c);
+    const vx = (Math.random() - .5) * 110 * spread, up = 8 + Math.random() * 26, drop = 200 + Math.random() * 160, rot = (Math.random() - .5) * 600;
+    c.animate([{ transform: "translate(0,0)", opacity: 1, easing: "cubic-bezier(.2,.7,.4,1)" }, { transform: `translate(${vx * .3}px, ${-up}px) rotate(${rot * .3}deg)`, offset: .25, easing: "cubic-bezier(.5,0,.95,.6)" }, { transform: `translate(${vx}px, ${drop}px) rotate(${rot}deg)`, opacity: 0 }], { duration: 900 + Math.random() * 450, fill: "forwards" });
+  }
+}
+
+/* ---------- I · the wax-seal envelope ---------- */
 function envelopeHTML(B, D, wax) {
-  const r = rng(hashStr(B.name + D.number)); const xs = [52, 47, 55, 46, 54, 45, 53, 49].map((x, i) => (i === 0 || i === 7 ? x : x + (r() - .5) * 4));
-  const ys = [0, 14, 28, 43, 57, 72, 86, 100];
-  const crackPts = xs.map((x, i) => [x, ys[i]]);
-  const leftPoly = `polygon(0% 0%, ${crackPts.map(([x, y]) => `${x}% ${y}%`).join(", ")}, 0% 100%)`;
-  const rightPoly = `polygon(100% 0%, ${crackPts.map(([x, y]) => `${x}% ${y}%`).join(", ")}, 100% 100%)`;
-  const crackD = "M" + crackPts.map(([x, y]) => `${(x * 1.2).toFixed(1)} ${(y * 1.2).toFixed(1)}`).join(" L");
+  const r = rng(hashStr(B.name + D.number));
+  const xs = [0, 15, 30, 44, 58, 72, 86, 100];
+  const pts = xs.map((x, i) => [x, i === 0 || i === 7 ? 50 + (r() - .5) * 4 : 50 + (r() - .5) * 13]);
+  const upper = `polygon(0% 0%, 100% 0%, ${[...pts].reverse().map(([x, y]) => `${x}% ${y.toFixed(1)}%`).join(", ")})`;
+  const lower = `polygon(${pts.map(([x, y]) => `${x}% ${y.toFixed(1)}%`).join(", ")}, 100% 100%, 0% 100%)`;
+  const crackD = "M" + pts.map(([x, y]) => `${(x * 1.2).toFixed(1)} ${(y * 1.2).toFixed(1)}`).join(" L");
   const seal = waxSVG(initials(B.name), wax, B.name);
   const id = "e" + (++gid);
   return `<div class="env" id="env">
     <div class="env-back"></div>
     <div class="env-liner"></div>
-    <div class="letter" id="letter"><span class="l-eye">${esc(LABEL[D.type])} · ${esc(D.number)}</span><span class="l-name">${esc(B.name)}</span><span class="l-rule"></span><span class="l-for">Prepared for ${esc(D.client.name || "you")}</span><span class="l-line" style="width:84%;margin-top:6px"></span><span class="l-line" style="width:68%"></span><span class="l-line" style="width:76%"></span></div>
+    <div class="letter" id="letter">${letterInner(B, D)}</div>
     <svg class="env-pocket" id="pocket" viewBox="0 0 146 100" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="${id}l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B1A17"/><stop offset="1" stop-color="#25231F"/></linearGradient>
@@ -1262,79 +1353,154 @@ function envelopeHTML(B, D, wax) {
       <rect width="146" height="100" filter="url(#${id}n)" clip-path="url(#${id}cp)"/>
     </svg>
     <div class="env-flap" id="flap">
-      <svg class="face front" viewBox="0 0 146 58" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2824"/><stop offset="1" stop-color="#1D1B18"/></linearGradient>
-          <filter id="${id}fs" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-color="#000" flood-opacity=".7"/></filter></defs>
-        <path d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="url(#${id}f)" filter="url(#${id}fs)"/>
-        <path d="M0 0 L65 53 Q73 58.5 81 53 L146 0" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".35" vector-effect="non-scaling-stroke"/>
-        <path id="flapShade" d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="#000" opacity="0"/>
-      </svg>
-      <svg class="face back" viewBox="0 0 146 58" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8A6A35"/><stop offset=".35" stop-color="#E9D39E"/><stop offset=".55" stop-color="#B8935A"/><stop offset=".78" stop-color="#F2E1B2"/><stop offset="1" stop-color="#A07D42"/></linearGradient>
-          <pattern id="${id}p" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="3" fill="url(#${id}g)"/><rect width=".35" height="3" fill="rgba(60,40,10,.12)"/></pattern></defs>
-        <path d="M2.5 0 H143.5 L80 50.5 Q73 55.5 66 50.5 Z" fill="url(#${id}p)"/>
-        <path d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="none" stroke="#1D1B18" stroke-width="2.6"/>
-        <path id="flapShadeB" d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="#000" opacity=".45"/>
-      </svg>
+      <div class="face front">
+        <svg viewBox="0 0 146 58" preserveAspectRatio="none" aria-hidden="true">
+          <defs><linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2824"/><stop offset="1" stop-color="#1D1B18"/></linearGradient>
+            <filter id="${id}fs" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-color="#000" flood-opacity=".7"/></filter></defs>
+          <path d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="url(#${id}f)" filter="url(#${id}fs)"/>
+          <path d="M0 0 L65 53 Q73 58.5 81 53 L146 0" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".35" vector-effect="non-scaling-stroke"/>
+          <path class="shade" d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="#000" opacity="0"/>
+        </svg>
+        <div class="seal-top-wrap"><div class="seal-top" id="sealTop" style="clip-path:${upper}">${seal}</div></div>
+      </div>
+      <div class="face back">
+        <svg viewBox="0 0 146 58" preserveAspectRatio="none" aria-hidden="true">
+          <defs><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8A6A35"/><stop offset=".35" stop-color="#E9D39E"/><stop offset=".55" stop-color="#B8935A"/><stop offset=".78" stop-color="#F2E1B2"/><stop offset="1" stop-color="#A07D42"/></linearGradient>
+            <pattern id="${id}p" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="3" fill="url(#${id}g)"/><rect width=".35" height="3" fill="rgba(60,40,10,.12)"/></pattern></defs>
+          <path d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="#1F1D1A"/>
+          <path d="M3 1.5 H143 L80 51 Q73 55.8 66 51 Z" fill="url(#${id}p)"/>
+          <path class="shade" d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="#000" opacity=".55"/>
+        </svg>
+      </div>
     </div>
     <div class="seal-wrap" id="sealWrap">
-      <div class="seal-half" id="sealL" style="clip-path:${leftPoly}">${seal}</div>
-      <div class="seal-half" id="sealR" style="clip-path:${rightPoly}">${seal}</div>
-      <svg class="crack" viewBox="0 0 120 120" aria-hidden="true"><path id="crackPath" d="${crackD}" style="stroke-dasharray:400;stroke-dashoffset:400" fill="none" stroke="${shade(wax, -.78)}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      <div class="seal-half" id="sealLow" style="clip-path:${lower}">${seal}</div>
+      <svg class="crack" viewBox="0 0 120 120" aria-hidden="true"><path id="crackPath" d="${crackD}" style="stroke-dasharray:400;stroke-dashoffset:400" fill="none" stroke="${shade(wax, -.8)}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
       <button class="seal-btn" type="button" id="sealBtn" aria-label="Break the seal to open"></button>
     </div>
   </div>`;
 }
-
-async function playOpening(cv, wax, onDone) {
-  const env = $("#env", cv), flap = $("#flap", cv), letter = $("#letter", cv), sealWrap = $("#sealWrap", cv);
-  const L = $("#sealL", cv), R = $("#sealR", cv), crack = $("#crackPath", cv);
-  $(".env-stage", cv).classList.add("opened");
-  if (reduceMotion) { onDone(); return; }
+async function openEnvelope(cv, wax, onDone) {
+  const flap = $("#flap", cv), letter = $("#letter", cv), sealWrap = $("#sealWrap", cv), low = $("#sealLow", cv), top = $("#sealTop", cv), crack = $("#crackPath", cv);
   const len = crack.getTotalLength(); crack.style.strokeDasharray = len; crack.style.strokeDashoffset = len;
-  // 1 · the press
+  // 1 · a firm press on the wax
   buzz(12);
-  sealWrap.animate([{ transform: "translate(-50%,-50%) scale(1)" }, { transform: "translate(-50%,-50%) scale(.92)", offset: .45 }, { transform: "translate(-50%,-50%) scale(1.01)" }], { duration: 260, easing: "cubic-bezier(.3,0,.3,1)", fill: "forwards" });
-  // 2 · the crack runs through the wax
-  crack.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 240, delay: 150, easing: "cubic-bezier(.6,0,.2,1)", fill: "forwards" });
-  await wait(400); buzz([6, 40, 10]);
-  crack.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" });
-  // 3 · halves snap apart, then fall with gravity
-  const fall = (el, dir) => el.animate([
-    { transform: "translate(0,0) rotate(0deg)", opacity: 1, easing: "cubic-bezier(.15,.7,.35,1)" },
-    { transform: `translate(${dir * 9}%, -4%) rotate(${dir * 11}deg)`, opacity: 1, offset: .2, easing: "cubic-bezier(.5,0,.9,.5)" },
-    { transform: `translate(${dir * 32}%, 330%) rotate(${dir * 62}deg)`, opacity: 1, offset: .88 },
-    { transform: `translate(${dir * 35}%, 370%) rotate(${dir * 68}deg)`, opacity: 0 }], { duration: 1250, fill: "forwards" });
-  fall(L, -1); fall(R, 1);
-  // crumbs of wax
-  for (let i = 0; i < 11; i++) {
-    const c = document.createElement("span"); c.className = "crumb"; const s = 2.5 + Math.random() * 5.5; const lit = Math.random() > .5;
-    c.style.cssText = `width:${s}px;height:${s * (.7 + Math.random() * .5)}px;margin:${-s / 2}px 0 0 ${-s / 2}px;background:radial-gradient(circle at 35% 30%, ${shade(wax, lit ? .45 : .2)}, ${wax} 55%, ${shade(wax, -.55)})`;
-    sealWrap.appendChild(c);
-    const vx = (Math.random() - .5) * 170, up = 18 + Math.random() * 46, drop = 260 + Math.random() * 200, rot = (Math.random() - .5) * 720;
-    c.animate([{ transform: "translate(0,0) rotate(0)", opacity: 1, easing: "cubic-bezier(.2,.7,.4,1)" }, { transform: `translate(${vx * .35}px, ${-up}px) rotate(${rot * .3}deg)`, offset: .26, easing: "cubic-bezier(.5,0,.95,.6)" }, { transform: `translate(${vx}px, ${drop}px) rotate(${rot}deg)`, opacity: .0 }], { duration: 950 + Math.random() * 500, delay: Math.random() * 60, fill: "forwards" });
-  }
-  // 4 · the flap lifts in 3D; light falls across it
-  await wait(330);
-  $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, easing: "ease-out", fill: "forwards" }));
-  flap.animate([{ transform: "rotateX(0deg)" }, { transform: "rotateX(180deg)" }], { duration: 1050, easing: "cubic-bezier(.55,0,.25,1)", fill: "forwards" });
-  $("#flapShade", cv).animate([{ opacity: 0 }, { opacity: .6 }], { duration: 525, easing: "ease-in", fill: "forwards" });
-  $("#flapShadeB", cv).animate([{ opacity: .6 }, { opacity: .6, offset: .5 }, { opacity: 0 }], { duration: 1050, easing: "ease-out", fill: "forwards" });
-  setTimeout(() => { flap.style.zIndex = "0"; }, 540);
-  await wait(900);
-  // 5 · the letter slides out of the pocket
-  letter.animate([{ transform: "translateY(0)", easing: "cubic-bezier(.45,0,.2,1)" }, { transform: "translateY(-64%)" }], { duration: 1100, fill: "forwards" });
-  await wait(1150);
-  // 6 · the envelope sinks away; the letter comes towards you
-  const rest = [$(".env-back", cv), $(".env-liner", cv), $("#pocket", cv), flap];
-  rest.forEach((el) => el.animate([{ transform: el === flap ? "rotateX(180deg)" : "none", opacity: 1 }, { transform: (el === flap ? "rotateX(180deg) " : "") + "translateY(" + (el === flap ? "-" : "") + "34%)", opacity: 0 }], { duration: 700, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" }));
+  const press = [{ transform: "scale(1)" }, { transform: "scale(.95)", offset: .45 }, { transform: "scale(1)" }];
+  [low, top].forEach((el) => el.animate(press, { duration: 280, easing: "cubic-bezier(.3,0,.3,1)" }));
+  // 2 · the wax cracks along the edge of the flap
+  crack.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 260, delay: 160, easing: "cubic-bezier(.6,0,.2,1)", fill: "forwards" });
+  await wait(430); buzz([6, 40, 10]); crumbs(sealWrap, wax, 6, .7);
+  crack.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: "forwards" });
+  // 3 · the flap lifts, carrying the top half of the seal with it; the bottom half stays on the envelope
+  $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }));
+  flap.animate([{ transform: "rotateX(0deg)" }, { transform: "rotateX(-8deg)", offset: .12 }, { transform: "rotateX(180deg)" }], { duration: 1400, easing: "cubic-bezier(.55,0,.25,1)", fill: "forwards" });
+  $(".face.front .shade", cv).animate([{ opacity: 0 }, { opacity: .65 }], { duration: 700, easing: "ease-in", fill: "forwards" });
+  $(".face.back .shade", cv).animate([{ opacity: .55 }, { opacity: .55, offset: .5 }, { opacity: 0 }], { duration: 1400, easing: "ease-out", fill: "forwards" });
+  setTimeout(() => { flap.style.zIndex = "0"; }, 720);
+  await wait(1250);
+  // 4 · the letter slides out of the pocket
+  letter.animate([{ transform: "translateY(0) rotate(0deg)" }, { transform: "translateY(-40%) rotate(-.6deg)", offset: .55 }, { transform: "translateY(-74%) rotate(0deg)" }], { duration: 1250, easing: "cubic-bezier(.45,0,.2,1)", fill: "forwards" });
+  await wait(1300);
+  // 5 · the envelope drops away; the letter comes towards you
+  [$(".env-back", cv), $(".env-liner", cv), $("#pocket", cv), sealWrap].forEach((el) => el.animate([{ transform: el === sealWrap ? "translate(-50%,-50%)" : "none", opacity: 1 }, { transform: (el === sealWrap ? "translate(-50%,-50%) " : "") + "translateY(46%)", opacity: 0 }], { duration: 750, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" }));
+  flap.animate([{ transform: "rotateX(180deg)", opacity: 1 }, { transform: "rotateX(180deg) translateY(-46%)", opacity: 0 }], { duration: 750, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" });
+  await wait(280);
+  finale(letter, "translateY(-74%)", onDone);
+}
+
+/* ---------- II · the gift box ---------- */
+function giftHTML(B, D, color) {
+  const id = "g" + (++gid); const c = color;
+  return `<div class="gift" id="gift" style="--box:${c};--box-l:${shade(c, .16)};--box-d:${shade(c, -.45)}">
+    <div class="gift-card" id="giftCard">${letterInner(B, D)}</div>
+    <div class="gift-base" id="giftBase"><i class="rib-v" id="ribV"></i><i class="rib-h" id="ribH"></i></div>
+    <div class="gift-lid" id="giftLid"><i class="rib-v"></i></div>
+    <div class="tag" id="tag"><i></i><span>For</span><b>${esc(D.client.name || "you")}</b></div>
+    <svg class="bow" id="bow" viewBox="0 0 200 130" aria-hidden="true">
+      <defs>
+        <linearGradient id="${id}s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7E5F2C"/><stop offset=".3" stop-color="#F3E2B0"/><stop offset=".5" stop-color="#C29E62"/><stop offset=".72" stop-color="#F7EAC4"/><stop offset="1" stop-color="#8A6A35"/></linearGradient>
+        <linearGradient id="${id}t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C29E62"/><stop offset=".5" stop-color="#EBD6A4"/><stop offset="1" stop-color="#8A6A35"/></linearGradient>
+        <filter id="${id}d"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".45"/></filter>
+      </defs>
+      <g filter="url(#${id}d)">
+        <path id="tailL" style="transform-box:fill-box;transform-origin:100% 0%" d="M94 78 L66 126 L78 122 L86 128 L102 82 Z" fill="url(#${id}t)"/>
+        <path id="tailR" style="transform-box:fill-box;transform-origin:0% 0%" d="M106 78 L134 126 L122 122 L114 128 L98 82 Z" fill="url(#${id}t)"/>
+        <path id="loopL" style="transform-box:fill-box;transform-origin:100% 70%" d="M100 72 C 78 40, 34 18, 22 40 C 12 60, 54 82, 100 76 Z" fill="url(#${id}s)"/>
+        <path d="M100 72 C 80 50, 46 34, 34 44" fill="none" stroke="rgba(90,60,20,.35)" stroke-width="1.2" class="crease"/>
+        <path id="loopR" style="transform-box:fill-box;transform-origin:0% 70%" d="M100 72 C 122 40, 166 18, 178 40 C 188 60, 146 82, 100 76 Z" fill="url(#${id}s)"/>
+        <path d="M100 72 C 120 50, 154 34, 166 44" fill="none" stroke="rgba(90,60,20,.35)" stroke-width="1.2" class="crease"/>
+        <rect id="knot" style="transform-box:fill-box;transform-origin:50% 50%" x="88" y="62" width="24" height="22" rx="7" fill="url(#${id}s)"/>
+      </g>
+    </svg>
+    <button class="seal-btn gift-btn" type="button" id="sealBtn" aria-label="Untie the ribbon"></button>
+  </div>`;
+}
+async function openGift(cv, wax, onDone) {
+  const gift = $("#gift", cv), bow = $("#bow", cv), lid = $("#giftLid", cv), base = $("#giftBase", cv), card = $("#giftCard", cv);
+  buzz(10);
+  bow.animate([{ transform: "translate(-50%,-62%) scale(1)" }, { transform: "translate(-50%,-66%) scale(1.06)" }, { transform: "translate(-50%,-62%) scale(1)" }], { duration: 300, easing: "ease-out" });
   await wait(260);
-  letter.style.zIndex = "8";
-  const lr = letter.getBoundingClientRect(); const scale = Math.min(2.4, (innerWidth * .92) / lr.width);
-  const dy = innerHeight / 2 - (lr.top + lr.height / 2);
-  letter.animate([{ transform: "translateY(-64%)", opacity: 1, filter: "blur(0)" }, { transform: `translateY(calc(-64% + ${dy * .55}px)) scale(${(1 + scale) / 2})`, opacity: 1, offset: .55 }, { transform: `translateY(calc(-64% + ${dy}px)) scale(${scale})`, opacity: 0, filter: "blur(2px)" }], { duration: 900, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
-  await wait(560);
-  onDone();
+  // 1 · the bow comes undone
+  const ease = "cubic-bezier(.5,0,.75,0)";
+  $("#loopL", cv).animate([{ transform: "rotate(0) scale(1)", opacity: 1 }, { transform: "rotate(-48deg) scale(.35)", opacity: 0 }], { duration: 520, easing: ease, fill: "forwards" });
+  $("#loopR", cv).animate([{ transform: "rotate(0) scale(1)", opacity: 1 }, { transform: "rotate(48deg) scale(.35)", opacity: 0 }], { duration: 520, easing: ease, fill: "forwards" });
+  $$(".crease", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" }));
+  $("#knot", cv).animate([{ transform: "scale(1)", opacity: 1 }, { transform: "scale(.2)", opacity: 0 }], { duration: 420, delay: 180, easing: ease, fill: "forwards" });
+  $("#tailL", cv).animate([{ transform: "rotate(0)", opacity: 1 }, { transform: "translateY(40px) rotate(25deg)", opacity: 0 }], { duration: 700, delay: 120, easing: ease, fill: "forwards" });
+  $("#tailR", cv).animate([{ transform: "rotate(0)", opacity: 1 }, { transform: "translateY(40px) rotate(-25deg)", opacity: 0 }], { duration: 700, delay: 120, easing: ease, fill: "forwards" });
+  $("#tag", cv).animate([{ transform: "rotate(8deg)", opacity: 1, easing: "cubic-bezier(.3,0,.4,1)" }, { transform: "rotate(-14deg) translateY(-6px)", offset: .25, easing: "cubic-bezier(.55,0,1,.45)" }, { transform: "rotate(50deg) translateY(260px)", opacity: 0 }], { duration: 1100, fill: "forwards" });
+  buzz([6, 30, 6]);
+  // 2 · the ribbons slip off the box
+  $("#ribH", cv).animate([{ transform: "translateX(0)", opacity: 1 }, { transform: "translateX(115%)", opacity: 0 }], { duration: 800, delay: 260, easing: ease, fill: "forwards" });
+  $("#ribV", cv).animate([{ transform: "translate(-50%,0)", opacity: 1 }, { transform: "translate(-50%,110%)", opacity: 0 }], { duration: 800, delay: 360, easing: ease, fill: "forwards" });
+  $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, delay: 300, easing: "ease-out", fill: "forwards" }));
+  await wait(780);
+  // 3 · the lid lifts away
+  lid.animate([{ transform: "translateY(0) rotate(0)", opacity: 1, easing: "cubic-bezier(.3,0,.3,1)" }, { transform: "translateY(-26%) rotate(-2deg)", offset: .3, easing: "cubic-bezier(.4,0,.7,.5)" }, { transform: "translate(-34%, -330%) rotate(-16deg)", opacity: 0 }], { duration: 1200, fill: "forwards" });
+  await wait(520);
+  // 4 · the invoice rises out of the box, glowing
+  card.animate([{ transform: "translateY(0)", boxShadow: "0 0 0 rgba(233,211,158,0)" }, { transform: "translateY(-74%)", boxShadow: "0 0 60px rgba(233,211,158,.45)" }], { duration: 1200, easing: "cubic-bezier(.45,0,.2,1)", fill: "forwards" });
+  await wait(1250);
+  [base].forEach((el) => el.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(40%)", opacity: 0 }], { duration: 700, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" }));
+  await wait(240);
+  finale(card, "translateY(-74%)", onDone);
+}
+
+/* ---------- III · the invitation card ---------- */
+function cardHTML(B, D, color) {
+  const t = calc(D); const amount = D.type === "invoice" && D.status === "part" ? t.balance : t.total;
+  return `<div class="invite" id="invite" style="--card:${shade(color, -.15)};--card-d:${shade(color, -.6)}">
+    <div class="inv3d" id="inv3d">
+      <div class="iface ifront"><div class="i-frame"></div>
+        <div class="wax i-wax">${waxSVG(initials(B.name), waxColorFor(color === "#1A1817" ? "#5A1A24" : color), B.name)}</div>
+        <span class="i-eye">${esc(LABEL[D.type])} for</span><b class="i-who">${esc(D.client.name || "you")}</b><span class="i-from">from ${esc(B.name)}</span></div>
+      <div class="iface iback"><div class="i-frame dark"></div>
+        <span class="l-eye">${esc(LABEL[D.type])} · ${esc(D.number)}</span><span class="i-biz">${esc(B.name)}</span><span class="l-rule" style="margin:4px auto"></span>
+        <span class="i-amt">${money(amount, D.currency)}</span><span class="l-for">Prepared for ${esc(D.client.name || "you")}</span></div>
+    </div>
+    <button class="seal-btn card-btn" type="button" id="sealBtn" aria-label="Reveal your ${esc(LABEL[D.type].toLowerCase())}"></button>
+  </div>`;
+}
+let swayAnim = null;
+function startSway(cv) { const el = $("#inv3d", cv); if (!el || reduceMotion) return; swayAnim = el.animate([{ transform: "rotateY(-9deg) rotateX(4deg)" }, { transform: "rotateY(9deg) rotateX(-2deg)" }], { duration: 4200, iterations: Infinity, direction: "alternate", easing: "ease-in-out" }); }
+async function openCard(cv, wax, onDone) {
+  const inv = $("#inv3d", cv), host = $("#invite", cv);
+  swayAnim?.cancel(); buzz(10);
+  $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, easing: "ease-out", fill: "forwards" }));
+  // lift towards you, then turn over
+  inv.animate([{ transform: "translateZ(0) rotateX(0) rotateY(0)" }, { transform: "translateZ(90px) rotateX(10deg) rotateY(0)", offset: .3, easing: "cubic-bezier(.5,0,.2,1)" }, { transform: "translateZ(90px) rotateX(0) rotateY(180deg)" }], { duration: 1500, easing: "cubic-bezier(.3,0,.2,1)", fill: "forwards" });
+  await wait(700); buzz(6);
+  await wait(1450);
+  host.style.zIndex = "8";
+  finale(host, "", onDone);
+}
+
+/* ---------- builds the opening scene for a style ---------- */
+function revealStage(style, B, D, P) {
+  const wax = waxColorFor(P.design.brand || "#1A1817");
+  if (style === "gift") return { html: giftHTML(B, D, lum(P.design.brand) < .012 ? "#1C1A18" : P.design.brand), play: (cv, done) => openGift(cv, wax, done) };
+  if (style === "card") return { html: cardHTML(B, D, P.design.brand || "#1A1817"), play: (cv, done) => openCard(cv, wax, done), after: startSway };
+  return { html: envelopeHTML(B, D, wax), play: (cv, done) => openEnvelope(cv, wax, done) };
 }
 
 /* =========================================================
@@ -1350,18 +1516,23 @@ function openClientView(payload, ctx = {}) {
   const docOpts = { demo: payload.demo, qr: ctx.verified ? qrFor(location.href) : "" };
   let stopDust = () => {};
 
-  cv.innerHTML = `${chrome}<div class="scene" id="scene"><canvas class="dust" id="dust"></canvas>
-    <div class="intro">
+  const style = REVEALS[D.reveal] ? D.reveal : REVEALS[P.design.reveal] ? P.design.reveal : "envelope";
+  const R = style === "none" || reduceMotion ? null : revealStage(style, B, D, P);
+  if (!R) { ctx.skipEnvelope = true; cv.innerHTML = chrome; }
+  else {
+    cv.innerHTML = `${chrome}<div class="scene" id="scene"><canvas class="dust" id="dust"></canvas>
+    <div class="intro is-${style}">
       <span class="eyebrow fade" style="animation-delay:.15s">A private ${docWord} from</span>
       <h1 class="fade" style="animation-delay:.3s"><span class="foil">${esc(B.name || "Your Business")}</span></h1>
-      <div class="env-stage fade" style="animation-delay:.5s">${envelopeHTML(B, D, wax)}</div>
+      <div class="env-stage fade" style="animation-delay:.5s">${R.html}</div>
       <p class="for fade" style="animation-delay:.8s">Prepared for <b>${esc(D.client.name || "you")}</b></p>
-      <span class="tap fade" style="animation-delay:1.2s">Break the seal</span>
+      <span class="tap fade" style="animation-delay:1.2s">${REVEALS[style].tap}</span>
     </div></div>`;
-  stopDust = goldDust($("#dust", cv));
-  let opened = false;
-  const open = () => { if (opened) return; opened = true; playOpening(cv, wax, () => { stopDust(); showMain(); }); };
-  $("#sealBtn", cv).addEventListener("click", open);
+    stopDust = goldDust($("#dust", cv)); R.after?.(cv);
+    let opened = false;
+    const open = () => { if (opened) return; opened = true; $(".env-stage", cv).classList.add("opened"); R.play(cv, () => { stopDust(); showMain(); }); };
+    $("#sealBtn", cv).addEventListener("click", open);
+  }
 
   const thankYou = (kind) => {
     const amt = type === "invoice" && D.status === "part" ? t.balance : t.total;
@@ -1416,12 +1587,13 @@ function openClientView(payload, ctx = {}) {
     if (act === "pdf") exportPDF(P, D, docOpts);
     if (act === "image") exportImage(P, D, docOpts);
     if (act === "paid") { if (ctx.id && configured()) rpc("claim_paid", { p_id: ctx.id, p_method: "transfer", p_ref: "" }).catch(() => {}); thankYou("transfer"); }
+    if (act === "renew") openLink(`https://wa.me/${waNumber(B.phone)}?text=${encodeURIComponent(`Hello ${B.name}, my ${docWord} ${D.number} expired on ${fmtDate(D.dueDate)}. Could you please send me a new one?`)}`);
     if (act === "accept") { if (ctx.id && configured()) rpc("claim_paid", { p_id: ctx.id, p_method: "accept", p_ref: "" }).catch(() => {}); thankYou("accept"); }
   };
 
   function showMain() {
     const name = D.client.name || "there"; const paidFull = type === "receipt" || D.status === "paid"; const n = D.items.length;
-    let lbl, amount, sub = "", chip;
+    let lbl, amount, sub = "", chip; const expired = isExpired(D);
     if (type === "receipt") { lbl = "Payment received"; amount = t.total; chip = `<span class="due-chip ok"><i></i>Paid in full · ${fmtDate(D.issueDate)}</span>`; }
     else if (type === "quotation") { lbl = "Quoted total"; amount = t.total; const d = daysUntil(D.dueDate); chip = d !== null && d < 0 ? `<span class="due-chip late"><i></i>This quote expired on ${fmtDate(D.dueDate)}</span>` : `<span class="due-chip"><i></i>Price held until ${fmtDate(D.dueDate)}</span>`; }
     else if (paidFull) { lbl = "Paid in full"; amount = t.total; chip = `<span class="due-chip ok"><i></i>Thank you, nothing left to pay</span>`; }
@@ -1429,9 +1601,10 @@ function openClientView(payload, ctx = {}) {
       lbl = D.status === "part" && t.paid > 0 ? "Balance to pay" : "Amount to pay"; amount = t.balance;
       if (D.status === "part" && t.paid > 0) sub = `Total ${money(t.total, c)} · deposit paid ${money(t.paid, c)}`;
       const d = daysUntil(D.dueDate);
-      chip = d === null ? "" : d < 0 || D.status === "overdue" ? `<span class="due-chip late"><i></i>Was due ${fmtDate(D.dueDate)}</span>` : d === 0 ? `<span class="due-chip"><i></i>Due today</span>` : `<span class="due-chip"><i></i>Due ${fmtDate(D.dueDate)} · in ${d} day${d > 1 ? "s" : ""}</span>`;
+      chip = !D.dueDate ? "" : expired ? `<span class="due-chip late"><i></i>Expired on ${fmtDate(D.dueDate)}</span>` : d === 0 ? `<span class="due-chip"><i></i>Valid until today</span>` : `<span class="due-chip"><i></i>Valid until ${fmtDate(D.dueDate)} · ${d} day${d > 1 ? "s" : ""} left</span>`;
+      if (expired) { lbl = "This invoice has expired"; }
     }
-    const intro = type === "receipt" ? `Thank you for your payment. This is your official receipt from ${esc(B.name)}.`
+    const intro = expired ? `This ${docWord} from ${esc(B.name)} expired on ${fmtDate(D.dueDate)}. Ask for a fresh one and you'll be set in a moment.` : type === "receipt" ? `Thank you for your payment. This is your official receipt from ${esc(B.name)}.`
       : type === "quotation" ? `Thank you for considering ${esc(B.name)}. Here is your personal quotation.`
       : paidFull ? `Thank you for your payment. Here is your settled invoice from ${esc(B.name)}.`
       : `Thank you for choosing ${esc(B.name)}. Settling this takes less than a minute.`;
@@ -1443,8 +1616,9 @@ function openClientView(payload, ctx = {}) {
         <div class="email-ask" id="email-ask" hidden><input id="cv-email" type="email" inputmode="email" placeholder="Your email, for the payment receipt" autocomplete="email"></div>
         ${bankCard ? `<div class="or">or bank transfer</div>` : ""}` : "";
     const payLinkBtn = !canPaystack && K.payLink ? `<button class="btn block" type="button" data-cv="paylink">Pay online</button>` : "";
-    let steps;
-    if (type === "quotation") steps = [["What's included", `<p>${n} item${n > 1 ? "s" : ""} prepared for you.</p>${itemsList}`], ["Price held for you", `<p>Reserved until <b>${fmtDate(D.dueDate)}</b>.</p>`], ["Ready to go ahead?", `<p>Accept with one tap and ${esc(B.name)} will take it from there.</p><button class="btn primary block" type="button" data-cv="accept">Accept this quotation</button>`]];
+    let steps, gTitle = type === "quotation" ? "Your quotation" : paidFull ? "All settled" : "Three simple steps", gSub = type === "quotation" ? "Review, then confirm when you're ready." : paidFull ? "Here's a summary of your order." : "Review, pay, and you're done.";
+    if (expired) { gTitle = "This has expired"; gSub = `It was valid until ${fmtDate(D.dueDate)}.`; steps = [["What it covered", itemsList], ["Request a new one", `<p>${esc(B.name)} can send you an updated ${docWord} in a moment.</p><button class="btn primary block" type="button" data-cv="renew">Request a new ${docWord}</button>`]]; }
+    else if (type === "quotation") steps = [["What's included", `<p>${n} item${n > 1 ? "s" : ""} prepared for you.</p>${itemsList}`], ["Price held for you", `<p>Reserved until <b>${fmtDate(D.dueDate)}</b>.</p>`], ["Ready to go ahead?", `<p>Accept with one tap and ${esc(B.name)} will take it from there.</p><button class="btn primary block" type="button" data-cv="accept">Accept this quotation</button>`]];
     else if (paidFull) steps = [["Your order", itemsList], ["Payment confirmed", `<p>${esc(B.name)} received <b>${money(t.total, c)}</b>${type === "receipt" ? ` on ${fmtDate(D.issueDate)}` : ""}.</p>`], ["Keep your copy", `<p>Download your official ${docWord} below, signed and sealed.</p>`]];
     else steps = [["Review your order", itemsList], [canPaystack ? "Pay in one tap" : "Pay by transfer", `${canPaystack ? `<p>Pay securely with card, transfer or USSD.</p>` : `<p>Copy the account number and pay <b>${money(t.balance, c)}</b> from your banking app.</p>`}${paystackBlock}${bankCard}${payLinkBtn}`],
       ["Let us know", `<p>Paid by transfer? Tell ${esc(B.name)} so your order is confirmed quickly.</p><button class="btn block" type="button" data-cv="paid">I've paid by transfer</button>`]];
@@ -1457,7 +1631,7 @@ function openClientView(payload, ctx = {}) {
       <div class="cv-brand">${logo}<div><b>${esc(B.name)}</b><small>${esc(LABEL[type])} · ${esc(D.number)}</small></div></div>
       <div class="cv-hello"><h1>Dear ${esc(name)},</h1><p>${intro}</p></div>
       <div class="cv-card cv-amount"><span class="lbl">${lbl}</span><span class="amt foil" id="cv-amt">${money(amount, c)}</span>${sub ? `<span class="sub">${sub}</span>` : ""}${chip}</div>
-      <div class="cv-card cv-guide"><h2>${type === "quotation" ? "Your quotation" : paidFull ? "All settled" : "Three simple steps"}</h2><p>${type === "quotation" ? "Review, then confirm when you're ready." : paidFull ? "Here's a summary of your order." : "Review, pay, and you're done."}</p>
+      <div class="cv-card cv-guide"><h2>${gTitle}</h2><p>${gSub}</p>
         <ol class="gsteps">${steps.map((s, i) => `<li class="gstep"><span class="dot">${["i", "ii", "iii"][i]}</span><div class="body"><h3>${s[0]}</h3>${s[1]}</div></li>`).join("")}</ol></div>
       <div class="cv-card cv-doc"><h2>Your official ${docWord}</h2><p>Signed and sealed by ${esc(B.name)}.</p><div class="cv-paper" id="cv-paper"></div>
         <div class="actions"><button class="btn primary" type="button" data-cv="pdf">Download PDF</button><button class="btn" type="button" data-cv="image">Save image</button></div></div>
@@ -1500,6 +1674,7 @@ const REASONS = { invalid: "That licence key isn't valid. Check it and try again
 
 async function bootLicence() {
   $("#art-env").innerHTML = envelopeHTML({ name: "Maison Temi" }, { type: "invoice", number: "INV-0001", client: { name: "Chief Mrs. Adebayo" } }, "#5A1A24");
+  ["env", "letter", "pocket", "flap", "sealTop", "sealWrap", "sealLow", "crackPath", "sealBtn"].forEach((k) => $("#art-env #" + k)?.removeAttribute("id"));
   const tilt = $("#art-tilt");
   if (!reduceMotion && matchMedia("(hover: hover)").matches) $("#gate").addEventListener("pointermove", (e) => { const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5; tilt.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 8}deg)`; });
   $("#gate-fine").innerHTML = "Your licence is personal to you and works on your own devices." + (CONFIG.BUY_LINK ? ` <a href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get a licence</a>` : "");
@@ -1539,7 +1714,7 @@ const SAMPLE_PROFILE = () => ({ setupDone: true, isSample: true,
   bank: { bankName: "GTBank", accountName: "Adaeze Couture Ltd", accountNumber: "0123456789", payLink: "", paystackKey: "" },
   design: { template: "royal", brand: "#1A1817", seal: true }, counters: { invoice: 41, receipt: 17, quotation: 8 } });
 const blankItem = () => ({ id: uid(), desc: "", note: "", qty: 1, price: "" });
-const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: iso(addDays(type === "quotation" ? 14 : 7)), status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
+const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
   client: { name: "", company: "", address: "", phone: "", email: "" }, items: [blankItem()], discountType: "amount", discount: "", delivery: "", vatOn: false, vatRate: 7.5, amountPaid: "", notes: "", link: "", shareId: "" });
 const sampleDoc = () => ({ ...newDocFor(SAMPLE_PROFILE()), number: "INV-0042", status: "part",
   client: { name: "Mrs. Funmilayo Bakare", company: "", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 876 5432", email: "" },
@@ -1728,10 +1903,10 @@ function syncChrome() {
     $("#due-label").textContent = "Date paid"; const back = -daysUntil(D.issueDate);
     chipRow($("#due-chips"), [{ label: "Today", v: 0 }, { label: "Yesterday", v: 1 }, { label: back > 1 ? fmtDate(D.issueDate) : "Another day", v: "pick", add: back <= 1 }], (o) => (o.v === "pick" ? back > 1 : o.v === back), (o) => { if (o.v === "pick") return pickDate("Date paid", "doc.issueDate"); D.issueDate = iso(addDays(-o.v)); persist(); syncChrome(); render(); });
   } else {
-    $("#due-label").textContent = D.type === "quotation" ? "Price valid for" : "Pay by";
-    const base = D.type === "quotation" ? [{ label: "7 days", v: 7 }, { label: "14 days", v: 14 }, { label: "30 days", v: 30 }] : [{ label: "Today", v: 0 }, { label: "3 days", v: 3 }, { label: "1 week", v: 7 }, { label: "2 weeks", v: 14 }, { label: "30 days", v: 30 }];
-    const known = base.some((o) => o.v === dd);
-    chipRow($("#due-chips"), [...base, { label: known ? "Pick a date" : fmtDate(D.dueDate), v: "pick", add: known }], (o) => (o.v === "pick" ? !known : o.v === dd), (o) => { if (o.v === "pick") return pickDate(D.type === "quotation" ? "Valid until" : "Pay by", "doc.dueDate"); D.dueDate = iso(addDays(o.v)); persist(); syncChrome(); render(); });
+    $("#due-label").innerHTML = D.type === "quotation" ? "Price valid for" : "Valid until <em>(optional: after this date an unpaid invoice expires)</em>";
+    const base = D.type === "quotation" ? [{ label: "7 days", v: 7 }, { label: "14 days", v: 14 }, { label: "30 days", v: 30 }] : [{ label: "No expiry", v: null }, { label: "3 days", v: 3 }, { label: "1 week", v: 7 }, { label: "2 weeks", v: 14 }, { label: "30 days", v: 30 }];
+    const cur = D.dueDate ? dd : null; const known = base.some((o) => o.v === cur);
+    chipRow($("#due-chips"), [...base, { label: known ? "Pick a date" : fmtDate(D.dueDate), v: "pick", add: known }], (o) => (o.v === "pick" ? !known : o.v === cur), (o) => { if (o.v === "pick") return pickDate("Valid until", "doc.dueDate"); D.dueDate = o.v === null ? "" : iso(addDays(o.v)); persist(); syncChrome(); render(); });
   }
   // recent clients
   const recent = [...S.clients].sort((a, b) => b.last - a.last).slice(0, 5);
@@ -1750,7 +1925,7 @@ function syncChrome() {
   // payment
   $("#pay-title").textContent = D.type === "receipt" ? "How were you paid?" : D.type === "quotation" ? "Payment details" : "Payment";
   $("#status-block").hidden = D.type !== "invoice";
-  chipRow($("#status-chips"), [{ label: "Not yet", v: "unpaid" }, { label: "Paid a deposit", v: "part" }, { label: "Paid in full", v: "paid" }, { label: "Overdue", v: "overdue" }], (o) => o.v === D.status, (o) => { D.status = o.v; if (o.v === "part" && !num(D.amountPaid)) D.amountPaid = round2(t.total * .5); persist(); syncChrome(); render(); });
+  chipRow($("#status-chips"), [{ label: "Not yet", v: "unpaid" }, { label: "Paid a deposit", v: "part" }, { label: "Paid in full", v: "paid" }], (o) => o.v === (D.status === "overdue" ? "unpaid" : D.status), (o) => { D.status = o.v; if (o.v === "part" && !num(D.amountPaid)) D.amountPaid = round2(t.total * .5); persist(); syncChrome(); render(); });
   $("#deposit-block").hidden = !(D.type === "invoice" && D.status === "part");
   const paidAmt = num(D.amountPaid); const pcts = [30, 50, 70].map((p) => ({ label: `${p}%`, v: round2(t.total * p / 100) }));
   const isPreset = pcts.some((o) => o.v === paidAmt);
@@ -1768,6 +1943,9 @@ function syncChrome() {
   if (document.activeElement !== $("#c-phone")) $("#c-phone").value = D.client.phone || "";
   // send
   $("#send-sub").textContent = `Your ${LABEL[D.type].toLowerCase()} for ${D.client.name || "your client"} is ready.`;
+  const RV_ICONS = { envelope: '<path d="M3 7h18v11H3z"/><path d="M3 7l9 7 9-7"/><circle cx="12" cy="13.5" r="2.2" fill="currentColor" stroke="none"/>', gift: '<rect x="4" y="10" width="16" height="10"/><rect x="3" y="7" width="18" height="3.5"/><path d="M12 7v13M12 7c-2-4-6-4-5-1 1 2 5 1 5 1zM12 7c2-4 6-4 5-1-1 2-5 1-5 1z"/>', card: '<rect x="6" y="3" width="12" height="18" rx="1.5"/><rect x="8" y="5" width="8" height="14" rx=".5"/><path d="M10 12h4"/>', none: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 16h4"/>' };
+  const curR = REVEALS[D.reveal] ? D.reveal : "envelope";
+  $("#reveal-grid").innerHTML = Object.entries(REVEALS).map(([k, v]) => `<button type="button" class="rv" data-reveal="${k}" aria-pressed="${k === curR}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">${RV_ICONS[k]}</svg>${v.name}</button>`).join("");
   $("#make-link").textContent = D.link ? "Update private link" : "Create private link";
   $("#link-box").hidden = !D.link; $("#link-text").textContent = D.link || "";
   // plan chip
@@ -1798,6 +1976,7 @@ $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
   persist(); syncChrome(); swapAnim(); render({ enter: true });
 }));
 $("#bank-line").addEventListener("click", () => openHouse("bank"));
+$("#reveal-grid").addEventListener("click", (e) => { const b = e.target.closest("[data-reveal]"); if (!b) return; S.doc.reveal = b.dataset.reveal; S.profile.design.reveal = b.dataset.reveal; persist(); syncChrome(); toast(`Your client will see: ${REVEALS[b.dataset.reveal].name}`); });
 function swapAnim() { const w = $("#paper-wrap"); w.classList.remove("swap"); void w.offsetWidth; if (!reduceMotion) w.classList.add("swap"); }
 
 /* client autocomplete */
@@ -1911,7 +2090,7 @@ function sendWhatsApp() {
   const D = S.doc, P = S.profile, t = calc(D), c = D.currency; const lines = [`Hello ${D.client.name || "there"},`, ""];
   if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}. Here is your receipt ${D.number} from ${P.business.name}.`);
   else if (D.type === "quotation") lines.push(`Here is your quotation ${D.number} from ${P.business.name}.`, `Quoted total: ${money(t.total, c)}`);
-  else { lines.push(`Here is your invoice ${D.number} from ${P.business.name}.`, D.status === "part" ? `Balance to pay: ${money(t.balance, c)}` : `Amount: ${money(t.total, c)}`, `Pay by: ${fmtDate(D.dueDate)}`); if (!D.link && P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`); }
+  else { lines.push(`Here is your invoice ${D.number} from ${P.business.name}.`, D.status === "part" ? `Balance to pay: ${money(t.balance, c)}` : `Amount: ${money(t.total, c)}`); if (D.dueDate) lines.push(`Valid until: ${fmtDate(D.dueDate)}`); if (!D.link && P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`); }
   if (D.link) lines.push("", "Open your sealed envelope:", D.link);
   lines.push("", "Thank you for your patronage.");
   openLink(`https://wa.me/${waNumber(D.client.phone)}?text=${encodeURIComponent(lines.join("\n"))}`); rememberDoc();

@@ -15,12 +15,23 @@ This folder is a separate product. It isn't part of the Baseline Educational Ser
 It ends with a ceremony where their own wax seal is pressed.
 
 **Creating a document takes four chapters, with very little typing:**
-1. **Client:** Invoice, Receipt or Quotation. Saved clients appear as you type. Due date is a one-tap chip (Today, 3 days, 1 week, 2 weeks, 30 days, or pick a date).
+1. **Client:** Invoice, Receipt or Quotation. Saved clients appear as you type. An optional "valid until" date is a one-tap chip (No expiry, 3 days, 1 week, 2 weeks, 30 days, or pick a date).
 2. **Items:** saved items and industry suggestions appear as you type. Quantity uses +/− buttons, and prices format with commas. Discount (5%, 10%, 15%, amount) and delivery fee (₦2,000, ₦3,500, ₦5,000, other) are one-tap chips, plus a VAT switch.
 3. **Payment:** status chips, deposit chips (30%, 50%, 70%), payment method for receipts, and ready-made notes.
 4. **Send:** private link, WhatsApp, PDF, image.
 
 **"My house" settings:** identity, bank (searchable list of Nigerian banks and fintechs), Paystack public key, design (Royal, Atelier or Noir in any colour), signature and plan.
+
+## Opening styles (chosen per invoice in the Send chapter)
+- **Wax-seal envelope:** the seal cracks along the flap edge. The top half lifts away with the flap, the bottom half stays on the envelope, and the letter slides out.
+- **Gift box:** a satin bow unties, the ribbons slip off, the lid lifts, and the invoice rises out glowing.
+- **Invitation card:** a black card with a gold frame lifts towards the client and turns over to reveal the amount.
+- **Straight to invoice:** no animation, for clients in a hurry.
+
+## Valid until (optional)
+Invoices don't need a pay-by date. The business can set an optional **Valid until** date. If it passes and the invoice is still unpaid:
+- The document shows an **EXPIRED** stamp.
+- The client's link shows "This invoice has expired" with a **Request a new invoice** button that opens WhatsApp to the business.
 
 ## The private link (the signature feature)
 When the client opens the link:
