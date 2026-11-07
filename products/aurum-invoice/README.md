@@ -1,102 +1,121 @@
 # Aurum Invoice Studio
 
-Luxury invoices, receipts and quotations for Nigerian businesses. It's one HTML file with no build step, and it's free to host.
+Luxury invoices, receipts and quotations for Nigerian businesses, delivered as a sealed envelope by link.
 
-This folder is a separate product. It isn't part of the Baseline Educational Services website.
+This folder is a separate product. It isn't part of the Baseline Educational Services website. The whole app is one file, `index.html`, with no build step.
 
 ## What buyers get
-- **Three documents in one tool:** Invoice, Receipt and Quotation, with automatic numbers (INV-0001, RCT-0001, QUO-0001).
-- **Three designs:**
-  - **Royal:** brand-colour band with gold foil.
-  - **Atelier:** white, editorial.
-  - **Noir:** black with a gold frame.
-- **Brand colour:** six preset colours, or pick any custom colour.
-- **Their own branding:** logo upload, business details, CAC/RC number, TIN, and bank details. These are saved on the device, so they type them once.
-- **Automatic company seal** with their business name around the ring, plus a typed or uploaded signature.
-- **Totals in ₦ (or $ / £):** discount (amount or %), delivery fee, VAT (7.5% by default), deposit paid and balance due.
-- **Amount in words:** "Four Hundred and Seventy-Five Thousand Naira Only".
-- **Status:** PAID and OVERDUE rubber stamps, and a part-paid status.
-- **Guided editor:** six short steps (Business → Client → Items → Payment → Look → Send) with plain-language labels.
-- **Saving and sending:**
-  - Download as a PDF (A4).
-  - Save as an image for WhatsApp. On Android it opens the share sheet straight away.
-  - Send on WhatsApp opens a chat with the client, with the total, balance and bank details already written.
-- **Saved documents list** to reopen past invoices.
-- **Animation:** the invoice builds in on screen, totals count up, new items slide in, stamps land with a thud, and the gold foil shimmers. Animation turns off for people who have "reduce motion" switched on.
 
-## The signature feature: Private Invoice Links
-Instead of only sending a PDF, the business sends their client a **private link**. When the client opens it:
-1. **The sealed envelope:** the business's name in gold and an envelope closed with a wax seal carrying their initials and brand colour. The client taps the seal, it breaks, the flap opens, and the letter slides out.
-2. **"Dear Mrs. Bakare,"** with a personal greeting and the amount to pay, counting up in gold, plus a due-date countdown ("Due 14 Nov · in 7 days").
-3. **A 3-step guide that lights up one step at a time:**
-   - Review your order
-   - Pay in one tap (copy the account number)
-   - Send your proof (opens WhatsApp to the business with the message written)
+**First-run welcome.** A short setup that asks for:
+- Business name and tagline
+- Their craft (fashion, beauty, events, food, real estate, photo, tech, logistics, retail)
+- Brand colour and logo
+- WhatsApp number and bank details
 
-   Quotations get "Accept this quotation" instead. Receipts show "Payment confirmed".
-4. **Their official invoice** with Download PDF and Save image buttons.
-5. **A green "Verified document" check.** Each PDF also carries a QR code that opens the online copy, so anyone can confirm the invoice is genuine.
+It ends with a ceremony where their own wax seal is pressed.
 
-The business sees in **Sent and saved** when the client opened the link, how many times, and when the client tapped "I've paid".
+**Creating a document takes four chapters, with very little typing:**
+1. **Client:** Invoice, Receipt or Quotation. Saved clients appear as you type. Due date is a one-tap chip (Today, 3 days, 1 week, 2 weeks, 30 days, or pick a date).
+2. **Items:** saved items and industry suggestions appear as you type. Quantity uses +/− buttons, and prices format with commas. Discount (5%, 10%, 15%, amount) and delivery fee (₦2,000, ₦3,500, ₦5,000, other) are one-tap chips, plus a VAT switch.
+3. **Payment:** status chips, deposit chips (30%, 50%, 70%), payment method for receipts, and ready-made notes.
+4. **Send:** private link, WhatsApp, PDF, image.
 
-**On the free trial,** links still work but carry the invoice inside the link itself. They show a small DEMO ribbon and no "Verified" badge. Licensed users get short links stored in Supabase, with verification and open tracking.
+**"My house" settings:** identity, bank (searchable list of Nigerian banks and fintechs), Paystack public key, design (Royal, Atelier or Noir in any colour), signature and plan.
 
-## Stopping people from sharing their licence
-Each buyer gets a licence key like `AUR-7F3A-91C2-0BDE`. The first time they open the app, they enter the key, and it gets **locked to that phone or laptop**.
-- One key works on **2 devices** (you can change this per buyer).
-- If a buyer shares their key or link, their friend's device is refused once the 2 slots are used.
-- You can **switch off a key** at any time, for example a refund or a key posted online. It stops working the next time the app is opened online.
-- After 7 days without internet, the app asks to go online and re-check the licence.
+## The private link (the signature feature)
+When the client opens the link:
+1. A black paper envelope with a gold-foil lining appears under drifting gold dust, sealed with the business's own wax seal. The seal is generated from their name and colour, with an embossed gilded monogram.
+2. The client taps the seal. It cracks along a jagged line and the halves fall with gravity, scattering crumbs. The phone gives a small vibration where supported.
+3. The flap swings open in 3D, the letter slides out of the pocket, and it moves towards the reader.
+4. A personal page follows:
+   - "Dear Chief Mrs. Adebayo," with the amount counting up in gold and a due-date countdown.
+   - A three-step guide that lights up step by step: review → pay → let us know.
+5. **Payment:**
+   - **Paystack button** (when the business adds its public key): card, transfer or USSD inside the page.
+   - **Bank transfer** with a one-tap Copy button for the account number.
+6. **Thank-you card:** after paying, or tapping "I've paid", the client gets an animated card with gold leaf falling. They can save it, and it has a button to send proof on WhatsApp.
+7. The official PDF is ready to download. A green "Verified document" check confirms it's genuine, and the PDF carries a QR code that opens the verified copy.
 
-Without a key, people can **try the demo**. It works fully, but every invoice carries a small "DEMO" corner ribbon. That's your free trial: they see how good it looks, then pay to remove the watermark.
+**Business owners see activity in "Sent & saved":** "Opened 2×", "Paid via Paystack", "Client says paid", and "Quote accepted".
 
-**Limit:** this protection is strong enough to stop ordinary sharing between friends. A skilled programmer could still copy the file and remove the check, because the app runs in the browser. Version 2 (online accounts and live invoice links) moves the important parts onto a server and closes that gap.
+## Plans
 
-## Set-up (about 15 minutes, free)
+| | Free trial | Signature | Prestige |
+|---|---|---|---|
+| Full studio | ✓ | ✓ | ✓ |
+| Corner "DEMO" ribbon | ✓ | — | — |
+| Short verified links, QR codes, open tracking | — | ✓ | ✓ |
+| Devices | this one | 2 | 3 |
+| Own web address (e.g. invoice.theirbrand.ng) | — | — | ✓ |
+| No Aurum branding on the client page | — | — | ✓ |
 
-### 1. Create the licence and invoice-link database
+Trial links still work, but the invoice travels inside the link itself, so they're long and unverified.
+
+## One buyer, one licence: how sharing is stopped
+1. **Device lock.** A key works on 2 devices (3 for Prestige). A friend's phone is refused.
+2. **Business lock.** The first business name that sends with a key is locked to it. If a friend somehow got in, they couldn't send invoices under their own business name. You can unlock it if a buyer genuinely rebrands.
+3. **Switch-off.** Turn off any key, and its links stop working too.
+
+**Limit:** someone skilled in coding could copy the file and use it in trial mode without the ribbon. They still wouldn't get verified links, short links, tracking or the business lock, because those live on your server.
+
+## What it costs you (you can start at ₦0)
+| Service | Cost | Notes |
+|---|---|---|
+| Netlify or Cloudflare Pages (hosting) | Free | Plenty for thousands of buyers. |
+| Supabase (licences and links) | Free | 500 MB database. **A free project pauses after about a week with no activity.** Once buyers use it daily it stays awake. If it ever pauses, you click "Restore" in Supabase. |
+| Paystack | Free for you | Each business uses **their own** Paystack account. Paystack charges *them* a per-payment fee, not you. |
+| Custom web address (Prestige) | Paid by the buyer | The buyer buys their own domain (roughly ₦10k–₦20k/year from a registrar). You connect it in Netlify for free. |
+| Selar | Takes a cut of each sale | Check Selar's current fee. Nothing to pay upfront. |
+| Fonts, QR code and image libraries | Free | Loaded from free public CDNs. |
+
+## Set-up (about 15 minutes)
+
+### 1. Create the database
 1. Make a free account at supabase.com and create a new project.
-2. Open **SQL Editor**, paste everything in `licences.sql`, and click **Run**.
+2. Open **SQL Editor**, paste everything in `licences.sql`, and click **Run**. It's safe to run again after updates.
 3. Open **Project Settings → API**. Copy the **Project URL** and the **anon public** key.
 
 ### 2. Connect the app
-Open `index.html` and fill in the settings near the top of the script:
-
+Fill in the settings near the top of the script in `index.html`:
 ```js
 const CONFIG = {
   SUPABASE_URL: "https://YOUR-PROJECT.supabase.co",
   SUPABASE_ANON_KEY: "your-anon-public-key",
-  BUY_LINK: "https://wa.me/234XXXXXXXXXX?text=I%20want%20to%20buy%20Aurum",
+  BUY_LINK: "https://selar.co/your-product",
+  SELLER_WHATSAPP: "2348031234567",
   OFFLINE_GRACE_DAYS: 7,
 };
 ```
+The anon key is designed to be public. The database only lets it call the licence and link functions, so it can't read your buyer list or create keys.
 
-The anon key is designed to be public. The database only lets it call the licence check, so it can't read your buyers' list.
+### 3. Put it online
+Drag this folder onto app.netlify.com/drop, or connect the repo to Netlify or Cloudflare Pages with `products/aurum-invoice` as the folder.
 
-### 3. Put it online for free
-Choose one:
-- **Netlify Drop:** go to app.netlify.com/drop and drag this folder in. You get a link immediately.
-- **Vercel or Cloudflare Pages:** connect the repo and set the root folder to `products/aurum-invoice`.
+### 4. Sell on Selar
+Selling is manual for now:
+1. Set your Selar product to deliver a short note: *"Thank you! Send your Selar receipt to us on WhatsApp to receive your personal licence key."*
+2. When a buyer messages you, run this in the Supabase SQL Editor:
+   ```sql
+   select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567');
+   -- Prestige: select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567', 3, 'prestige');
+   ```
+3. Send them the key and the app link.
 
-### 4. Sell a licence
-When someone pays, open the Supabase SQL Editor and run:
+Check whether Selar can deliver a unique code per buyer automatically. If it can, you can upload a batch of keys and skip step 2.
 
+### 5. Prestige: connect their own web address
+In Netlify, open **Domain management → Add a domain alias**, enter the buyer's address (e.g. `invoice.theirbrand.ng`), and give them the DNS record Netlify shows. Once it's live, the buyer opens the app from their own address, and every link they send uses it automatically. Then upgrade their key:
 ```sql
-select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567');
+update licences set plan = 'prestige', max_devices = 3 where key = 'AUR-XXXX-XXXX-XXXX';
 ```
-
-It returns their key. Send the key and the app link on WhatsApp.
 
 ### Everyday admin
 These commands are at the bottom of `licences.sql`:
 - **Block a shared key:** `update licences set active = false where key = '...';`
 - **Buyer changed phone:** `delete from licence_devices where licence_key = '...';`
-- **See who is using the app:** the report query.
+- **Buyer rebranded:** `update licences set business_name = null where key = '...';`
 
 ## Pricing ideas
-- **One-time licence:** ₦10,000–₦20,000.
-- **Done-for-you set-up:** ₦25,000–₦50,000. You fill in their logo and details and send them the link.
-- **Launch offer:** first 20 buyers at ₦7,500 in exchange for a testimonial or screenshot.
-
-## Example details
-The app opens with sample details (a fictional fashion house, "Adaeze Couture") so buyers see a finished invoice straight away. They tap **Start with my business** to clear it.
+- **Signature:** ₦15,000–₦25,000 one-time.
+- **Prestige:** ₦50,000+ one-time, plus the buyer's own domain.
+- **Launch offer:** the first 20 buyers at a discount in exchange for a testimonial video of their client opening the envelope.

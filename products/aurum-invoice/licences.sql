@@ -9,6 +9,8 @@ create table if not exists public.licences (
   buyer_email  text,
   buyer_phone  text,
   max_devices  int  not null default 2,
+  plan         text not null default 'signature' check (plan in ('signature', 'prestige')),
+  business_name text,           -- locked to the first business that sends with this key
   active       boolean not null default true,
   created_at   timestamptz not null default now()
 );
@@ -20,6 +22,10 @@ create table if not exists public.licence_devices (
   last_seen    timestamptz not null default now(),
   primary key (licence_key, device_id)
 );
+
+-- For databases created with an earlier version of this file:
+alter table public.licences add column if not exists plan text not null default 'signature';
+alter table public.licences add column if not exists business_name text;
 
 -- Lock both tables. With RLS on and no policies, the public app key can't read or
 -- change them directly; it can only call the function below.
@@ -61,7 +67,7 @@ begin
   end if;
 
   select count(*) into used from public.licence_devices where licence_key = lic.key;
-  return json_build_object('ok', true, 'email', lic.buyer_email, 'devices_used', used, 'max_devices', lic.max_devices);
+  return json_build_object('ok', true, 'email', lic.buyer_email, 'plan', lic.plan, 'devices_used', used, 'max_devices', lic.max_devices);
 end;
 $$;
 
@@ -70,7 +76,9 @@ grant execute on function public.activate_license(text, text) to anon, authentic
 
 -- Make a new key for a buyer (run in the SQL editor, never from the app):
 --   select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567');
-create or replace function public.new_licence(p_name text, p_email text, p_phone text default null, p_devices int default 2)
+--   Prestige buyer:  select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567', 3, 'prestige');
+drop function if exists public.new_licence(text, text, text, int);
+create or replace function public.new_licence(p_name text, p_email text, p_phone text default null, p_devices int default 2, p_plan text default 'signature')
 returns text
 language plpgsql
 security definer
@@ -84,12 +92,12 @@ begin
                 || upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 4));
     exit when not exists (select 1 from public.licences where key = k);
   end loop;
-  insert into public.licences (key, buyer_name, buyer_email, buyer_phone, max_devices)
-  values (k, p_name, p_email, p_phone, p_devices);
+  insert into public.licences (key, buyer_name, buyer_email, buyer_phone, max_devices, plan)
+  values (k, p_name, p_email, p_phone, p_devices, p_plan);
   return k;
 end;
 $$;
-revoke all on function public.new_licence(text, text, text, int) from public, anon, authenticated;
+revoke all on function public.new_licence(text, text, text, int, text) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------
 -- Private invoice links
@@ -105,8 +113,12 @@ create table if not exists public.invoices (
   last_viewed_at   timestamptz,
   view_count       int not null default 0,
   paid_claimed_at  timestamptz,
+  paid_method      text,
+  paid_ref         text,
   unique (licence_key, doc_id)
 );
+alter table public.invoices add column if not exists paid_method text;
+alter table public.invoices add column if not exists paid_ref text;
 alter table public.invoices enable row level security;
 
 -- Internal check used by the functions below: is this key active and this device registered?
@@ -122,10 +134,18 @@ revoke all on function public._licence_ok(text, text) from public, anon, authent
 -- Business saves (or updates) an invoice and gets its private link id.
 create or replace function public.publish_invoice(p_key text, p_device text, p_doc_id text, p_payload jsonb)
 returns json language plpgsql security definer set search_path = public as $$
-declare v_id text;
+declare v_id text; v_name text; v_locked text;
 begin
   if not public._licence_ok(p_key, p_device) then return json_build_object('ok', false, 'reason', 'licence'); end if;
   if octet_length(p_payload::text) > 1500000 then return json_build_object('ok', false, 'reason', 'too_large'); end if;
+  -- One licence = one business. The first business name used is locked in.
+  v_name := lower(regexp_replace(trim(coalesce(p_payload->'profile'->'business'->>'name', '')), '\s+', ' ', 'g'));
+  select business_name into v_locked from public.licences where key = upper(trim(p_key));
+  if v_locked is null then
+    update public.licences set business_name = v_name where key = upper(trim(p_key));
+  elsif v_locked <> v_name then
+    return json_build_object('ok', false, 'reason', 'business_mismatch');
+  end if;
   select id into v_id from public.invoices where licence_key = upper(trim(p_key)) and doc_id = p_doc_id;
   if v_id is null then
     loop
@@ -155,10 +175,11 @@ end;
 $$;
 
 -- Client taps "I've paid" / "Accept".
-create or replace function public.claim_paid(p_id text)
+drop function if exists public.claim_paid(text);
+create or replace function public.claim_paid(p_id text, p_method text default 'transfer', p_ref text default '')
 returns json language plpgsql security definer set search_path = public as $$
 begin
-  update public.invoices set paid_claimed_at = now() where id = p_id;
+  update public.invoices set paid_claimed_at = now(), paid_method = left(p_method, 20), paid_ref = left(p_ref, 80) where id = p_id;
   return json_build_object('ok', found);
 end;
 $$;
@@ -168,16 +189,18 @@ create or replace function public.invoice_activity(p_key text, p_device text)
 returns setof json language plpgsql security definer set search_path = public as $$
 begin
   if not public._licence_ok(p_key, p_device) then return; end if;
-  return query select json_build_object('doc_id', doc_id, 'id', id, 'view_count', view_count, 'first_viewed_at', first_viewed_at, 'last_viewed_at', last_viewed_at, 'paid_claimed_at', paid_claimed_at)
+  return query select json_build_object('doc_id', doc_id, 'id', id, 'view_count', view_count, 'first_viewed_at', first_viewed_at, 'last_viewed_at', last_viewed_at, 'paid_claimed_at', paid_claimed_at, 'paid_method', paid_method)
     from public.invoices where licence_key = upper(trim(p_key)) order by updated_at desc limit 200;
 end;
 $$;
 
-revoke all on function public.publish_invoice(text, text, text, jsonb), public.view_invoice(text), public.claim_paid(text), public.invoice_activity(text, text) from public;
-grant execute on function public.publish_invoice(text, text, text, jsonb), public.view_invoice(text), public.claim_paid(text), public.invoice_activity(text, text) to anon, authenticated;
+revoke all on function public.publish_invoice(text, text, text, jsonb), public.view_invoice(text), public.claim_paid(text, text, text), public.invoice_activity(text, text) from public;
+grant execute on function public.publish_invoice(text, text, text, jsonb), public.view_invoice(text), public.claim_paid(text, text, text), public.invoice_activity(text, text) to anon, authenticated;
 
 -- Everyday admin (run in the SQL editor):
 --   Block a key that was shared:      update licences set active = false where key = 'AUR-XXXX-XXXX-XXXX';
+--   Upgrade to Prestige:              update licences set plan = 'prestige', max_devices = 3 where key = 'AUR-XXXX-XXXX-XXXX';
+--   Let a buyer rename their business: update licences set business_name = null where key = 'AUR-XXXX-XXXX-XXXX';
 --   Free a buyer's device slots       delete from licence_devices where licence_key = 'AUR-XXXX-XXXX-XXXX';
 --   (new phone, cleared browser):
 --   See who uses which key:           select l.buyer_name, l.key, count(d.*) devices, max(d.last_seen) last_used
