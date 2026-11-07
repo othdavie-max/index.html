@@ -6,6 +6,13 @@
 <title>Aurum Invoice Studio</title>
 <meta name="description" content="Luxury invoices, receipts and quotations for Nigerian businesses.">
 <meta name="theme-color" content="#0B0A09">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aurum">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..800;1,400..700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=Mrs+Saint+Delafield&display=swap">
@@ -830,6 +837,60 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .saved-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 .act.late { border-color: rgba(240,133,122,.5); color: var(--danger); }
 
+
+/* ---------- extra documents, photos ---------- */
+.more-docs { margin-top: -10px; }
+.more-docs .chip { height: 34px; font-size: 12.5px; padding: 0 13px; }
+.inv.k-delivery .items .p, .inv.k-delivery .items .t, .inv.k-delivery .items th:nth-child(4), .inv.k-delivery .items th:nth-child(5), .inv.k-delivery .sum { display: none; }
+.inv.k-delivery .items .q { font-size: 15px; font-weight: 700; width: 90px; }
+.inv .items .desc .it-img { float: left; width: 46px; height: 46px; object-fit: cover; border-radius: 4px; margin: 0 14px 4px 0; box-shadow: 0 0 0 1px var(--p-rule-soft); }
+.inv .items .desc { overflow: hidden; }
+#items-block.no-price .money-in, #items-block.no-price #disc-chips, #items-block.no-price #del-chips, #items-block.no-price .toggle, #items-block.no-price .sumbox, #items-block.no-price .field:has(#disc-chips), #items-block.no-price .field:has(#del-chips) { display: none; }
+#items-block.no-price .item-nums { grid-template-columns: auto; }
+.it-photo-row { display: flex; align-items: center; gap: 12px; }
+.it-thumb { width: 44px; height: 44px; border-radius: 8px; background: center/cover no-repeat; box-shadow: 0 0 0 1px var(--line-2); }
+.it-photo-btn { position: relative; overflow: hidden; }
+.it-photo-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.cv-it { display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+.cv-it img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex: none; }
+
+
+/* ---------- Overview ---------- */
+.drawer.wide { width: min(640px, 100%); }
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kpi { border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; background: linear-gradient(160deg, rgba(217,190,132,.07), transparent 70%), var(--surface); display: grid; gap: 4px; }
+.kpi small { font-size: 10.5px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.kpi b { font-family: var(--f-display); font-size: 28px; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
+.kpi span { font-size: 12px; color: var(--muted); }
+.kpi.warn b { color: var(--gold); }
+.bars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: end; height: 170px; padding-top: 8px; }
+.bar { display: grid; grid-template-rows: auto 1fr auto; justify-items: center; height: 100%; gap: 6px; min-width: 0; }
+.bar i { align-self: end; width: 70%; max-width: 46px; border-radius: 8px 8px 2px 2px; background: linear-gradient(180deg, #E9D39E, #8A6A35); box-shadow: 0 0 18px rgba(217,190,132,.18); }
+.bar .v { font-size: 10.5px; color: var(--muted); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+.bar .m { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.owe-list { display: grid; gap: 8px; }
+.owe { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.owe b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.owe small { color: var(--muted); font-size: 12.5px; }
+.owe small em { font-style: normal; font-weight: 700; }
+.owe small em.late { color: var(--danger); } .owe small em.ok { color: var(--ok); }
+.owe strong { font-family: var(--f-display); font-size: 19px; font-variant-numeric: lining-nums tabular-nums; }
+.owe-btns { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+.tops { display: grid; gap: 2px; }
+.tops div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.tops b { font-variant-numeric: lining-nums tabular-nums; }
+#repeat-line { padding: 14px 16px; cursor: pointer; }
+@media (max-width: 440px) { .hide-sm { display: none; } .kpi b { font-size: 23px; } }
+
+
+/* ---------- backup status ---------- */
+.sync-state { font-size: 11.5px; font-weight: 600; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.sync-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+.sync-state[data-state="saving"]::before { background: var(--gold); animation: pulseDot 1s ease-in-out infinite alternate; }
+.sync-state[data-state="offline"]::before, .sync-state[data-state="error"]::before { background: var(--danger); }
+@keyframes pulseDot { to { opacity: .3; } }
+@media (max-width: 600px) { .sync-state { display: none !important; } }
+
 /* ---------- Toast ---------- */
 .toast { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; z-index: 200; background: #F3ECDD; color: #0B0A09; padding: 12px 20px; border-radius: 99px; font-weight: 600; font-size: 13.5px; transition: .35s var(--ease); pointer-events: none; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -927,7 +988,9 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
     <span>AURUM</span>
   </a>
   <div class="bar-right">
+    <span class="sync-state" id="sync-state" hidden></span>
     <span class="plan-chip" id="plan-chip"><i></i><span id="plan-text">Trial</span></span>
+    <button class="icon-btn" type="button" id="open-overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="hide-sm">Overview</span></button>
     <button class="icon-btn" type="button" id="open-house"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l8-6 8 6v10H4z"/><path d="M10 20v-6h4v6"/></svg>My house</button>
   </div>
 </header>
@@ -943,6 +1006,11 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
         <button type="button" data-doctype="invoice" aria-pressed="true">Invoice</button>
         <button type="button" data-doctype="receipt" aria-pressed="false">Receipt</button>
         <button type="button" data-doctype="quotation" aria-pressed="false">Quotation</button>
+      </div>
+      <div class="chips more-docs" role="group" aria-label="More documents">
+        <button type="button" class="chip" data-doctype="delivery" aria-pressed="false">Delivery note</button>
+        <button type="button" class="chip" data-doctype="credit" aria-pressed="false">Credit note</button>
+        <button type="button" class="chip" data-doctype="purchase" aria-pressed="false">Purchase order</button>
       </div>
       <label class="field" id="f-cname"><span id="c-name-label">Client's name</span><input id="c-name" data-bind="doc.client.name" placeholder="Start typing — we'll remember them" autocomplete="off"></label>
       <div class="chips" id="recent-clients"></div>
@@ -996,6 +1064,19 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
         <div class="field"><span class="label">Date paid</span><div class="chips" id="rdate-chips"></div></div>
         <div class="field"><span class="label">Is anything still owed?</span><div class="chips" id="rbal-chips"></div></div>
       </div>
+      <div id="dn3" class="stack">
+        <label class="field"><span>Delivery address</span><input id="dn-addr" data-bind="doc.client.address" placeholder="Where is it going?" autocomplete="off"></label>
+        <label class="field"><span>Rider / vehicle <em>(optional)</em></span><input id="dn-rider" data-bind="doc.rider" placeholder="e.g. Musa · GIG Logistics · LSR 123 AB" autocomplete="off"></label>
+        <div class="field"><span class="label">Dispatched</span><div class="chips" id="dn-date-chips"></div></div>
+      </div>
+      <div id="cn3" class="stack">
+        <div class="field"><span class="label">Reason</span><div class="chips" id="cn-reason-chips"></div><input id="cn-reason" class="input" data-bind="doc.reason" placeholder="Or write the reason" autocomplete="off"></div>
+        <div class="field"><span class="label">How is it settled?</span><div class="chips" id="cn-method-chips"></div></div>
+      </div>
+      <div id="po3" class="stack">
+        <div class="field"><span class="label">Deliver by</span><div class="chips" id="po-date-chips"></div></div>
+        <label class="field"><span>Deliver to</span><input id="po-ship" data-bind="doc.shipTo" placeholder="Your business address" autocomplete="off"></label>
+      </div>
       <div id="quo3" class="stack">
         <div class="field"><span class="label">Price valid for</span><div class="chips" id="qvalid-chips"></div></div>
         <div class="field"><span class="label">Deposit needed to begin</span><div class="chips" id="qdep-chips"></div></div>
@@ -1012,6 +1093,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
     <!-- IV. SEND -->
     <section class="step" data-step="4" hidden>
       <div class="step-head"><span class="eyebrow">Chapter IV</span><h2>Send it beautifully</h2><p id="send-sub">Your invoice is ready.</p></div>
+      <label class="toggle card-line" id="repeat-line"><span><b style="display:block">Repeat every month</b><small style="color:var(--muted);font-size:13px">For retainers, rent or subscriptions. It'll be waiting in Overview each month.</small></span><span class="switch"><input type="checkbox" id="repeat-on"><i></i></span></label>
       <button class="card-line next-doc" type="button" id="next-doc" style="text-align:left;color:inherit"><div><b id="next-doc-title"></b><small id="next-doc-sub"></small></div><span class="btn sm primary" id="next-doc-btn"></span></button>
       <button class="card-line" type="button" id="send-customise" style="text-align:left;color:inherit"><div><b>Customise the look</b><small>Watermark, title, what shows, terms</small></div><span class="btn sm">Customise</span></button>
       <div class="field"><span class="label">How it opens for your client</span><div class="reveal-grid" id="reveal-grid"></div></div>
@@ -1075,6 +1157,7 @@ const CONFIG = {
   BUY_LINK: "",            // your Selar product page
   SELLER_WHATSAPP: "",     // e.g. 2348031234567 — buyers contact you here (Prestige upgrades, device moves)
   OFFLINE_GRACE_DAYS: 7,
+  REFERRAL_OFFER: "₦2,000 off", // what a friend gets with a buyer's referral code (honour it on Selar)
 };
 
 /* ---------- helpers ---------- */
@@ -1102,8 +1185,9 @@ const group = (raw) => { const [i, d] = String(raw).split("."); const g = (i || 
 const CUR = { NGN: { sym: "₦", major: "Naira", minor: "Kobo" }, USD: { sym: "$", major: "Dollars", minor: "Cents" }, GBP: { sym: "£", major: "Pounds", minor: "Pence" } };
 const money = (n, c = "NGN") => (CUR[c] || CUR.NGN).sym + new Intl.NumberFormat("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
 const short = (n, c = "NGN") => (CUR[c] || CUR.NGN).sym + new Intl.NumberFormat("en-NG", { maximumFractionDigits: 0 }).format(n || 0);
-const LABEL = { invoice: "Invoice", receipt: "Receipt", quotation: "Quotation" };
-const PREFIX = { invoice: "INV", receipt: "RCT", quotation: "QUO" };
+const LABEL = { invoice: "Invoice", receipt: "Receipt", quotation: "Quotation", delivery: "Delivery Note", credit: "Credit Note", purchase: "Purchase Order" };
+const PREFIX = { invoice: "INV", receipt: "RCT", quotation: "QUO", delivery: "DN", credit: "CN", purchase: "PO" };
+const PRICED = (t) => t !== "delivery";
 const pad = (n) => String(n).padStart(4, "0");
 
 const BANKS = ["Access Bank", "Citibank Nigeria", "Ecobank", "Fidelity Bank", "First Bank of Nigeria", "FCMB", "Globus Bank", "GTBank", "Jaiz Bank", "Keystone Bank", "Kuda", "Lotus Bank", "Moniepoint", "OPay", "Optimus Bank", "PalmPay", "Parallex Bank", "Polaris Bank", "PremiumTrust Bank", "Providus Bank", "Signature Bank", "Stanbic IBTC", "Standard Chartered", "Sterling Bank", "SunTrust Bank", "TAJBank", "Titan Trust Bank", "UBA", "Union Bank", "Unity Bank", "VFD Microfinance Bank", "Wema Bank (ALAT)", "Zenith Bank", "Carbon", "FairMoney", "Paga"];
@@ -1123,6 +1207,16 @@ const NOTES = {
   invoice: ["Kindly send proof of payment on WhatsApp.", "A 50% deposit secures your booking.", "Goods once sold are not returnable.", "Thank you for your patronage."],
   receipt: ["Thank you for your payment.", "Please keep this receipt for your records.", "Balance is due before delivery."],
   quotation: ["Prices are held until the date shown.", "Delivery is not included.", "Fabric/materials are sourced after the deposit is paid."],
+  delivery: ["Please check all items on arrival.", "Report any damage within 24 hours.", "Goods remain our property until fully paid for."],
+  credit: ["This credit can be used against your next order.", "Your refund will reflect within 3 working days."],
+  purchase: ["Please confirm availability before delivery.", "Include this order number on your invoice.", "Goods must match the agreed specification."],
+};
+const GREET = {
+  en: { name: "English", hi: (n) => `Dear ${n},`, ty: "Thank you" },
+  pcm: { name: "Pidgin", hi: (n) => `Hello ${n}, how you dey?`, ty: "Thank you well well" },
+  yo: { name: "Yorùbá", hi: (n) => `Ẹ káàbọ̀, ${n}`, ty: "Ẹ ṣé o" },
+  ig: { name: "Igbo", hi: (n) => `Nnọọ, ${n}`, ty: "Daalụ" },
+  ha: { name: "Hausa", hi: (n) => `Sannu, ${n}`, ty: "Na gode" },
 };
 const SWATCHES = [["#1A1817", "Onyx"], ["#5A1A24", "Bordeaux"], ["#141E3A", "Midnight"], ["#0F3D2E", "Emerald"], ["#3B1F4A", "Aubergine"], ["#6B4A1E", "Cognac"]];
 
@@ -1240,16 +1334,20 @@ function invoiceHTML(P, D, opts = {}) {
   const expired = isExpired(D);
   const stampKind = type === "receipt" || (type === "invoice" && D.status === "paid") ? "paid" : expired ? "overdue" : "";
   const stampHTML = stampKind ? `<div class="stamp ${stampKind}${opts.stampIn ? " stamp-in" : ""}">${stampKind === "paid" ? "PAID" : "EXPIRED"}<small>${esc(stampKind === "paid" ? fmtDate(D.issueDate).toUpperCase() : fmtDate(D.dueDate).toUpperCase())}</small></div>` : "";
-  const partyLabel = type === "receipt" ? "Received from" : type === "quotation" ? "Prepared for" : "Billed to";
+  const partyLabel = { receipt: "Received from", quotation: "Prepared for", delivery: "Deliver to", credit: "Credited to", purchase: "Supplier" }[type] || "Billed to";
   const statusText = expired ? "Expired" : ({ unpaid: "Unpaid", part: "Part-paid", paid: "Paid" }[D.status] || "Unpaid");
   const statusClass = expired ? "overdue" : D.status === "overdue" ? "unpaid" : D.status;
   const dateRows = [
-    `<div><dt>${type === "receipt" ? "Payment date" : "Issued"}</dt><dd>${fmtDate(D.issueDate)}</dd></div>`,
+    `<div><dt>${type === "receipt" ? "Payment date" : type === "delivery" ? "Dispatched" : type === "purchase" ? "Ordered" : "Issued"}</dt><dd>${fmtDate(D.issueDate)}</dd></div>`,
+    type === "purchase" && D.deliverBy ? `<div><dt>Deliver by</dt><dd>${fmtDate(D.deliverBy)}</dd></div>` : "",
+    type === "delivery" && D.rider ? `<div><dt>Rider / vehicle</dt><dd>${esc(D.rider)}</dd></div>` : "",
+    type === "credit" && D.reason ? `<div><dt>Reason</dt><dd>${esc(D.reason)}</dd></div>` : "",
+    D.preparedBy ? `<div><dt>Prepared by</dt><dd>${esc(D.preparedBy)}</dd></div>` : "",
     type === "invoice" && D.payBy ? `<div><dt>Pay by</dt><dd>${fmtDate(D.payBy)}</dd></div>` : "",
     type === "invoice" && D.dueDate ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "quotation" ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "quotation" && D.timeline ? `<div><dt>Timeline</dt><dd>${esc(D.timeline)}</dd></div>` : "",
-    D.fromDoc && type !== "quotation" ? `<div><dt>${type === "receipt" ? "Invoice ref." : "Quotation ref."}</dt><dd>${esc(D.fromDoc)}</dd></div>` : "",
+    D.fromDoc && type !== "quotation" ? `<div><dt>${type === "invoice" ? "Quotation ref." : "Invoice ref."}</dt><dd>${esc(D.fromDoc)}</dd></div>` : "",
     type === "receipt" ? `<div><dt>Method</dt><dd>${esc(D.method || "Bank transfer")}</dd></div>` : "",
     type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${esc(statusClass)}">${statusText}</span></dd></div>` : "",
     type === "receipt" ? `<div><dt>Status</dt><dd><span class="pill paid">Paid in full</span></dd></div>` : "",
@@ -1257,11 +1355,11 @@ function invoiceHTML(P, D, opts = {}) {
   const items = D.items.filter((it) => it.desc || num(it.price));
   const rows = items.length ? items.map((it, i) => `<tr style="--i:${i}" class="${opts.newIds?.has(it.id) ? "row-new" : ""}">
       <td class="n">${String(i + 1).padStart(2, "0")}</td>
-      <td class="desc"><b>${esc(it.desc) || "<span style='opacity:.45'>Item</span>"}</b>${it.note ? `<small>${esc(it.note)}</small>` : ""}</td>
+      <td class="desc">${it.img ? `<img class="it-img" src="${it.img}" alt="">` : ""}<b>${esc(it.desc) || "<span style='opacity:.45'>Item</span>"}</b>${it.note ? `<small>${esc(it.note)}</small>` : ""}</td>
       <td class="num q">${esc(num(it.qty))}</td><td class="num p">${money(num(it.price), c)}</td><td class="num t">${money(num(it.qty) * num(it.price), c)}</td></tr>`).join("")
     : `<tr class="empty"><td colspan="5">Your items will appear here</td></tr>`;
   const showPart = type === "invoice" && D.status === "part" && t.paid > 0;
-  const grandLabel = type === "receipt" ? "Amount received" : type === "quotation" ? "Quoted total" : "Total";
+  const grandLabel = { receipt: "Amount received", quotation: "Quoted total", credit: "Credit amount", purchase: "Order total" }[type] || "Total";
   const totals = `<div><dt>Subtotal</dt><dd>${money(t.sub, c)}</dd></div>
     ${t.disc ? `<div><dt>Discount${D.discountType === "percent" ? ` (${num(D.discount)}%)` : ""}</dt><dd>− ${money(t.disc, c)}</dd></div>` : ""}
     ${D.vatOn ? `<div><dt>VAT (${num(D.vatRate || 7.5)}%)</dt><dd>${money(t.vat, c)}</dd></div>` : ""}
@@ -1271,17 +1369,20 @@ function invoiceHTML(P, D, opts = {}) {
     ${type === "receipt" && num(D.balanceLeft) > 0 ? `<div class="balance"><dt>Balance outstanding</dt><dd>${money(num(D.balanceLeft), c)}</dd></div>` : ""}
     ${showPart ? `<div class="balance"><dt>Deposit paid</dt><dd>${money(t.paid, c)}</dd></div><div class="balance"><dt><b>Balance due</b></dt><dd>${money(t.balance, c)}</dd></div>` : ""}`;
   const bankRows = [K.bankName && `<div><dt>Bank</dt><dd>${esc(K.bankName)}</dd></div>`, K.accountName && `<div><dt>Account name</dt><dd>${esc(K.accountName)}</dd></div>`, K.accountNumber && `<div><dt>Account no.</dt><dd class="acct">${esc(K.accountNumber)}</dd></div>`].filter(Boolean).join("");
-  const bank = type === "receipt"
+  const bank = type === "delivery" ? `<div class="bank"><span class="lbl">Delivery</span><dl><div><dt>Items</dt><dd>${items.length}</dd></div><div><dt>Total quantity</dt><dd>${items.reduce((a, it) => a + num(it.qty), 0)}</dd></div>${D.client.address ? `<div><dt>Address</dt><dd>${esc(D.client.address)}</dd></div>` : ""}${D.rider ? `<div><dt>Rider / vehicle</dt><dd>${esc(D.rider)}</dd></div>` : ""}</dl></div>`
+    : type === "credit" ? `<div class="bank"><span class="lbl">Credit</span><dl><div><dt>Amount</dt><dd>${money(t.total, c)}</dd></div><div><dt>Settled as</dt><dd>${esc(D.refundMethod || "Store credit")}</dd></div>${D.fromDoc ? `<div><dt>Against</dt><dd>${esc(D.fromDoc)}</dd></div>` : ""}</dl></div>`
+    : type === "purchase" ? `<div class="bank"><span class="lbl">Deliver to</span><dl><div><dt>Business</dt><dd>${esc(B.name)}</dd></div><div><dt>Address</dt><dd>${esc(D.shipTo || B.address || "—")}</dd></div>${B.phone ? `<div><dt>Phone</dt><dd>${esc(B.phone)}</dd></div>` : ""}</dl></div>`
+    : type === "receipt"
     ? `<div class="bank"><span class="lbl">Payment received</span><dl><div><dt>Amount</dt><dd>${money(t.total, c)}</dd></div><div><dt>Method</dt><dd>${esc(D.method || "Bank transfer")}</dd></div><div><dt>Date</dt><dd>${fmtDate(D.issueDate)}</dd></div>${D.reference ? `<div><dt>Transaction ref.</dt><dd>${esc(D.reference)}</dd></div>` : ""}${num(D.balanceLeft) > 0 ? `<div><dt>Balance outstanding</dt><dd>${money(num(D.balanceLeft), c)}</dd></div>` : ""}</dl></div>`
     : (bankRows || K.payLink) ? `<div class="bank"><span class="lbl">${type === "quotation" ? (num(D.depositPct) > 0 ? "To accept, pay the deposit to" : "Payment details") : "Payment details"}</span><dl>${bankRows}</dl>${K.payLink ? `<div class="paylink">Pay online: <b>${esc(K.payLink)}</b></div>` : ""}</div>` : `<div></div>`;
   const signMark = B.signMode === "image" && B.signImg ? `<img src="${B.signImg}" alt="">` : B.signMode === "type" ? esc(B.signText || B.signName) : "";
   const sign = B.signMode === "none" && !G.seal ? "<div></div>" : `<div class="sign">${G.seal ? sealSVG(B.name, G.template === "noir" ? "#D2B47C" : G.brand) : ""}
-      ${B.signMode !== "none" ? `<div class="sign-block">${type === "receipt" ? `<div class="sign-cap">Received by</div>` : ""}<div class="sign-mark">${signMark}</div><div class="sign-line">${esc(B.signName)}</div><div class="sign-title">${esc(B.signTitle)}</div></div>` : ""}</div>`;
+      ${B.signMode !== "none" ? `<div class="sign-block">${{ receipt: "Received by", delivery: "Dispatched by", purchase: "Authorised by", credit: "Approved by" }[type] ? `<div class="sign-cap">${{ receipt: "Received by", delivery: "Dispatched by", purchase: "Authorised by", credit: "Approved by" }[type]}</div>` : ""}<div class="sign-mark">${signMark}</div><div class="sign-line">${esc(B.signName)}</div><div class="sign-title">${esc(B.signTitle)}</div></div>` : ""}</div>`;
   const fromLines = [B.address, B.phone, B.email, [B.rc, B.tin && "TIN " + B.tin].filter(Boolean).join(" · ")].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const clientLines = [D.client.company, D.client.address, D.client.phone, D.client.email].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
-  const thanks = type === "quotation" ? "We look forward to working with you" : type === "receipt" ? "Thank you for your payment" : "Thank you for your patronage";
+  const thanks = { quotation: "We look forward to working with you", receipt: "Thank you for your payment", delivery: "Thank you for your order", credit: "We value your business", purchase: "Thank you for your prompt delivery" }[type] || "Thank you for your patronage";
   const verify = opts.qr ? `<div class="verify"><img src="${opts.qr}" alt=""><span>Scan to view online and confirm this ${LABEL[type].toLowerCase()} is genuine</span></div>` : "";
-  return `<article class="inv t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}${X.paper === "white" ? " paper-white" : ""} ${Object.entries(X.show).filter(([, v]) => !v).map(([k]) => "no-" + k).join(" ")}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)}">
+  return `<article class="inv k-${esc(type)} t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}${X.paper === "white" ? " paper-white" : ""} ${Object.entries(X.show).filter(([, v]) => !v).map(([k]) => "no-" + k).join(" ")}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)}">
     <header class="inv-head px"><div class="brand"><div class="logo-box">${headLogo}</div><div style="min-width:0"><h1 class="biz-name foil">${esc(B.name) || "Your Business"}</h1>${B.tagline ? `<p class="tagline">${esc(B.tagline)}</p>` : ""}</div></div>
       <div class="doc-title"><span class="doc-type foil${(X.title || "").length > 10 ? " long" : ""}">${esc(X.title || LABEL[type])}</span><span class="doc-no">No. ${esc(D.number)}</span></div></header>
     <section class="inv-meta px"><div class="party"><label>${partyLabel}</label><div class="who">${esc(D.client.name) || "Client name"}</div>${clientLines}</div>
@@ -1290,6 +1391,8 @@ function invoiceHTML(P, D, opts = {}) {
     <section class="sum px${type === "receipt" && D.receiptMode === "simple" ? " quick" : ""}"><div class="words"><label>Amount in words</label><p>${esc(amountInWords(t.total, c))}</p>${stampHTML}</div><dl class="totals">${totals}</dl></section>
     <section class="foot px">${bank}${sign}</section>
     ${D.notes ? `<section class="notes px"><label>Note</label><p>${esc(D.notes)}</p></section>` : ""}
+    ${type === "delivery" ? `<section class="accept px"><div><span class="lbl">Received in good condition by</span><i></i></div><div><span class="lbl">Signature</span><i></i></div><div><span class="lbl">Date</span><i></i></div></section>` : ""}
+    ${type === "purchase" ? `<section class="accept px"><div><span class="lbl">Supplier acknowledgement</span><i></i></div><div><span class="lbl">Signature</span><i></i></div><div><span class="lbl">Date</span><i></i></div></section>` : ""}
     ${type === "quotation" ? `<section class="accept px"><div><span class="lbl">Accepted by (client)</span><i></i></div><div><span class="lbl">Signature</span><i></i></div><div><span class="lbl">Date</span><i></i></div></section>` : ""}
     ${X.terms ? `<section class="notes terms px"><label>Terms &amp; conditions</label><p>${esc(X.terms)}</p></section>` : ""}
     <div class="inv-spacer"></div>
@@ -1301,7 +1404,7 @@ function invoiceHTML(P, D, opts = {}) {
 
 
 /* ---------- per-document customisation (invoice / receipt / quotation each have their own) ---------- */
-const TITLES = { invoice: ["Invoice", "Proforma Invoice", "Sales Invoice", "Bill"], receipt: ["Receipt", "Payment Receipt", "Sales Receipt", "Acknowledgement"], quotation: ["Quotation", "Estimate", "Price Quote", "Proposal"] };
+const TITLES = { invoice: ["Invoice", "Proforma Invoice", "Sales Invoice", "Bill"], receipt: ["Receipt", "Payment Receipt", "Sales Receipt", "Acknowledgement"], quotation: ["Quotation", "Estimate", "Price Quote", "Proposal"], delivery: ["Delivery Note", "Waybill", "Dispatch Note"], credit: ["Credit Note", "Refund Note"], purchase: ["Purchase Order", "Order Form"] };
 const SHOW_LABELS = [["logo", "Logo"], ["tagline", "Tagline"], ["sn", "Item numbers (S/N)"], ["words", "Amount in words"], ["bank", "Bank / payment box"], ["seal", "Company seal"], ["sign", "Signature"], ["notes", "Note to client"], ["footer", "Thank-you line"], ["qr", "QR verification code"]];
 const TERMS = ["Goods once sold are not returnable.", "Prices are subject to change without notice.", "A 50% deposit is required to begin work.", "Delivery is within 3–5 working days."];
 function docStyle(P, type) {
@@ -1623,7 +1726,7 @@ function revealStage(style, B, D, P) {
    CLIENT VIEW — what the customer sees when they open the link
    ========================================================= */
 function openClientView(payload, ctx = {}) {
-  const P = payload.profile, D = payload.doc, B = P.business, K = P.bank, c = D.currency, t = calc(D), type = D.type;
+  const P = payload.profile, D = payload.doc, B = P.business, K = P.bank, c = D.currency, t = calc(D), type = D.type; const G = GREET[P.design.greeting] || GREET.en;
   const brandless = !!payload.brandless; const wax = waxColorFor(P.design.brand || "#1A1817");
   const cv = $("#cv"); cv.hidden = false; cv.scrollTop = 0; document.body.style.overflow = "hidden";
   cv.style.setProperty("--glow", rgba(lum(P.design.brand) < .02 ? "#D9BE84" : P.design.brand, .22));
@@ -1658,7 +1761,7 @@ function openClientView(payload, ctx = {}) {
     const sig = B.signMode === "type" ? esc(B.signText || B.signName) : esc(B.signName || B.name);
     const layer = $("#layer");
     layer.innerHTML = `<div class="tyx" id="ty"><canvas class="leaf" id="leaf"></canvas><div class="ty-inner">
-      <div class="ty-card" id="ty-card"><div class="wax">${waxSVG(initials(B.name), wax, B.name)}</div><span class="t-eye">With gratitude</span><h2>Thank you</h2><span class="t-name">${esc(D.client.name || "")}</span>${lines}<span class="t-sign">${sig}</span><span class="t-foot">${esc(B.name)} · ${fmtDate(iso(new Date()))}</span></div>
+      <div class="ty-card" id="ty-card"><div class="wax">${waxSVG(initials(B.name), wax, B.name)}</div><span class="t-eye">With gratitude${G.ty !== "Thank you" ? " · Thank you" : ""}</span><h2>${esc(G.ty)}</h2><span class="t-name">${esc(D.client.name || "")}</span>${lines}<span class="t-sign">${sig}</span><span class="t-foot">${esc(B.name)} · ${fmtDate(iso(new Date()))}</span></div>
       <div class="btns">
         ${kind === "paystack" ? "" : `<button class="btn primary block" type="button" data-ty="wa">${kind === "accept" ? "Confirm on WhatsApp" : "Send proof of payment on WhatsApp"}</button>`}
         <button class="btn block" type="button" data-ty="save">Save this card</button>
@@ -1704,13 +1807,18 @@ function openClientView(payload, ctx = {}) {
     if (act === "image") exportImage(P, D, docOpts);
     if (act === "paid") { if (ctx.id && configured()) rpc("claim_paid", { p_id: ctx.id, p_method: "transfer", p_ref: "" }).catch(() => {}); thankYou("transfer"); }
     if (act === "renew") openLink(`https://wa.me/${waNumber(B.phone)}?text=${encodeURIComponent(`Hello ${B.name}, my ${docWord} ${D.number} expired on ${fmtDate(D.dueDate)}. Could you please send me a new one?`)}`);
+    if (act === "confirm") { const m = type === "delivery" ? `Hello ${B.name}, I have received the items on ${D.number} in good condition. Thank you.` : type === "purchase" ? `Hello ${B.name}, we confirm purchase order ${D.number}. We will deliver as requested.` : `Hello ${B.name}, I have received credit note ${D.number}. Thank you.`; if (ctx.id && configured()) rpc("claim_paid", { p_id: ctx.id, p_method: "confirm", p_ref: "" }).catch(() => {}); openLink(`https://wa.me/${waNumber(B.phone)}?text=${encodeURIComponent(m)}`); }
     if (act === "accept") { if (ctx.id && configured()) rpc("claim_paid", { p_id: ctx.id, p_method: "accept", p_ref: "" }).catch(() => {}); thankYou("accept"); }
   };
 
   function showMain() {
     const name = D.client.name || "there"; const paidFull = type === "receipt" || D.status === "paid"; const n = D.items.length;
     let lbl, amount, sub = "", chip; const expired = isExpired(D);
-    if (type === "receipt") { lbl = "Payment received"; amount = t.total; chip = `<span class="due-chip ok"><i></i>Paid in full · ${fmtDate(D.issueDate)}</span>`; }
+    const qtyTotal = D.items.reduce((a, it) => a + (it.desc ? num(it.qty) : 0), 0);
+    if (type === "delivery") { lbl = "Items on the way"; amount = qtyTotal; chip = `<span class="due-chip"><i></i>Dispatched ${fmtDate(D.issueDate)}${D.rider ? " · " + esc(D.rider) : ""}</span>`; }
+    else if (type === "credit") { lbl = "Credit to you"; amount = t.total; chip = `<span class="due-chip ok"><i></i>${esc(D.refundMethod || "Store credit")}</span>`; }
+    else if (type === "purchase") { lbl = "Order total"; amount = t.total; chip = D.deliverBy ? `<span class="due-chip"><i></i>Deliver by ${fmtDate(D.deliverBy)}</span>` : ""; }
+    else if (type === "receipt") { lbl = "Payment received"; amount = t.total; chip = `<span class="due-chip ok"><i></i>Paid in full · ${fmtDate(D.issueDate)}</span>`; }
     else if (type === "quotation") { lbl = "Quoted total"; amount = t.total; const d = daysUntil(D.dueDate); chip = d !== null && d < 0 ? `<span class="due-chip late"><i></i>This quote expired on ${fmtDate(D.dueDate)}</span>` : `<span class="due-chip"><i></i>Price held until ${fmtDate(D.dueDate)}</span>`; }
     else if (paidFull) { lbl = "Paid in full"; amount = t.total; chip = `<span class="due-chip ok"><i></i>Thank you, nothing left to pay</span>`; }
     else {
@@ -1721,11 +1829,11 @@ function openClientView(payload, ctx = {}) {
       chip = expired ? `<span class="due-chip late"><i></i>Expired on ${fmtDate(D.dueDate)}</span>` : D.payBy ? (pd < 0 ? `<span class="due-chip late"><i></i>Payment was due ${fmtDate(D.payBy)}</span>` : pd === 0 ? `<span class="due-chip"><i></i>Please pay today</span>` : `<span class="due-chip"><i></i>Pay by ${fmtDate(D.payBy)} · ${pd} day${pd > 1 ? "s" : ""} left</span>`) : D.dueDate ? (d === 0 ? `<span class="due-chip"><i></i>Valid until today</span>` : `<span class="due-chip"><i></i>Valid until ${fmtDate(D.dueDate)} · ${d} day${d > 1 ? "s" : ""} left</span>`) : "";
       if (expired) { lbl = "This invoice has expired"; }
     }
-    const intro = expired ? `This ${docWord} from ${esc(B.name)} expired on ${fmtDate(D.dueDate)}. Ask for a fresh one and you'll be set in a moment.` : type === "receipt" ? `Thank you for your payment. This is your official receipt from ${esc(B.name)}.`
+    const intro = type === "delivery" ? `${esc(B.name)} has dispatched your order. Here's what's on the way.` : type === "credit" ? `${esc(B.name)} has issued a credit in your favour.` : type === "purchase" ? `${esc(B.name)} would like to place this order with you.` : expired ? `This ${docWord} from ${esc(B.name)} expired on ${fmtDate(D.dueDate)}. Ask for a fresh one and you'll be set in a moment.` : type === "receipt" ? `Thank you for your payment. This is your official receipt from ${esc(B.name)}.`
       : type === "quotation" ? `Thank you for considering ${esc(B.name)}. Here is your personal quotation.`
       : paidFull ? `Thank you for your payment. Here is your settled invoice from ${esc(B.name)}.`
       : `Thank you for choosing ${esc(B.name)}. Settling this takes less than a minute.`;
-    const itemsList = type === "receipt" && D.receiptMode === "simple" ? `<p>Being payment for <b>${esc(D.paidFor || "goods and services")}</b>.</p>` : `<div class="cv-items">${D.items.filter((it) => it.desc).map((it) => `<div><span>${esc(it.desc)}${num(it.qty) !== 1 ? ` × ${esc(num(it.qty))}` : ""}${it.note ? `<small>${esc(it.note)}</small>` : ""}</span><b>${money(num(it.qty) * num(it.price), c)}</b></div>`).join("")}</div>`;
+    const itemsList = type === "receipt" && D.receiptMode === "simple" ? `<p>Being payment for <b>${esc(D.paidFor || "goods and services")}</b>.</p>` : `<div class="cv-items">${D.items.filter((it) => it.desc).map((it) => `<div><span class="cv-it">${it.img ? `<img src="${it.img}" alt="">` : ""}<span>${esc(it.desc)}${num(it.qty) !== 1 ? ` × ${esc(num(it.qty))}` : ""}${it.note ? `<small>${esc(it.note)}</small>` : ""}</span></span><b>${PRICED(type) ? money(num(it.qty) * num(it.price), c) : "× " + esc(num(it.qty))}</b></div>`).join("")}</div>`;
     const canPaystack = K.paystackKey && /^pk_(live|test)_/.test(K.paystackKey) && c === "NGN" && amount > 0;
     const bankCard = K.accountNumber ? `<div class="cv-bank"><div class="row"><span>Bank</span><b>${esc(K.bankName)}</b></div><div class="row"><span>Account name</span><b>${esc(K.accountName)}</b></div>
         <div class="acct"><strong>${esc(K.accountNumber)}</strong><button class="btn sm primary" type="button" data-cv="copy">Copy</button></div></div>` : "";
@@ -1734,7 +1842,10 @@ function openClientView(payload, ctx = {}) {
         ${bankCard ? `<div class="or">or bank transfer</div>` : ""}` : "";
     const payLinkBtn = !canPaystack && K.payLink ? `<button class="btn block" type="button" data-cv="paylink">Pay online</button>` : "";
     let steps, gTitle = type === "quotation" ? "Your quotation" : paidFull ? "All settled" : "Three simple steps", gSub = type === "quotation" ? "Review, then confirm when you're ready." : paidFull ? "Here's a summary of your order." : "Review, pay, and you're done.";
-    if (expired) { gTitle = "This has expired"; gSub = `It was valid until ${fmtDate(D.dueDate)}.`; steps = [["What it covered", itemsList], ["Request a new one", `<p>${esc(B.name)} can send you an updated ${docWord} in a moment.</p><button class="btn primary block" type="button" data-cv="renew">Request a new ${docWord}</button>`]]; }
+    if (type === "delivery") { gTitle = "Your delivery"; gSub = "Check your items when they arrive."; steps = [["What's coming", itemsList], ["Confirm delivery", `<p>When everything arrives in good condition, let ${esc(B.name)} know.</p><button class="btn primary block" type="button" data-cv="confirm">I've received my items</button>`]]; }
+    else if (type === "credit") { gTitle = "Your credit"; gSub = D.reason ? esc(D.reason) + "." : "Here's what was credited."; steps = [["What's credited", itemsList], ["How it's settled", `<p>${esc(D.refundMethod || "Store credit")}${D.fromDoc ? ` against ${esc(D.fromDoc)}` : ""}.</p><button class="btn block" type="button" data-cv="confirm">Acknowledge</button>`]]; }
+    else if (type === "purchase") { gTitle = "The order"; gSub = "Review, then confirm you can supply it."; steps = [["What we're ordering", itemsList], ["Confirm the order", `<p>${D.deliverBy ? `Needed by <b>${fmtDate(D.deliverBy)}</b>. ` : ""}Deliver to ${esc(D.shipTo || B.address || B.name)}.</p><button class="btn primary block" type="button" data-cv="confirm">Confirm this order</button>`]]; }
+    else if (expired) { gTitle = "This has expired"; gSub = `It was valid until ${fmtDate(D.dueDate)}.`; steps = [["What it covered", itemsList], ["Request a new one", `<p>${esc(B.name)} can send you an updated ${docWord} in a moment.</p><button class="btn primary block" type="button" data-cv="renew">Request a new ${docWord}</button>`]]; }
     else if (type === "quotation") steps = [["What's included", `<p>${n} item${n > 1 ? "s" : ""} prepared for you.</p>${itemsList}`], ["Price held for you", `<p>Reserved until <b>${fmtDate(D.dueDate)}</b>.${D.timeline ? ` ${esc(D.timeline)}.` : ""}${num(D.depositPct) > 0 ? ` A ${num(D.depositPct)}% deposit (<b>${money(round2(t.total * num(D.depositPct) / 100), c)}</b>) begins the work.` : ""}</p>`], ["Ready to go ahead?", `<p>Accept with one tap and ${esc(B.name)} will take it from there.</p><button class="btn primary block" type="button" data-cv="accept">Accept this quotation</button>`]];
     else if (paidFull) steps = [["Your order", itemsList], ["Payment confirmed", `<p>${esc(B.name)} received <b>${money(t.total, c)}</b>${type === "receipt" ? ` by ${esc((D.method || "bank transfer").toLowerCase())} on ${fmtDate(D.issueDate)}${D.reference ? ` (ref. ${esc(D.reference)})` : ""}` : ""}.${num(D.balanceLeft) > 0 ? ` Balance outstanding: <b>${money(num(D.balanceLeft), c)}</b>.` : ""}</p>`], ["Keep your copy", `<p>Download your official ${docWord} below, signed and sealed.</p>`]];
     else steps = [["Review your order", itemsList], [canPaystack ? "Pay in one tap" : "Pay by transfer", `${canPaystack ? `<p>Pay securely with card, transfer or USSD.</p>` : `<p>Copy the account number and pay <b>${money(t.balance, c)}</b> from your banking app.</p>`}${paystackBlock}${bankCard}${payLinkBtn}`],
@@ -1746,8 +1857,8 @@ function openClientView(payload, ctx = {}) {
       : `<div class="cv-verify demo"><svg viewBox="0 0 42 42" fill="none" stroke="#D9BE84" stroke-width="1.6"><circle cx="21" cy="21" r="19"/><path d="M21 13v10M21 28v1" stroke-linecap="round"/></svg><div><b>${ctx.preview ? "Preview" : "Shared document"}</b>${ctx.preview ? "On a live link your client sees a green “Verified document” check here." : `Sent by ${esc(B.name)}. Reference ${esc(D.number)}.`}</div></div>`;
     cv.innerHTML = `${chrome}<div class="cv-main">
       <div class="cv-brand">${logo}<div><b>${esc(B.name)}</b><small>${esc(LABEL[type])} · ${esc(D.number)}</small></div></div>
-      <div class="cv-hello"><h1>Dear ${esc(name)},</h1><p>${intro}</p></div>
-      <div class="cv-card cv-amount"><span class="lbl">${lbl}</span><span class="amt foil" id="cv-amt">${money(amount, c)}</span>${sub ? `<span class="sub">${sub}</span>` : ""}${chip}</div>
+      <div class="cv-hello"><h1>${esc(G.hi(name))}</h1><p>${intro}</p></div>
+      <div class="cv-card cv-amount"><span class="lbl">${lbl}</span><span class="amt foil" id="cv-amt">${type === "delivery" ? amount : money(amount, c)}</span>${sub ? `<span class="sub">${sub}</span>` : ""}${chip}</div>
       <div class="cv-card cv-guide"><h2>${gTitle}</h2><p>${gSub}</p>
         <ol class="gsteps">${steps.map((s, i) => `<li class="gstep"><span class="dot">${["i", "ii", "iii"][i]}</span><div class="body"><h3>${s[0]}</h3>${s[1]}</div></li>`).join("")}</ol></div>
       <div class="cv-card cv-doc"><h2>Your official ${docWord}</h2><p>Signed and sealed by ${esc(B.name)}.</p><div class="cv-paper" id="cv-paper"></div>
@@ -1757,8 +1868,8 @@ function openClientView(payload, ctx = {}) {
     </div>`;
     cv.scrollTop = 0;
     fitInto($("#cv-paper", cv), P, D, docOpts);
-    const el = $("#cv-amt", cv);
-    if (!reduceMotion) { const t0 = performance.now() + 350; const step = (now) => { const p = Math.max(0, Math.min(1, (now - t0) / 1500)); el.textContent = money(amount * (1 - Math.pow(1 - p, 4)), c); if (p < 1) requestAnimationFrame(step); }; el.textContent = money(0, c); requestAnimationFrame(step); }
+    const el = type === "delivery" ? null : $("#cv-amt", cv);
+    if (el && !reduceMotion) { const t0 = performance.now() + 350; const step = (now) => { const p = Math.max(0, Math.min(1, (now - t0) / 1500)); el.textContent = money(amount * (1 - Math.pow(1 - p, 4)), c); if (p < 1) requestAnimationFrame(step); }; el.textContent = money(0, c); requestAnimationFrame(step); }
     $$(".gstep", cv).forEach((li, i) => setTimeout(() => { li.classList.add("lit"); setTimeout(() => li.classList.add("flow"), 300); }, reduceMotion ? 0 : 1100 + i * 1000));
   }
   if (ctx.skipEnvelope) { stopDust(); showMain(); }
@@ -1799,7 +1910,7 @@ async function bootLicence() {
   if (licence?.mode === "full" && configured()) {
     try {
       const r = await rpc("activate_license", { p_key: licence.key, p_device: deviceId });
-      if (r.ok) { licence = { ...licence, email: r.email, plan: r.plan || "signature", checkedAt: Date.now() }; LS.set("aurum.licence", licence); return enter(); }
+      if (r.ok) { licence = { ...licence, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || licence.refCode, checkedAt: Date.now() }; LS.set("aurum.licence", licence); return enter(); }
       LS.del("aurum.licence"); licence = null; return showGate(REASONS[r.reason] || REASONS.invalid);
     } catch {
       if ((Date.now() - (licence.checkedAt || 0)) / 864e5 < CONFIG.OFFLINE_GRACE_DAYS) return enter();
@@ -1815,7 +1926,7 @@ $("#gate-form").addEventListener("submit", async (e) => {
   const btn = $("#lic-submit"); btn.disabled = true; btn.textContent = "Checking…"; $("#lic-err").textContent = "";
   try {
     const r = await rpc("activate_license", { p_key: key, p_device: deviceId });
-    if (r.ok) { licence = { mode: "full", key, email: r.email, plan: r.plan || "signature", checkedAt: Date.now() }; LS.set("aurum.licence", licence); enter(); toast("Welcome to Aurum"); }
+    if (r.ok) { licence = { mode: "full", key, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || "", checkedAt: Date.now() }; LS.set("aurum.licence", licence); enter(); toast("Welcome to Aurum"); }
     else $("#lic-err").textContent = REASONS[r.reason] || REASONS.invalid;
   } catch { $("#lic-err").textContent = "We couldn't reach the licence server. Check your internet and try again."; }
   btn.disabled = false; btn.textContent = "Enter";
@@ -1825,13 +1936,13 @@ $("#lic-demo").addEventListener("click", () => { licence = { mode: "demo" }; LS.
 /* =========================================================
    STATE
    ========================================================= */
-const blankProfile = () => ({ setupDone: false, business: { name: "", tagline: "", industry: "", address: "", phone: "", email: "", rc: "", tin: "", logo: "", signMode: "type", signText: "", signImg: "", signName: "", signTitle: "" }, bank: { bankName: "", accountName: "", accountNumber: "", payLink: "", paystackKey: "" }, design: { template: "royal", brand: "#1A1817", seal: true }, counters: { invoice: 0, receipt: 0, quotation: 0 } });
+const blankProfile = () => ({ setupDone: false, business: { name: "", tagline: "", industry: "", address: "", phone: "", email: "", rc: "", tin: "", logo: "", signMode: "type", signText: "", signImg: "", signName: "", signTitle: "" }, bank: { bankName: "", accountName: "", accountNumber: "", payLink: "", paystackKey: "" }, design: { template: "royal", brand: "#1A1817", seal: true }, counters: { invoice: 0, receipt: 0, quotation: 0, delivery: 0, credit: 0, purchase: 0 } });
 const SAMPLE_PROFILE = () => ({ setupDone: true, isSample: true,
   business: { name: "Adaeze Couture", tagline: "Bespoke bridal & occasion wear", industry: "fashion", address: "14B Admiralty Way, Lekki Phase 1, Lagos", phone: "0803 123 4567", email: "hello@adaezecouture.ng", rc: "RC 1234567", tin: "", logo: "", signMode: "type", signText: "Adaeze O.", signImg: "", signName: "Adaeze Okafor", signTitle: "Creative Director" },
   bank: { bankName: "GTBank", accountName: "Adaeze Couture Ltd", accountNumber: "0123456789", payLink: "", paystackKey: "" },
-  design: { template: "royal", brand: "#1A1817", seal: true }, counters: { invoice: 41, receipt: 17, quotation: 8 } });
+  design: { template: "royal", brand: "#1A1817", seal: true, greeting: "en" }, counters: { invoice: 41, receipt: 17, quotation: 8, delivery: 3, credit: 1, purchase: 5 } });
 const blankItem = () => ({ id: uid(), desc: "", note: "", qty: 1, price: "" });
-const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", payBy: "", receiptMode: "simple", receivedAmount: "", paidFor: "", reference: "", balanceLeft: "", depositPct: 0, timeline: "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
+const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", payBy: "", receiptMode: "simple", receivedAmount: "", rider: "", reason: "", refundMethod: "Store credit", deliverBy: "", shipTo: "", preparedBy: "", paidFor: "", reference: "", balanceLeft: "", depositPct: 0, timeline: "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
   client: { name: "", company: "", address: "", phone: "", email: "" }, items: [blankItem()], discountType: "amount", discount: "", delivery: "", vatOn: false, vatRate: 7.5, amountPaid: "", notes: "", link: "", shareId: "" });
 const sampleDoc = () => ({ ...newDocFor(SAMPLE_PROFILE()), number: "INV-0042", status: "part",
   client: { name: "Mrs. Funmilayo Bakare", company: "", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 876 5432", email: "" },
@@ -1845,14 +1956,56 @@ let history = LS.get("aurum.history", []);
 let activity = {};
 let step = 1;
 let saveTimer;
-const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { LS.set("aurum.profile", S.profile); LS.set("aurum.draft", S.doc); LS.set("aurum.clients", S.clients); LS.set("aurum.catalog", S.catalog); }, 250); };
+let lastProfileJSON = "";
+const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => {
+  const pj = JSON.stringify(S.profile); if (lastProfileJSON && pj !== lastProfileJSON) { S.profile.updatedAt = Date.now(); } lastProfileJSON = JSON.stringify(S.profile);
+  LS.set("aurum.profile", S.profile); LS.set("aurum.draft", S.doc); LS.set("aurum.clients", S.clients); LS.set("aurum.catalog", S.catalog); pushSoon(); }, 250); };
 const studioOpts = (extra = {}) => ({ demo: isDemo(), qr: S.doc.shareId ? qrFor(S.doc.link) : "", ...extra });
 
-function enter() {
+async function enter() {
   $("#gate").hidden = true;
+  if (canSync()) { await Promise.race([pull(), wait(6000)]); if (!history.some((h) => h.id === S.doc.id)) { S.doc.number = `${PREFIX[S.doc.type]}-${pad((S.profile.counters[S.doc.type] || 0) + 1)}`; persist(); } }
   if (!S.profile.setupDone) return startWelcome();
   startStudio();
 }
+
+/* =========================================================
+   CLOUD BACKUP — one workspace per licence, shared by its devices
+   ========================================================= */
+const SYNC = { version: LS.get("aurum.syncVersion", 0), timer: null, busy: false, again: false };
+const canSync = () => configured() && licence?.mode === "full";
+function setSync(state) { const el = $("#sync-state"); if (!el) return; el.hidden = !canSync(); el.dataset.state = state; el.textContent = { saving: "Saving…", saved: "Backed up", offline: "Offline · will retry", error: "Backup paused" }[state] || ""; }
+function pushSoon() { if (!canSync()) return; setSync("saving"); clearTimeout(SYNC.timer); SYNC.timer = setTimeout(push, 3500); }
+const workspace = () => ({ v: 1, profile: S.profile, history, clients: S.clients, catalog: S.catalog, savedAt: Date.now() });
+function mergeWorkspace(remote) {
+  if (!remote) return;
+  const byId = new Map(history.map((h) => [h.id, h]));
+  (remote.history || []).forEach((h) => { const mine = byId.get(h.id); if (!mine || (h.savedAt || 0) > (mine.savedAt || 0)) byId.set(h.id, h); });
+  history = [...byId.values()].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0)).slice(0, 300);
+  const cl = new Map(S.clients.map((c) => [c.name.toLowerCase(), c])); (remote.clients || []).forEach((c) => { const k = c.name.toLowerCase(); if (!cl.has(k) || (c.last || 0) > (cl.get(k).last || 0)) cl.set(k, c); }); S.clients = [...cl.values()];
+  const ct = new Map(S.catalog.map((x) => [x.desc.toLowerCase(), x])); (remote.catalog || []).forEach((x) => { const k = x.desc.toLowerCase(); if (!ct.has(k) || (x.uses || 0) > (ct.get(k).uses || 0)) ct.set(k, x); }); S.catalog = [...ct.values()];
+  if (remote.profile && ((remote.profile.updatedAt || 0) > (S.profile.updatedAt || 0) || !S.profile.setupDone)) {
+    const counters = { ...remote.profile.counters }; Object.entries(S.profile.counters || {}).forEach(([k, v]) => (counters[k] = Math.max(counters[k] || 0, v)));
+    S.profile = { ...remote.profile, counters };
+  }
+  LS.set("aurum.history", history); LS.set("aurum.profile", S.profile); LS.set("aurum.clients", S.clients); LS.set("aurum.catalog", S.catalog);
+}
+async function pull() {
+  if (!canSync()) return;
+  try { const r = await rpc("load_workspace", { p_key: licence.key, p_device: deviceId }); if (r.ok && r.data) { mergeWorkspace(r.data); } if (r.ok) { SYNC.version = r.version || 0; LS.set("aurum.syncVersion", SYNC.version); setSync("saved"); } }
+  catch { setSync("offline"); }
+}
+async function push(retry = true) {
+  if (!canSync()) return; if (SYNC.busy) { SYNC.again = true; return; } SYNC.busy = true;
+  try {
+    const r = await rpc("save_workspace", { p_key: licence.key, p_device: deviceId, p_data: workspace(), p_version: SYNC.version });
+    if (r.ok) { SYNC.version = r.version; LS.set("aurum.syncVersion", SYNC.version); setSync("saved"); }
+    else if (r.reason === "conflict" && retry) { await pull(); SYNC.busy = false; return push(false); }
+    else setSync("error");
+  } catch { setSync("offline"); }
+  SYNC.busy = false; if (SYNC.again) { SYNC.again = false; pushSoon(); }
+}
+addEventListener("online", () => pushSoon());
 
 /* =========================================================
    WELCOME — a short, unhurried setup with a seal ceremony
@@ -1965,7 +2118,7 @@ function render({ enter = false, newIds = null } = {}) {
   if (amtEl && !reduceMotion && ((lastTotal !== null && lastTotal !== t.total) || enter)) countUp(amtEl, enter ? 0 : lastTotal, t.total, D.currency, enter ? 900 : 500);
   lastTotal = t.total;
   $("#mini-label").textContent = `${LABEL[D.type]} ${D.number}`;
-  $("#mini-total").textContent = money(D.type === "invoice" && D.status === "part" ? t.balance : t.total, D.currency);
+  $("#mini-total").textContent = D.type === "delivery" ? `${D.items.filter((it) => it.desc).reduce((a, it) => a + num(it.qty), 0)} item(s)` : money(D.type === "invoice" && D.status === "part" ? t.balance : t.total, D.currency);
   renderSumbox(); fitPaper();
 }
 function countUp(el, from, to, c, dur) { cancelAnimationFrame(rafId); const t0 = performance.now(); const f = (n) => { const p = Math.min(1, (n - t0) / dur); el.textContent = money(from + (to - from) * (1 - Math.pow(1 - p, 3)), c); if (p < 1) rafId = requestAnimationFrame(f); }; rafId = requestAnimationFrame(f); }
@@ -1981,7 +2134,7 @@ function renderSumbox() {
 }
 
 /* chapters */
-const STEP_SETS = { invoice: ["Client", "Items", "Payment", "Send"], receipt: ["Payer", "Paid for", "Details", "Send"], quotation: ["Client", "Items", "Terms", "Send"] };
+const STEP_SETS = { invoice: ["Client", "Items", "Payment", "Send"], receipt: ["Payer", "Paid for", "Details", "Send"], quotation: ["Client", "Items", "Terms", "Send"], delivery: ["Recipient", "Items", "Delivery", "Send"], credit: ["Client", "Items", "Reason", "Send"], purchase: ["Supplier", "Items", "Delivery", "Send"] };
 function renderSteps() {
   $("#steps").innerHTML = (STEP_SETS[S.doc.type] || STEP_SETS.invoice).map((n, i) => `<li><button type="button" data-goto="${i + 1}" class="${i + 1 < step ? "done" : ""}" ${i + 1 === step ? 'aria-current="step"' : ""}><b>${["I", "II", "III", "IV"][i]}</b><span>${n}</span></button></li>`).join("");
 }
@@ -1990,6 +2143,7 @@ function validate(n) {
   const fail = (id, msg) => { const f = $(id); f.classList.add("error"); f.insertAdjacentHTML("beforeend", `<span class="err">${msg}</span>`); f.querySelector("input")?.focus(); return false; };
   if (n === 1 && !S.doc.client.name.trim()) return fail("#f-cname", S.doc.type === "receipt" ? "Who paid you?" : "Who is this for?");
   if (n === 2 && S.doc.type === "receipt" && S.doc.receiptMode === "simple") { if (!(num(S.doc.receivedAmount) > 0)) return fail("#f-ramt", "How much did they pay?"); if (!S.doc.paidFor?.trim()) return fail("#f-rfor", "What was the payment for?"); return true; }
+  if (n === 2 && S.doc.type === "delivery") { if (!S.doc.items.some((it) => it.desc.trim())) { toast("Add at least one item"); $("#items-ed input")?.focus(); return false; } return true; }
   if (n === 2 && !S.doc.items.some((it) => it.desc.trim() && num(it.price) > 0)) { toast("Add at least one item with a price"); $("#items-ed input")?.focus(); return false; }
   return true;
 }
@@ -2016,16 +2170,17 @@ function syncChrome() {
   const D = S.doc, P = S.profile, t = calc(D);
   $$("[data-doctype]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.doctype === D.type)));
   const T = D.type;
-  $("#s1-title").textContent = T === "receipt" ? "Who paid you?" : T === "quotation" ? "Who is the quote for?" : "Who is it for?";
-  $("#c-name-label").textContent = T === "receipt" ? "Payer's name" : "Client's name";
+  $("#s1-title").textContent = { receipt: "Who paid you?", quotation: "Who is the quote for?", delivery: "Who is it going to?", credit: "Who is the credit for?", purchase: "Which supplier?" }[T] || "Who is it for?";
+  $("#c-name-label").textContent = T === "receipt" ? "Payer's name" : T === "purchase" ? "Supplier's name" : T === "delivery" ? "Recipient's name" : "Client's name";
   $("#due-block").hidden = T !== "invoice";
-  const srcType = T === "receipt" ? "invoice" : T === "invoice" ? "quotation" : null;
+  const srcType = T === "invoice" ? "quotation" : ["receipt", "delivery", "credit"].includes(T) ? "invoice" : null;
   const srcs = srcType ? history.filter((h) => h.doc.type === srcType && (srcType === "quotation" || h.doc.status !== "paid")).slice(0, 6) : [];
   $("#from-block").hidden = !srcs.length;
-  $("#from-label").textContent = T === "receipt" ? "Payment for an invoice? Tap it" : "Turn a quotation into this invoice";
-  chipRow($("#from-chips"), srcs.map((h) => ({ label: `${h.doc.number} · ${h.doc.client.name || "—"} · ${short(srcType === "invoice" ? dueOn(h.doc) : calc(h.doc).total)}${srcType === "invoice" ? " due" : ""}`, h })), (o) => D.fromId === o.h.id, (o) => convertFrom(o.h.id));
+  $("#from-label").textContent = { receipt: "Payment for an invoice? Tap it", invoice: "Turn a quotation into this invoice", delivery: "Delivering an invoice's items? Tap it", credit: "Crediting an invoice? Tap it" }[T] || "";
+  chipRow($("#from-chips"), srcs.map((h) => ({ label: `${h.doc.number} · ${h.doc.client.name || "—"} · ${short(T === "receipt" ? dueOn(h.doc) : calc(h.doc).total)}${T === "receipt" ? " due" : ""}`, h })), (o) => D.fromId === o.h.id, (o) => (T === "receipt" || T === "invoice" ? convertFrom(o.h.id) : docFrom(o.h.doc, T)));
   // chapter II per type
-  $("#s2-title").textContent = T === "receipt" ? "What was it for?" : T === "quotation" ? "What are you quoting for?" : "What did you sell?";
+  $("#s2-title").textContent = { receipt: "What was it for?", quotation: "What are you quoting for?", delivery: "What's being delivered?", credit: "What is being credited?", purchase: "What are you ordering?" }[T] || "What did you sell?";
+  $("#items-block").classList.toggle("no-price", T === "delivery");
   $("#s2-sub").textContent = T === "receipt" ? "One line is enough. Switch to itemised if you prefer a list." : T === "quotation" ? "List what's included. You can attach terms in the next chapter." : "Type or pick from your saved items.";
   $("#rmode-block").hidden = T !== "receipt";
   const quickR = T === "receipt" && D.receiptMode === "simple";
@@ -2043,8 +2198,27 @@ function syncChrome() {
     $("#rcpt-peek").innerHTML = ra ? `“Received from <b>${esc(D.client.name || "…")}</b> the sum of <em>${esc(amountInWords(ra, D.currency))}</em> being payment for <b>${esc(D.paidFor || "…")}</b>.”` : "";
   }
   // chapter III per type
-  $("#inv3").hidden = T !== "invoice"; $("#rcpt3").hidden = T !== "receipt"; $("#quo3").hidden = T !== "quotation"; $("#bank-block").hidden = T === "receipt";
-  $("#pay-sub").textContent = T === "receipt" ? "These details make the receipt official." : T === "quotation" ? "Set how long the price holds and what's needed to begin." : "";
+  $("#inv3").hidden = T !== "invoice"; $("#rcpt3").hidden = T !== "receipt"; $("#quo3").hidden = T !== "quotation"; $("#dn3").hidden = T !== "delivery"; $("#cn3").hidden = T !== "credit"; $("#po3").hidden = T !== "purchase";
+  $("#bank-block").hidden = !["invoice", "quotation"].includes(T);
+  $("#rmode-block").hidden = T !== "receipt";
+  if (T === "delivery") {
+    const back = -daysUntil(D.issueDate);
+    chipRow($("#dn-date-chips"), [{ label: "Today", v: 0 }, { label: "Yesterday", v: 1 }, { label: back > 1 ? fmtDate(D.issueDate) : "Another day", v: "pick", add: back <= 1 }], (o) => (o.v === "pick" ? back > 1 : o.v === back), (o) => { if (o.v === "pick") return pickDate("Dispatched", "doc.issueDate"); D.issueDate = iso(addDays(-o.v)); persist(); syncChrome(); render(); });
+    ["dn-addr", "dn-rider"].forEach((id) => { const el = $("#" + id); if (document.activeElement !== el) el.value = getPath(S, el.dataset.bind) || ""; });
+  }
+  if (T === "credit") {
+    chipRow($("#cn-reason-chips"), ["Returned goods", "Overpayment", "Cancelled order", "Discount after sale", "Damaged item"].map((r) => ({ label: r })), (o) => D.reason === o.label, (o) => { D.reason = o.label; $("#cn-reason").value = o.label; persist(); syncChrome(); render(); });
+    chipRow($("#cn-method-chips"), ["Store credit", "Refunded to bank", "Refunded in cash", "Deducted from balance"].map((r) => ({ label: r })), (o) => (D.refundMethod || "Store credit") === o.label, (o) => { D.refundMethod = o.label; persist(); syncChrome(); render(); });
+    if (document.activeElement !== $("#cn-reason")) $("#cn-reason").value = D.reason || "";
+  }
+  if (T === "purchase") {
+    const pd2 = D.deliverBy ? daysUntil(D.deliverBy) : null; const pb2 = [{ label: "Not set", v: null }, { label: "3 days", v: 3 }, { label: "1 week", v: 7 }, { label: "2 weeks", v: 14 }]; const pk2 = pb2.some((o) => o.v === pd2);
+    chipRow($("#po-date-chips"), [...pb2, { label: pk2 ? "Pick a date" : fmtDate(D.deliverBy), v: "pick", add: pk2 }], (o) => (o.v === "pick" ? !pk2 : o.v === pd2), (o) => { if (o.v === "pick") return pickDate("Deliver by", "doc.deliverBy"); D.deliverBy = o.v === null ? "" : iso(addDays(o.v)); persist(); syncChrome(); render(); });
+    if (document.activeElement !== $("#po-ship")) $("#po-ship").value = D.shipTo || "";
+    if (!$("#po-ship").placeholder.includes(",") && P.business.address) $("#po-ship").placeholder = P.business.address;
+  }
+  $("#pay-title").textContent = { receipt: "Payment details", quotation: "Terms", delivery: "Delivery details", credit: "Reason & settlement", purchase: "Delivery" }[T] || "Payment";
+  $("#pay-sub").textContent = T === "delivery" ? "Where it's going and who's taking it." : T === "credit" ? "Why the credit, and how it's settled." : T === "purchase" ? "When and where the supplier should deliver." : T === "receipt" ? "These details make the receipt official." : T === "quotation" ? "Set how long the price holds and what's needed to begin." : "";
   $("#bank-label").textContent = T === "quotation" ? "Deposit is paid into" : "Paid into";
   if (T === "receipt") {
     const back = -daysUntil(D.issueDate);
@@ -2121,7 +2295,8 @@ function syncChrome() {
   const curR = REVEALS[D.reveal] ? D.reveal : "envelope";
   $("#reveal-grid").innerHTML = Object.entries(REVEALS).map(([k, v]) => `<button type="button" class="rv" data-reveal="${k}" aria-pressed="${k === curR}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">${RV_ICONS[k]}</svg>${v.name}</button>`).join("");
   $("#make-link").textContent = D.link ? "Update private link" : "Create private link";
-  $("#next-doc").hidden = D.type === "receipt" || (D.type === "invoice" && D.status === "paid");
+  $("#repeat-line").hidden = D.type !== "invoice"; $("#repeat-on").checked = !!D.recurring;
+  $("#next-doc").hidden = !["invoice", "quotation"].includes(D.type) || (D.type === "invoice" && D.status === "paid");
   $("#next-doc-title").textContent = D.type === "quotation" ? "Client accepted?" : "Payment came in?";
   $("#next-doc-sub").textContent = D.type === "quotation" ? "Turn this quotation into an invoice. Everything carries over." : `Issue a receipt for ${D.number}. The invoice updates itself.`;
   $("#next-doc-btn").textContent = D.type === "quotation" ? "Make invoice" : "Issue receipt";
@@ -2144,8 +2319,8 @@ document.addEventListener("change", async (e) => {
   delete S.profile.isSample; persist(); e.target.value = "";
   if (!$("#ob").hidden) renderOb(); else { refreshDrawerBits(); render(); }
 });
-function readImage(file, max = 480) {
-  return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)); const cv = document.createElement("canvas"); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s); cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height); resolve(cv.toDataURL("image/png")); }; img.onerror = reject; img.src = r.result; }; r.onerror = reject; r.readAsDataURL(file); });
+function readImage(file, max = 480, mime = "image/png", q) {
+  return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)); const cv = document.createElement("canvas"); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s); cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height); resolve(cv.toDataURL(mime, q)); }; img.onerror = reject; img.src = r.result; }; r.onerror = reject; r.readAsDataURL(file); });
 }
 $$("[data-rmode]").forEach((b) => b.addEventListener("click", () => {
   const m = b.dataset.rmode; if (m === S.doc.receiptMode) return;
@@ -2155,8 +2330,9 @@ $$("[data-rmode]").forEach((b) => b.addEventListener("click", () => {
 $("#r-amt").addEventListener("input", (e) => { const raw = e.target.value.replace(/[^\d.]/g, ""); S.doc.receivedAmount = raw; if (num(S.doc.fromBalance) > 0) { const left = round2(num(S.doc.fromBalance) - num(raw)); S.doc.balanceLeft = left > 0 ? left : ""; } e.target.value = group(raw); e.target.closest(".field.error")?.classList.remove("error"); persist(); syncChrome(); render(); });
 $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
   const t = b.dataset.doctype; if (t === S.doc.type) return;
+  if (history.some((h) => h.id === S.doc.id)) { S.doc = { ...structuredClone(S.doc), id: uid(), receipts: [], settled: false, recurring: false, reminded: "" }; lastTotal = null; }
   if (t === "receipt" && !S.doc.receiptMode) S.doc.receiptMode = S.doc.items.some((it) => num(it.price) > 0) ? "items" : "simple";
-  S.doc.type = t; S.doc.number = `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`; S.doc.link = ""; S.doc.shareId = ""; renderSteps();
+  S.doc.type = t; S.doc.number = `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`; S.doc.link = ""; S.doc.shareId = ""; renderSteps(); if (["credit", "delivery", "purchase"].includes(t)) S.doc.status = "unpaid"; S.doc.fromDoc = ""; S.doc.fromId = ""; S.doc.settled = false;
   if (t === "quotation") S.doc.dueDate = iso(addDays(14)); if (t === "receipt") { S.doc.status = "paid"; S.doc.issueDate = iso(new Date()); } else if (S.doc.status === "paid") S.doc.status = "unpaid";
   persist(); syncChrome(); swapAnim(); render({ enter: true });
 }));
@@ -2189,6 +2365,7 @@ function renderItemsEditor() {
         <div class="stepper"><button type="button" data-qty="-1" aria-label="Less">−</button><input id="it-q-${it.id}" data-item="qty" value="${esc(it.qty)}" inputmode="numeric" aria-label="Quantity"><button type="button" data-qty="1" aria-label="More">+</button></div>
         <div class="money-in field"><i>${sym}</i><input id="it-p-${it.id}" data-item="price" value="${esc(it.price !== "" ? group(it.price) : "")}" inputmode="decimal" placeholder="Price each" aria-label="Price each"></div>
       </div>
+      <div class="it-photo-row">${it.img ? `<span class="it-thumb" style="background-image:url(${it.img})"></span><button type="button" class="btn ghost sm" data-nophoto="${it.id}" style="padding:0">Remove photo</button>` : `<label class="btn ghost sm it-photo-btn" style="padding:0">+ Add a photo<input type="file" accept="image/*" data-itemphoto="${it.id}"></label>`}</div>
       ${it.note || it.showNote ? `<div class="field"><input id="it-n-${it.id}" data-item="note" value="${esc(it.note)}" placeholder="Detail: size, colour, date…" aria-label="Detail"></div>` : `<button type="button" class="btn ghost sm" data-note="${it.id}" style="justify-self:start; padding:0">+ Add a detail</button>`}
     </div>`).join("");
   const used = new Set(S.doc.items.map((x) => x.desc.toLowerCase()));
@@ -2206,7 +2383,7 @@ function itemSuggest(card, it) {
   showSuggest(field, (cat.length ? `<div class="sec">Your items</div>` + cat.map((x, i) => `<button type="button" data-cat="${i}"><span>${esc(x.desc)}</span><small>${short(num(x.price))}</small></button>`).join("") : "") + (ind.length ? `<div class="sec">Suggestions</div>` + ind.map((x, i) => `<button type="button" data-ind-item="${i}"><span>${esc(x)}</span></button>`).join("") : ""));
   field.onclick = (ev) => {
     const a = ev.target.closest("[data-cat]"), b = ev.target.closest("[data-ind-item]"); if (!a && !b) return;
-    if (a) { const x = cat[Number(a.dataset.cat)]; it.desc = x.desc; it.price = x.price; if (x.note) it.note = x.note; } else it.desc = ind[Number(b.dataset.indItem)];
+    if (a) { const x = cat[Number(a.dataset.cat)]; it.desc = x.desc; it.price = x.price; if (x.note) it.note = x.note; if (x.img) it.img = x.img; } else it.desc = ind[Number(b.dataset.indItem)];
     persist(); closeSuggest(); renderItemsEditor(); render(); if (!num(it.price)) $(`#it-p-${it.id}`)?.focus();
   };
 }
@@ -2226,14 +2403,16 @@ $("#items-ed").addEventListener("click", (e) => {
   if (qb) { const card = qb.closest(".item-card"); const it = S.doc.items.find((x) => x.id === card.dataset.id); it.qty = Math.max(1, num(it.qty) + Number(qb.dataset.qty)); $(`#it-q-${it.id}`).value = it.qty; $("[data-line]", card).textContent = money(num(it.qty) * num(it.price), S.doc.currency); buzz(5); persist(); render(); }
   if (nb) { const it = S.doc.items.find((x) => x.id === nb.dataset.note); it.showNote = true; renderItemsEditor(); $(`#it-n-${it.id}`)?.focus(); }
 });
+$("#items-ed").addEventListener("change", async (e) => { const id = e.target.dataset?.itemphoto; if (!id) return; const f = e.target.files[0]; if (!f) return; const it = S.doc.items.find((x) => x.id === id); it.img = await readImage(f, 220, "image/jpeg", .82); persist(); renderItemsEditor(); render(); });
+$("#items-ed").addEventListener("click", (e) => { const b = e.target.closest("[data-nophoto]"); if (!b) return; const it = S.doc.items.find((x) => x.id === b.dataset.nophoto); delete it.img; persist(); renderItemsEditor(); render(); });
 $("#add-item").addEventListener("click", () => { const it = blankItem(); S.doc.items.push(it); persist(); renderItemsEditor(); render({ newIds: new Set([it.id]) }); $(`#it-d-${it.id}`)?.focus(); });
 
 /* memory: clients & items */
 function rememberDoc() {
-  const D = S.doc; const n = parseInt(String(D.number).replace(/\D/g, ""), 10);
+  const D = S.doc; const me = LS.get("aurum.me", ""); if (me && !D.preparedBy) D.preparedBy = me; const n = parseInt(String(D.number).replace(/\D/g, ""), 10);
   if (Number.isFinite(n)) S.profile.counters[D.type] = Math.max(S.profile.counters[D.type] || 0, n);
   if (D.client.name.trim()) { const k = D.client.name.trim().toLowerCase(); S.clients = [{ ...D.client, last: Date.now() }, ...S.clients.filter((c) => c.name.toLowerCase() !== k)].slice(0, 200); }
-  D.items.filter((it) => it.desc.trim() && num(it.price) > 0).forEach((it) => { const k = it.desc.trim().toLowerCase(); const ex = S.catalog.find((x) => x.desc.toLowerCase() === k); if (ex) { ex.price = it.price; ex.note = it.note || ex.note; ex.uses++; } else S.catalog.push({ desc: it.desc.trim(), price: it.price, note: it.note || "", uses: 1 }); });
+  D.items.filter((it) => it.desc.trim() && num(it.price) > 0).forEach((it) => { const k = it.desc.trim().toLowerCase(); const ex = S.catalog.find((x) => x.desc.toLowerCase() === k); if (ex) { ex.price = it.price; ex.note = it.note || ex.note; if (it.img) ex.img = it.img; ex.uses++; } else S.catalog.push({ desc: it.desc.trim(), price: it.price, note: it.note || "", img: it.img || "", uses: 1 }); });
   history = [{ id: D.id, savedAt: Date.now(), doc: structuredClone(D) }, ...history.filter((h) => h.id !== D.id)].slice(0, 100);
   if (D.type === "receipt" && D.fromId && !D.settled) {
     const src = history.find((h) => h.id === D.fromId);
@@ -2264,6 +2443,13 @@ function invoiceFrom(q) {
     fromDoc: q.number, fromId: q.id, notes: num(q.depositPct) > 0 ? `A ${num(q.depositPct)}% deposit (${money(round2(calc(q).total * num(q.depositPct) / 100), q.currency)}) secures your order.` : q.notes || "" };
   lastTotal = null; persist(); showStep(4); swapAnim(); render({ enter: true });
   toast(`Invoice ${S.doc.number} created from ${q.number}. Ready to send.`);
+}
+function docFrom(src, type) {
+  const fresh = newDocFor(S.profile, type);
+  S.doc = { ...fresh, client: { ...src.client }, currency: src.currency, items: src.items.map((it) => ({ ...it, id: uid() })), fromDoc: src.number, fromId: src.id,
+    reason: type === "credit" ? "" : fresh.reason };
+  lastTotal = null; persist(); showStep(type === "credit" ? 2 : 3); swapAnim(); render({ enter: true });
+  toast(`${LABEL[type]} ${S.doc.number} prepared from ${src.number}.`);
 }
 function convertFrom(id) { const h = history.find((x) => x.id === id); if (!h) return; if (h.doc.type === "invoice") receiptFrom(h.doc); else if (h.doc.type === "quotation") invoiceFrom(h.doc); }
 function newDoc() {
@@ -2312,7 +2498,8 @@ $("#copy-link").addEventListener("click", () => copyText(S.doc.link).then((ok) =
 $("#preview-client").addEventListener("click", () => openClientView(payload(), { preview: true, verified: false }));
 function sendWhatsApp() {
   const D = S.doc, P = S.profile, t = calc(D), c = D.currency; const lines = [`Hello ${D.client.name || "there"},`, ""];
-  if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}${D.paidFor ? " for " + D.paidFor : ""}. Here is your receipt ${D.number} from ${P.business.name}.`);
+  if (["delivery", "credit", "purchase"].includes(D.type)) lines.push(`Here is ${D.type === "purchase" ? "our" : "your"} ${LABEL[D.type].toLowerCase()} ${D.number} from ${P.business.name}.`, D.type === "delivery" ? `${D.items.filter((it) => it.desc).length} item(s) dispatched ${fmtDate(D.issueDate)}${D.rider ? " with " + D.rider : ""}.` : D.type === "credit" ? `Credit: ${money(t.total, c)}${D.reason ? " (" + D.reason + ")" : ""}.` : `Order total: ${money(t.total, c)}${D.deliverBy ? ", needed by " + fmtDate(D.deliverBy) : ""}.`);
+  else if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}${D.paidFor ? " for " + D.paidFor : ""}. Here is your receipt ${D.number} from ${P.business.name}.`);
   else if (D.type === "quotation") lines.push(`Here is your quotation ${D.number} from ${P.business.name}.`, `Quoted total: ${money(t.total, c)}`);
   else { lines.push(`Here is your invoice ${D.number} from ${P.business.name}.`, D.status === "part" ? `Balance to pay: ${money(t.balance, c)}` : `Amount: ${money(t.total, c)}`); if (D.payBy) lines.push(`Pay by: ${fmtDate(D.payBy)}`); if (D.dueDate) lines.push(`Valid until: ${fmtDate(D.dueDate)}`); if (!D.link && P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`); }
   if (D.link) lines.push("", "Open your sealed envelope:", D.link);
@@ -2350,6 +2537,18 @@ function openHouse(focus) {
         <label class="field"><span>Paystack public key <em>(optional)</em></span><input data-bind="profile.bank.paystackKey" value="${esc(K.paystackKey)}" placeholder="pk_live_…" autocomplete="off" spellcheck="false"></label>
         <p class="hint">With Paystack, clients pay by card, transfer or USSD right inside your envelope. Find the key in Paystack → Settings → API Keys. Use the <b>public</b> key only, never the secret key.</p>
       </section>
+      <section><h3 class="sub">Aurum on your home screen</h3>
+        ${standalone() ? `<p class="hint">Installed. Aurum opens like an app and works without data. Your links and licence sync when you're back online.</p>`
+          : installPrompt ? `<button class="btn primary block" type="button" data-h="install">Install Aurum on this device</button><p class="hint">It gets its own icon, opens full screen, and works offline.</p>`
+          : isIOS() ? `<p class="hint">On iPhone: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>.</p>`
+          : `<p class="hint">In Chrome: open the menu (⋮) and tap <b>Install app</b> or <b>Add to Home screen</b>.</p>`}</section>
+      <section><h3 class="sub">Client page language</h3>
+        <p class="hint">How your private link greets clients.</p>
+        <div class="chips">${Object.entries(GREET).map(([k, v]) => `<button type="button" class="chip" data-greet="${k}" aria-pressed="${(G.greeting || "en") === k}">${v.name}</button>`).join("")}</div>
+        <p class="hint" style="font-family:var(--f-display);font-size:18px;color:var(--ink)">${esc((GREET[G.greeting] || GREET.en).hi("Mrs. Bakare"))}</p></section>
+      <section><h3 class="sub">This device</h3>
+        <label class="field"><span>Your name on this phone/laptop <em>(shows as "Prepared by")</em></span><input id="h-me" value="${esc(LS.get("aurum.me", ""))}" placeholder="e.g. Tolu (sales)" autocomplete="off"></label>
+        <p class="hint">Staff using your licence on another device can put their own name here.</p></section>
       <section><h3 class="sub">Documents</h3><button class="btn block" type="button" data-h="customise">Customise invoice, receipt &amp; quotation</button></section>
       <section><h3 class="sub">Look</h3>
         <div class="tpl-grid" style="--tb:${esc(G.brand)}">${[["royal", "Royal"], ["atelier", "Atelier"], ["noir", "Noir"]].map(([k, n]) => `<button type="button" class="tpl" data-template="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
@@ -2368,8 +2567,12 @@ function openHouse(focus) {
             : `<b>Prestige</b><p>Send envelopes from your own web address (for example invoice.yourbrand.ng), with no Aurum branding anywhere your client looks.</p>${CONFIG.SELLER_WHATSAPP ? `<a class="btn sm primary" style="justify-self:start" href="https://wa.me/${esc(CONFIG.SELLER_WHATSAPP)}?text=${encodeURIComponent("Hello, I'd like to upgrade Aurum to Prestige.")}" target="_blank" rel="noopener">Ask about Prestige</a>` : ""}`}
           ${isDemo() && CONFIG.BUY_LINK ? `<a class="btn sm" style="justify-self:start" href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get your licence</a>` : ""}
         </div>
-        ${licence?.key ? `<p class="hint">Licence ${esc(licence.key.slice(0, 8))}•••• · this device is registered to you.</p>` : ""}
+        ${licence?.key ? `<p class="hint">Licence ${esc(licence.key.slice(0, 8))}•••• · this device is registered to you.${canSync() ? " Your documents are backed up and shared with your other devices." : ""}</p>` : ""}
       </section>
+      ${licence?.refCode ? `<section><h3 class="sub">Refer a friend</h3>
+        <div class="prestige-card"><span class="eyebrow">Your code</span><b style="letter-spacing:.12em">${esc(licence.refCode)}</b><p>Friends who buy with your code get ${esc(CONFIG.REFERRAL_OFFER)}. Ask us about your reward.</p>
+        <a class="btn sm primary" style="justify-self:start" href="https://wa.me/?text=${encodeURIComponent(`I send my invoices with Aurum. Clients open them like a gift and pay in one tap. Use my code ${licence.refCode} for ${CONFIG.REFERRAL_OFFER}${CONFIG.BUY_LINK ? ": " + CONFIG.BUY_LINK : ""}`)}" target="_blank" rel="noopener">Share on WhatsApp</a></div>
+      </section>` : ""}
     </div></aside>`;
   const layer = $("#layer");
   layer.onclick = (e) => {
@@ -2379,10 +2582,12 @@ function openHouse(focus) {
     if (sw) { G.brand = sw.dataset.color; persist(); openHouse(); render(); }
     if (sg) { B.signMode = sg.dataset.sign; persist(); openHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
+    const gr = e.target.closest("[data-greet]"); if (gr) { G.greeting = gr.dataset.greet; persist(); return openHouse(); }
+    if (h?.dataset.h === "install" && installPrompt) { installPrompt.prompt(); installPrompt.userChoice.finally(() => { installPrompt = null; openHouse(); }); return; }
     if (h?.dataset.h === "customise") return openCustomise();
     if (h?.dataset.h === "nologo") { B.logo = ""; persist(); openHouse(); render(); }
   };
-  layer.oninput = (e) => { if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); } };
+  layer.oninput = (e) => { if (e.target.id === "h-me") LS.set("aurum.me", e.target.value.trim()); if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); } };
   if (focus === "bank") setTimeout(() => $("#h-bank")?.scrollIntoView({ block: "start" }), 50);
 }
 function openCustomise(type = S.doc.type) {
@@ -2392,7 +2597,7 @@ function openCustomise(type = S.doc.type) {
   $("#layer").innerHTML = `<div class="scrim clear" data-close></div><aside class="drawer left" role="dialog" aria-label="Customise">
     <div class="drawer-head"><h2>Customise</h2><button class="btn sm primary" type="button" data-close>Done</button></div>
     <div class="drawer-body">
-      <div class="seg" role="group" aria-label="Document">${["invoice", "receipt", "quotation"].map((t) => `<button type="button" data-cz-type="${t}" aria-pressed="${t === type}">${LABEL[t]}</button>`).join("")}</div>
+      <div class="chips" role="group" aria-label="Document">${Object.keys(LABEL).map((t) => `<button type="button" class="chip" data-cz-type="${t}" aria-pressed="${t === type}">${LABEL[t]}</button>`).join("")}</div>
       <p class="hint" style="margin-top:-14px">Changes apply to every ${LABEL[type].toLowerCase()} you send.</p>
       <div class="cz-prev" id="cz-prev"></div>
       <section><h3 class="sub">Title on the document</h3>
@@ -2426,6 +2631,97 @@ function openCustomise(type = S.doc.type) {
   };
   layer.oninput = (e) => { if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); refreshCustomPreview(type); } };
 }
+/* =========================================================
+   OVERVIEW — money in, money owed, reminders, repeats, VAT
+   ========================================================= */
+const monthKey = (iso) => String(iso || "").slice(0, 7);
+const addMonths = (isoDate, n) => { const d = new Date(isoDate + "T12:00:00"); const day = d.getDate(); d.setMonth(d.getMonth() + n); if (d.getDate() < day) d.setDate(0); return iso(d); };
+function ledger() {
+  const docs = history.map((h) => h.doc);
+  const received = []; // { date, amount, client }
+  docs.forEach((d) => {
+    if (d.type === "receipt") received.push({ date: d.issueDate, amount: calc(d).total, client: d.client.name, cur: d.currency });
+    else if (d.type === "invoice" && !(d.receipts || []).length) { const t = calc(d); const got = d.status === "paid" ? t.total : d.status === "part" ? num(d.amountPaid) : 0; if (got) received.push({ date: d.issueDate, amount: got, client: d.client.name, cur: d.currency }); }
+  });
+  const owing = docs.filter((d) => d.type === "invoice" && d.status !== "paid" && dueOn(d) > 0).map((d) => ({ d, due: dueOn(d), age: -daysUntil(d.issueDate), expired: isExpired(d) })).sort((a, b) => b.age - a.age);
+  const today = iso(new Date());
+  const repeats = docs.filter((d) => d.type === "invoice" && d.recurring).map((d) => { const next = addMonths(d.lastRepeat || d.repeatFrom || d.issueDate, 1); return { d, next, ready: next <= today }; }).sort((a, b) => a.next.localeCompare(b.next));
+  const vat = {}; docs.filter((d) => d.type === "invoice" && d.vatOn).forEach((d) => { const k = monthKey(d.issueDate); vat[k] = (vat[k] || 0) + calc(d).vat; });
+  return { docs, received, owing, repeats, vat };
+}
+function openOverview() {
+  const L = ledger(); const now = new Date(); const thisM = monthKey(iso(now));
+  const inMonth = L.received.filter((r) => monthKey(r.date) === thisM).reduce((a, r) => a + r.amount, 0);
+  const owed = L.owing.reduce((a, o) => a + o.due, 0);
+  const sentM = L.docs.filter((d) => d.type === "invoice" && monthKey(d.issueDate) === thisM).length;
+  const quotesOpen = L.docs.filter((d) => d.type === "quotation" && !isExpired(d)).length;
+  const months = Array.from({ length: 6 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1); const k = iso(d).slice(0, 7); return { k, label: d.toLocaleDateString("en-GB", { month: "short" }), v: L.received.filter((r) => monthKey(r.date) === k).reduce((a, r) => a + r.amount, 0) }; });
+  const max = Math.max(1, ...months.map((m) => m.v));
+  const top = Object.entries(L.received.reduce((a, r) => { const k = r.client || "—"; a[k] = (a[k] || 0) + r.amount; return a; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const vatRows = Object.entries(L.vat).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 4);
+  const ago = (n) => (n <= 0 ? "today" : n === 1 ? "yesterday" : `${n} days ago`);
+  $("#layer").innerHTML = `<div class="scrim" data-close></div><aside class="drawer wide" role="dialog" aria-label="Overview">
+    <div class="drawer-head"><h2>Overview</h2><button class="btn sm" type="button" data-close>Done</button></div>
+    <div class="drawer-body">
+      <div class="kpis">
+        <div class="kpi"><small>Received this month</small><b>${short(inMonth)}</b></div>
+        <div class="kpi ${owed ? "warn" : ""}"><small>Owed to you</small><b>${short(owed)}</b><span>${L.owing.length} invoice${L.owing.length === 1 ? "" : "s"}</span></div>
+        <div class="kpi"><small>Invoices this month</small><b>${sentM}</b></div>
+        <div class="kpi"><small>Open quotations</small><b>${quotesOpen}</b></div>
+      </div>
+      <section><h3 class="sub">Money received · last 6 months</h3>
+        <div class="bars" role="img" aria-label="Money received per month">${months.map((m) => `<div class="bar"><span class="v">${m.v ? short(m.v) : ""}</span><i style="height:${Math.max(2, Math.round((m.v / max) * 100))}%"></i><span class="m">${m.label}</span></div>`).join("")}</div></section>
+      <section><h3 class="sub">Who owes you</h3>
+        ${L.owing.length ? `<div class="owe-list">${L.owing.map((o) => `<div class="owe"><div><b>${esc(o.d.client.name || "No name")}</b><small>${esc(o.d.number)} · sent ${ago(o.age)}${o.d.reminded ? ` · reminded ${ago(-daysUntil(o.d.reminded))}` : ""}${o.expired ? ` · <em class="late">expired</em>` : ""}</small></div><strong>${short(o.due)}</strong>
+          <div class="owe-btns"><button class="btn sm primary" type="button" data-remind="${o.d.id}">Remind</button><button class="btn sm" type="button" data-receipt="${o.d.id}">Got paid</button></div></div>`).join("")}</div>` : `<p class="hint">Nobody owes you right now. Lovely.</p>`}</section>
+      <section><h3 class="sub">Repeat invoices</h3>
+        ${L.repeats.length ? L.repeats.map((r) => `<div class="owe"><div><b>${esc(r.d.client.name || "No name")}</b><small>Every month · next ${fmtDate(r.next)}${r.ready ? ` · <em class="ok">ready now</em>` : ""}</small></div><strong>${short(calc(r.d).total)}</strong>
+          <div class="owe-btns">${r.ready ? `<button class="btn sm primary" type="button" data-repeat="${r.d.id}">Prepare</button>` : ""}<button class="btn sm ghost" type="button" data-stoprepeat="${r.d.id}">Stop</button></div></div>`).join("") : `<p class="hint">Turn on "Repeat every month" when sending an invoice, and it'll wait here each month.</p>`}</section>
+      <section><h3 class="sub">Top clients</h3>
+        ${top.length ? `<div class="tops">${top.map(([n, v], i) => `<div><span>${i + 1}. ${esc(n)}</span><b>${short(v)}</b></div>`).join("")}</div>` : `<p class="hint">Your best clients will show here once payments come in.</p>`}</section>
+      <section><h3 class="sub">VAT collected</h3>
+        ${vatRows.length ? `<div class="tops">${vatRows.map(([k, v]) => `<div><span>${new Date(k + "-01T12:00:00").toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</span><b>${money(v)}</b></div>`).join("")}</div>` : `<p class="hint">Add VAT on invoices and the monthly total appears here for your returns.</p>`}</section>
+      <button class="btn block" type="button" data-csv>Download all documents (CSV for Excel)</button>
+    </div></aside>`;
+  const layer = $("#layer");
+  layer.onclick = (e) => {
+    if (e.target.closest("[data-close]")) return closeLayer();
+    const rm = e.target.closest("[data-remind]"), rc = e.target.closest("[data-receipt]"), rp = e.target.closest("[data-repeat]"), sp = e.target.closest("[data-stoprepeat]");
+    if (rm) return remindSheet(rm.dataset.remind);
+    if (rc) { closeLayer(); return convertFrom(rc.dataset.receipt); }
+    if (rp) { closeLayer(); return repeatInvoice(rp.dataset.repeat); }
+    if (sp) { const h = history.find((x) => x.id === sp.dataset.stoprepeat); if (h) { h.doc.recurring = false; LS.set("aurum.history", history); toast("Repeat stopped"); openOverview(); } }
+    if (e.target.closest("[data-csv]")) exportCSV();
+  };
+}
+function remindSheet(id) {
+  const h = history.find((x) => x.id === id); if (!h) return; const d = h.doc; const due = dueOn(d); const B = S.profile.business, K = S.profile.bank;
+  const pay = d.link ? `\nView and pay here: ${d.link}` : K.accountNumber ? `\nPay to: ${K.bankName} · ${K.accountNumber} · ${K.accountName}` : "";
+  const first = d.client.name || "there";
+  const T = [
+    ["Gentle reminder", `Hello ${first}, I hope you're well. This is a gentle reminder that ${money(due, d.currency)} is still outstanding on invoice ${d.number} from ${B.name}.${pay}\n\nThank you!`],
+    ["Due today", `Hello ${first}, just a quick reminder that invoice ${d.number} (${money(due, d.currency)}) is due today.${pay}\n\nThank you for your prompt payment.`],
+    ["Overdue", `Hello ${first}, invoice ${d.number} for ${money(due, d.currency)} is now overdue. Kindly make payment at your earliest convenience, or let us know if there's any issue.${pay}\n\nThank you.`],
+  ];
+  sheet(`Remind ${d.client.name || "client"}`, T.map(([title, msg], i) => `<button class="opt" type="button" data-tpl="${i}" style="display:block"><b>${title}</b><small style="white-space:pre-line;margin-top:4px">${esc(msg)}</small></button>`).join(""), { onClick: (e) => {
+    const b = e.target.closest("[data-tpl]"); if (!b) return;
+    openLink(`https://wa.me/${waNumber(d.client.phone)}?text=${encodeURIComponent(T[Number(b.dataset.tpl)][1])}`);
+    h.doc.reminded = iso(new Date()); LS.set("aurum.history", history); persist(); closeLayer(); toast("Reminder ready in WhatsApp"); } });
+}
+function repeatInvoice(id) {
+  const h = history.find((x) => x.id === id); if (!h) return; const src = h.doc; const fresh = newDocFor(S.profile, "invoice");
+  S.doc = { ...structuredClone(src), id: fresh.id, number: fresh.number, issueDate: fresh.issueDate, status: "unpaid", amountPaid: "", link: "", shareId: "", receipts: [], settled: false, recurring: false, repeatOf: src.number, payBy: src.payBy ? iso(addDays(Math.max(0, daysUntil(src.payBy) + -daysUntil(src.issueDate)))) : "", dueDate: "", items: src.items.map((it) => ({ ...it, id: uid() })) };
+  src.lastRepeat = iso(new Date()); LS.set("aurum.history", history);
+  lastTotal = null; persist(); showStep(4); swapAnim(); render({ enter: true }); toast(`${S.doc.number} for ${src.client.name || "your client"} is ready. Send it when you like.`);
+}
+function exportCSV() {
+  if (noDownloads()) return toast("Downloads work on the live app");
+  const rows = [["Type", "Number", "Date", "Client", "Phone", "Total", "Paid", "Balance", "Status", "VAT", "Currency", "Reference"]];
+  history.forEach(({ doc: d }) => { const t = calc(d); rows.push([LABEL[d.type], d.number, d.issueDate, d.client.name, d.client.phone, t.total, d.type === "invoice" ? t.paid : d.type === "receipt" ? t.total : "", d.type === "invoice" ? dueOn(d) : "", d.type === "invoice" ? d.status : "", t.vat, d.currency, d.fromDoc || d.reference || ""]); });
+  const csv = rows.map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `aurum-documents-${iso(new Date())}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  toast("CSV saved. It opens in Excel or Google Sheets.");
+}
 function refreshCustomPreview(type) {
   const box = $("#cz-prev"); if (!box) return;
   const tp = type || ($("[data-cz-type][aria-pressed=true]")?.dataset.czType) || S.doc.type;
@@ -2436,6 +2732,8 @@ function refreshDrawerBits() { refreshCustomPreview(); const lt = $("#h-logo"); 
 $("#open-house").addEventListener("click", () => openHouse());
 $("#open-customise").addEventListener("click", () => openCustomise());
 $("#send-customise").addEventListener("click", () => openCustomise());
+$("#repeat-on").addEventListener("change", (e) => { S.doc.recurring = e.target.checked; if (e.target.checked && !S.doc.repeatFrom) S.doc.repeatFrom = S.doc.issueDate; persist(); rememberDoc(); toast(e.target.checked ? "This invoice will be ready again each month in Overview" : "Repeat switched off"); });
+$("#open-overview").addEventListener("click", () => openOverview());
 $("#next-doc").addEventListener("click", () => { rememberDoc(); const src = structuredClone(S.doc); if (src.type === "invoice") receiptFrom(src); else if (src.type === "quotation") invoiceFrom(src); });
 $("#home-mark").addEventListener("click", (e) => { e.preventDefault(); showStep(1); });
 
@@ -2445,10 +2743,19 @@ $("#close-preview").addEventListener("click", () => document.body.classList.remo
 
 let started = false;
 function startStudio() {
+  setSync(canSync() ? "saved" : "");
   $("#gate").hidden = true; $("#ob").hidden = true; $("#studio-root").hidden = false;
   if (!started) { started = true; showStep(1); fontsReady().then(() => render({ enter: true })); }
   syncChrome(); render();
 }
+
+/* ---------- installable app ---------- */
+let installPrompt = null;
+const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; });
+addEventListener("appinstalled", () => { installPrompt = null; toast("Aurum is on your home screen"); });
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !window.AURUM_NO_DOWNLOADS) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 /* ---------- start: a client link, or the studio ---------- */
 const qs = new URLSearchParams(location.search);

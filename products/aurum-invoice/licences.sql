@@ -26,6 +26,9 @@ create table if not exists public.licence_devices (
 -- For databases created with an earlier version of this file:
 alter table public.licences add column if not exists plan text not null default 'signature';
 alter table public.licences add column if not exists business_name text;
+alter table public.licences add column if not exists ref_code text;
+alter table public.licences add column if not exists referred_by text;
+create unique index if not exists licences_ref_code_idx on public.licences (ref_code);
 
 -- Lock both tables. With RLS on and no policies, the public app key can't read or
 -- change them directly; it can only call the function below.
@@ -67,7 +70,10 @@ begin
   end if;
 
   select count(*) into used from public.licence_devices where licence_key = lic.key;
-  return json_build_object('ok', true, 'email', lic.buyer_email, 'plan', lic.plan, 'devices_used', used, 'max_devices', lic.max_devices);
+  if lic.ref_code is null then
+    update public.licences set ref_code = 'REF-' || upper(substr(encode(gen_random_bytes(4), 'hex'), 1, 6)) where key = lic.key returning ref_code into lic.ref_code;
+  end if;
+  return json_build_object('ok', true, 'email', lic.buyer_email, 'plan', lic.plan, 'devices_used', used, 'max_devices', lic.max_devices, 'ref_code', lic.ref_code);
 end;
 $$;
 
@@ -78,7 +84,8 @@ grant execute on function public.activate_license(text, text) to anon, authentic
 --   select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567');
 --   Prestige buyer:  select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567', 3, 'prestige');
 drop function if exists public.new_licence(text, text, text, int);
-create or replace function public.new_licence(p_name text, p_email text, p_phone text default null, p_devices int default 2, p_plan text default 'signature')
+drop function if exists public.new_licence(text, text, text, int, text);
+create or replace function public.new_licence(p_name text, p_email text, p_phone text default null, p_devices int default 2, p_plan text default 'signature', p_referred_by text default null)
 returns text
 language plpgsql
 security definer
@@ -92,12 +99,12 @@ begin
                 || upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 4));
     exit when not exists (select 1 from public.licences where key = k);
   end loop;
-  insert into public.licences (key, buyer_name, buyer_email, buyer_phone, max_devices, plan)
-  values (k, p_name, p_email, p_phone, p_devices, p_plan);
+  insert into public.licences (key, buyer_name, buyer_email, buyer_phone, max_devices, plan, referred_by)
+  values (k, p_name, p_email, p_phone, p_devices, p_plan, upper(nullif(trim(p_referred_by), '')));
   return k;
 end;
 $$;
-revoke all on function public.new_licence(text, text, text, int, text) from public, anon, authenticated;
+revoke all on function public.new_licence(text, text, text, int, text, text) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------
 -- Private invoice links
@@ -197,10 +204,55 @@ $$;
 revoke all on function public.publish_invoice(text, text, text, jsonb), public.view_invoice(text), public.claim_paid(text, text, text), public.invoice_activity(text, text) from public;
 grant execute on function public.publish_invoice(text, text, text, jsonb), public.view_invoice(text), public.claim_paid(text, text, text), public.invoice_activity(text, text) to anon, authenticated;
 
+-- ---------------------------------------------------------------
+-- Cloud backup: each licence keeps one workspace (documents, clients,
+-- items, settings), shared by that buyer's devices and staff.
+-- ---------------------------------------------------------------
+create table if not exists public.workspaces (
+  licence_key text primary key references public.licences(key) on delete cascade,
+  data        jsonb not null,
+  version     bigint not null default 1,
+  updated_at  timestamptz not null default now(),
+  updated_by  text
+);
+alter table public.workspaces enable row level security;
+
+create or replace function public.save_workspace(p_key text, p_device text, p_data jsonb, p_version bigint)
+returns json language plpgsql security definer set search_path = public as $$
+declare k text := upper(trim(p_key)); v bigint;
+begin
+  if not public._licence_ok(p_key, p_device) then return json_build_object('ok', false, 'reason', 'licence'); end if;
+  if octet_length(p_data::text) > 8000000 then return json_build_object('ok', false, 'reason', 'too_large'); end if;
+  select version into v from public.workspaces where licence_key = k for update;
+  if not found then
+    insert into public.workspaces (licence_key, data, version, updated_by) values (k, p_data, 1, p_device);
+    return json_build_object('ok', true, 'version', 1);
+  end if;
+  if p_version is distinct from v then return json_build_object('ok', false, 'reason', 'conflict', 'version', v); end if;
+  update public.workspaces set data = p_data, version = v + 1, updated_at = now(), updated_by = p_device where licence_key = k;
+  return json_build_object('ok', true, 'version', v + 1);
+end;
+$$;
+
+create or replace function public.load_workspace(p_key text, p_device text)
+returns json language plpgsql security definer set search_path = public as $$
+declare w public.workspaces;
+begin
+  if not public._licence_ok(p_key, p_device) then return json_build_object('ok', false, 'reason', 'licence'); end if;
+  select * into w from public.workspaces where licence_key = upper(trim(p_key));
+  if not found then return json_build_object('ok', true, 'data', null, 'version', 0); end if;
+  return json_build_object('ok', true, 'data', w.data, 'version', w.version, 'updated_at', w.updated_at);
+end;
+$$;
+revoke all on function public.save_workspace(text, text, jsonb, bigint), public.load_workspace(text, text) from public;
+grant execute on function public.save_workspace(text, text, jsonb, bigint), public.load_workspace(text, text) to anon, authenticated;
+
 -- Everyday admin (run in the SQL editor):
 --   Block a key that was shared:      update licences set active = false where key = 'AUR-XXXX-XXXX-XXXX';
 --   Upgrade to Prestige:              update licences set plan = 'prestige', max_devices = 3 where key = 'AUR-XXXX-XXXX-XXXX';
 --   Let a buyer rename their business: update licences set business_name = null where key = 'AUR-XXXX-XXXX-XXXX';
+--   Referrals per buyer:              select l.buyer_name, l.ref_code, count(r.*) referred from licences l left join licences r on r.referred_by = l.ref_code group by l.key order by referred desc;
+--   New buyer who used a code:        select public.new_licence('Ada Obi', 'ada@example.com', '0802...', 2, 'signature', 'REF-1A2B3C');
 --   Free a buyer's device slots       delete from licence_devices where licence_key = 'AUR-XXXX-XXXX-XXXX';
 --   (new phone, cleared browser):
 --   See who uses which key:           select l.buyer_name, l.key, count(d.*) devices, max(d.last_seen) last_used
