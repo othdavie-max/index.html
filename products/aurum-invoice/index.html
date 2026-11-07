@@ -796,6 +796,31 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .cz-prev { width: 220px; justify-self: center; border-radius: 4px; overflow: hidden; box-shadow: 0 20px 40px -14px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.06); }
 .drawer .toggle { padding: 2px 0; }
 
+
+/* ---------- Document-specific layouts ---------- */
+.stack { display: grid; gap: 22px; }
+.stack > * { min-width: 0; }
+.seg.two { grid-template-columns: 1fr 1fr; }
+.rcpt-peek { font-size: 14px; line-height: 1.6; color: var(--muted); padding: 14px 16px; border-left: 2px solid var(--gold); background: rgba(217,190,132,.05); border-radius: 0 12px 12px 0; }
+.rcpt-peek:empty { display: none; }
+.rcpt-peek em { font-family: var(--f-accent); font-size: 16px; color: var(--ink); }
+.rcpt-peek b { color: var(--ink); }
+.inv .rcpt-line { padding: 26px 0 8px; border-bottom: 1px solid var(--p-rule); }
+.inv .rcpt-line p { margin: 0; font-size: 16px; line-height: 2.25; color: var(--p-ink); }
+.inv .rcpt-line b { font-family: var(--f-display); font-weight: 600; font-size: 17px; border-bottom: 1px dotted var(--p-muted); padding: 0 4px; }
+.inv .rcpt-line em { font-family: var(--f-accent); font-style: italic; font-weight: 600; font-size: 20px; border-bottom: 1px dotted var(--p-muted); padding: 0 4px; }
+.inv .rcpt-line .fig { font-weight: 700; white-space: nowrap; }
+.inv .sum.quick .words label, .inv .sum.quick .words p { display: none; }
+.inv .sum { grid-template-columns: minmax(0, 1fr) minmax(300px, 340px); }
+.inv .sum.quick .totals > div:first-child { display: none; }
+.inv .grand { min-width: 0; }
+.inv .grand span:first-child { flex: none; }
+.inv .grand .amt { min-width: 0; }
+.inv .sign-cap { font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--p-muted); margin-bottom: 4px; }
+.inv .accept { display: grid; grid-template-columns: 1.4fr 1.2fr .8fr; gap: 26px; padding-top: 30px; }
+.inv .accept .lbl { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--p-muted); }
+.inv .accept i { display: block; height: 36px; border-bottom: 1px solid var(--p-ink); opacity: .55; }
+
 /* ---------- Toast ---------- */
 .toast { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; z-index: 200; background: #F3ECDD; color: #0B0A09; padding: 12px 20px; border-radius: 99px; font-weight: 600; font-size: 13.5px; transition: .35s var(--ease); pointer-events: none; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -904,13 +929,13 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 
     <!-- I. CLIENT -->
     <section class="step" data-step="1">
-      <div class="step-head"><span class="eyebrow">Chapter I</span><h2>Who is it for?</h2></div>
+      <div class="step-head"><span class="eyebrow">Chapter I</span><h2 id="s1-title">Who is it for?</h2></div>
       <div class="seg" role="group" aria-label="Document type">
         <button type="button" data-doctype="invoice" aria-pressed="true">Invoice</button>
         <button type="button" data-doctype="receipt" aria-pressed="false">Receipt</button>
         <button type="button" data-doctype="quotation" aria-pressed="false">Quotation</button>
       </div>
-      <label class="field" id="f-cname"><span>Client's name</span><input id="c-name" data-bind="doc.client.name" placeholder="Start typing — we'll remember them" autocomplete="off"></label>
+      <label class="field" id="f-cname"><span id="c-name-label">Client's name</span><input id="c-name" data-bind="doc.client.name" placeholder="Start typing — we'll remember them" autocomplete="off"></label>
       <div class="chips" id="recent-clients"></div>
       <label class="field"><span>Client's WhatsApp</span><input id="c-phone" data-bind="doc.client.phone" inputmode="tel" placeholder="0809 876 5432" autocomplete="off"></label>
       <div class="field" id="payby-block">
@@ -924,24 +949,50 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
       </div>
     </section>
 
-    <!-- II. ITEMS -->
+    <!-- II. ITEMS / WHAT IT WAS FOR -->
     <section class="step" data-step="2" hidden>
-      <div class="step-head"><span class="eyebrow">Chapter II</span><h2>What did you sell?</h2><p>Type or pick from your saved items.</p></div>
-      <div class="items-ed" id="items-ed"></div>
-      <button class="btn block" type="button" id="add-item">+ Add another item</button>
-      <div class="field"><span class="label">Discount</span><div class="chips" id="disc-chips"></div></div>
-      <div class="field"><span class="label">Delivery</span><div class="chips" id="del-chips"></div></div>
-      <label class="toggle"><span>Add VAT (7.5%)</span><span class="switch"><input type="checkbox" id="x-vat" data-bind="doc.vatOn"><i></i></span></label>
-      <div class="sumbox" id="sumbox"></div>
+      <div class="step-head"><span class="eyebrow">Chapter II</span><h2 id="s2-title">What did you sell?</h2><p id="s2-sub">Type or pick from your saved items.</p></div>
+      <div class="seg two" role="group" aria-label="Receipt style" id="rmode-block">
+        <button type="button" data-rmode="simple" aria-pressed="true">Quick receipt</button>
+        <button type="button" data-rmode="items" aria-pressed="false">Itemised</button>
+      </div>
+      <div id="rsimple-block" class="stack">
+        <div class="field" id="f-ramt"><span>Amount received</span><div class="money-in field"><i>₦</i><input id="r-amt" class="input" inputmode="decimal" placeholder="0"></div></div>
+        <div class="chips" id="ramt-chips"></div>
+        <label class="field" id="f-rfor"><span>Being payment for</span><input id="r-for" data-bind="doc.paidFor" placeholder="e.g. Balance for bridal gown" autocomplete="off"></label>
+        <div class="chips" id="rfor-chips"></div>
+        <div class="rcpt-peek" id="rcpt-peek"></div>
+      </div>
+      <div id="items-block" class="stack">
+        <div class="items-ed" id="items-ed"></div>
+        <button class="btn block" type="button" id="add-item">+ Add another item</button>
+        <div class="field"><span class="label">Discount</span><div class="chips" id="disc-chips"></div></div>
+        <div class="field"><span class="label">Delivery</span><div class="chips" id="del-chips"></div></div>
+        <label class="toggle"><span>Add VAT (7.5%)</span><span class="switch"><input type="checkbox" id="x-vat" data-bind="doc.vatOn"><i></i></span></label>
+        <div class="sumbox" id="sumbox"></div>
+      </div>
     </section>
 
-    <!-- III. PAYMENT -->
+    <!-- III. PAYMENT / DETAILS / TERMS -->
     <section class="step" data-step="3" hidden>
-      <div class="step-head"><span class="eyebrow">Chapter III</span><h2 id="pay-title">Payment</h2></div>
-      <div class="field" id="status-block"><span class="label">Has your client paid?</span><div class="chips" id="status-chips"></div></div>
-      <div class="field" id="deposit-block"><span class="label">How much deposit?</span><div class="chips" id="dep-chips"></div></div>
-      <div class="field" id="method-block"><span class="label">How did they pay?</span><div class="chips" id="method-chips"></div></div>
-      <div class="field"><span class="label">Paid into</span><button class="card-line" type="button" id="bank-line" style="text-align:left; color:inherit"></button></div>
+      <div class="step-head"><span class="eyebrow">Chapter III</span><h2 id="pay-title">Payment</h2><p id="pay-sub"></p></div>
+      <div id="inv3" class="stack">
+        <div class="field" id="status-block"><span class="label">Has your client paid?</span><div class="chips" id="status-chips"></div></div>
+        <div class="field" id="deposit-block"><span class="label">How much deposit?</span><div class="chips" id="dep-chips"></div></div>
+      </div>
+      <div id="rcpt3" class="stack">
+        <div class="field"><span class="label">How did they pay?</span><div class="chips" id="method-chips"></div></div>
+        <label class="field"><span>Transaction reference <em>(optional)</em></span><input id="r-ref" data-bind="doc.reference" placeholder="e.g. bank alert reference or POS slip number" autocomplete="off"></label>
+        <div class="field"><span class="label">Date paid</span><div class="chips" id="rdate-chips"></div></div>
+        <div class="field"><span class="label">Is anything still owed?</span><div class="chips" id="rbal-chips"></div></div>
+      </div>
+      <div id="quo3" class="stack">
+        <div class="field"><span class="label">Price valid for</span><div class="chips" id="qvalid-chips"></div></div>
+        <div class="field"><span class="label">Deposit needed to begin</span><div class="chips" id="qdep-chips"></div></div>
+        <div class="field"><span class="label">Delivery / timeline <em>(optional)</em></span><div class="chips" id="qtime-chips"></div>
+          <input id="q-time" class="input" data-bind="doc.timeline" placeholder="Or write your own, e.g. Ready 3 days before the event" autocomplete="off"></div>
+      </div>
+      <div class="field" id="bank-block"><span class="label" id="bank-label">Paid into</span><button class="card-line" type="button" id="bank-line" style="text-align:left; color:inherit"></button></div>
       <div class="field"><span class="label">Note to client <em>(tap one or write your own)</em></span>
         <div class="chips" id="note-chips"></div>
         <textarea id="n-notes" data-bind="doc.notes" class="input" style="height:auto; min-height:84px; padding:14px 16px" placeholder="Optional"></textarea>
@@ -1059,8 +1110,8 @@ const INDUSTRIES = {
 };
 const NOTES = {
   invoice: ["Kindly send proof of payment on WhatsApp.", "A 50% deposit secures your booking.", "Goods once sold are not returnable.", "Thank you for your patronage."],
-  receipt: ["Thank you for your payment.", "Please keep this receipt for your records."],
-  quotation: ["Prices are held until the date shown.", "A 70% deposit is required to begin.", "Delivery is not included."],
+  receipt: ["Thank you for your payment.", "Please keep this receipt for your records.", "Balance is due before delivery."],
+  quotation: ["Prices are held until the date shown.", "Delivery is not included.", "Fabric/materials are sourced after the deposit is paid."],
 };
 const SWATCHES = [["#1A1817", "Onyx"], ["#5A1A24", "Bordeaux"], ["#141E3A", "Midnight"], ["#0F3D2E", "Emerald"], ["#3B1F4A", "Aubergine"], ["#6B4A1E", "Cognac"]];
 
@@ -1081,6 +1132,7 @@ function amountInWords(amount, c = "NGN") {
   return s.replace(/\b([a-z])/g, (m, ch, idx, str) => (str.slice(idx, idx + 4) === "and " ? ch : ch.toUpperCase()));
 }
 function calc(d) {
+  if (d.type === "receipt" && d.receiptMode === "simple") { const v = round2(num(d.receivedAmount)); return { sub: v, disc: 0, vat: 0, delivery: 0, total: v, paid: v, balance: 0 }; }
   const sub = round2(d.items.reduce((a, it) => a + num(it.qty) * num(it.price), 0));
   const disc = round2(d.discountType === "percent" ? sub * num(d.discount) / 100 : num(d.discount));
   const taxable = Math.max(0, sub - disc);
@@ -1185,6 +1237,8 @@ function invoiceHTML(P, D, opts = {}) {
     type === "invoice" && D.payBy ? `<div><dt>Pay by</dt><dd>${fmtDate(D.payBy)}</dd></div>` : "",
     type === "invoice" && D.dueDate ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "quotation" ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
+    type === "quotation" && D.timeline ? `<div><dt>Timeline</dt><dd>${esc(D.timeline)}</dd></div>` : "",
+    type === "receipt" ? `<div><dt>Method</dt><dd>${esc(D.method || "Bank transfer")}</dd></div>` : "",
     type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${esc(statusClass)}">${statusText}</span></dd></div>` : "",
     type === "receipt" ? `<div><dt>Status</dt><dd><span class="pill paid">Paid in full</span></dd></div>` : "",
   ].join("");
@@ -1201,14 +1255,16 @@ function invoiceHTML(P, D, opts = {}) {
     ${D.vatOn ? `<div><dt>VAT (${num(D.vatRate || 7.5)}%)</dt><dd>${money(t.vat, c)}</dd></div>` : ""}
     ${t.delivery ? `<div><dt>Delivery</dt><dd>${money(t.delivery, c)}</dd></div>` : ""}
     <div class="grand"><span>${grandLabel}</span><span class="amt foil">${money(t.total, c)}</span></div>
+    ${type === "quotation" && num(D.depositPct) > 0 ? `<div class="balance"><dt>Deposit to begin (${num(D.depositPct)}%)</dt><dd>${money(round2(t.total * num(D.depositPct) / 100), c)}</dd></div>` : ""}
+    ${type === "receipt" && num(D.balanceLeft) > 0 ? `<div class="balance"><dt>Balance outstanding</dt><dd>${money(num(D.balanceLeft), c)}</dd></div>` : ""}
     ${showPart ? `<div class="balance"><dt>Deposit paid</dt><dd>${money(t.paid, c)}</dd></div><div class="balance"><dt><b>Balance due</b></dt><dd>${money(t.balance, c)}</dd></div>` : ""}`;
   const bankRows = [K.bankName && `<div><dt>Bank</dt><dd>${esc(K.bankName)}</dd></div>`, K.accountName && `<div><dt>Account name</dt><dd>${esc(K.accountName)}</dd></div>`, K.accountNumber && `<div><dt>Account no.</dt><dd class="acct">${esc(K.accountNumber)}</dd></div>`].filter(Boolean).join("");
   const bank = type === "receipt"
-    ? `<div class="bank"><span class="lbl">Payment received</span><dl><div><dt>Amount</dt><dd>${money(t.total, c)}</dd></div><div><dt>Method</dt><dd>${esc(D.method || "Bank transfer")}</dd></div><div><dt>Date</dt><dd>${fmtDate(D.issueDate)}</dd></div><div><dt>Reference</dt><dd>${esc(D.number)}</dd></div></dl></div>`
-    : (bankRows || K.payLink) ? `<div class="bank"><span class="lbl">Payment details</span><dl>${bankRows}</dl>${K.payLink ? `<div class="paylink">Pay online: <b>${esc(K.payLink)}</b></div>` : ""}</div>` : `<div></div>`;
+    ? `<div class="bank"><span class="lbl">Payment received</span><dl><div><dt>Amount</dt><dd>${money(t.total, c)}</dd></div><div><dt>Method</dt><dd>${esc(D.method || "Bank transfer")}</dd></div><div><dt>Date</dt><dd>${fmtDate(D.issueDate)}</dd></div>${D.reference ? `<div><dt>Transaction ref.</dt><dd>${esc(D.reference)}</dd></div>` : ""}${num(D.balanceLeft) > 0 ? `<div><dt>Balance outstanding</dt><dd>${money(num(D.balanceLeft), c)}</dd></div>` : ""}</dl></div>`
+    : (bankRows || K.payLink) ? `<div class="bank"><span class="lbl">${type === "quotation" ? (num(D.depositPct) > 0 ? "To accept, pay the deposit to" : "Payment details") : "Payment details"}</span><dl>${bankRows}</dl>${K.payLink ? `<div class="paylink">Pay online: <b>${esc(K.payLink)}</b></div>` : ""}</div>` : `<div></div>`;
   const signMark = B.signMode === "image" && B.signImg ? `<img src="${B.signImg}" alt="">` : B.signMode === "type" ? esc(B.signText || B.signName) : "";
   const sign = B.signMode === "none" && !G.seal ? "<div></div>" : `<div class="sign">${G.seal ? sealSVG(B.name, G.template === "noir" ? "#D2B47C" : G.brand) : ""}
-      ${B.signMode !== "none" ? `<div class="sign-block"><div class="sign-mark">${signMark}</div><div class="sign-line">${esc(B.signName)}</div><div class="sign-title">${esc(B.signTitle)}</div></div>` : ""}</div>`;
+      ${B.signMode !== "none" ? `<div class="sign-block">${type === "receipt" ? `<div class="sign-cap">Received by</div>` : ""}<div class="sign-mark">${signMark}</div><div class="sign-line">${esc(B.signName)}</div><div class="sign-title">${esc(B.signTitle)}</div></div>` : ""}</div>`;
   const fromLines = [B.address, B.phone, B.email, [B.rc, B.tin && "TIN " + B.tin].filter(Boolean).join(" · ")].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const clientLines = [D.client.company, D.client.address, D.client.phone, D.client.email].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const thanks = type === "quotation" ? "We look forward to working with you" : type === "receipt" ? "Thank you for your payment" : "Thank you for your patronage";
@@ -1218,10 +1274,11 @@ function invoiceHTML(P, D, opts = {}) {
       <div class="doc-title"><span class="doc-type foil${(X.title || "").length > 10 ? " long" : ""}">${esc(X.title || LABEL[type])}</span><span class="doc-no">No. ${esc(D.number)}</span></div></header>
     <section class="inv-meta px"><div class="party"><label>${partyLabel}</label><div class="who">${esc(D.client.name) || "Client name"}</div>${clientLines}</div>
       <div class="party"><label>From</label>${fromLines || "<p>Your address and contacts</p>"}</div><dl class="dates">${dateRows}</dl></section>
-    <div class="px"><table class="items"><thead><tr><th>S/N</th><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <section class="sum px"><div class="words"><label>Amount in words</label><p>${esc(amountInWords(t.total, c))}</p>${stampHTML}</div><dl class="totals">${totals}</dl></section>
+    ${type === "receipt" && D.receiptMode === "simple" ? `<div class="px"><div class="rcpt-line"><p>Received from <b>${esc(D.client.name || "—")}</b> the sum of <em>${esc(amountInWords(t.total, c))}</em> <span class="fig">(${money(t.total, c)})</span> being payment for <b>${esc(D.paidFor || "goods and services")}</b>.</p></div></div>` : `<div class="px"><table class="items"><thead><tr><th>S/N</th><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table></div>`}
+    <section class="sum px${type === "receipt" && D.receiptMode === "simple" ? " quick" : ""}"><div class="words"><label>Amount in words</label><p>${esc(amountInWords(t.total, c))}</p>${stampHTML}</div><dl class="totals">${totals}</dl></section>
     <section class="foot px">${bank}${sign}</section>
     ${D.notes ? `<section class="notes px"><label>Note</label><p>${esc(D.notes)}</p></section>` : ""}
+    ${type === "quotation" ? `<section class="accept px"><div><span class="lbl">Accepted by (client)</span><i></i></div><div><span class="lbl">Signature</span><i></i></div><div><span class="lbl">Date</span><i></i></div></section>` : ""}
     ${X.terms ? `<section class="notes terms px"><label>Terms &amp; conditions</label><p>${esc(X.terms)}</p></section>` : ""}
     <div class="inv-spacer"></div>
     <footer class="inv-foot px"><span class="ty">${esc(X.footer || thanks)}</span><span class="contact">${esc([B.phone, B.email].filter(Boolean).join("  ·  "))}</span>${verify}</footer>
@@ -1656,7 +1713,7 @@ function openClientView(payload, ctx = {}) {
       : type === "quotation" ? `Thank you for considering ${esc(B.name)}. Here is your personal quotation.`
       : paidFull ? `Thank you for your payment. Here is your settled invoice from ${esc(B.name)}.`
       : `Thank you for choosing ${esc(B.name)}. Settling this takes less than a minute.`;
-    const itemsList = `<div class="cv-items">${D.items.filter((it) => it.desc).map((it) => `<div><span>${esc(it.desc)}${num(it.qty) !== 1 ? ` × ${esc(num(it.qty))}` : ""}${it.note ? `<small>${esc(it.note)}</small>` : ""}</span><b>${money(num(it.qty) * num(it.price), c)}</b></div>`).join("")}</div>`;
+    const itemsList = type === "receipt" && D.receiptMode === "simple" ? `<p>Being payment for <b>${esc(D.paidFor || "goods and services")}</b>.</p>` : `<div class="cv-items">${D.items.filter((it) => it.desc).map((it) => `<div><span>${esc(it.desc)}${num(it.qty) !== 1 ? ` × ${esc(num(it.qty))}` : ""}${it.note ? `<small>${esc(it.note)}</small>` : ""}</span><b>${money(num(it.qty) * num(it.price), c)}</b></div>`).join("")}</div>`;
     const canPaystack = K.paystackKey && /^pk_(live|test)_/.test(K.paystackKey) && c === "NGN" && amount > 0;
     const bankCard = K.accountNumber ? `<div class="cv-bank"><div class="row"><span>Bank</span><b>${esc(K.bankName)}</b></div><div class="row"><span>Account name</span><b>${esc(K.accountName)}</b></div>
         <div class="acct"><strong>${esc(K.accountNumber)}</strong><button class="btn sm primary" type="button" data-cv="copy">Copy</button></div></div>` : "";
@@ -1666,8 +1723,8 @@ function openClientView(payload, ctx = {}) {
     const payLinkBtn = !canPaystack && K.payLink ? `<button class="btn block" type="button" data-cv="paylink">Pay online</button>` : "";
     let steps, gTitle = type === "quotation" ? "Your quotation" : paidFull ? "All settled" : "Three simple steps", gSub = type === "quotation" ? "Review, then confirm when you're ready." : paidFull ? "Here's a summary of your order." : "Review, pay, and you're done.";
     if (expired) { gTitle = "This has expired"; gSub = `It was valid until ${fmtDate(D.dueDate)}.`; steps = [["What it covered", itemsList], ["Request a new one", `<p>${esc(B.name)} can send you an updated ${docWord} in a moment.</p><button class="btn primary block" type="button" data-cv="renew">Request a new ${docWord}</button>`]]; }
-    else if (type === "quotation") steps = [["What's included", `<p>${n} item${n > 1 ? "s" : ""} prepared for you.</p>${itemsList}`], ["Price held for you", `<p>Reserved until <b>${fmtDate(D.dueDate)}</b>.</p>`], ["Ready to go ahead?", `<p>Accept with one tap and ${esc(B.name)} will take it from there.</p><button class="btn primary block" type="button" data-cv="accept">Accept this quotation</button>`]];
-    else if (paidFull) steps = [["Your order", itemsList], ["Payment confirmed", `<p>${esc(B.name)} received <b>${money(t.total, c)}</b>${type === "receipt" ? ` on ${fmtDate(D.issueDate)}` : ""}.</p>`], ["Keep your copy", `<p>Download your official ${docWord} below, signed and sealed.</p>`]];
+    else if (type === "quotation") steps = [["What's included", `<p>${n} item${n > 1 ? "s" : ""} prepared for you.</p>${itemsList}`], ["Price held for you", `<p>Reserved until <b>${fmtDate(D.dueDate)}</b>.${D.timeline ? ` ${esc(D.timeline)}.` : ""}${num(D.depositPct) > 0 ? ` A ${num(D.depositPct)}% deposit (<b>${money(round2(t.total * num(D.depositPct) / 100), c)}</b>) begins the work.` : ""}</p>`], ["Ready to go ahead?", `<p>Accept with one tap and ${esc(B.name)} will take it from there.</p><button class="btn primary block" type="button" data-cv="accept">Accept this quotation</button>`]];
+    else if (paidFull) steps = [["Your order", itemsList], ["Payment confirmed", `<p>${esc(B.name)} received <b>${money(t.total, c)}</b>${type === "receipt" ? ` by ${esc((D.method || "bank transfer").toLowerCase())} on ${fmtDate(D.issueDate)}${D.reference ? ` (ref. ${esc(D.reference)})` : ""}` : ""}.${num(D.balanceLeft) > 0 ? ` Balance outstanding: <b>${money(num(D.balanceLeft), c)}</b>.` : ""}</p>`], ["Keep your copy", `<p>Download your official ${docWord} below, signed and sealed.</p>`]];
     else steps = [["Review your order", itemsList], [canPaystack ? "Pay in one tap" : "Pay by transfer", `${canPaystack ? `<p>Pay securely with card, transfer or USSD.</p>` : `<p>Copy the account number and pay <b>${money(t.balance, c)}</b> from your banking app.</p>`}${paystackBlock}${bankCard}${payLinkBtn}`],
       ["Let us know", `<p>Paid by transfer? Tell ${esc(B.name)} so your order is confirmed quickly.</p><button class="btn block" type="button" data-cv="paid">I've paid by transfer</button>`]];
     const logo = B.logo ? `<img src="${B.logo}" alt="">` : `<span class="mono">${esc(initials(B.name))}</span>`;
@@ -1762,7 +1819,7 @@ const SAMPLE_PROFILE = () => ({ setupDone: true, isSample: true,
   bank: { bankName: "GTBank", accountName: "Adaeze Couture Ltd", accountNumber: "0123456789", payLink: "", paystackKey: "" },
   design: { template: "royal", brand: "#1A1817", seal: true }, counters: { invoice: 41, receipt: 17, quotation: 8 } });
 const blankItem = () => ({ id: uid(), desc: "", note: "", qty: 1, price: "" });
-const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", payBy: "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
+const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", payBy: "", receiptMode: "simple", receivedAmount: "", paidFor: "", reference: "", balanceLeft: "", depositPct: 0, timeline: "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
   client: { name: "", company: "", address: "", phone: "", email: "" }, items: [blankItem()], discountType: "amount", discount: "", delivery: "", vatOn: false, vatRate: 7.5, amountPaid: "", notes: "", link: "", shareId: "" });
 const sampleDoc = () => ({ ...newDocFor(SAMPLE_PROFILE()), number: "INV-0042", status: "part",
   client: { name: "Mrs. Funmilayo Bakare", company: "", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 876 5432", email: "" },
@@ -1912,14 +1969,15 @@ function renderSumbox() {
 }
 
 /* chapters */
-const STEP_NAMES = ["Client", "Items", "Payment", "Send"];
+const STEP_SETS = { invoice: ["Client", "Items", "Payment", "Send"], receipt: ["Payer", "Paid for", "Details", "Send"], quotation: ["Client", "Items", "Terms", "Send"] };
 function renderSteps() {
-  $("#steps").innerHTML = STEP_NAMES.map((n, i) => `<li><button type="button" data-goto="${i + 1}" class="${i + 1 < step ? "done" : ""}" ${i + 1 === step ? 'aria-current="step"' : ""}><b>${["I", "II", "III", "IV"][i]}</b><span>${n}</span></button></li>`).join("");
+  $("#steps").innerHTML = (STEP_SETS[S.doc.type] || STEP_SETS.invoice).map((n, i) => `<li><button type="button" data-goto="${i + 1}" class="${i + 1 < step ? "done" : ""}" ${i + 1 === step ? 'aria-current="step"' : ""}><b>${["I", "II", "III", "IV"][i]}</b><span>${n}</span></button></li>`).join("");
 }
 function validate(n) {
   $$(".field.error").forEach((f) => { f.classList.remove("error"); f.querySelector(".err")?.remove(); });
   const fail = (id, msg) => { const f = $(id); f.classList.add("error"); f.insertAdjacentHTML("beforeend", `<span class="err">${msg}</span>`); f.querySelector("input")?.focus(); return false; };
-  if (n === 1 && !S.doc.client.name.trim()) return fail("#f-cname", "Who is this for?");
+  if (n === 1 && !S.doc.client.name.trim()) return fail("#f-cname", S.doc.type === "receipt" ? "Who paid you?" : "Who is this for?");
+  if (n === 2 && S.doc.type === "receipt" && S.doc.receiptMode === "simple") { if (!(num(S.doc.receivedAmount) > 0)) return fail("#f-ramt", "How much did they pay?"); if (!S.doc.paidFor?.trim()) return fail("#f-rfor", "What was the payment for?"); return true; }
   if (n === 2 && !S.doc.items.some((it) => it.desc.trim() && num(it.price) > 0)) { toast("Add at least one item with a price"); $("#items-ed input")?.focus(); return false; }
   return true;
 }
@@ -1945,7 +2003,49 @@ function chipRow(el, opts, isOn, onPick) { el.innerHTML = opts.map((o, i) => `<b
 function syncChrome() {
   const D = S.doc, P = S.profile, t = calc(D);
   $$("[data-doctype]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.doctype === D.type)));
-  // due / date chips
+  const T = D.type;
+  $("#s1-title").textContent = T === "receipt" ? "Who paid you?" : T === "quotation" ? "Who is the quote for?" : "Who is it for?";
+  $("#c-name-label").textContent = T === "receipt" ? "Payer's name" : "Client's name";
+  $("#due-block").hidden = T !== "invoice";
+  // chapter II per type
+  $("#s2-title").textContent = T === "receipt" ? "What was it for?" : T === "quotation" ? "What are you quoting for?" : "What did you sell?";
+  $("#s2-sub").textContent = T === "receipt" ? "One line is enough. Switch to itemised if you prefer a list." : T === "quotation" ? "List what's included. You can attach terms in the next chapter." : "Type or pick from your saved items.";
+  $("#rmode-block").hidden = T !== "receipt";
+  const quickR = T === "receipt" && D.receiptMode === "simple";
+  $$("[data-rmode]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.rmode === (D.receiptMode || "items"))));
+  $("#rsimple-block").hidden = !quickR; $("#items-block").hidden = quickR;
+  if (quickR) {
+    if (document.activeElement !== $("#r-amt")) $("#r-amt").value = D.receivedAmount ? group(D.receivedAmount) : "";
+    if (document.activeElement !== $("#r-for")) $("#r-for").value = D.paidFor || "";
+    const ra = num(D.receivedAmount); const lastInv = history.find((h) => h.doc.type === "invoice" && h.doc.client.name === D.client.name);
+    const amtOpts = lastInv ? [{ label: `Balance on ${lastInv.doc.number} · ${short(calc(lastInv.doc).balance || calc(lastInv.doc).total)}`, v: calc(lastInv.doc).balance || calc(lastInv.doc).total, inv: lastInv.doc }] : [];
+    chipRow($("#ramt-chips"), amtOpts, (o) => o.v === ra, (o) => { D.receivedAmount = o.v; if (!D.paidFor) D.paidFor = `Invoice ${o.inv.number}${o.inv.items[0]?.desc ? " (" + o.inv.items[0].desc + ")" : ""}`; persist(); syncChrome(); render(); });
+    const sugg = [...S.catalog.map((x) => x.desc), ...industryItems()].filter((v, i, a) => v && a.indexOf(v) === i).slice(0, 4);
+    const forOpts = [...sugg.map((s) => ({ label: s })), ...["Deposit for ", "Balance for ", "Full payment for "].map((p) => ({ label: p.trim() + "…", prefix: p }))];
+    chipRow($("#rfor-chips"), forOpts, (o) => !o.prefix && D.paidFor === o.label, (o) => { if (o.prefix) { D.paidFor = o.prefix + (D.paidFor || "").replace(/^(Deposit for |Balance for |Full payment for )/, ""); $("#r-for").focus(); } else D.paidFor = o.label; $("#r-for").value = D.paidFor; persist(); render(); });
+    $("#rcpt-peek").innerHTML = ra ? `“Received from <b>${esc(D.client.name || "…")}</b> the sum of <em>${esc(amountInWords(ra, D.currency))}</em> being payment for <b>${esc(D.paidFor || "…")}</b>.”` : "";
+  }
+  // chapter III per type
+  $("#inv3").hidden = T !== "invoice"; $("#rcpt3").hidden = T !== "receipt"; $("#quo3").hidden = T !== "quotation"; $("#bank-block").hidden = T === "receipt";
+  $("#pay-sub").textContent = T === "receipt" ? "These details make the receipt official." : T === "quotation" ? "Set how long the price holds and what's needed to begin." : "";
+  $("#bank-label").textContent = T === "quotation" ? "Deposit is paid into" : "Paid into";
+  if (T === "receipt") {
+    const back = -daysUntil(D.issueDate);
+    chipRow($("#rdate-chips"), [{ label: "Today", v: 0 }, { label: "Yesterday", v: 1 }, { label: back > 1 ? fmtDate(D.issueDate) : "Another day", v: "pick", add: back <= 1 }], (o) => (o.v === "pick" ? back > 1 : o.v === back), (o) => { if (o.v === "pick") return pickDate("Date paid", "doc.issueDate"); D.issueDate = iso(addDays(-o.v)); persist(); syncChrome(); render(); });
+    const bl = num(D.balanceLeft);
+    chipRow($("#rbal-chips"), [{ label: "Nothing, fully paid", v: 0 }, { label: bl ? `${short(bl)} still owed` : "Yes, enter amount…", v: "amt", add: !bl }], (o) => (o.v === "amt" ? !!bl : !bl), (o) => { if (o.v === "amt") return askAmount("Balance still owed", { value: bl || "" }, (v) => { D.balanceLeft = v; persist(); syncChrome(); render(); }); D.balanceLeft = ""; persist(); syncChrome(); render(); });
+    if (document.activeElement !== $("#r-ref")) $("#r-ref").value = D.reference || "";
+  }
+  if (T === "quotation") {
+    const qd = D.dueDate ? daysUntil(D.dueDate) : null; const qb = [{ label: "7 days", v: 7 }, { label: "14 days", v: 14 }, { label: "30 days", v: 30 }]; const qk = qb.some((o) => o.v === qd);
+    chipRow($("#qvalid-chips"), [...qb, { label: qk ? "Pick a date" : fmtDate(D.dueDate), v: "pick", add: qk }], (o) => (o.v === "pick" ? !qk : o.v === qd), (o) => { if (o.v === "pick") return pickDate("Valid until", "doc.dueDate"); D.dueDate = iso(addDays(o.v)); persist(); syncChrome(); render(); });
+    const dp = num(D.depositPct);
+    chipRow($("#qdep-chips"), [0, 30, 50, 70, 100].map((v) => ({ label: v ? `${v}%${t.total ? " · " + short(round2(t.total * v / 100)) : ""}` : "None", v })), (o) => o.v === dp, (o) => { D.depositPct = o.v; persist(); syncChrome(); render(); });
+    const times = ["Ready in 3 days", "Ready in 1 week", "Ready in 2 weeks", "Ready in 1 month"];
+    chipRow($("#qtime-chips"), times.map((x) => ({ label: x })), (o) => D.timeline === o.label, (o) => { D.timeline = D.timeline === o.label ? "" : o.label; $("#q-time").value = D.timeline; persist(); syncChrome(); render(); });
+    if (document.activeElement !== $("#q-time")) $("#q-time").value = D.timeline || "";
+  }
+  // invoice dates
   const dd = daysUntil(D.dueDate);
   if (D.type === "receipt") {
     $("#due-label").textContent = "Date paid"; $("#exp-switch").hidden = true; $("#exp-hint").hidden = true; const back = -daysUntil(D.issueDate);
@@ -1990,7 +2090,6 @@ function syncChrome() {
   chipRow($("#dep-chips"), [...pcts, { label: isPreset || !paidAmt ? "Amount…" : short(paidAmt), v: "other", add: isPreset || !paidAmt }], (o) => (o.v === "other" ? !isPreset && !!paidAmt : o.v === paidAmt), (o) => {
     if (o.v === "other") return askAmount("Deposit received", { value: paidAmt || "" }, (v) => { D.amountPaid = v; persist(); syncChrome(); render(); });
     D.amountPaid = o.v; persist(); syncChrome(); render(); });
-  $("#method-block").hidden = !(D.type === "receipt");
   chipRow($("#method-chips"), ["Bank transfer", "Cash", "POS", "Paystack"].map((m) => ({ label: m })), (o) => o.label === (D.method || "Bank transfer"), (o) => { D.method = o.label; persist(); syncChrome(); render(); });
   const K = P.bank;
   $("#bank-line").innerHTML = K.accountNumber ? `<div><b>${esc(K.bankName || "Bank")} · ${esc(K.accountNumber)}</b><small>${esc(K.accountName)}${K.paystackKey ? " · Paystack on" : ""}</small></div><span class="btn sm">Change</span>` : `<div><b>Add your bank details</b><small>So clients know where to pay</small></div><span class="btn sm">Add</span>`;
@@ -2027,9 +2126,16 @@ document.addEventListener("change", async (e) => {
 function readImage(file, max = 480) {
   return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)); const cv = document.createElement("canvas"); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s); cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height); resolve(cv.toDataURL("image/png")); }; img.onerror = reject; img.src = r.result; }; r.onerror = reject; r.readAsDataURL(file); });
 }
+$$("[data-rmode]").forEach((b) => b.addEventListener("click", () => {
+  const m = b.dataset.rmode; if (m === S.doc.receiptMode) return;
+  if (m === "simple" && !num(S.doc.receivedAmount)) { const tt = calc({ ...S.doc, receiptMode: "items" }).total; if (tt) S.doc.receivedAmount = tt; if (!S.doc.paidFor) S.doc.paidFor = S.doc.items.filter((it) => it.desc).map((it) => it.desc).join(", "); }
+  S.doc.receiptMode = m; persist(); syncChrome(); if (m === "items") renderItemsEditor(); render();
+}));
+$("#r-amt").addEventListener("input", (e) => { const raw = e.target.value.replace(/[^\d.]/g, ""); S.doc.receivedAmount = raw; e.target.value = group(raw); e.target.closest(".field.error")?.classList.remove("error"); persist(); syncChrome(); render(); });
 $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
   const t = b.dataset.doctype; if (t === S.doc.type) return;
-  S.doc.type = t; S.doc.number = `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`; S.doc.link = ""; S.doc.shareId = "";
+  if (t === "receipt" && !S.doc.receiptMode) S.doc.receiptMode = S.doc.items.some((it) => num(it.price) > 0) ? "items" : "simple";
+  S.doc.type = t; S.doc.number = `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`; S.doc.link = ""; S.doc.shareId = ""; renderSteps();
   if (t === "quotation") S.doc.dueDate = iso(addDays(14)); if (t === "receipt") { S.doc.status = "paid"; S.doc.issueDate = iso(new Date()); } else if (S.doc.status === "paid") S.doc.status = "unpaid";
   persist(); syncChrome(); swapAnim(); render({ enter: true });
 }));
@@ -2153,7 +2259,7 @@ $("#copy-link").addEventListener("click", () => copyText(S.doc.link).then((ok) =
 $("#preview-client").addEventListener("click", () => openClientView(payload(), { preview: true, verified: false }));
 function sendWhatsApp() {
   const D = S.doc, P = S.profile, t = calc(D), c = D.currency; const lines = [`Hello ${D.client.name || "there"},`, ""];
-  if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}. Here is your receipt ${D.number} from ${P.business.name}.`);
+  if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}${D.paidFor ? " for " + D.paidFor : ""}. Here is your receipt ${D.number} from ${P.business.name}.`);
   else if (D.type === "quotation") lines.push(`Here is your quotation ${D.number} from ${P.business.name}.`, `Quoted total: ${money(t.total, c)}`);
   else { lines.push(`Here is your invoice ${D.number} from ${P.business.name}.`, D.status === "part" ? `Balance to pay: ${money(t.balance, c)}` : `Amount: ${money(t.total, c)}`); if (D.payBy) lines.push(`Pay by: ${fmtDate(D.payBy)}`); if (D.dueDate) lines.push(`Valid until: ${fmtDate(D.dueDate)}`); if (!D.link && P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`); }
   if (D.link) lines.push("", "Open your sealed envelope:", D.link);

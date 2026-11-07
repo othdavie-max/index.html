@@ -22,6 +22,14 @@ It ends with a ceremony where their own wax seal is pressed.
 
 **"My house" settings:** identity, bank (searchable list of Nigerian banks and fintechs), Paystack public key, design (Royal, Atelier or Noir in any colour), signature and plan.
 
+## Each document has its own setup
+| | Invoice | Receipt | Quotation |
+|---|---|---|---|
+| Chapter I | Client (+ optional pay-by and expiry dates) | Who paid you? | Who is the quote for? |
+| Chapter II | Items, discount, delivery, VAT | **Quick receipt** (amount + "being payment for") or itemised | Items, discount, delivery, VAT |
+| Chapter III | Payment status, deposit, bank | Method, transaction reference, date paid, balance still owed | Price valid for, deposit to begin (%), delivery timeline |
+| On the document | Status, pay-by/expiry, bank box | Classic "Received from … the sum of … being payment for …" line, Amount received, Received by signature, PAID stamp | Valid until, timeline, deposit in naira, "To accept, pay the deposit to", Accepted by / Signature / Date block |
+
 ## Customise (separately for invoices, receipts and quotations)
 Open it from **Customise** above the preview, the Send chapter, or My house → Documents. A small live preview sits at the top of the panel.
 - **Title:** e.g. Invoice, Proforma Invoice, Sales Invoice, Bill; Receipt, Payment Receipt; Quotation, Estimate, Proposal; or their own.
