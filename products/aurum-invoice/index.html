@@ -894,9 +894,14 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
       <label class="field" id="f-cname"><span>Client's name</span><input id="c-name" data-bind="doc.client.name" placeholder="Start typing — we'll remember them" autocomplete="off"></label>
       <div class="chips" id="recent-clients"></div>
       <label class="field"><span>Client's WhatsApp</span><input id="c-phone" data-bind="doc.client.phone" inputmode="tel" placeholder="0809 876 5432" autocomplete="off"></label>
-      <div class="field" id="due-block"><span class="label" id="due-label">Pay by</span>
+      <div class="field" id="payby-block">
+        <label class="toggle"><span>Pay-by date <em>(optional)</em></span><span class="switch"><input type="checkbox" id="payby-on"><i></i></span></label>
+        <div class="chips" id="payby-chips"></div>
+      </div>
+      <div class="field" id="due-block">
+        <label class="toggle"><span id="due-label">Expiry date <em>(optional)</em></span><span class="switch" id="exp-switch"><input type="checkbox" id="exp-on"><i></i></span></label>
+        <p class="hint" id="exp-hint" hidden>If it isn't paid by this date, the invoice expires and your client is asked to request a new one.</p>
         <div class="chips" id="due-chips"></div>
-        <input id="d-due" type="date" data-bind="doc.dueDate" class="input" hidden>
       </div>
     </section>
 
@@ -1157,6 +1162,7 @@ function invoiceHTML(P, D, opts = {}) {
   const statusClass = expired ? "overdue" : D.status === "overdue" ? "unpaid" : D.status;
   const dateRows = [
     `<div><dt>${type === "receipt" ? "Payment date" : "Issued"}</dt><dd>${fmtDate(D.issueDate)}</dd></div>`,
+    type === "invoice" && D.payBy ? `<div><dt>Pay by</dt><dd>${fmtDate(D.payBy)}</dd></div>` : "",
     type === "invoice" && D.dueDate ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "quotation" ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${esc(statusClass)}">${statusText}</span></dd></div>` : "",
@@ -1601,7 +1607,8 @@ function openClientView(payload, ctx = {}) {
       lbl = D.status === "part" && t.paid > 0 ? "Balance to pay" : "Amount to pay"; amount = t.balance;
       if (D.status === "part" && t.paid > 0) sub = `Total ${money(t.total, c)} · deposit paid ${money(t.paid, c)}`;
       const d = daysUntil(D.dueDate);
-      chip = !D.dueDate ? "" : expired ? `<span class="due-chip late"><i></i>Expired on ${fmtDate(D.dueDate)}</span>` : d === 0 ? `<span class="due-chip"><i></i>Valid until today</span>` : `<span class="due-chip"><i></i>Valid until ${fmtDate(D.dueDate)} · ${d} day${d > 1 ? "s" : ""} left</span>`;
+      const pd = daysUntil(D.payBy);
+      chip = expired ? `<span class="due-chip late"><i></i>Expired on ${fmtDate(D.dueDate)}</span>` : D.payBy ? (pd < 0 ? `<span class="due-chip late"><i></i>Payment was due ${fmtDate(D.payBy)}</span>` : pd === 0 ? `<span class="due-chip"><i></i>Please pay today</span>` : `<span class="due-chip"><i></i>Pay by ${fmtDate(D.payBy)} · ${pd} day${pd > 1 ? "s" : ""} left</span>`) : D.dueDate ? (d === 0 ? `<span class="due-chip"><i></i>Valid until today</span>` : `<span class="due-chip"><i></i>Valid until ${fmtDate(D.dueDate)} · ${d} day${d > 1 ? "s" : ""} left</span>`) : "";
       if (expired) { lbl = "This invoice has expired"; }
     }
     const intro = expired ? `This ${docWord} from ${esc(B.name)} expired on ${fmtDate(D.dueDate)}. Ask for a fresh one and you'll be set in a moment.` : type === "receipt" ? `Thank you for your payment. This is your official receipt from ${esc(B.name)}.`
@@ -1714,7 +1721,7 @@ const SAMPLE_PROFILE = () => ({ setupDone: true, isSample: true,
   bank: { bankName: "GTBank", accountName: "Adaeze Couture Ltd", accountNumber: "0123456789", payLink: "", paystackKey: "" },
   design: { template: "royal", brand: "#1A1817", seal: true }, counters: { invoice: 41, receipt: 17, quotation: 8 } });
 const blankItem = () => ({ id: uid(), desc: "", note: "", qty: 1, price: "" });
-const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
+const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", payBy: "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
   client: { name: "", company: "", address: "", phone: "", email: "" }, items: [blankItem()], discountType: "amount", discount: "", delivery: "", vatOn: false, vatRate: 7.5, amountPaid: "", notes: "", link: "", shareId: "" });
 const sampleDoc = () => ({ ...newDocFor(SAMPLE_PROFILE()), number: "INV-0042", status: "part",
   client: { name: "Mrs. Funmilayo Bakare", company: "", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 876 5432", email: "" },
@@ -1900,14 +1907,24 @@ function syncChrome() {
   // due / date chips
   const dd = daysUntil(D.dueDate);
   if (D.type === "receipt") {
-    $("#due-label").textContent = "Date paid"; const back = -daysUntil(D.issueDate);
+    $("#due-label").textContent = "Date paid"; $("#exp-switch").hidden = true; $("#exp-hint").hidden = true; const back = -daysUntil(D.issueDate);
     chipRow($("#due-chips"), [{ label: "Today", v: 0 }, { label: "Yesterday", v: 1 }, { label: back > 1 ? fmtDate(D.issueDate) : "Another day", v: "pick", add: back <= 1 }], (o) => (o.v === "pick" ? back > 1 : o.v === back), (o) => { if (o.v === "pick") return pickDate("Date paid", "doc.issueDate"); D.issueDate = iso(addDays(-o.v)); persist(); syncChrome(); render(); });
   } else {
-    $("#due-label").innerHTML = D.type === "quotation" ? "Price valid for" : "Valid until <em>(optional: after this date an unpaid invoice expires)</em>";
-    const base = D.type === "quotation" ? [{ label: "7 days", v: 7 }, { label: "14 days", v: 14 }, { label: "30 days", v: 30 }] : [{ label: "No expiry", v: null }, { label: "3 days", v: 3 }, { label: "1 week", v: 7 }, { label: "2 weeks", v: 14 }, { label: "30 days", v: 30 }];
+    const isQ = D.type === "quotation";
+    $("#due-label").innerHTML = isQ ? "Price valid for" : "Expiry date <em>(optional)</em>";
+    $("#exp-switch").hidden = isQ; $("#exp-on").checked = !!D.dueDate; $("#exp-hint").hidden = isQ || !D.dueDate;
+    const base = isQ ? [{ label: "7 days", v: 7 }, { label: "14 days", v: 14 }, { label: "30 days", v: 30 }] : [{ label: "3 days", v: 3 }, { label: "1 week", v: 7 }, { label: "2 weeks", v: 14 }, { label: "30 days", v: 30 }];
     const cur = D.dueDate ? dd : null; const known = base.some((o) => o.v === cur);
-    chipRow($("#due-chips"), [...base, { label: known ? "Pick a date" : fmtDate(D.dueDate), v: "pick", add: known }], (o) => (o.v === "pick" ? !known : o.v === cur), (o) => { if (o.v === "pick") return pickDate("Valid until", "doc.dueDate"); D.dueDate = o.v === null ? "" : iso(addDays(o.v)); persist(); syncChrome(); render(); });
+    if (!isQ && !D.dueDate) $("#due-chips").innerHTML = ""; else chipRow($("#due-chips"), [...base, { label: known ? "Pick a date" : fmtDate(D.dueDate), v: "pick", add: known }], (o) => (o.v === "pick" ? !known : o.v === cur), (o) => { if (o.v === "pick") return pickDate(isQ ? "Valid until" : "Expires on", "doc.dueDate"); D.dueDate = iso(addDays(o.v)); persist(); syncChrome(); render(); });
   }
+  // optional pay-by date (invoices only)
+  $("#payby-block").hidden = D.type !== "invoice";
+  $("#payby-on").checked = !!D.payBy;
+  if (D.type === "invoice" && D.payBy) {
+    const pd = daysUntil(D.payBy); const pb = [{ label: "Today", v: 0 }, { label: "3 days", v: 3 }, { label: "1 week", v: 7 }, { label: "2 weeks", v: 14 }, { label: "30 days", v: 30 }];
+    const pknown = pb.some((o) => o.v === pd);
+    chipRow($("#payby-chips"), [...pb, { label: pknown ? "Pick a date" : fmtDate(D.payBy), v: "pick", add: pknown }], (o) => (o.v === "pick" ? !pknown : o.v === pd), (o) => { if (o.v === "pick") return pickDate("Pay by", "doc.payBy"); D.payBy = iso(addDays(o.v)); persist(); syncChrome(); render(); });
+  } else $("#payby-chips").innerHTML = "";
   // recent clients
   const recent = [...S.clients].sort((a, b) => b.last - a.last).slice(0, 5);
   chipRow($("#recent-clients"), recent.map((c) => ({ label: c.name, c })), (o) => o.c.name === D.client.name, (o) => { fillClient(o.c); });
@@ -1976,6 +1993,8 @@ $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
   persist(); syncChrome(); swapAnim(); render({ enter: true });
 }));
 $("#bank-line").addEventListener("click", () => openHouse("bank"));
+$("#payby-on").addEventListener("change", (e) => { S.doc.payBy = e.target.checked ? iso(addDays(7)) : ""; persist(); syncChrome(); render(); });
+$("#exp-on").addEventListener("change", (e) => { S.doc.dueDate = e.target.checked ? iso(addDays(14)) : ""; persist(); syncChrome(); render(); });
 $("#reveal-grid").addEventListener("click", (e) => { const b = e.target.closest("[data-reveal]"); if (!b) return; S.doc.reveal = b.dataset.reveal; S.profile.design.reveal = b.dataset.reveal; persist(); syncChrome(); toast(`Your client will see: ${REVEALS[b.dataset.reveal].name}`); });
 function swapAnim() { const w = $("#paper-wrap"); w.classList.remove("swap"); void w.offsetWidth; if (!reduceMotion) w.classList.add("swap"); }
 
@@ -2090,7 +2109,7 @@ function sendWhatsApp() {
   const D = S.doc, P = S.profile, t = calc(D), c = D.currency; const lines = [`Hello ${D.client.name || "there"},`, ""];
   if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}. Here is your receipt ${D.number} from ${P.business.name}.`);
   else if (D.type === "quotation") lines.push(`Here is your quotation ${D.number} from ${P.business.name}.`, `Quoted total: ${money(t.total, c)}`);
-  else { lines.push(`Here is your invoice ${D.number} from ${P.business.name}.`, D.status === "part" ? `Balance to pay: ${money(t.balance, c)}` : `Amount: ${money(t.total, c)}`); if (D.dueDate) lines.push(`Valid until: ${fmtDate(D.dueDate)}`); if (!D.link && P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`); }
+  else { lines.push(`Here is your invoice ${D.number} from ${P.business.name}.`, D.status === "part" ? `Balance to pay: ${money(t.balance, c)}` : `Amount: ${money(t.total, c)}`); if (D.payBy) lines.push(`Pay by: ${fmtDate(D.payBy)}`); if (D.dueDate) lines.push(`Valid until: ${fmtDate(D.dueDate)}`); if (!D.link && P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`); }
   if (D.link) lines.push("", "Open your sealed envelope:", D.link);
   lines.push("", "Thank you for your patronage.");
   openLink(`https://wa.me/${waNumber(D.client.phone)}?text=${encodeURIComponent(lines.join("\n"))}`); rememberDoc();
