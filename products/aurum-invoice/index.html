@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aurum Invoice Studio</title>
+<meta name="description" content="Luxury invoices, receipts and quotations for Nigerian businesses.">
+<meta name="theme-color" content="#0F3D2E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Manrope:wght@400;500;600;700;800&family=Mrs+Saint+Delafield&display=swap">
+<style>
+/* Layout: a working studio — editor rail on the left, the invoice "on the desk" on the right.
+   On phones the two become tabs with a bottom action bar. */
+:root {
+  --bg: #EEF1EF;
+  --surface: #FFFFFF;
+  --field: #F7F9F8;
+  --ink: #0E1F1A;
+  --muted: #5D6B65;
+  --line: #D8DFDB;
+  --accent: #0F4D3A;
+  --accent-ink: #FFFFFF;
+  --gold: #A9844C;
+  --desk: #E2E7E4;
+  --danger: #B3261E;
+  --shadow: 0 1px 2px rgba(14,31,26,.06), 0 8px 24px -12px rgba(14,31,26,.18);
+
+  --f-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --f-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-sign: "Mrs Saint Delafield", "Snell Roundhand", "Brush Script MT", cursive;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A1210; --surface: #111C19; --field: #0D1714; --ink: #E7EEEA; --muted: #92A39C;
+    --line: #22332D; --accent: #3BA37E; --accent-ink: #04140E; --gold: #D2B47C; --desk: #070D0B;
+    --danger: #F2867D; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A1210; --surface: #111C19; --field: #0D1714; --ink: #E7EEEA; --muted: #92A39C;
+  --line: #22332D; --accent: #3BA37E; --accent-ink: #04140E; --gold: #D2B47C; --desk: #070D0B;
+  --danger: #F2867D; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.5 var(--f-body); -webkit-font-smoothing: antialiased;
+}
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+img { max-width: 100%; }
+
+/* ---------- App bar ---------- */
+.appbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 12px;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+}
+.mark { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-size: 22px; letter-spacing: .02em; }
+.mark svg { width: 30px; height: 30px; }
+.mark small { font-family: var(--f-body); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+.lic-chip {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55vw;
+}
+.lic-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+.lic-chip.demo i { background: var(--gold); }
+
+/* ---------- Layout ---------- */
+.studio { display: grid; grid-template-columns: minmax(360px, 440px) 1fr; min-height: calc(100% - 60px); }
+.editor {
+  border-right: 1px solid var(--line); background: var(--surface);
+  padding-block: 20px 120px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px;
+  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+}
+.stage { position: relative; background: var(--desk); min-width: 0; display: flex; flex-direction: column; }
+.stage-inner { flex: 1; padding: 24px; padding-right: max(24px, env(safe-area-inset-right, 0px)); overflow: auto; }
+.toolbar {
+  position: sticky; top: 61px; z-index: 20; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding: 12px 24px; background: color-mix(in srgb, var(--desk) 90%, transparent); backdrop-filter: blur(8px);
+}
+.toolbar .spacer { flex: 1; }
+
+/* ---------- Controls ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); font-weight: 600; font-size: 13px; transition: transform .15s, background .2s, border-color .2s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:active { transform: translateY(1px); }
+.btn svg { width: 16px; height: 16px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.gold { background: linear-gradient(120deg, #8A6A35, #D9BE84 45%, #A9844C); color: #1A1307; border-color: transparent; }
+.btn.ghost { background: transparent; }
+.btn.sm { height: 32px; padding: 0 12px; font-size: 12px; border-radius: 8px; }
+.btn.danger { color: var(--danger); }
+
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
+.seg button { border: 0; background: transparent; height: 38px; border-radius: 9px; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+
+.panel { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.panel > summary {
+  list-style: none; cursor: pointer; padding: 14px 16px; display: flex; align-items: baseline; gap: 10px;
+  font-weight: 700; font-size: 14px;
+}
+.panel > summary::-webkit-details-marker { display: none; }
+.panel > summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg) translateY(-3px); transition: transform .2s; }
+.panel[open] > summary::after { transform: rotate(-135deg) translateY(-1px); }
+.panel > summary span { font-weight: 500; font-size: 12px; color: var(--muted); }
+.panel-body { padding: 4px 16px 16px; display: grid; gap: 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field > span { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.field input, .field select, .field textarea {
+  width: 100%; min-width: 0; height: 42px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--field); outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.field textarea { height: auto; min-height: 70px; padding: 10px 12px; resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.field input[type="color"] { padding: 4px; }
+.check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+
+.upload { display: flex; align-items: center; gap: 12px; }
+.upload .thumb { width: 52px; height: 52px; border-radius: 10px; border: 1px dashed var(--line); background: var(--field) center/contain no-repeat; flex: none; }
+.upload label.btn { position: relative; overflow: hidden; }
+.upload label.btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+.sample-note { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--gold) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent); font-size: 12.5px; }
+
+/* Items editor */
+.items-ed { display: grid; gap: 10px; }
+.item-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; background: var(--field); animation: itemIn .35s cubic-bezier(.2,.8,.2,1) both; }
+.item-card .row3 { grid-template-columns: 80px 1fr auto; align-items: end; }
+.item-card .line-total { font-weight: 700; font-variant-numeric: tabular-nums; padding-bottom: 10px; white-space: nowrap; }
+.item-card .field input { background: var(--surface); }
+.item-top { display: flex; gap: 8px; align-items: center; }
+.item-top b { font-size: 11px; color: var(--muted); letter-spacing: .1em; }
+.item-top .btn { margin-left: auto; }
+@keyframes itemIn { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* Design picker */
+.tpl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tpl {
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 8px; background: var(--field); display: grid; gap: 6px; text-align: left; font-size: 12px; font-weight: 700;
+}
+.tpl[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.tpl i { display: block; height: 54px; border-radius: 6px; }
+.tpl[data-template="royal"] i { background: linear-gradient(#0F3D2E 0 42%, #FFFDF9 42%); box-shadow: inset 0 -2px 0 #FFFDF9, inset 0 0 0 1px #d6cdb9; }
+.tpl[data-template="atelier"] i { background: #fff; box-shadow: inset 0 0 0 1px #ddd; background-image: linear-gradient(#0F3D2E, #0F3D2E); background-size: 40% 8px; background-repeat: no-repeat; background-position: 8px 10px; }
+.tpl[data-template="noir"] i { background: #121211; box-shadow: inset 0 0 0 4px #121211, inset 0 0 0 5px #C9A86A; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); }
+.swatch-custom { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; border: 1px solid var(--line); position: relative; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); }
+.swatch-custom input { position: absolute; inset: -6px; opacity: 0; cursor: pointer; }
+
+.saved-list { display: grid; gap: 8px; }
+.saved-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--field); font-size: 12.5px; }
+.saved-item div { min-width: 0; flex: 1; }
+.saved-item b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved-item small { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- Paper on the desk ---------- */
+.paper-wrap { margin: 0 auto; position: relative; }
+.paper-scale { transform-origin: top left; }
+.paper-shadow { box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 30px 60px -20px rgba(0,0,0,.35); }
+
+/* ================= INVOICE DOCUMENT ================= */
+.inv {
+  --brand: #0F3D2E;
+  --gold-solid: #B8935A;
+  --foil: linear-gradient(100deg, #8A6A35 0%, #E9D39E 28%, #B8935A 46%, #F5E7BE 64%, #A07D42 82%, #E2C88E 100%);
+  --paper: #FFFDF9; --p-ink: #1C1B18; --p-muted: #7A736B; --p-rule: rgba(184,147,90,.45); --p-rule-soft: rgba(184,147,90,.22);
+  position: relative; width: 794px; min-height: 1123px; overflow: hidden;
+  background: var(--paper); color: var(--p-ink);
+  font: 12.5px/1.55 var(--f-body); font-variant-numeric: lining-nums;
+  display: flex; flex-direction: column;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.inv * { box-sizing: border-box; }
+.inv .px { padding-left: 56px; padding-right: 56px; }
+.inv label, .inv .lbl { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--p-muted); margin-bottom: 6px; }
+.foil {
+  background: var(--foil); background-size: 220% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+  animation: shimmer 7s linear infinite;
+}
+@keyframes shimmer { to { background-position: 220% center; } }
+.inv.static .foil { animation: none; background: none; -webkit-text-fill-color: var(--gold-solid); color: var(--gold-solid); }
+
+.inv-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding-top: 52px; padding-bottom: 40px; position: relative; }
+.brand { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.logo-box { width: 78px; height: 78px; flex: none; display: grid; place-items: center; }
+.logo-box img { max-width: 78px; max-height: 78px; object-fit: contain; }
+.biz-name { font-family: var(--f-display); font-weight: 600; font-size: 30px; line-height: 1.05; margin: 0; letter-spacing: .01em; overflow-wrap: anywhere; }
+.tagline { margin: 6px 0 0; font-size: 10px; letter-spacing: .24em; text-transform: uppercase; }
+.doc-title { text-align: right; flex: none; }
+.doc-type { display: block; font-family: var(--f-display); font-style: italic; font-weight: 500; font-size: 58px; line-height: .9; letter-spacing: -.01em; padding-right: 4px; }
+.doc-no { display: block; margin-top: 12px; font-size: 11px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; }
+
+.inv-meta { display: grid; grid-template-columns: 1.25fr 1fr .9fr; gap: 28px; padding-top: 34px; padding-bottom: 30px; }
+.party p { margin: 0; color: var(--p-muted); }
+.party .who { color: var(--p-ink); font-family: var(--f-display); font-size: 18px; font-weight: 600; line-height: 1.25; margin-bottom: 4px; }
+.dates { margin: 0; display: grid; gap: 10px; }
+.dates div { display: grid; }
+.dates dt { font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--p-muted); }
+.dates dd { margin: 0; font-weight: 700; }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; border: 1px solid currentColor; }
+.pill.unpaid { color: #9A6B1E; } .pill.paid { color: #1E6B48; } .pill.overdue { color: #B3261E; } .pill.part { color: #2B5C8A; }
+
+.items { width: 100%; border-collapse: collapse; }
+.items th { font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--p-muted); text-align: left; padding: 0 0 12px; border-bottom: 1px solid var(--p-rule); }
+.items td { padding: 14px 0; border-bottom: 1px solid var(--p-rule-soft); vertical-align: top; }
+.items .n { width: 44px; color: var(--p-muted); font-variant-numeric: tabular-nums; font-size: 11px; padding-top: 16px; }
+.items .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.items .q { width: 60px; } .items .p { width: 130px; } .items .t { width: 140px; font-weight: 700; }
+.items .desc b { font-size: 13.5px; font-weight: 700; display: block; }
+.items .desc small { color: var(--p-muted); font-size: 11.5px; }
+.items .empty td { color: var(--p-muted); font-style: italic; text-align: center; padding: 30px 0; }
+
+.sum { display: grid; grid-template-columns: 1fr 300px; gap: 40px; padding-top: 26px; align-items: start; }
+.words p { margin: 0; font-family: var(--f-display); font-style: italic; font-size: 15px; line-height: 1.45; }
+.totals { margin: 0; display: grid; gap: 8px; font-variant-numeric: tabular-nums; }
+.totals div { display: flex; justify-content: space-between; gap: 12px; }
+.totals dt { color: var(--p-muted); }
+.totals dd { margin: 0; font-weight: 600; }
+.grand { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; }
+.grand span:first-child { white-space: nowrap; font-size: 10px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
+.grand .amt { font-family: var(--f-display); font-weight: 600; font-size: 26px; line-height: 1; font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+.balance { margin-top: 6px; }
+.balance dd { font-weight: 800; }
+
+.foot { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding-top: 34px; align-items: end; }
+.bank { position: relative; padding: 18px 20px; border: 1px solid var(--p-rule); }
+.bank::before, .bank::after { content: ""; position: absolute; width: 14px; height: 14px; border-color: var(--gold-solid); border-style: solid; }
+.bank::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.bank::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+.bank dl { margin: 0; display: grid; gap: 7px; }
+.bank dl div { display: flex; justify-content: space-between; gap: 12px; }
+.bank dt { color: var(--p-muted); }
+.bank dd { margin: 0; font-weight: 700; text-align: right; overflow-wrap: anywhere; }
+.bank .acct { font-size: 17px; letter-spacing: .14em; font-variant-numeric: tabular-nums; }
+.paylink { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--p-rule); font-size: 11px; overflow-wrap: anywhere; }
+.paylink b { color: var(--brand); }
+
+.sign { display: flex; align-items: flex-end; justify-content: flex-end; gap: 18px; }
+.sign-block { text-align: center; min-width: 180px; }
+.sign-mark { height: 64px; display: flex; align-items: flex-end; justify-content: center; font-family: var(--f-sign); font-size: 46px; line-height: 1; color: var(--p-ink); }
+.sign-mark img { max-height: 64px; max-width: 200px; object-fit: contain; }
+.sign-line { border-top: 1px solid var(--p-ink); margin-top: 4px; padding-top: 6px; font-weight: 700; }
+.sign-title { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--p-muted); }
+.seal { width: 104px; height: 104px; flex: none; transform: rotate(-10deg); opacity: .92; }
+.seal text { font-family: var(--f-body); }
+
+.notes { padding-top: 26px; }
+.notes p { margin: 0; color: var(--p-muted); max-width: 62ch; white-space: pre-line; }
+
+.inv-foot { margin-top: auto; padding-top: 30px; padding-bottom: 30px; display: flex; justify-content: space-between; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+.inv-foot .ty { font-family: var(--f-display); font-style: italic; font-size: 20px; }
+.inv-foot .contact { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--p-muted); }
+.inv-spacer { height: 40px; }
+
+.stamp {
+  display: inline-block; margin-top: 26px; margin-left: 10px; position: relative; z-index: 4;
+  font-family: var(--f-display); font-weight: 800; font-size: 44px; letter-spacing: .14em; line-height: 1;
+  padding: 10px 18px 8px 24px; border: 5px double currentColor; border-radius: 6px;
+  transform: rotate(-14deg); opacity: .82; mix-blend-mode: multiply;
+  -webkit-mask-image: repeating-radial-gradient(circle at 30% 40%, #000 0 2px, rgba(0,0,0,.82) 2px 3px);
+          mask-image: repeating-radial-gradient(circle at 30% 40%, #000 0 2px, rgba(0,0,0,.82) 2px 3px);
+}
+.stamp.paid { color: #17744B; } .stamp.overdue { color: #B3261E; }
+.stamp small { display: block; font-family: var(--f-body); font-size: 10px; letter-spacing: .3em; font-weight: 800; text-align: center; margin-top: 4px; }
+
+.wm { position: absolute; inset: -20%; z-index: 6; pointer-events: none; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 70px 90px; transform: rotate(-28deg); }
+.wm span { font-family: var(--f-display); font-weight: 700; font-size: 40px; letter-spacing: .2em; color: rgba(120,120,120,.16); white-space: nowrap; }
+
+/* --- Template: ROYAL (brand band + gold foil) --- */
+.t-royal .inv-head { background: var(--brand); color: #F3E7CC; padding-top: 56px; padding-bottom: 46px; }
+.t-royal .inv-head::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 140% at 85% -20%, rgba(255,255,255,.14), transparent 55%), radial-gradient(80% 120% at 0% 120%, rgba(0,0,0,.25), transparent 60%); pointer-events: none; }
+.t-royal .inv-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 7px; border-top: 1.5px solid var(--gold-solid); border-bottom: 1.5px solid var(--gold-solid); background: var(--paper); }
+.t-royal .tagline, .t-royal .doc-no { color: rgba(243,231,204,.78); }
+.t-royal .grand { background: var(--brand); color: #F3E7CC; }
+.t-royal .inv-foot { background: var(--brand); color: #F3E7CC; margin-top: auto; }
+.t-royal .inv-foot .contact { color: rgba(243,231,204,.75); }
+.t-royal .inv-foot .ty { color: #EAD7A6; }
+
+/* --- Template: ATELIER (white, editorial, brand ink) --- */
+.t-atelier { --paper: #FFFFFF; --p-rule: var(--brand-rule); --p-rule-soft: var(--brand-rule-soft); }
+.t-atelier .inv-head { flex-direction: row-reverse; align-items: flex-start; padding-top: 64px; padding-bottom: 28px; border-bottom: 2px solid var(--brand); margin: 0 56px; padding-left: 0; padding-right: 0; }
+.t-atelier .doc-title { text-align: left; }
+.t-atelier .doc-type { font-style: normal; font-weight: 400; font-size: 92px; letter-spacing: -.03em; line-height: .82; }
+.inv.t-atelier .foil, .inv.t-atelier.static .foil { background: none; -webkit-text-fill-color: var(--brand); color: var(--brand); animation: none; }
+.t-atelier .brand { flex-direction: row-reverse; text-align: right; }
+.t-atelier .tagline, .t-atelier .doc-no { color: var(--p-muted); }
+.t-atelier .grand { padding: 16px 0 0; border-top: 2px solid var(--brand); color: var(--brand); }
+.t-atelier .grand { flex-direction: column; align-items: flex-end; gap: 8px; }
+.t-atelier .grand .amt { font-size: 34px; }
+.t-atelier .bank::before, .t-atelier .bank::after { border-color: var(--brand); }
+.t-atelier .inv-foot { border-top: 1px solid var(--p-rule); margin: auto 56px 0; padding-left: 0; padding-right: 0; }
+.t-atelier .inv-foot .ty { color: var(--brand); }
+
+/* --- Template: NOIR (black lacquer + gold frame) --- */
+.t-noir { --paper: #111110; --p-ink: #EFE8D8; --p-muted: #A0977F; --p-rule: rgba(210,180,124,.38); --p-rule-soft: rgba(210,180,124,.18); }
+.t-noir::before, .t-noir::after { content: ""; position: absolute; pointer-events: none; z-index: 1; border: 1px solid rgba(210,180,124,.55); }
+.t-noir::before { inset: 18px; }
+.t-noir::after { inset: 24px; border-color: rgba(210,180,124,.25); }
+.t-noir > * { position: relative; z-index: 2; }
+.t-noir .tagline, .t-noir .doc-no { color: var(--p-muted); }
+.t-noir .inv-head { padding-top: 66px; }
+.t-noir .grand { border: 1px solid rgba(210,180,124,.6); }
+.t-noir .grand span:first-child { color: var(--p-muted); }
+.t-noir .sign-line { border-color: var(--p-muted); }
+.t-noir .stamp { mix-blend-mode: screen; }
+.t-noir .stamp.paid { color: #6FD3A2; } .t-noir .stamp.overdue { color: #FF8A80; }
+.t-noir .pill.unpaid { color: #E1B866; } .t-noir .pill.paid { color: #6FD3A2; } .t-noir .pill.overdue { color: #FF8A80; } .t-noir .pill.part { color: #8EC1F0; }
+.t-noir .paylink b { color: var(--gold-solid); }
+.t-noir .inv-foot { padding-bottom: 50px; }
+.t-noir .wm { position: absolute; }
+.t-noir .wm span { color: rgba(220,220,220,.10); }
+
+/* ---------- Entrance choreography ---------- */
+.inv.enter .inv-head > *, .inv.enter .inv-meta > *, .inv.enter .sum > *, .inv.enter .foot > *, .inv.enter .notes, .inv.enter .inv-foot {
+  animation: rise .7s cubic-bezier(.2,.75,.2,1) both;
+}
+.inv.enter .inv-head > :nth-child(2) { animation-delay: .08s; }
+.inv.enter .inv-meta > :nth-child(1) { animation-delay: .14s; } .inv.enter .inv-meta > :nth-child(2) { animation-delay: .2s; } .inv.enter .inv-meta > :nth-child(3) { animation-delay: .26s; }
+.inv.enter .items tbody tr { animation: rowIn .55s cubic-bezier(.2,.75,.2,1) both; animation-delay: calc(.3s + var(--i, 0) * .07s); }
+.inv.enter .sum > * { animation-delay: .5s; } .inv.enter .foot > * { animation-delay: .6s; } .inv.enter .notes, .inv.enter .inv-foot { animation-delay: .7s; }
+.inv .row-new { animation: rowIn .45s cubic-bezier(.2,.75,.2,1) both; }
+.stamp.stamp-in { animation: thud .55s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes rowIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@keyframes thud { 0% { opacity: 0; transform: rotate(-24deg) scale(2.4); } 60% { opacity: .9; transform: rotate(-13deg) scale(.94); } 100% { opacity: .82; transform: rotate(-14deg) scale(1); } }
+.paper-wrap.swap { animation: swap .5s cubic-bezier(.2,.75,.2,1); }
+@keyframes swap { from { opacity: .2; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
+
+/* ---------- Licence gate ---------- */
+.gate {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: auto;
+  padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: radial-gradient(120% 90% at 50% 0%, #17533F 0%, #0B2A20 45%, #06140F 100%); color: #F3E7CC;
+}
+.gate-card { width: min(440px, 100%); text-align: center; display: grid; gap: 18px; justify-items: center; }
+.gate-seal { width: 132px; height: 132px; }
+.gate-seal .ring { transform-origin: 60px 60px; animation: spin 40s linear infinite; }
+.gate-seal .draw { stroke-dasharray: 300; stroke-dashoffset: 300; animation: draw 1.6s .2s cubic-bezier(.6,0,.2,1) forwards; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.gate h1 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(38px, 9vw, 54px); line-height: 1; letter-spacing: .02em; text-wrap: balance; }
+.gate p { margin: 0; color: rgba(243,231,204,.75); max-width: 36ch; }
+.gate form { width: 100%; display: grid; gap: 10px; margin-top: 6px; }
+.gate input {
+  height: 52px; border-radius: 12px; border: 1px solid rgba(210,180,124,.4); background: rgba(0,0,0,.25); color: #F7EED8;
+  text-align: center; font-size: 16px; letter-spacing: .16em; text-transform: uppercase; outline: none;
+}
+.gate input:focus { border-color: #D9BE84; box-shadow: 0 0 0 3px rgba(217,190,132,.2); }
+.gate input::placeholder { color: rgba(243,231,204,.4); letter-spacing: .1em; }
+.gate .btn { height: 50px; font-size: 14px; }
+.gate .btn.ghost { color: #F3E7CC; border-color: rgba(243,231,204,.25); }
+.gate .err { min-height: 20px; color: #FFB4A8; font-size: 13px; }
+.gate .fine { font-size: 12px; color: rgba(243,231,204,.55); }
+.gate a { color: #E9D39E; }
+
+/* ---------- Toast ---------- */
+.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; z-index: 200; background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 99px; font-weight: 600; font-size: 13px; transition: .3s; pointer-events: none; max-width: calc(100% - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Mobile ---------- */
+.mobilebar { display: none; }
+@media (max-width: 980px) {
+  .studio { grid-template-columns: 1fr; }
+  .editor { border-right: 0; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .toolbar { display: none; }
+  .stage-inner { padding: 16px max(16px, env(safe-area-inset-right, 0px)) 120px max(16px, env(safe-area-inset-left, 0px)); }
+  body[data-view="edit"] .stage { display: none; }
+  body[data-view="preview"] .editor { display: none; }
+  .mobilebar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    padding: 8px max(10px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
+    background: var(--surface); border-top: 1px solid var(--line);
+  }
+  .mobilebar button { display: grid; justify-items: center; gap: 2px; height: 54px; border: 0; background: transparent; border-radius: 10px; font-size: 11px; font-weight: 700; color: var(--muted); align-content: center; }
+  .mobilebar button svg { width: 20px; height: 20px; }
+  .mobilebar button.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: var(--surface); border-top-left-radius: 18px; border-top-right-radius: 18px; box-shadow: 0 -10px 40px rgba(0,0,0,.25); padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 8px; animation: sheetUp .3s cubic-bezier(.2,.8,.2,1); }
+  .sheet .btn { height: 48px; justify-content: flex-start; }
+  .scrim { position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,.35); }
+}
+@media (min-width: 981px) { .sheet, .scrim { display: none !important; } }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+@media (max-width: 420px) { .row3 { grid-template-columns: 1fr 1fr; } .row3 > :last-child { grid-column: 1 / -1; } .item-card .row3 { grid-template-columns: 70px 1fr; } .item-card .line-total { grid-column: 1 / -1; padding: 0; text-align: right; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+
+/* ---------- Print (Save as PDF) ---------- */
+#print-root { display: none; }
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body { background: #fff !important; height: auto; }
+  body.printing > *:not(#print-root) { display: none !important; }
+  body.printing #print-root { display: block; }
+  #print-root .inv { width: 210mm; min-height: 297mm; box-shadow: none; }
+  #print-root .inv * { animation: none !important; }
+}
+/* Off-screen copy used for image export */
+#export-root { position: fixed; left: 0; top: 0; z-index: -1; pointer-events: none; width: 794px; }
+</style>
+</head>
+<body data-view="edit">
+
+<!-- ===== Licence gate ===== -->
+<section class="gate" id="gate" aria-labelledby="gate-title" hidden>
+  <div class="gate-card">
+    <svg class="gate-seal" viewBox="0 0 120 120" aria-hidden="true">
+      <defs><path id="gate-ring" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs>
+      <circle class="draw" cx="60" cy="60" r="56" fill="none" stroke="#C9A86A" stroke-width="1"/>
+      <circle class="draw" cx="60" cy="60" r="34" fill="none" stroke="#C9A86A" stroke-width=".8"/>
+      <g class="ring"><text font-size="8.5" letter-spacing="2.2" fill="#C9A86A" font-family="Manrope, sans-serif" font-weight="700"><textPath href="#gate-ring" textLength="272">AURUM · INVOICE · STUDIO · LAGOS · ABUJA · </textPath></text></g>
+      <text x="60" y="70" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="30" font-style="italic" fill="#E9D39E">Au</text>
+    </svg>
+    <h1 id="gate-title"><span class="foil">Aurum</span></h1>
+    <p>Invoices, receipts and quotations that make your business look like the big brands.</p>
+    <form id="gate-form" autocomplete="off">
+      <input id="lic-key" name="key" placeholder="Enter licence key" aria-label="Licence key" maxlength="40" required>
+      <button class="btn gold" type="submit" id="lic-submit">Activate</button>
+      <button class="btn ghost" type="button" id="lic-demo">Try the demo (watermarked)</button>
+      <div class="err" id="lic-err" role="alert"></div>
+    </form>
+    <p class="fine" id="gate-fine">One licence works on up to 2 devices.</p>
+  </div>
+</section>
+
+<!-- ===== App ===== -->
+<header class="appbar">
+  <div class="mark">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="var(--gold)" stroke-width="1.2"/><text x="20" y="26" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-style="italic" font-size="17" fill="var(--gold)">Au</text></svg>
+    <div>Aurum<br><small>Invoice Studio</small></div>
+  </div>
+  <span class="lic-chip" id="lic-chip"><i></i><span id="lic-chip-text">Not activated</span></span>
+</header>
+
+<main class="studio" id="main-content">
+  <!-- Editor -->
+  <aside class="editor" id="editor" aria-label="Edit document">
+    <div class="seg" role="group" aria-label="Document type">
+      <button type="button" data-doctype="invoice" aria-pressed="true">Invoice</button>
+      <button type="button" data-doctype="receipt" aria-pressed="false">Receipt</button>
+      <button type="button" data-doctype="quotation" aria-pressed="false">Quotation</button>
+    </div>
+
+    <div class="sample-note" id="sample-note" hidden>
+      <span>These are <b>example details</b>. Replace them with your own business.</span>
+      <button class="btn sm" type="button" id="clear-sample">Start with my business</button>
+    </div>
+
+    <details class="panel" open>
+      <summary>Your business <span>saved on this device</span></summary>
+      <div class="panel-body">
+        <div class="upload">
+          <div class="thumb" id="logo-thumb"></div>
+          <label class="btn sm">Upload logo<input type="file" id="logo-file" accept="image/*"></label>
+          <button class="btn sm ghost" type="button" id="logo-clear">Remove</button>
+        </div>
+        <label class="field"><span>Business name</span><input id="b-name" data-bind="profile.business.name"></label>
+        <label class="field"><span>Tagline</span><input id="b-tag" data-bind="profile.business.tagline" placeholder="e.g. Bespoke bridal & occasion wear"></label>
+        <label class="field"><span>Address</span><input id="b-addr" data-bind="profile.business.address"></label>
+        <div class="row2">
+          <label class="field"><span>Phone / WhatsApp</span><input id="b-phone" data-bind="profile.business.phone" inputmode="tel"></label>
+          <label class="field"><span>Email</span><input id="b-email" data-bind="profile.business.email" inputmode="email"></label>
+        </div>
+        <div class="row2">
+          <label class="field"><span>CAC / RC number</span><input id="b-rc" data-bind="profile.business.rc" placeholder="Optional"></label>
+          <label class="field"><span>TIN</span><input id="b-tin" data-bind="profile.business.tin" placeholder="Optional"></label>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Payment details <span>where clients pay you</span></summary>
+      <div class="panel-body">
+        <label class="field"><span>Bank</span><input id="k-bank" data-bind="profile.bank.bankName" placeholder="e.g. GTBank"></label>
+        <label class="field"><span>Account name</span><input id="k-name" data-bind="profile.bank.accountName"></label>
+        <label class="field"><span>Account number</span><input id="k-no" data-bind="profile.bank.accountNumber" inputmode="numeric" maxlength="10"></label>
+        <label class="field"><span>Online payment link</span><input id="k-link" data-bind="profile.bank.payLink" placeholder="Paystack or Flutterwave link (optional)"></label>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary id="client-summary">Client</summary>
+      <div class="panel-body">
+        <label class="field"><span>Client name</span><input id="c-name" data-bind="doc.client.name"></label>
+        <label class="field"><span>Company</span><input id="c-co" data-bind="doc.client.company" placeholder="Optional"></label>
+        <label class="field"><span>Address</span><input id="c-addr" data-bind="doc.client.address"></label>
+        <div class="row2">
+          <label class="field"><span>Phone / WhatsApp</span><input id="c-phone" data-bind="doc.client.phone" inputmode="tel"></label>
+          <label class="field"><span>Email</span><input id="c-email" data-bind="doc.client.email" inputmode="email"></label>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>Document</summary>
+      <div class="panel-body">
+        <div class="row2">
+          <label class="field"><span>Number</span><input id="d-no" data-bind="doc.number"></label>
+          <label class="field"><span>Currency</span>
+            <select id="d-cur" data-bind="doc.currency"><option value="NGN">₦ Naira</option><option value="USD">$ US Dollar</option><option value="GBP">£ Pound</option></select>
+          </label>
+        </div>
+        <div class="row2">
+          <label class="field"><span>Issue date</span><input id="d-issue" type="date" data-bind="doc.issueDate"></label>
+          <label class="field" id="due-field"><span id="due-label">Due date</span><input id="d-due" type="date" data-bind="doc.dueDate"></label>
+        </div>
+        <label class="field" id="status-field"><span>Status</span>
+          <select id="d-status" data-bind="doc.status"><option value="unpaid">Unpaid</option><option value="part">Part-paid</option><option value="paid">Paid (stamp)</option><option value="overdue">Overdue (stamp)</option></select>
+        </label>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>Items <span id="items-count"></span></summary>
+      <div class="panel-body">
+        <div class="items-ed" id="items-ed"></div>
+        <button class="btn" type="button" id="add-item">+ Add item</button>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>Charges &amp; tax</summary>
+      <div class="panel-body">
+        <div class="row2">
+          <label class="field"><span>Discount</span><input id="x-disc" data-bind="doc.discount" data-num inputmode="decimal"></label>
+          <label class="field"><span>Discount type</span><select id="x-dtype" data-bind="doc.discountType"><option value="amount">Amount</option><option value="percent">Percent %</option></select></label>
+        </div>
+        <label class="field"><span>Delivery / logistics fee</span><input id="x-del" data-bind="doc.delivery" data-num inputmode="decimal"></label>
+        <div class="row2" style="align-items:end">
+          <label class="check"><input type="checkbox" id="x-vat" data-bind="doc.vatOn"> Add VAT</label>
+          <label class="field"><span>VAT rate %</span><input id="x-vatr" data-bind="doc.vatRate" data-num inputmode="decimal"></label>
+        </div>
+        <label class="field" id="paid-field"><span id="paid-label">Amount already paid (deposit)</span><input id="x-paid" data-bind="doc.amountPaid" data-num inputmode="decimal"></label>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Notes &amp; signature</summary>
+      <div class="panel-body">
+        <label class="field"><span>Note to client</span><textarea id="n-notes" data-bind="doc.notes"></textarea></label>
+        <label class="field"><span>Signature style</span>
+          <select id="s-mode" data-bind="profile.business.signMode"><option value="type">Typed (handwritten look)</option><option value="image">Upload my signature</option><option value="none">No signature</option></select>
+        </label>
+        <label class="field" id="sign-text-field"><span>Signature text</span><input id="s-text" data-bind="profile.business.signText"></label>
+        <div class="upload" id="sign-upload" hidden>
+          <div class="thumb" id="sign-thumb"></div>
+          <label class="btn sm">Upload signature<input type="file" id="sign-file" accept="image/*"></label>
+        </div>
+        <div class="row2">
+          <label class="field"><span>Signed by</span><input id="s-name" data-bind="profile.business.signName"></label>
+          <label class="field"><span>Title</span><input id="s-title" data-bind="profile.business.signTitle"></label>
+        </div>
+        <label class="check"><input type="checkbox" id="s-seal" data-bind="profile.design.seal"> Show company seal</label>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>Design</summary>
+      <div class="panel-body">
+        <div class="tpl-grid" role="group" aria-label="Template">
+          <button type="button" class="tpl" data-template="royal" aria-pressed="true"><i></i>Royal</button>
+          <button type="button" class="tpl" data-template="atelier" aria-pressed="false"><i></i>Atelier</button>
+          <button type="button" class="tpl" data-template="noir" aria-pressed="false"><i></i>Noir</button>
+        </div>
+        <div class="field"><span>Brand colour</span>
+          <div class="swatches" id="swatches">
+            <button type="button" class="swatch" data-color="#0F3D2E" style="background:#0F3D2E" aria-label="Emerald"></button>
+            <button type="button" class="swatch" data-color="#5A1A24" style="background:#5A1A24" aria-label="Oxblood"></button>
+            <button type="button" class="swatch" data-color="#14264F" style="background:#14264F" aria-label="Royal blue"></button>
+            <button type="button" class="swatch" data-color="#3B1F4A" style="background:#3B1F4A" aria-label="Aubergine"></button>
+            <button type="button" class="swatch" data-color="#1E1E1E" style="background:#1E1E1E" aria-label="Onyx"></button>
+            <button type="button" class="swatch" data-color="#6B4A1E" style="background:#6B4A1E" aria-label="Cognac"></button>
+            <span class="swatch-custom" title="Custom colour"><input type="color" id="brand-custom" aria-label="Custom brand colour"></span>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel" id="saved-panel">
+      <summary>Saved documents <span id="saved-count"></span></summary>
+      <div class="panel-body"><div class="saved-list" id="saved-list"></div></div>
+    </details>
+  </aside>
+
+  <!-- Preview -->
+  <section class="stage" aria-label="Preview">
+    <div class="toolbar">
+      <button class="btn" type="button" data-act="new">New</button>
+      <button class="btn" type="button" data-act="save">Save</button>
+      <span class="spacer"></span>
+      <button class="btn" type="button" data-act="whatsapp">Send on WhatsApp</button>
+      <button class="btn" type="button" data-act="image">Save image</button>
+      <button class="btn primary" type="button" data-act="pdf">Download PDF</button>
+    </div>
+    <div class="stage-inner" id="stage-inner">
+      <div class="paper-wrap" id="paper-wrap"><div class="paper-scale" id="paper-scale"><div class="paper-shadow" id="paper"></div></div></div>
+    </div>
+  </section>
+</main>
+
+<nav class="mobilebar" aria-label="Actions">
+  <button type="button" data-view-btn="edit" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>Edit</button>
+  <button type="button" data-view-btn="preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Preview</button>
+  <button type="button" data-act="whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg>WhatsApp</button>
+  <button type="button" id="more-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export</button>
+</nav>
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" hidden>
+  <button class="btn primary" type="button" data-act="pdf">Download PDF</button>
+  <button class="btn" type="button" data-act="image">Save as image (for WhatsApp)</button>
+  <button class="btn" type="button" data-act="save">Save to my documents</button>
+  <button class="btn" type="button" data-act="new">Start a new document</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="print-root"></div>
+<div id="export-root" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+(() => {
+"use strict";
+
+/* =========================================================
+   SELLER SETTINGS — fill these in once (see README.md)
+   ========================================================= */
+const CONFIG = {
+  SUPABASE_URL: "",        // e.g. https://abcd1234.supabase.co
+  SUPABASE_ANON_KEY: "",   // Supabase → Project Settings → API → anon public key
+  BUY_LINK: "",            // where people buy a licence (WhatsApp link, Selar, Paystack page…)
+  OFFLINE_GRACE_DAYS: 7,   // how long the app works offline before it must re-check the licence
+};
+
+/* ---------- tiny helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "id-" + Math.random().toString(36).slice(2) + Date.now().toString(36));
+const num = (v) => { const n = parseFloat(String(v ?? "").replace(/[^0-9.\-]/g, "")); return Number.isFinite(n) ? n : 0; };
+const round2 = (n) => Math.round(n * 100) / 100;
+const iso = (d) => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); };
+const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d; };
+const fmtDate = (s) => { if (!s) return "—"; const d = new Date(s + "T12:00:00"); return isNaN(d) ? s : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }); };
+const getPath = (o, p) => p.split(".").reduce((a, k) => (a == null ? a : a[k]), o);
+const setPath = (o, p, v) => { const ks = p.split("."); const last = ks.pop(); ks.reduce((a, k) => (a[k] ??= {}), o)[last] = v; };
+
+const CUR = {
+  NGN: { sym: "₦", major: "Naira", minor: "Kobo" },
+  USD: { sym: "$", major: "Dollars", minor: "Cents" },
+  GBP: { sym: "£", major: "Pounds", minor: "Pence" },
+};
+const money = (n, c = "NGN") => CUR[c].sym + new Intl.NumberFormat("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+
+/* ---------- amount in words (Nigerian/British style) ---------- */
+const ONES = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+const TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+function under1000(n) {
+  const h = Math.floor(n / 100), r = n % 100; let s = "";
+  if (h) s = ONES[h] + " hundred";
+  if (r) { if (h) s += " and "; s += r < 20 ? ONES[r] : TENS[Math.floor(r / 10)] + (r % 10 ? "-" + ONES[r % 10] : ""); }
+  return s;
+}
+function intWords(n) {
+  if (n === 0) return "zero";
+  const scales = ["", "thousand", "million", "billion", "trillion"]; const parts = []; let i = 0;
+  while (n > 0 && i < scales.length) {
+    const c = n % 1000;
+    if (c) parts.unshift(under1000(c) + (scales[i] ? " " + scales[i] : ""));
+    n = Math.floor(n / 1000); i++;
+  }
+  // "one thousand and five"
+  const lowest = parts.length > 1 && (Math.round(arguments[0]) % 1000) < 100 && (Math.round(arguments[0]) % 1000) > 0;
+  if (lowest) parts[parts.length - 1] = "and " + parts[parts.length - 1];
+  return parts.join(" ");
+}
+function amountInWords(amount, c = "NGN") {
+  const v = Math.max(0, round2(amount)); const major = Math.floor(v); const minor = Math.round((v - major) * 100);
+  let s = intWords(major) + " " + CUR[c].major;
+  if (minor) s += ", " + intWords(minor) + " " + CUR[c].minor;
+  s += " only";
+  return s.replace(/\b([a-z])/g, (m, ch, idx, str) => (str.slice(idx, idx + 4) === "and " ? ch : ch.toUpperCase()));
+}
+
+/* ---------- licence (device-locked) ---------- */
+const DEVICE_KEY = "aurum.device";
+const deviceId = LS.get(DEVICE_KEY, null) || (() => { const d = uid(); LS.set(DEVICE_KEY, d); return d; })();
+const configured = () => !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY);
+let licence = LS.get("aurum.licence", null);
+
+async function checkKey(key) {
+  const res = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/rpc/activate_license", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: "Bearer " + CONFIG.SUPABASE_ANON_KEY },
+    body: JSON.stringify({ p_key: key, p_device: deviceId }),
+  });
+  if (!res.ok) throw new Error("server");
+  return res.json();
+}
+const REASONS = {
+  invalid: "That licence key is not valid. Check it and try again.",
+  revoked: "This licence has been disabled. Contact the seller.",
+  device_limit: "This key is already in use on its maximum number of devices. Contact the seller to move it.",
+};
+
+async function bootLicence() {
+  $("#gate-fine").innerHTML = CONFIG.BUY_LINK
+    ? `One licence works on up to 2 devices. <a href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Buy a licence</a>`
+    : "One licence works on up to 2 devices.";
+  if (licence?.mode === "demo") return startApp();
+  if (licence?.mode === "full" && configured()) {
+    try {
+      const r = await checkKey(licence.key);
+      if (r.ok) { licence = { ...licence, email: r.email, checkedAt: Date.now(), used: r.devices_used, max: r.max_devices }; LS.set("aurum.licence", licence); return startApp(); }
+      LS.del("aurum.licence"); licence = null; return showGate(REASONS[r.reason] || REASONS.invalid);
+    } catch {
+      const age = (Date.now() - (licence.checkedAt || 0)) / 864e5;
+      if (age < CONFIG.OFFLINE_GRACE_DAYS) return startApp();
+      return showGate("Connect to the internet so we can confirm your licence.");
+    }
+  }
+  showGate("");
+}
+function showGate(msg) { $("#gate").hidden = false; $("#lic-err").textContent = msg || ""; setTimeout(() => $("#lic-key").focus(), 50); }
+
+$("#gate-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const key = $("#lic-key").value.trim().toUpperCase();
+  if (!key) return;
+  if (!configured()) { $("#lic-err").textContent = "Licensing isn't set up yet. Use the demo for now."; return; }
+  const btn = $("#lic-submit"); btn.disabled = true; btn.textContent = "Checking…"; $("#lic-err").textContent = "";
+  try {
+    const r = await checkKey(key);
+    if (r.ok) {
+      licence = { mode: "full", key, email: r.email, checkedAt: Date.now(), used: r.devices_used, max: r.max_devices };
+      LS.set("aurum.licence", licence); $("#gate").hidden = true; startApp(); toast("Licence activated. Welcome to Aurum.");
+    } else $("#lic-err").textContent = REASONS[r.reason] || REASONS.invalid;
+  } catch { $("#lic-err").textContent = "We couldn't reach the licence server. Check your internet and try again."; }
+  btn.disabled = false; btn.textContent = "Activate";
+});
+$("#lic-demo").addEventListener("click", () => { licence = { mode: "demo" }; LS.set("aurum.licence", licence); $("#gate").hidden = true; startApp(); });
+const isDemo = () => licence?.mode !== "full";
+
+/* ---------- state ---------- */
+const PREFIX = { invoice: "INV", receipt: "RCT", quotation: "QUO" };
+const LABEL = { invoice: "Invoice", receipt: "Receipt", quotation: "Quotation" };
+const pad = (n) => String(n).padStart(4, "0");
+
+const SAMPLE_PROFILE = {
+  isSample: true,
+  business: { name: "Adaeze Couture", tagline: "Bespoke bridal & occasion wear", address: "14B Admiralty Way, Lekki Phase 1, Lagos", phone: "0803 123 4567", email: "hello@adaezecouture.ng", rc: "RC 1234567", tin: "", logo: "", signMode: "type", signText: "Adaeze O.", signImg: "", signName: "Adaeze Okafor", signTitle: "Creative Director" },
+  bank: { bankName: "GTBank", accountName: "Adaeze Couture Ltd", accountNumber: "0123456789", payLink: "" },
+  design: { template: "royal", brand: "#0F3D2E", seal: true },
+  counters: { invoice: 41, receipt: 17, quotation: 8 },
+};
+const blankItem = () => ({ id: uid(), desc: "", note: "", qty: 1, price: 0 });
+const sampleDoc = () => ({
+  id: uid(), type: "invoice", number: "INV-0042", issueDate: iso(new Date()), dueDate: iso(addDays(7)), status: "part", currency: "NGN",
+  client: { name: "Mrs. Funmilayo Bakare", company: "", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 876 5432", email: "" },
+  items: [
+    { id: uid(), desc: "Bespoke lace bridal gown", note: "French lace, hand-beaded bodice, two fittings", qty: 1, price: 385000 },
+    { id: uid(), desc: "Aso-ebi fitting & alterations", note: "Bride's family, 3 outfits", qty: 3, price: 25000 },
+    { id: uid(), desc: "Gele tying & styling", note: "Wedding day, bride and mother", qty: 2, price: 15000 },
+  ],
+  discountType: "amount", discount: 20000, delivery: 5000, vatOn: false, vatRate: 7.5, amountPaid: 150000,
+  notes: "Balance is due before the final fitting. Kindly send your proof of payment on WhatsApp.",
+});
+
+const S = {
+  profile: LS.get("aurum.profile", null) || structuredClone(SAMPLE_PROFILE),
+  doc: LS.get("aurum.draft", null) || sampleDoc(),
+};
+S.profile.design ??= { template: "royal", brand: "#0F3D2E", seal: true };
+S.profile.counters ??= { invoice: 0, receipt: 0, quotation: 0 };
+let history = LS.get("aurum.history", []);
+
+let saveTimer;
+const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { LS.set("aurum.profile", S.profile); LS.set("aurum.draft", S.doc); }, 300); };
+
+/* ---------- totals ---------- */
+function calc(d) {
+  const sub = round2(d.items.reduce((a, it) => a + num(it.qty) * num(it.price), 0));
+  const disc = round2(d.discountType === "percent" ? sub * num(d.discount) / 100 : num(d.discount));
+  const taxable = Math.max(0, sub - disc);
+  const vat = d.vatOn ? round2(taxable * num(d.vatRate) / 100) : 0;
+  const delivery = num(d.delivery);
+  const total = round2(taxable + vat + delivery);
+  const paid = d.type === "receipt" ? total : round2(num(d.amountPaid));
+  const balance = Math.max(0, round2(total - paid));
+  return { sub, disc, vat, delivery, total, paid, balance };
+}
+
+function rgba(hex, a) { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim()); if (!m) return `rgba(15,61,46,${a})`; const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+
+/* ---------- seal SVG (unique per business) ---------- */
+function initials(name) { return (name || "A").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase(); }
+function sealSVG(name, color, idSuffix) {
+  const pid = "seal-" + idSuffix;
+  const ring = `${(name || "Your Business").toUpperCase()} · OFFICIAL DOCUMENT · `;
+  return `<svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
+    <defs><path id="${pid}" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"/></defs>
+    <circle cx="60" cy="60" r="57" fill="none" stroke="${color}" stroke-width="2"/>
+    <circle cx="60" cy="60" r="53" fill="none" stroke="${color}" stroke-width=".7"/>
+    <circle cx="60" cy="60" r="35" fill="none" stroke="${color}" stroke-width="1.2"/>
+    <text font-size="8" font-weight="800" letter-spacing="1.6" fill="${color}"><textPath href="#${pid}" textLength="278" lengthAdjust="spacing">${esc(ring)}</textPath></text>
+    <text x="60" y="69" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="27" font-weight="600" font-style="italic" fill="${color}">${esc(initials(name))}</text>
+    <path d="M40 80 h40" stroke="${color}" stroke-width=".8"/>
+  </svg>`;
+}
+
+/* ---------- invoice markup ---------- */
+let renderCount = 0;
+function invoiceHTML(opts = {}) {
+  const { profile: P, doc: D } = S; const B = P.business, K = P.bank, G = P.design;
+  const t = calc(D); const c = D.currency; const type = D.type; const sid = (opts.sid || "v") + (++renderCount);
+  const goldOnDark = G.template === "noir" ? "#D2B47C" : G.template === "royal" ? G.brand : G.brand;
+  const headLogo = B.logo
+    ? `<img src="${B.logo}" alt="">`
+    : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${G.template === "atelier" ? G.brand : "#C9A86A"}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${G.template === "atelier" ? G.brand : "#C9A86A"}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${G.template === "atelier" ? G.brand : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
+
+  const showStatusStamp = type === "receipt" || (type === "invoice" && (D.status === "paid" || D.status === "overdue"));
+  const stampKind = type === "receipt" ? "paid" : D.status;
+  const stampText = stampKind === "paid" ? "PAID" : "OVERDUE";
+  const stampSub = stampKind === "paid" ? fmtDate(D.issueDate).toUpperCase() : "PAYMENT DUE " + fmtDate(D.dueDate).toUpperCase();
+
+  const stampHTML = showStatusStamp ? `<div class="stamp ${stampKind}${opts.stampIn ? " stamp-in" : ""}">${stampText}<small>${esc(stampSub)}</small></div>` : "";
+  const partyLabel = type === "receipt" ? "Received from" : type === "quotation" ? "Prepared for" : "Billed to";
+  const dateRows = [
+    `<div><dt>${type === "receipt" ? "Payment date" : "Issued"}</dt><dd>${fmtDate(D.issueDate)}</dd></div>`,
+    type === "invoice" ? `<div><dt>Due</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
+    type === "quotation" ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
+    type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${D.status}">${{ unpaid: "Unpaid", part: "Part-paid", paid: "Paid", overdue: "Overdue" }[D.status] || "Unpaid"}</span></dd></div>` : "",
+    type === "receipt" ? `<div><dt>Status</dt><dd><span class="pill paid">Paid in full</span></dd></div>` : "",
+  ].join("");
+
+  const rows = D.items.length
+    ? D.items.map((it, i) => `<tr style="--i:${i}" class="${opts.newIds?.has(it.id) ? "row-new" : ""}">
+        <td class="n">${String(i + 1).padStart(2, "0")}</td>
+        <td class="desc"><b>${esc(it.desc) || "<span style='opacity:.45'>Item description</span>"}</b>${it.note ? `<small>${esc(it.note)}</small>` : ""}</td>
+        <td class="num q">${esc(num(it.qty))}</td>
+        <td class="num p">${money(num(it.price), c)}</td>
+        <td class="num t">${money(num(it.qty) * num(it.price), c)}</td></tr>`).join("")
+    : `<tr class="empty"><td colspan="5">Add your first item to get started</td></tr>`;
+
+  const showPaid = type === "invoice" && t.paid > 0;
+  const grandLabel = type === "receipt" ? "Amount received" : type === "quotation" ? "Quoted total" : "Total due";
+  const totals = `
+    <div><dt>Subtotal</dt><dd>${money(t.sub, c)}</dd></div>
+    ${t.disc ? `<div><dt>Discount${D.discountType === "percent" ? ` (${num(D.discount)}%)` : ""}</dt><dd>− ${money(t.disc, c)}</dd></div>` : ""}
+    ${D.vatOn ? `<div><dt>VAT (${num(D.vatRate)}%)</dt><dd>${money(t.vat, c)}</dd></div>` : ""}
+    ${t.delivery ? `<div><dt>Delivery</dt><dd>${money(t.delivery, c)}</dd></div>` : ""}
+    <div class="grand"><span>${grandLabel}</span><span class="amt foil" data-amount="${t.total}">${money(t.total, c)}</span></div>
+    ${showPaid ? `<div class="balance"><dt>Paid so far</dt><dd>${money(t.paid, c)}</dd></div><div class="balance"><dt><b>Balance due</b></dt><dd>${money(t.balance, c)}</dd></div>` : ""}`;
+
+  const bankRows = [
+    K.bankName && `<div><dt>Bank</dt><dd>${esc(K.bankName)}</dd></div>`,
+    K.accountName && `<div><dt>Account name</dt><dd>${esc(K.accountName)}</dd></div>`,
+    K.accountNumber && `<div><dt>Account no.</dt><dd class="acct">${esc(K.accountNumber)}</dd></div>`,
+  ].filter(Boolean).join("");
+  const bank = type === "receipt"
+    ? `<div class="bank"><span class="lbl">Payment received</span><dl><div><dt>Amount</dt><dd>${money(t.total, c)}</dd></div><div><dt>Date</dt><dd>${fmtDate(D.issueDate)}</dd></div><div><dt>Reference</dt><dd>${esc(D.number)}</dd></div></dl></div>`
+    : (bankRows || K.payLink)
+      ? `<div class="bank"><span class="lbl">Payment details</span><dl>${bankRows}</dl>${K.payLink ? `<div class="paylink">Pay online: <b>${esc(K.payLink)}</b></div>` : ""}</div>`
+      : `<div></div>`;
+
+  const signMark = B.signMode === "image" && B.signImg ? `<img src="${B.signImg}" alt="">` : B.signMode === "type" ? esc(B.signText || B.signName) : "";
+  const sign = B.signMode === "none" && !G.seal ? "<div></div>" : `<div class="sign">
+      ${G.seal ? sealSVG(B.name, G.template === "noir" ? "#D2B47C" : G.brand, sid) : ""}
+      ${B.signMode !== "none" ? `<div class="sign-block"><div class="sign-mark">${signMark}</div><div class="sign-line">${esc(B.signName)}</div><div class="sign-title">${esc(B.signTitle)}</div></div>` : ""}
+    </div>`;
+
+  const fromLines = [B.address, B.phone, B.email, [B.rc, B.tin && "TIN " + B.tin].filter(Boolean).join(" · ")].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
+  const clientLines = [D.client.company, D.client.address, D.client.phone, D.client.email].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
+  const thanks = type === "quotation" ? "We look forward to working with you" : type === "receipt" ? "Thank you for your payment" : "Thank you for your patronage";
+
+  return `<article class="inv t-${G.template}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)}">
+    <header class="inv-head px">
+      <div class="brand"><div class="logo-box">${headLogo}</div><div style="min-width:0"><h1 class="biz-name foil">${esc(B.name) || "Your Business"}</h1>${B.tagline ? `<p class="tagline">${esc(B.tagline)}</p>` : ""}</div></div>
+      <div class="doc-title"><span class="doc-type foil">${LABEL[type]}</span><span class="doc-no">No. ${esc(D.number)}</span></div>
+    </header>
+    <section class="inv-meta px">
+      <div class="party"><label>${partyLabel}</label><div class="who">${esc(D.client.name) || "Client name"}</div>${clientLines}</div>
+      <div class="party"><label>From</label>${fromLines || "<p>Your address and contacts</p>"}</div>
+      <dl class="dates">${dateRows}</dl>
+    </section>
+    <div class="px"><table class="items"><thead><tr><th>S/N</th><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <section class="sum px">
+      <div class="words"><label>Amount in words</label><p>${esc(amountInWords(t.total, c))}</p>${stampHTML}</div>
+      <dl class="totals">${totals}</dl>
+    </section>
+    <section class="foot px">${bank}${sign}</section>
+    ${D.notes ? `<section class="notes px"><label>Note</label><p>${esc(D.notes)}</p></section>` : ""}
+    <div class="inv-spacer"></div>
+    <footer class="inv-foot px"><span class="ty">${thanks}</span><span class="contact">${esc([B.phone, B.email].filter(Boolean).join("  ·  "))}</span></footer>
+    ${isDemo() ? `<div class="wm">${"<span>AURUM DEMO</span>".repeat(18)}</div>` : ""}
+  </article>`;
+}
+
+/* ---------- preview rendering + animation ---------- */
+let lastTotal = null, lastStamp = null;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function render({ enter = false, newIds = null } = {}) {
+  const D = S.doc; const stampNow = D.type === "receipt" ? "paid" : D.type === "invoice" ? D.status : "none";
+  const stampIn = !reduceMotion && lastStamp !== null && stampNow !== lastStamp && (stampNow === "paid" || stampNow === "overdue");
+  $("#paper").innerHTML = invoiceHTML({ enter: enter && !reduceMotion, newIds, stampIn });
+  lastStamp = stampNow;
+  const amtEl = $("#paper .grand .amt"); const target = calc(D).total;
+  if (amtEl && lastTotal !== null && lastTotal !== target && !reduceMotion) countUp(amtEl, lastTotal, target, D.currency);
+  else if (amtEl && enter && !reduceMotion) countUp(amtEl, 0, target, D.currency, 900);
+  lastTotal = target;
+  fitPaper();
+}
+let rafId;
+function countUp(el, from, to, c, dur = 550) {
+  cancelAnimationFrame(rafId); const t0 = performance.now();
+  const step = (t) => { const p = Math.min(1, (t - t0) / dur); const e = 1 - Math.pow(1 - p, 3); el.textContent = money(from + (to - from) * e, c); if (p < 1) rafId = requestAnimationFrame(step); };
+  rafId = requestAnimationFrame(step);
+}
+function fitPaper() {
+  const inner = $("#stage-inner"); const wrap = $("#paper-wrap"); const scaleEl = $("#paper-scale"); const paper = $("#paper");
+  if (!inner.offsetParent && getComputedStyle($(".stage")).display === "none") return;
+  const cs = getComputedStyle(inner); const avail = inner.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const s = Math.min(1, avail / 794);
+  scaleEl.style.transform = `scale(${s})`;
+  wrap.style.width = 794 * s + "px"; wrap.style.height = paper.offsetHeight * s + "px";
+}
+new ResizeObserver(() => fitPaper()).observe($("#stage-inner"));
+
+/* ---------- editor binding ---------- */
+function fillInputs() {
+  $$("[data-bind]").forEach((el) => {
+    const v = getPath(S, el.dataset.bind);
+    if (el.type === "checkbox") el.checked = !!v; else el.value = v ?? "";
+  });
+  syncChrome();
+}
+function syncChrome() {
+  const D = S.doc, P = S.profile;
+  $$("[data-doctype]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.doctype === D.type)));
+  $$("[data-template]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.template === P.design.template)));
+  $$(".swatch").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.color.toLowerCase() === P.design.brand.toLowerCase())));
+  $("#brand-custom").value = P.design.brand;
+  $("#due-field").hidden = D.type === "receipt";
+  $("#due-label").textContent = D.type === "quotation" ? "Valid until" : "Due date";
+  $("#status-field").hidden = D.type !== "invoice";
+  $("#paid-field").hidden = D.type !== "invoice";
+  $("#client-summary").textContent = D.type === "receipt" ? "Received from" : D.type === "quotation" ? "Prepared for" : "Client";
+  $("#sign-text-field").hidden = P.business.signMode !== "type";
+  $("#sign-upload").hidden = P.business.signMode !== "image";
+  $("#logo-thumb").style.backgroundImage = P.business.logo ? `url(${P.business.logo})` : "";
+  $("#sign-thumb").style.backgroundImage = P.business.signImg ? `url(${P.business.signImg})` : "";
+  $("#sample-note").hidden = !P.isSample;
+  $("#items-count").textContent = D.items.length ? `${D.items.length} item${D.items.length > 1 ? "s" : ""}` : "";
+  const chip = $("#lic-chip");
+  chip.classList.toggle("demo", isDemo());
+  $("#lic-chip-text").textContent = isDemo() ? "Demo mode · watermark on" : `Licensed${licence.email ? " to " + licence.email : ""}`;
+}
+document.addEventListener("input", (e) => {
+  const el = e.target; if (!el.dataset || !el.dataset.bind) return;
+  let v = el.type === "checkbox" ? el.checked : el.value;
+  if (el.hasAttribute("data-num")) v = el.value;
+  setPath(S, el.dataset.bind, v);
+  if (el.dataset.bind.startsWith("profile.business")) S.profile.isSample = false;
+  persist(); syncChrome(); render();
+});
+document.addEventListener("change", (e) => { if (e.target.matches("select[data-bind], input[type=checkbox][data-bind]")) { syncChrome(); } });
+
+/* doc type */
+$$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
+  const t = b.dataset.doctype; if (t === S.doc.type) return;
+  S.doc.type = t; S.doc.number = `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`;
+  if (t === "quotation" && !S.doc.dueDate) S.doc.dueDate = iso(addDays(14));
+  persist(); fillInputs(); swapAnim(); render({ enter: true });
+}));
+/* design */
+$$("[data-template]").forEach((b) => b.addEventListener("click", () => { S.profile.design.template = b.dataset.template; persist(); syncChrome(); swapAnim(); render({ enter: true }); }));
+$$(".swatch").forEach((b) => b.addEventListener("click", () => { S.profile.design.brand = b.dataset.color; persist(); syncChrome(); render(); }));
+$("#brand-custom").addEventListener("input", (e) => { S.profile.design.brand = e.target.value; persist(); syncChrome(); render(); });
+function swapAnim() { const w = $("#paper-wrap"); w.classList.remove("swap"); void w.offsetWidth; if (!reduceMotion) w.classList.add("swap"); }
+
+/* images (logo, signature) — downscaled so they stay light */
+function readImage(file, max = 480) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)); const cv = document.createElement("canvas"); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s); cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height); resolve(cv.toDataURL("image/png")); }; img.onerror = reject; img.src = r.result; };
+    r.onerror = reject; r.readAsDataURL(file);
+  });
+}
+$("#logo-file").addEventListener("change", async (e) => { const f = e.target.files[0]; if (!f) return; S.profile.business.logo = await readImage(f); S.profile.isSample = false; persist(); syncChrome(); render(); e.target.value = ""; });
+$("#logo-clear").addEventListener("click", () => { S.profile.business.logo = ""; persist(); syncChrome(); render(); });
+$("#sign-file").addEventListener("change", async (e) => { const f = e.target.files[0]; if (!f) return; S.profile.business.signImg = await readImage(f, 600); persist(); syncChrome(); render(); e.target.value = ""; });
+$("#clear-sample").addEventListener("click", () => {
+  S.profile = { isSample: false, business: { name: "", tagline: "", address: "", phone: "", email: "", rc: "", tin: "", logo: "", signMode: "type", signText: "", signImg: "", signName: "", signTitle: "" }, bank: { bankName: "", accountName: "", accountNumber: "", payLink: "" }, design: S.profile.design, counters: { invoice: 0, receipt: 0, quotation: 0 } };
+  newDoc(true); $("#b-name").focus(); toast("Add your business details. They'll be saved for next time.");
+});
+
+/* items editor */
+function renderItemsEditor() {
+  const c = S.doc.currency;
+  $("#items-ed").innerHTML = S.doc.items.map((it, i) => `
+    <div class="item-card" data-id="${it.id}">
+      <div class="item-top"><b>ITEM ${String(i + 1).padStart(2, "0")}</b><button type="button" class="btn sm ghost danger" data-remove="${it.id}">Remove</button></div>
+      <label class="field"><span>Description</span><input id="it-d-${it.id}" data-item="desc" value="${esc(it.desc)}" placeholder="What you sold or did"></label>
+      <label class="field"><span>Detail (optional)</span><input id="it-n-${it.id}" data-item="note" value="${esc(it.note)}" placeholder="Size, colour, specification…"></label>
+      <div class="row3">
+        <label class="field"><span>Qty</span><input id="it-q-${it.id}" data-item="qty" value="${esc(it.qty)}" inputmode="decimal"></label>
+        <label class="field"><span>Unit price</span><input id="it-p-${it.id}" data-item="price" value="${esc(it.price)}" inputmode="decimal"></label>
+        <span class="line-total" data-line>${money(num(it.qty) * num(it.price), c)}</span>
+      </div>
+    </div>`).join("");
+}
+$("#items-ed").addEventListener("input", (e) => {
+  const card = e.target.closest(".item-card"); const key = e.target.dataset.item; if (!card || !key) return;
+  const it = S.doc.items.find((x) => x.id === card.dataset.id); it[key] = e.target.value;
+  $("[data-line]", card).textContent = money(num(it.qty) * num(it.price), S.doc.currency);
+  persist(); render();
+});
+$("#items-ed").addEventListener("click", (e) => {
+  const id = e.target.dataset.remove; if (!id) return;
+  S.doc.items = S.doc.items.filter((x) => x.id !== id); persist(); renderItemsEditor(); syncChrome(); render();
+});
+$("#add-item").addEventListener("click", () => {
+  const it = blankItem(); S.doc.items.push(it); persist(); renderItemsEditor(); syncChrome(); render({ newIds: new Set([it.id]) });
+  $(`#it-d-${it.id}`)?.focus();
+});
+$("#d-cur").addEventListener("change", () => renderItemsEditor());
+
+/* ---------- documents: new / save / history ---------- */
+function newDoc(silent) {
+  const t = S.doc.type || "invoice";
+  S.doc = { id: uid(), type: t, number: `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: iso(addDays(t === "quotation" ? 14 : 7)), status: "unpaid", currency: S.doc.currency || "NGN",
+    client: { name: "", company: "", address: "", phone: "", email: "" }, items: [blankItem()], discountType: "amount", discount: 0, delivery: 0, vatOn: false, vatRate: 7.5, amountPaid: 0, notes: "" };
+  lastTotal = null; persist(); fillInputs(); renderItemsEditor(); swapAnim(); render({ enter: true });
+  if (!silent) toast(`New ${LABEL[t].toLowerCase()} ${S.doc.number}`);
+}
+function saveDoc() {
+  const D = S.doc; const n = parseInt(String(D.number).replace(/\D/g, ""), 10);
+  if (Number.isFinite(n)) S.profile.counters[D.type] = Math.max(S.profile.counters[D.type] || 0, n);
+  const entry = { id: D.id, savedAt: Date.now(), doc: structuredClone(D) };
+  history = [entry, ...history.filter((h) => h.id !== D.id)].slice(0, 60);
+  LS.set("aurum.history", history); persist(); renderHistory(); toast(`${LABEL[D.type]} ${D.number} saved`);
+}
+function renderHistory() {
+  $("#saved-count").textContent = history.length ? String(history.length) : "";
+  $("#saved-list").innerHTML = history.length ? history.map((h) => `<div class="saved-item">
+      <div><b>${esc(h.doc.number)} · ${esc(h.doc.client.name || "No client")}</b><small>${LABEL[h.doc.type]} · ${money(calc(h.doc).total, h.doc.currency)} · ${fmtDate(h.doc.issueDate)}</small></div>
+      <button class="btn sm" type="button" data-open="${h.id}">Open</button><button class="btn sm ghost danger" type="button" data-del="${h.id}" aria-label="Delete">✕</button></div>`).join("")
+    : `<p class="hint">Documents you save appear here, so you can reopen them or turn a quotation into an invoice.</p>`;
+}
+$("#saved-list").addEventListener("click", (e) => {
+  const o = e.target.dataset.open, d = e.target.dataset.del;
+  if (o) { const h = history.find((x) => x.id === o); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); fillInputs(); renderItemsEditor(); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); setView("preview"); }
+  if (d) { history = history.filter((x) => x.id !== d); LS.set("aurum.history", history); renderHistory(); }
+});
+
+/* ---------- export ---------- */
+const fileBase = () => `${S.doc.number}-${(S.doc.client.name || "client").replace(/[^a-z0-9]+/gi, "-")}`.replace(/-+$/, "");
+async function ready() { try { await document.fonts.ready; } catch {} }
+async function exportPDF() {
+  await ready();
+  const root = $("#print-root"); root.innerHTML = invoiceHTML({ sid: "p" });
+  document.body.classList.add("printing");
+  const old = document.title; document.title = fileBase();
+  const done = () => { document.body.classList.remove("printing"); root.innerHTML = ""; document.title = old; window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  setTimeout(() => { window.print(); setTimeout(done, 1500); }, 80);
+  toast("Choose “Save as PDF” in the print window");
+}
+async function renderCanvas() {
+  if (typeof html2canvas !== "function") throw new Error("lib");
+  await ready();
+  const root = $("#export-root"); root.innerHTML = invoiceHTML({ static: true, sid: "x" });
+  const el = root.firstElementChild;
+  try { return await html2canvas(el, { scale: 2, backgroundColor: null, useCORS: true, logging: false, windowWidth: 1200 }); }
+  finally { root.innerHTML = ""; }
+}
+function downloadBlob(blob, name) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+async function exportImage() {
+  toast("Preparing image…");
+  try {
+    const cv = await renderCanvas();
+    const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+    const file = new File([blob], fileBase() + ".png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: `${LABEL[S.doc.type]} ${S.doc.number}` }); return; } catch (err) { if (err?.name === "AbortError") return; }
+    }
+    downloadBlob(blob, file.name); toast("Image saved. Attach it in WhatsApp.");
+  } catch (err) { console.error("Image export failed", err); toast("Couldn’t create the image. Check your internet and try again."); }
+}
+function waNumber(p) { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("0") && d.length === 11) d = "234" + d.slice(1); return d; }
+function sendWhatsApp() {
+  const D = S.doc, P = S.profile, t = calc(D), c = D.currency; const name = D.client.name ? D.client.name.split(" ").slice(0, 2).join(" ") : "there";
+  const lines = [`Hello ${name},`, ""];
+  if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}. Your receipt ${D.number} from ${P.business.name} is attached.`);
+  else if (D.type === "quotation") lines.push(`Please find your quotation ${D.number} from ${P.business.name}.`, `Quoted total: ${money(t.total, c)}`, `Valid until: ${fmtDate(D.dueDate)}`);
+  else {
+    lines.push(`Please find your invoice ${D.number} from ${P.business.name}.`, `Total: ${money(t.total, c)}`);
+    if (t.paid > 0) lines.push(`Paid so far: ${money(t.paid, c)}`, `Balance due: ${money(t.balance, c)}`);
+    lines.push(`Due date: ${fmtDate(D.dueDate)}`);
+    if (P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`);
+    if (P.bank.payLink) lines.push(`Or pay online: ${P.bank.payLink}`);
+  }
+  lines.push("", "Thank you for your patronage.");
+  const a = document.createElement("a"); a.href = `https://wa.me/${waNumber(D.client.phone)}?text=${encodeURIComponent(lines.join("\n"))}`; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
+  toast("Tip: tap “Save image” and attach it to this chat");
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act]"); if (!b) return; closeSheet();
+  ({ new: () => newDoc(), save: saveDoc, pdf: exportPDF, image: exportImage, whatsapp: sendWhatsApp })[b.dataset.act]?.();
+});
+
+/* ---------- mobile view switching ---------- */
+function setView(v) {
+  if (matchMedia("(min-width: 981px)").matches) return;
+  document.body.dataset.view = v; $$("[data-view-btn]").forEach((b) => b.classList.toggle("on", b.dataset.viewBtn === v));
+  window.scrollTo({ top: 0 });
+  if (v === "preview") { requestAnimationFrame(() => { fitPaper(); render({ enter: true }); }); }
+}
+$$("[data-view-btn]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.viewBtn)));
+function closeSheet() { $("#sheet").hidden = true; $("#scrim").hidden = true; }
+$("#more-btn").addEventListener("click", () => { $("#sheet").hidden = false; $("#scrim").hidden = false; });
+$("#scrim").addEventListener("click", closeSheet);
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2600); }
+
+/* ---------- start ---------- */
+let started = false;
+function startApp() {
+  if (started) { syncChrome(); render(); return; }
+  started = true; $("#gate").hidden = true;
+  fillInputs(); renderItemsEditor(); renderHistory();
+  ready().then(() => render({ enter: true }));
+  render();
+}
+bootLicence();
+})();
+</script>
+</body>
+</html>
