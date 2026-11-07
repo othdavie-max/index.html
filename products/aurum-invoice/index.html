@@ -777,6 +777,25 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .rv[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); background: rgba(217,190,132,.07); }
 @media (max-width: 440px) { .reveal-grid { grid-template-columns: 1fr 1fr; } }
 
+
+/* ---------- Document customisation ---------- */
+.wmk { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; pointer-events: none; color: var(--brand); opacity: var(--wo, .06); overflow: hidden; }
+.t-noir .wmk { color: #E9D39E; }
+.wmk svg { width: 60%; }
+.wmk.text span { font-family: var(--f-display); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; transform: rotate(-32deg); }
+.inv.paper-white:not(.t-noir) { --paper: #FFFFFF; }
+.inv .doc-type.long { font-size: 44px; }
+.inv.no-logo .logo-box, .inv.no-tagline .tagline, .inv.no-seal .seal, .inv.no-sign .sign-block, .inv.no-notes .notes:not(.terms), .inv.no-qr .verify { display: none; }
+.inv.no-sn .items .n, .inv.no-sn .items th:first-child { display: none; }
+.inv.no-words .words label, .inv.no-words .words p { display: none; }
+.inv.no-bank .bank { visibility: hidden; }
+.inv.no-footer .inv-foot .ty { visibility: hidden; }
+@media (min-width: 981px) { .scrim.clear { background: rgba(0,0,0,.12); backdrop-filter: none; } }
+.drawer.left { left: 0; right: auto; border-left: 0; border-right: 1px solid var(--line-2); animation: drawerInL .4s var(--ease); box-shadow: 40px 0 80px rgba(0,0,0,.6); }
+@keyframes drawerInL { from { transform: translateX(-100%); } }
+.cz-prev { width: 220px; justify-self: center; border-radius: 4px; overflow: hidden; box-shadow: 0 20px 40px -14px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.06); }
+.drawer .toggle { padding: 2px 0; }
+
 /* ---------- Toast ---------- */
 .toast { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; z-index: 200; background: #F3ECDD; color: #0B0A09; padding: 12px 20px; border-radius: 99px; font-weight: 600; font-size: 13.5px; transition: .35s var(--ease); pointer-events: none; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -932,6 +951,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
     <!-- IV. SEND -->
     <section class="step" data-step="4" hidden>
       <div class="step-head"><span class="eyebrow">Chapter IV</span><h2>Send it beautifully</h2><p id="send-sub">Your invoice is ready.</p></div>
+      <button class="card-line" type="button" id="send-customise" style="text-align:left;color:inherit"><div><b>Customise the look</b><small>Watermark, title, what shows, terms</small></div><span class="btn sm">Customise</span></button>
       <div class="field"><span class="label">How it opens for your client</span><div class="reveal-grid" id="reveal-grid"></div></div>
       <div class="send-hero">
         <span class="eyebrow">The Aurum private link</span>
@@ -962,7 +982,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
   </aside>
 
   <section class="stage" aria-label="Live preview">
-    <div class="stage-head"><span class="eyebrow">Live preview</span><button class="btn sm stage-close" type="button" id="close-preview">Close</button></div>
+    <div class="stage-head"><span class="eyebrow">Live preview</span><span style="display:flex;gap:8px"><button class="btn sm" type="button" id="open-customise">Customise</button><button class="btn sm stage-close" type="button" id="close-preview">Close</button></span></div>
     <div class="stage-inner" id="stage-inner">
       <div class="paper-wrap" id="paper-wrap"><div class="paper-scale" id="paper-scale"><div class="paper-shadow" id="paper"></div></div></div>
     </div>
@@ -1150,7 +1170,7 @@ function sealSVG(name, color) {
 
 /* ---------- the invoice document ---------- */
 function invoiceHTML(P, D, opts = {}) {
-  const B = P.business, K = P.bank, G = P.design; const t = calc(D); const c = D.currency; const type = D.type;
+  const B = P.business, K = P.bank, G = P.design; const t = calc(D); const c = D.currency; const type = D.type; const X = docStyle(P, type);
   const lineCol = G.template === "atelier" ? G.brand : "#C9A86A";
   const headLogo = B.logo ? `<img src="${B.logo}" alt="">`
     : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${lineCol}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${lineCol}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${G.template === "atelier" ? G.brand : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
@@ -1193,21 +1213,42 @@ function invoiceHTML(P, D, opts = {}) {
   const clientLines = [D.client.company, D.client.address, D.client.phone, D.client.email].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const thanks = type === "quotation" ? "We look forward to working with you" : type === "receipt" ? "Thank you for your payment" : "Thank you for your patronage";
   const verify = opts.qr ? `<div class="verify"><img src="${opts.qr}" alt=""><span>Scan to view online and confirm this ${LABEL[type].toLowerCase()} is genuine</span></div>` : "";
-  return `<article class="inv t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)}">
+  return `<article class="inv t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}${X.paper === "white" ? " paper-white" : ""} ${Object.entries(X.show).filter(([, v]) => !v).map(([k]) => "no-" + k).join(" ")}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)}">
     <header class="inv-head px"><div class="brand"><div class="logo-box">${headLogo}</div><div style="min-width:0"><h1 class="biz-name foil">${esc(B.name) || "Your Business"}</h1>${B.tagline ? `<p class="tagline">${esc(B.tagline)}</p>` : ""}</div></div>
-      <div class="doc-title"><span class="doc-type foil">${LABEL[type]}</span><span class="doc-no">No. ${esc(D.number)}</span></div></header>
+      <div class="doc-title"><span class="doc-type foil${(X.title || "").length > 10 ? " long" : ""}">${esc(X.title || LABEL[type])}</span><span class="doc-no">No. ${esc(D.number)}</span></div></header>
     <section class="inv-meta px"><div class="party"><label>${partyLabel}</label><div class="who">${esc(D.client.name) || "Client name"}</div>${clientLines}</div>
       <div class="party"><label>From</label>${fromLines || "<p>Your address and contacts</p>"}</div><dl class="dates">${dateRows}</dl></section>
     <div class="px"><table class="items"><thead><tr><th>S/N</th><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table></div>
     <section class="sum px"><div class="words"><label>Amount in words</label><p>${esc(amountInWords(t.total, c))}</p>${stampHTML}</div><dl class="totals">${totals}</dl></section>
     <section class="foot px">${bank}${sign}</section>
     ${D.notes ? `<section class="notes px"><label>Note</label><p>${esc(D.notes)}</p></section>` : ""}
+    ${X.terms ? `<section class="notes terms px"><label>Terms &amp; conditions</label><p>${esc(X.terms)}</p></section>` : ""}
     <div class="inv-spacer"></div>
-    <footer class="inv-foot px"><span class="ty">${thanks}</span><span class="contact">${esc([B.phone, B.email].filter(Boolean).join("  ·  "))}</span>${verify}</footer>
+    <footer class="inv-foot px"><span class="ty">${esc(X.footer || thanks)}</span><span class="contact">${esc([B.phone, B.email].filter(Boolean).join("  ·  "))}</span>${verify}</footer>
+    ${watermarkHTML(B, X)}
     ${opts.demo ? `<div class="ribbon">DEMO</div>` : ""}
   </article>`;
 }
 
+
+/* ---------- per-document customisation (invoice / receipt / quotation each have their own) ---------- */
+const TITLES = { invoice: ["Invoice", "Proforma Invoice", "Sales Invoice", "Bill"], receipt: ["Receipt", "Payment Receipt", "Sales Receipt", "Acknowledgement"], quotation: ["Quotation", "Estimate", "Price Quote", "Proposal"] };
+const SHOW_LABELS = [["logo", "Logo"], ["tagline", "Tagline"], ["sn", "Item numbers (S/N)"], ["words", "Amount in words"], ["bank", "Bank / payment box"], ["seal", "Company seal"], ["sign", "Signature"], ["notes", "Note to client"], ["footer", "Thank-you line"], ["qr", "QR verification code"]];
+const TERMS = ["Goods once sold are not returnable.", "Prices are subject to change without notice.", "A 50% deposit is required to begin work.", "Delivery is within 3–5 working days."];
+function docStyle(P, type) {
+  const d = { title: LABEL[type], watermark: "off", wmText: type === "receipt" ? "PAID" : "ORIGINAL", wmStrength: "subtle", footer: "", terms: "", paper: "ivory",
+    show: { logo: true, tagline: true, sn: true, words: true, bank: true, seal: true, sign: true, notes: true, footer: true, qr: true } };
+  const s = (P.docStyle && P.docStyle[type]) || {};
+  return { ...d, ...s, show: { ...d.show, ...(s.show || {}) } };
+}
+function watermarkHTML(B, X) {
+  if (!X.watermark || X.watermark === "off") return "";
+  const o = { subtle: .06, medium: .1, strong: .16 }[X.wmStrength] || .06;
+  if (X.watermark === "monogram") return `<div class="wmk" style="--wo:${o}"><svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="100" cy="100" r="86" fill="none" stroke="currentColor" stroke-width=".8"/><text x="100" y="129" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-style="italic" font-weight="600" font-size="86" fill="currentColor">${esc(initials(B.name))}</text></svg></div>`;
+  const text = X.watermark === "name" ? (B.name || "Your Business") : (X.wmText || "ORIGINAL");
+  const size = Math.max(40, Math.min(120, Math.round(900 / Math.max(4, text.length))));
+  return `<div class="wmk text" style="--wo:${o}"><span style="font-size:${size}px">${esc(text)}</span></div>`;
+}
 /* ---------- export ---------- */
 const fileBase = (D) => `${D.number}-${(D.client.name || "client").replace(/[^a-z0-9]+/gi, "-")}`.replace(/-+$/, "");
 async function fontsReady() { try { await document.fonts.ready; } catch {} }
@@ -2067,7 +2108,7 @@ function rememberDoc() {
   if (D.client.name.trim()) { const k = D.client.name.trim().toLowerCase(); S.clients = [{ ...D.client, last: Date.now() }, ...S.clients.filter((c) => c.name.toLowerCase() !== k)].slice(0, 200); }
   D.items.filter((it) => it.desc.trim() && num(it.price) > 0).forEach((it) => { const k = it.desc.trim().toLowerCase(); const ex = S.catalog.find((x) => x.desc.toLowerCase() === k); if (ex) { ex.price = it.price; ex.note = it.note || ex.note; ex.uses++; } else S.catalog.push({ desc: it.desc.trim(), price: it.price, note: it.note || "", uses: 1 }); });
   history = [{ id: D.id, savedAt: Date.now(), doc: structuredClone(D) }, ...history.filter((h) => h.id !== D.id)].slice(0, 100);
-  LS.set("aurum.history", history); persist();
+  LS.set("aurum.history", history); persist(); renderHistory();
 }
 function newDoc() {
   const t = S.doc.type || "invoice"; S.doc = newDocFor(S.profile, t); lastTotal = null; persist();
@@ -2079,14 +2120,19 @@ function renderHistory() {
     const seen = a?.view_count ? `<span class="act">Opened ${a.view_count}× · ${new Date(a.last_viewed_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</span>` : "";
     const paid = a?.paid_claimed_at ? `<span class="act paid">${a.paid_method === "paystack" ? "Paid via Paystack" : a.paid_method === "accept" ? "Quote accepted" : "Client says paid"}</span>` : "";
     return `<div class="saved-item"><div><b>${esc(h.doc.number)} · ${esc(h.doc.client.name || "No client")}</b><small>${LABEL[h.doc.type]} · ${money(calc(h.doc).total, h.doc.currency)} · ${fmtDate(h.doc.issueDate)}</small>${seen || paid ? `<div>${seen}${paid}</div>` : ""}</div>
-      <button class="btn sm" type="button" data-open="${h.id}">Open</button></div>`;
+      <button class="btn sm" type="button" data-open="${h.id}">Open</button><button class="btn sm" type="button" data-copy="${h.id}">${h.doc.type === "quotation" ? "Make invoice" : "Copy"}</button></div>`;
   }).join("") : `<p class="hint">Everything you send is kept here. With private links you'll see when your client opens them.</p>`;
 }
-$("#saved-list").addEventListener("click", (e) => { const o = e.target.closest("[data-open]"); if (!o) return; const h = history.find((x) => x.id === o.dataset.open); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); });
+$("#saved-list").addEventListener("click", (e) => {
+  const cp = e.target.closest("[data-copy]");
+  if (cp) { const h = history.find((x) => x.id === cp.dataset.copy); if (!h) return; const t = h.doc.type === "quotation" ? "invoice" : h.doc.type; const fresh = newDocFor(S.profile, t);
+    S.doc = { ...structuredClone(h.doc), id: fresh.id, type: t, number: fresh.number, issueDate: fresh.issueDate, dueDate: "", payBy: "", status: t === "receipt" ? "paid" : "unpaid", amountPaid: "", link: "", shareId: "", items: h.doc.items.map((it) => ({ ...it, id: uid() })) };
+    lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(h.doc.type === "quotation" ? `Invoice ${S.doc.number} created from ${h.doc.number}` : `Copied into ${S.doc.number}. Check the details and send.`); return; }
+  const o = e.target.closest("[data-open]"); if (!o) return; const h = history.find((x) => x.id === o.dataset.open); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); });
 async function fetchActivity() { if (!configured() || isDemo()) return; try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {} }
 
 /* send */
-const payload = () => ({ v: 2, demo: isDemo(), brandless: isPrestige(), profile: { business: S.profile.business, bank: S.profile.bank, design: S.profile.design }, doc: { ...S.doc, link: "", shareId: "", items: S.doc.items.filter((it) => it.desc || num(it.price)) } });
+const payload = () => ({ v: 2, demo: isDemo(), brandless: isPrestige(), profile: { business: S.profile.business, bank: S.profile.bank, design: S.profile.design, docStyle: S.profile.docStyle || {} }, doc: { ...S.doc, link: "", shareId: "", items: S.doc.items.filter((it) => it.desc || num(it.price)) } });
 $("#make-link").addEventListener("click", async () => {
   const btn = $("#make-link"); btn.disabled = true; btn.textContent = "Sealing your envelope…"; const base = location.href.split(/[?#]/)[0];
   try {
@@ -2145,6 +2191,7 @@ function openHouse(focus) {
         <label class="field"><span>Paystack public key <em>(optional)</em></span><input data-bind="profile.bank.paystackKey" value="${esc(K.paystackKey)}" placeholder="pk_live_…" autocomplete="off" spellcheck="false"></label>
         <p class="hint">With Paystack, clients pay by card, transfer or USSD right inside your envelope. Find the key in Paystack → Settings → API Keys. Use the <b>public</b> key only, never the secret key.</p>
       </section>
+      <section><h3 class="sub">Documents</h3><button class="btn block" type="button" data-h="customise">Customise invoice, receipt &amp; quotation</button></section>
       <section><h3 class="sub">Look</h3>
         <div class="tpl-grid" style="--tb:${esc(G.brand)}">${[["royal", "Royal"], ["atelier", "Atelier"], ["noir", "Noir"]].map(([k, n]) => `<button type="button" class="tpl" data-template="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
         <div class="swatches">${SWATCHES.map(([h, n]) => `<button type="button" class="swatch" data-color="${h}" style="background:${h}" aria-label="${n}" aria-pressed="${G.brand.toLowerCase() === h.toLowerCase()}"></button>`).join("")}<span class="swatch-custom"><input type="color" class="brand-custom" value="${esc(G.brand)}" aria-label="Any colour"></span></div>
@@ -2173,13 +2220,63 @@ function openHouse(focus) {
     if (sw) { G.brand = sw.dataset.color; persist(); openHouse(); render(); }
     if (sg) { B.signMode = sg.dataset.sign; persist(); openHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
+    if (h?.dataset.h === "customise") return openCustomise();
     if (h?.dataset.h === "nologo") { B.logo = ""; persist(); openHouse(); render(); }
   };
   layer.oninput = (e) => { if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); } };
   if (focus === "bank") setTimeout(() => $("#h-bank")?.scrollIntoView({ block: "start" }), 50);
 }
-function refreshDrawerBits() { const lt = $("#h-logo"); if (lt) { const L = S.profile.business.logo; lt.classList.toggle("has", !!L); lt.style.backgroundImage = L ? `url(${L})` : ""; } }
+function openCustomise(type = S.doc.type) {
+  const P = S.profile; P.docStyle ??= {}; P.docStyle[type] ??= {};
+  const X = docStyle(P, type); const base = `profile.docStyle.${type}`; const G = P.design;
+  const chips = (key, opts, cur) => `<div class="chips">${opts.map(([v, l]) => `<button type="button" class="chip" data-cz="${key}" data-v="${esc(v)}" aria-pressed="${String(cur) === String(v)}">${esc(l)}</button>`).join("")}</div>`;
+  $("#layer").innerHTML = `<div class="scrim clear" data-close></div><aside class="drawer left" role="dialog" aria-label="Customise">
+    <div class="drawer-head"><h2>Customise</h2><button class="btn sm primary" type="button" data-close>Done</button></div>
+    <div class="drawer-body">
+      <div class="seg" role="group" aria-label="Document">${["invoice", "receipt", "quotation"].map((t) => `<button type="button" data-cz-type="${t}" aria-pressed="${t === type}">${LABEL[t]}</button>`).join("")}</div>
+      <p class="hint" style="margin-top:-14px">Changes apply to every ${LABEL[type].toLowerCase()} you send.</p>
+      <div class="cz-prev" id="cz-prev"></div>
+      <section><h3 class="sub">Title on the document</h3>
+        ${chips("title", TITLES[type].map((t) => [t, t]), X.title)}
+        <label class="field"><span>Or write your own</span><input data-bind="${base}.title" value="${esc(X.title)}" maxlength="22"></label></section>
+      <section><h3 class="sub">Watermark</h3>
+        ${chips("watermark", [["off", "Off"], ["monogram", "My monogram"], ["name", "Business name"], ["text", "Text"]], X.watermark)}
+        ${X.watermark === "text" ? `${chips("wmText", ["PAID", "ORIGINAL", "COPY", "CONFIDENTIAL", "DRAFT"].map((t) => [t, t]), X.wmText)}<label class="field"><span>Or your own words</span><input data-bind="${base}.wmText" value="${esc(X.wmText)}" maxlength="18"></label>` : ""}
+        ${X.watermark !== "off" ? `<div class="field"><span class="label">Strength</span>${chips("wmStrength", [["subtle", "Subtle"], ["medium", "Medium"], ["strong", "Strong"]], X.wmStrength)}</div>` : ""}</section>
+      <section><h3 class="sub">Show on the document</h3>
+        ${SHOW_LABELS.map(([k, l]) => `<label class="toggle"><span>${l}</span><span class="switch"><input type="checkbox" data-bind="${base}.show.${k}" ${X.show[k] ? "checked" : ""}><i></i></span></label>`).join("")}</section>
+      <section><h3 class="sub">Footer &amp; terms</h3>
+        <label class="field"><span>Footer line</span><input data-bind="${base}.footer" value="${esc(X.footer)}" placeholder="${type === "quotation" ? "We look forward to working with you" : type === "receipt" ? "Thank you for your payment" : "Thank you for your patronage"}" maxlength="60"></label>
+        <div class="field"><span class="label">Terms &amp; conditions <em>(tap to add)</em></span>${`<div class="chips">${TERMS.map((t, i) => `<button type="button" class="chip" data-term="${i}" aria-pressed="${(X.terms || "").includes(t)}">${esc(t)}</button>`).join("")}</div>`}
+        <textarea class="input" data-bind="${base}.terms" style="height:auto;min-height:90px;padding:14px 16px" placeholder="Optional">${esc(X.terms)}</textarea></div></section>
+      <section><h3 class="sub">Design</h3>
+        <div class="tpl-grid" style="--tb:${esc(G.brand)}">${[["royal", "Royal"], ["atelier", "Atelier"], ["noir", "Noir"]].map(([k, n]) => `<button type="button" class="tpl" data-cz-tpl="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
+        <div class="swatches">${SWATCHES.map(([h, n]) => `<button type="button" class="swatch" data-cz-color="${h}" style="background:${h}" aria-label="${n}" aria-pressed="${G.brand.toLowerCase() === h.toLowerCase()}"></button>`).join("")}<span class="swatch-custom"><input type="color" class="brand-custom" value="${esc(G.brand)}" aria-label="Any colour"></span></div>
+        <div class="field"><span class="label">Paper</span>${chips("paper", [["ivory", "Ivory"], ["white", "Bright white"]], X.paper)}</div></section>
+    </div></aside>`;
+  const layer = $("#layer"); refreshCustomPreview(type);
+  layer.onclick = (e) => {
+    if (e.target.closest("[data-close]")) { closeLayer(); syncChrome(); render(); return; }
+    const st = P.docStyle[type]; const b = e.target.closest("[data-cz],[data-cz-type],[data-term],[data-cz-tpl],[data-cz-color]"); if (!b) return;
+    if (b.dataset.czType) return openCustomise(b.dataset.czType);
+    if (b.dataset.cz) st[b.dataset.cz] = b.dataset.v;
+    if (b.dataset.term !== undefined) { const t = TERMS[Number(b.dataset.term)]; const cur = docStyle(P, type).terms || ""; st.terms = cur.includes(t) ? cur.replace(t, "").replace(/\s{2,}/g, " ").trim() : (cur ? cur.trim() + " " : "") + t; }
+    if (b.dataset.czTpl) G.template = b.dataset.czTpl;
+    if (b.dataset.czColor) G.brand = b.dataset.czColor;
+    persist(); render(); const sc = $(".drawer-body", layer).scrollTop; openCustomise(type); $(".drawer-body", $("#layer")).scrollTop = sc;
+  };
+  layer.oninput = (e) => { if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); refreshCustomPreview(type); } };
+}
+function refreshCustomPreview(type) {
+  const box = $("#cz-prev"); if (!box) return;
+  const tp = type || ($("[data-cz-type][aria-pressed=true]")?.dataset.czType) || S.doc.type;
+  const D = { ...S.doc, type: tp, status: tp === "receipt" ? "paid" : S.doc.status };
+  fitInto(box, S.profile, D, studioOpts());
+}
+function refreshDrawerBits() { refreshCustomPreview(); const lt = $("#h-logo"); if (lt) { const L = S.profile.business.logo; lt.classList.toggle("has", !!L); lt.style.backgroundImage = L ? `url(${L})` : ""; } }
 $("#open-house").addEventListener("click", () => openHouse());
+$("#open-customise").addEventListener("click", () => openCustomise());
+$("#send-customise").addEventListener("click", () => openCustomise());
 $("#home-mark").addEventListener("click", (e) => { e.preventDefault(); showStep(1); });
 
 /* mobile preview */

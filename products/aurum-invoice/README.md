@@ -22,6 +22,18 @@ It ends with a ceremony where their own wax seal is pressed.
 
 **"My house" settings:** identity, bank (searchable list of Nigerian banks and fintechs), Paystack public key, design (Royal, Atelier or Noir in any colour), signature and plan.
 
+## Customise (separately for invoices, receipts and quotations)
+Open it from **Customise** above the preview, the Send chapter, or My house → Documents. A small live preview sits at the top of the panel.
+- **Title:** e.g. Invoice, Proforma Invoice, Sales Invoice, Bill; Receipt, Payment Receipt; Quotation, Estimate, Proposal; or their own.
+- **Watermark:**
+  - Off, their monogram, their business name, or text (PAID, ORIGINAL, COPY, CONFIDENTIAL, DRAFT or their own words).
+  - Strength: subtle, medium or strong.
+- **Show or hide:** logo, tagline, item numbers, amount in words, bank/payment box, seal, signature, note, thank-you line, QR code.
+- **Footer line and terms & conditions,** with ready-made terms to tap.
+- **Design, colour and paper:** ivory or bright white.
+
+**Faster filling:** every saved document has **Copy** (start a new one with the same client and items) and quotations have **Make invoice** (convert in one tap).
+
 ## Opening styles (chosen per invoice in the Send chapter)
 - **Wax-seal envelope:** the seal cracks along the flap edge. The top half lifts away with the flap, the bottom half stays on the envelope, and the letter slides out.
 - **Gift box:** a satin bow unties, the ribbons slip off, the lid lifts, and the invoice rises out glowing.
