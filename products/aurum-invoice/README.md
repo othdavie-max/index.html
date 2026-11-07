@@ -16,12 +16,30 @@ This folder is a separate product. It isn't part of the Baseline Educational Ser
 - **Totals in ₦ (or $ / £):** discount (amount or %), delivery fee, VAT (7.5% by default), deposit paid and balance due.
 - **Amount in words:** "Four Hundred and Seventy-Five Thousand Naira Only".
 - **Status:** PAID and OVERDUE rubber stamps, and a part-paid status.
+- **Guided editor:** six short steps (Business → Client → Items → Payment → Look → Send) with plain-language labels.
 - **Saving and sending:**
   - Download as a PDF (A4).
   - Save as an image for WhatsApp. On Android it opens the share sheet straight away.
   - Send on WhatsApp opens a chat with the client, with the total, balance and bank details already written.
 - **Saved documents list** to reopen past invoices.
 - **Animation:** the invoice builds in on screen, totals count up, new items slide in, stamps land with a thud, and the gold foil shimmers. Animation turns off for people who have "reduce motion" switched on.
+
+## The signature feature: Private Invoice Links
+Instead of only sending a PDF, the business sends their client a **private link**. When the client opens it:
+1. **The sealed envelope:** the business's name in gold and an envelope closed with a wax seal carrying their initials and brand colour. The client taps the seal, it breaks, the flap opens, and the letter slides out.
+2. **"Dear Mrs. Bakare,"** with a personal greeting and the amount to pay, counting up in gold, plus a due-date countdown ("Due 14 Nov · in 7 days").
+3. **A 3-step guide that lights up one step at a time:**
+   - Review your order
+   - Pay in one tap (copy the account number)
+   - Send your proof (opens WhatsApp to the business with the message written)
+
+   Quotations get "Accept this quotation" instead. Receipts show "Payment confirmed".
+4. **Their official invoice** with Download PDF and Save image buttons.
+5. **A green "Verified document" check.** Each PDF also carries a QR code that opens the online copy, so anyone can confirm the invoice is genuine.
+
+The business sees in **Sent and saved** when the client opened the link, how many times, and when the client tapped "I've paid".
+
+**On the free trial,** links still work but carry the invoice inside the link itself. They show a small DEMO ribbon and no "Verified" badge. Licensed users get short links stored in Supabase, with verification and open tracking.
 
 ## Stopping people from sharing their licence
 Each buyer gets a licence key like `AUR-7F3A-91C2-0BDE`. The first time they open the app, they enter the key, and it gets **locked to that phone or laptop**.
@@ -30,13 +48,13 @@ Each buyer gets a licence key like `AUR-7F3A-91C2-0BDE`. The first time they ope
 - You can **switch off a key** at any time, for example a refund or a key posted online. It stops working the next time the app is opened online.
 - After 7 days without internet, the app asks to go online and re-check the licence.
 
-Without a key, people can **try the demo**. It works fully, but every invoice carries an "AURUM DEMO" watermark. That's your free trial: they see how good it looks, then pay to remove the watermark.
+Without a key, people can **try the demo**. It works fully, but every invoice carries a small "DEMO" corner ribbon. That's your free trial: they see how good it looks, then pay to remove the watermark.
 
 **Limit:** this protection is strong enough to stop ordinary sharing between friends. A skilled programmer could still copy the file and remove the check, because the app runs in the browser. Version 2 (online accounts and live invoice links) moves the important parts onto a server and closes that gap.
 
 ## Set-up (about 15 minutes, free)
 
-### 1. Create the licence database
+### 1. Create the licence and invoice-link database
 1. Make a free account at supabase.com and create a new project.
 2. Open **SQL Editor**, paste everything in `licences.sql`, and click **Run**.
 3. Open **Project Settings → API**. Copy the **Project URL** and the **anon public** key.

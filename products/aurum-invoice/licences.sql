@@ -91,6 +91,91 @@ end;
 $$;
 revoke all on function public.new_licence(text, text, text, int) from public, anon, authenticated;
 
+-- ---------------------------------------------------------------
+-- Private invoice links
+-- ---------------------------------------------------------------
+create table if not exists public.invoices (
+  id               text primary key,
+  licence_key      text not null references public.licences(key) on delete cascade,
+  doc_id           text not null,
+  payload          jsonb not null,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now(),
+  first_viewed_at  timestamptz,
+  last_viewed_at   timestamptz,
+  view_count       int not null default 0,
+  paid_claimed_at  timestamptz,
+  unique (licence_key, doc_id)
+);
+alter table public.invoices enable row level security;
+
+-- Internal check used by the functions below: is this key active and this device registered?
+create or replace function public._licence_ok(p_key text, p_device text)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.licences l join public.licence_devices d on d.licence_key = l.key
+    where l.key = upper(trim(p_key)) and l.active and d.device_id = p_device
+  );
+$$;
+revoke all on function public._licence_ok(text, text) from public, anon, authenticated;
+
+-- Business saves (or updates) an invoice and gets its private link id.
+create or replace function public.publish_invoice(p_key text, p_device text, p_doc_id text, p_payload jsonb)
+returns json language plpgsql security definer set search_path = public as $$
+declare v_id text;
+begin
+  if not public._licence_ok(p_key, p_device) then return json_build_object('ok', false, 'reason', 'licence'); end if;
+  if octet_length(p_payload::text) > 1500000 then return json_build_object('ok', false, 'reason', 'too_large'); end if;
+  select id into v_id from public.invoices where licence_key = upper(trim(p_key)) and doc_id = p_doc_id;
+  if v_id is null then
+    loop
+      v_id := lower(substr(encode(gen_random_bytes(9), 'hex'), 1, 12));
+      exit when not exists (select 1 from public.invoices where id = v_id);
+    end loop;
+    insert into public.invoices (id, licence_key, doc_id, payload) values (v_id, upper(trim(p_key)), p_doc_id, p_payload);
+  else
+    update public.invoices set payload = p_payload, updated_at = now() where id = v_id;
+  end if;
+  return json_build_object('ok', true, 'id', v_id);
+end;
+$$;
+
+-- Client opens the link. Records the view.
+create or replace function public.view_invoice(p_id text)
+returns json language plpgsql security definer set search_path = public as $$
+declare inv public.invoices; lic_active boolean;
+begin
+  select * into inv from public.invoices where id = p_id;
+  if not found then return json_build_object('ok', false, 'reason', 'missing'); end if;
+  select active into lic_active from public.licences where key = inv.licence_key;
+  if not coalesce(lic_active, false) then return json_build_object('ok', false, 'reason', 'unavailable'); end if;
+  update public.invoices set view_count = view_count + 1, last_viewed_at = now(), first_viewed_at = coalesce(first_viewed_at, now()) where id = p_id;
+  return json_build_object('ok', true, 'payload', inv.payload, 'created_at', inv.created_at);
+end;
+$$;
+
+-- Client taps "I've paid" / "Accept".
+create or replace function public.claim_paid(p_id text)
+returns json language plpgsql security definer set search_path = public as $$
+begin
+  update public.invoices set paid_claimed_at = now() where id = p_id;
+  return json_build_object('ok', found);
+end;
+$$;
+
+-- Business sees which invoices were opened.
+create or replace function public.invoice_activity(p_key text, p_device text)
+returns setof json language plpgsql security definer set search_path = public as $$
+begin
+  if not public._licence_ok(p_key, p_device) then return; end if;
+  return query select json_build_object('doc_id', doc_id, 'id', id, 'view_count', view_count, 'first_viewed_at', first_viewed_at, 'last_viewed_at', last_viewed_at, 'paid_claimed_at', paid_claimed_at)
+    from public.invoices where licence_key = upper(trim(p_key)) order by updated_at desc limit 200;
+end;
+$$;
+
+revoke all on function public.publish_invoice(text, text, text, jsonb), public.view_invoice(text), public.claim_paid(text), public.invoice_activity(text, text) from public;
+grant execute on function public.publish_invoice(text, text, text, jsonb), public.view_invoice(text), public.claim_paid(text), public.invoice_activity(text, text) to anon, authenticated;
+
 -- Everyday admin (run in the SQL editor):
 --   Block a key that was shared:      update licences set active = false where key = 'AUR-XXXX-XXXX-XXXX';
 --   Free a buyer's device slots       delete from licence_devices where licence_key = 'AUR-XXXX-XXXX-XXXX';

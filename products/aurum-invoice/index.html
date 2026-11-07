@@ -10,21 +10,22 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Manrope:wght@400;500;600;700;800&family=Mrs+Saint+Delafield&display=swap">
 <style>
-/* Layout: a working studio — editor rail on the left, the invoice "on the desk" on the right.
-   On phones the two become tabs with a bottom action bar. */
+/* Layout: a guided studio — one clear step at a time on the left, the live invoice on the right.
+   Phones: steps fill the screen, the invoice opens from the bottom bar. */
 :root {
-  --bg: #EEF1EF;
+  --bg: #EDF0EE;
   --surface: #FFFFFF;
-  --field: #F7F9F8;
+  --field: #F6F8F7;
   --ink: #0E1F1A;
-  --muted: #5D6B65;
-  --line: #D8DFDB;
+  --muted: #5A6862;
+  --line: #D6DDD9;
   --accent: #0F4D3A;
   --accent-ink: #FFFFFF;
+  --accent-soft: #E3EFE9;
   --gold: #A9844C;
-  --desk: #E2E7E4;
+  --desk: #E1E6E3;
   --danger: #B3261E;
-  --shadow: 0 1px 2px rgba(14,31,26,.06), 0 8px 24px -12px rgba(14,31,26,.18);
+  --shadow: 0 1px 2px rgba(14,31,26,.06), 0 10px 30px -14px rgba(14,31,26,.22);
 
   --f-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
   --f-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -33,159 +34,185 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0A1210; --surface: #111C19; --field: #0D1714; --ink: #E7EEEA; --muted: #92A39C;
-    --line: #22332D; --accent: #3BA37E; --accent-ink: #04140E; --gold: #D2B47C; --desk: #070D0B;
-    --danger: #F2867D; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.6);
+    --bg: #0A1210; --surface: #111C19; --field: #0D1714; --ink: #E7EEEA; --muted: #95A69F;
+    --line: #23342E; --accent: #46B38B; --accent-ink: #04140E; --accent-soft: #15332A; --gold: #D2B47C; --desk: #070D0B;
+    --danger: #F2867D; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.7);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0A1210; --surface: #111C19; --field: #0D1714; --ink: #E7EEEA; --muted: #92A39C;
-  --line: #22332D; --accent: #3BA37E; --accent-ink: #04140E; --gold: #D2B47C; --desk: #070D0B;
-  --danger: #F2867D; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.6);
+  --bg: #0A1210; --surface: #111C19; --field: #0D1714; --ink: #E7EEEA; --muted: #95A69F;
+  --line: #23342E; --accent: #46B38B; --accent-ink: #04140E; --accent-soft: #15332A; --gold: #D2B47C; --desk: #070D0B;
+  --danger: #F2867D; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.7);
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
-body {
-  margin: 0; background: var(--bg); color: var(--ink);
-  font: 14px/1.5 var(--f-body); -webkit-font-smoothing: antialiased;
-}
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); -webkit-font-smoothing: antialiased; }
 [hidden] { display: none !important; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 img { max-width: 100%; }
+h2, h3 { text-wrap: balance; }
 
 /* ---------- App bar ---------- */
 .appbar {
-  position: sticky; top: 0; z-index: 30;
-  display: flex; align-items: center; gap: 12px;
-  padding-block: 12px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; display: flex; align-items: center; gap: 12px;
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--surface); border-bottom: 1px solid var(--line);
 }
-.mark { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-size: 22px; letter-spacing: .02em; }
-.mark svg { width: 30px; height: 30px; }
-.mark small { font-family: var(--f-body); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
-.lic-chip {
-  margin-left: auto; display: inline-flex; align-items: center; gap: 8px;
-  font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55vw;
-}
+.mark { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-size: 21px; line-height: 1.05; }
+.mark svg { width: 32px; height: 32px; flex: none; }
+.mark small { display: block; font-family: var(--f-body); font-size: 9.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); }
+.lic-chip { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 52vw; }
 .lic-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
 .lic-chip.demo i { background: var(--gold); }
 
 /* ---------- Layout ---------- */
-.studio { display: grid; grid-template-columns: minmax(360px, 440px) 1fr; min-height: calc(100% - 60px); }
-.editor {
-  border-right: 1px solid var(--line); background: var(--surface);
-  padding-block: 20px 120px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px;
-  display: flex; flex-direction: column; gap: 14px; min-width: 0;
-}
-.stage { position: relative; background: var(--desk); min-width: 0; display: flex; flex-direction: column; }
-.stage-inner { flex: 1; padding: 24px; padding-right: max(24px, env(safe-area-inset-right, 0px)); overflow: auto; }
-.toolbar {
-  position: sticky; top: 61px; z-index: 20; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-  padding: 12px 24px; background: color-mix(in srgb, var(--desk) 90%, transparent); backdrop-filter: blur(8px);
-}
-.toolbar .spacer { flex: 1; }
+.studio { display: grid; grid-template-columns: minmax(380px, 480px) 1fr; min-height: calc(100% - 58px); }
+.editor { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; }
+.stage { background: var(--desk); min-width: 0; display: flex; flex-direction: column; }
+.stage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 28px 0; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.stage-inner { flex: 1; padding: 16px 28px 40px; overflow: auto; }
+
+/* Stepper */
+.steps { list-style: none; margin: 0; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none;
+  padding-block: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px; border-bottom: 1px solid var(--line); }
+.steps::-webkit-scrollbar { display: none; }
+.steps button { display: flex; align-items: center; gap: 6px; border: 0; background: transparent; padding: 5px 9px 5px 5px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.steps button b { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11.5px; border: 1.5px solid var(--line); flex: none; }
+.steps button.done b { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.steps button[aria-current="step"] { background: var(--accent-soft); color: var(--ink); }
+.steps button[aria-current="step"] b { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+.step { padding-block: 26px 28px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: 20px; display: grid; gap: 18px; animation: stepIn .35s cubic-bezier(.2,.8,.2,1); }
+@keyframes stepIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+.step > * { min-width: 0; }
+.send-hero > * { min-width: 0; }
+.step-head { display: grid; gap: 6px; }
+.step-head .kicker { font-size: 11px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); }
+.step-head h2 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 30px; line-height: 1.1; }
+.step-head p { margin: 0; color: var(--muted); max-width: 46ch; }
+
+.step-nav { position: sticky; bottom: 0; margin-top: auto; display: flex; gap: 10px; align-items: center; background: var(--surface); border-top: 1px solid var(--line);
+  padding-block: 12px calc(12px + env(safe-area-inset-bottom, 0px)); padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: 20px; z-index: 5; }
+.step-nav .total-mini { margin-right: auto; display: grid; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.step-nav .total-mini small { font-size: 11px; color: var(--muted); font-weight: 600; }
+.step-nav .total-mini b { font-size: 16px; }
 
 /* ---------- Controls ---------- */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line);
-  background: var(--surface); font-weight: 600; font-size: 13px; transition: transform .15s, background .2s, border-color .2s;
-  white-space: nowrap;
-}
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); font-weight: 700; font-size: 14px; transition: transform .15s, filter .2s, border-color .2s; white-space: nowrap; text-decoration: none; color: inherit; }
 .btn:hover { border-color: var(--muted); }
 .btn:active { transform: translateY(1px); }
-.btn svg { width: 16px; height: 16px; }
+.btn svg { width: 18px; height: 18px; flex: none; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .btn.primary:hover { filter: brightness(1.08); }
 .btn.gold { background: linear-gradient(120deg, #8A6A35, #D9BE84 45%, #A9844C); color: #1A1307; border-color: transparent; }
-.btn.ghost { background: transparent; }
-.btn.sm { height: 32px; padding: 0 12px; font-size: 12px; border-radius: 8px; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.sm { height: 34px; padding: 0 12px; font-size: 13px; border-radius: 9px; }
+.btn.block { width: 100%; }
 .btn.danger { color: var(--danger); }
+.btn[disabled] { opacity: .55; cursor: default; }
 
-.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
-.seg button { border: 0; background: transparent; height: 38px; border-radius: 9px; font-weight: 600; color: var(--muted); }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field > span { font-size: 13px; font-weight: 700; }
+.field > span em { font-style: normal; font-weight: 500; color: var(--muted); }
+.field input, .field select, .field textarea { width: 100%; min-width: 0; height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--field); outline: none; font-size: 15px; transition: border-color .2s, box-shadow .2s; }
+.field textarea { height: auto; min-height: 84px; padding: 12px 14px; resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); background: var(--surface); }
+.field.error input { border-color: var(--danger); }
+.field .err { color: var(--danger); font-size: 12.5px; font-weight: 600; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+.check input { width: 20px; height: 20px; accent-color: var(--accent); }
 
-.panel { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
-.panel > summary {
-  list-style: none; cursor: pointer; padding: 14px 16px; display: flex; align-items: baseline; gap: 10px;
-  font-weight: 700; font-size: 14px;
-}
-.panel > summary::-webkit-details-marker { display: none; }
-.panel > summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg) translateY(-3px); transition: transform .2s; }
-.panel[open] > summary::after { transform: rotate(-135deg) translateY(-1px); }
-.panel > summary span { font-weight: 500; font-size: 12px; color: var(--muted); }
-.panel-body { padding: 4px 16px 16px; display: grid; gap: 12px; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.field { display: grid; gap: 5px; min-width: 0; }
-.field > span { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.field input, .field select, .field textarea {
-  width: 100%; min-width: 0; height: 42px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line);
-  background: var(--field); outline: none; transition: border-color .2s, box-shadow .2s;
-}
-.field textarea { height: auto; min-height: 70px; padding: 10px 12px; resize: vertical; }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
-.field input[type="color"] { padding: 4px; }
-.check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; }
-.check input { width: 18px; height: 18px; accent-color: var(--accent); }
-.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.more { border: 1px dashed var(--line); border-radius: 12px; }
+.more > summary { list-style: none; cursor: pointer; padding: 12px 14px; font-weight: 700; font-size: 13.5px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.more > summary::-webkit-details-marker { display: none; }
+.more > summary::before { content: "+"; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--accent-soft); font-size: 15px; }
+.more[open] > summary::before { content: "−"; }
+.more > div { padding: 0 14px 14px; display: grid; gap: 14px; }
 
-.upload { display: flex; align-items: center; gap: 12px; }
-.upload .thumb { width: 52px; height: 52px; border-radius: 10px; border: 1px dashed var(--line); background: var(--field) center/contain no-repeat; flex: none; }
+.upload { display: flex; align-items: center; gap: 14px; }
+.upload .thumb { width: 64px; height: 64px; border-radius: 14px; border: 1.5px dashed var(--line); background: var(--field) center/contain no-repeat; flex: none; display: grid; place-items: center; color: var(--muted); font-size: 11px; font-weight: 700; }
+.upload .thumb.has { border-style: solid; }
+.upload .thumb.has span { display: none; }
 .upload label.btn { position: relative; overflow: hidden; }
 .upload label.btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
-.sample-note { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--gold) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent); font-size: 12.5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { height: 40px; padding: 0 16px; border-radius: 99px; border: 1.5px solid var(--line); background: var(--surface); font-weight: 700; font-size: 13.5px; color: var(--muted); }
+.chips button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
 
-/* Items editor */
+.doctype { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.doctype button { text-align: left; border: 1.5px solid var(--line); background: var(--surface); border-radius: 14px; padding: 12px; display: grid; gap: 2px; }
+.doctype button b { font-size: 14.5px; }
+.doctype button small { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.doctype button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+
+.sample-note { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--gold) 13%, var(--surface)); border: 1px solid color-mix(in srgb, var(--gold) 38%, transparent); font-size: 13px; }
+
+/* Items */
 .items-ed { display: grid; gap: 10px; }
-.item-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; background: var(--field); animation: itemIn .35s cubic-bezier(.2,.8,.2,1) both; }
-.item-card .row3 { grid-template-columns: 80px 1fr auto; align-items: end; }
-.item-card .line-total { font-weight: 700; font-variant-numeric: tabular-nums; padding-bottom: 10px; white-space: nowrap; }
+.item-card { border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; background: var(--field); animation: itemIn .35s cubic-bezier(.2,.8,.2,1) both; }
+.item-top { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: .12em; color: var(--muted); }
+.item-top .line-total { margin-left: auto; font-size: 15px; letter-spacing: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
 .item-card .field input { background: var(--surface); }
-.item-top { display: flex; gap: 8px; align-items: center; }
-.item-top b { font-size: 11px; color: var(--muted); letter-spacing: .1em; }
-.item-top .btn { margin-left: auto; }
+.item-nums { display: grid; grid-template-columns: 90px 1fr auto; gap: 10px; align-items: end; }
 @keyframes itemIn { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+.sumbox { display: grid; gap: 6px; padding: 14px 16px; border-radius: 14px; background: var(--accent-soft); font-variant-numeric: tabular-nums; }
+.sumbox div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.sumbox div.big { font-size: 18px; font-weight: 800; padding-top: 6px; border-top: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
 
-/* Design picker */
-.tpl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.tpl {
-  border: 1.5px solid var(--line); border-radius: 12px; padding: 8px; background: var(--field); display: grid; gap: 6px; text-align: left; font-size: 12px; font-weight: 700;
-}
+/* Look */
+.tpl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tpl { border: 1.5px solid var(--line); border-radius: 14px; padding: 8px; background: var(--surface); display: grid; gap: 8px; text-align: left; }
+.tpl b { font-size: 13.5px; padding: 0 2px; }
+.tpl small { font-size: 11.5px; color: var(--muted); padding: 0 2px 2px; line-height: 1.3; }
 .tpl[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
-.tpl i { display: block; height: 54px; border-radius: 6px; }
-.tpl[data-template="royal"] i { background: linear-gradient(#0F3D2E 0 42%, #FFFDF9 42%); box-shadow: inset 0 -2px 0 #FFFDF9, inset 0 0 0 1px #d6cdb9; }
-.tpl[data-template="atelier"] i { background: #fff; box-shadow: inset 0 0 0 1px #ddd; background-image: linear-gradient(#0F3D2E, #0F3D2E); background-size: 40% 8px; background-repeat: no-repeat; background-position: 8px 10px; }
-.tpl[data-template="noir"] i { background: #121211; box-shadow: inset 0 0 0 4px #121211, inset 0 0 0 5px #C9A86A; }
-.swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
-.swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); }
-.swatch-custom { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; border: 1px solid var(--line); position: relative; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); }
+.tpl i { display: block; aspect-ratio: 3 / 4; border-radius: 8px; max-width: 100%; }
+.tpl[data-template="royal"] i { background: linear-gradient(#0F3D2E 0 30%, #C9A86A 30% 31.5%, #FFFDF9 31.5%); box-shadow: inset 0 0 0 1px #d6cdb9; }
+.tpl[data-template="atelier"] i { background: linear-gradient(#0F3D2E, #0F3D2E) 10% 12% / 50% 10% no-repeat, linear-gradient(#0F3D2E, #0F3D2E) 10% 30% / 80% 1.5px no-repeat, #fff; box-shadow: inset 0 0 0 1px #ddd; }
+.tpl[data-template="noir"] i { background: #121211; box-shadow: inset 0 0 0 5px #121211, inset 0 0 0 6px #C9A86A; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.swatch { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.swatch[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--accent); }
+.swatch-custom { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1px solid var(--line); position: relative; background: conic-gradient(#e33, #ec3, #3c6, #3cc, #36e, #c3c, #e33); }
 .swatch-custom input { position: absolute; inset: -6px; opacity: 0; cursor: pointer; }
 
+/* Send */
+.send-hero { border-radius: 18px; padding: 20px; color: #F3E7CC; position: relative; overflow: hidden;
+  background: radial-gradient(120% 120% at 100% 0%, rgba(255,255,255,.12), transparent 50%), linear-gradient(150deg, #134A38, #071B14); display: grid; gap: 12px; }
+.send-hero h3 { margin: 0; font-family: var(--f-display); font-size: 24px; font-weight: 600; }
+.send-hero p { margin: 0; color: rgba(243,231,204,.78); font-size: 13.5px; }
+.send-hero ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13.5px; }
+.send-hero li { display: flex; gap: 8px; align-items: baseline; }
+.send-hero li::before { content: "✦"; color: #D9BE84; font-size: 11px; }
+.send-hero .btn.ghost { color: #F3E7CC; border-color: rgba(243,231,204,.3); }
+.link-box { display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,.25); border: 1px solid rgba(217,190,132,.35); border-radius: 12px; padding: 6px 6px 6px 12px; }
+.link-box code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; color: #F3E7CC; }
+.send-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.send-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 14px; display: grid; gap: 4px; text-align: left; }
+.send-card svg { width: 22px; height: 22px; color: var(--accent); margin-bottom: 4px; }
+.send-card b { font-size: 14px; }
+.send-card small { color: var(--muted); font-size: 12px; }
 .saved-list { display: grid; gap: 8px; }
-.saved-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--field); font-size: 12.5px; }
+.saved-item { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); font-size: 13px; }
 .saved-item div { min-width: 0; flex: 1; }
 .saved-item b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .saved-item small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.act { display: inline-block; margin-top: 4px; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+.act.paid { background: #FBEFD6; color: #7A5513; }
+h3.sub { margin: 6px 0 0; font-size: 14px; }
 
 /* ---------- Paper on the desk ---------- */
 .paper-wrap { margin: 0 auto; position: relative; }
 .paper-scale { transform-origin: top left; }
 .paper-shadow { box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 30px 60px -20px rgba(0,0,0,.35); }
-
 /* ================= INVOICE DOCUMENT ================= */
 .inv {
   --brand: #0F3D2E;
@@ -292,8 +319,6 @@ img { max-width: 100%; }
 .stamp.paid { color: #17744B; } .stamp.overdue { color: #B3261E; }
 .stamp small { display: block; font-family: var(--f-body); font-size: 10px; letter-spacing: .3em; font-weight: 800; text-align: center; margin-top: 4px; }
 
-.wm { position: absolute; inset: -20%; z-index: 6; pointer-events: none; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 70px 90px; transform: rotate(-28deg); }
-.wm span { font-family: var(--f-display); font-weight: 700; font-size: 40px; letter-spacing: .2em; color: rgba(120,120,120,.16); white-space: nowrap; }
 
 /* --- Template: ROYAL (brand band + gold foil) --- */
 .t-royal .inv-head { background: var(--brand); color: #F3E7CC; padding-top: 56px; padding-bottom: 46px; }
@@ -336,13 +361,22 @@ img { max-width: 100%; }
 .t-noir .pill.unpaid { color: #E1B866; } .t-noir .pill.paid { color: #6FD3A2; } .t-noir .pill.overdue { color: #FF8A80; } .t-noir .pill.part { color: #8EC1F0; }
 .t-noir .paylink b { color: var(--gold-solid); }
 .t-noir .inv-foot { padding-bottom: 50px; }
-.t-noir .wm { position: absolute; }
-.t-noir .wm span { color: rgba(220,220,220,.10); }
+.t-noir .ribbon { position: absolute; }
 
-/* ---------- Entrance choreography ---------- */
-.inv.enter .inv-head > *, .inv.enter .inv-meta > *, .inv.enter .sum > *, .inv.enter .foot > *, .inv.enter .notes, .inv.enter .inv-foot {
-  animation: rise .7s cubic-bezier(.2,.75,.2,1) both;
-}
+/* Demo ribbon — one quiet corner sash instead of a full-page watermark */
+.ribbon { position: absolute; top: 26px; right: -46px; z-index: 6; width: 190px; transform: rotate(45deg); text-align: center;
+  background: rgba(255,255,255,.88); color: #6B5A3A; font: 800 9.5px/1 var(--f-body); letter-spacing: .32em; padding: 7px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18); pointer-events: none; }
+.t-noir .ribbon { background: rgba(210,180,124,.92); color: #141210; }
+.demo-line { font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+
+/* Verify block (QR) */
+.verify { display: flex; align-items: center; gap: 12px; }
+.verify img { width: 64px; height: 64px; background: #fff; padding: 4px; border-radius: 4px; }
+.verify span { font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; line-height: 1.5; max-width: 150px; }
+
+/* ---------- Invoice entrance choreography ---------- */
+.inv.enter .inv-head > *, .inv.enter .inv-meta > *, .inv.enter .sum > *, .inv.enter .foot > *, .inv.enter .notes, .inv.enter .inv-foot { animation: rise .7s cubic-bezier(.2,.75,.2,1) both; }
 .inv.enter .inv-head > :nth-child(2) { animation-delay: .08s; }
 .inv.enter .inv-meta > :nth-child(1) { animation-delay: .14s; } .inv.enter .inv-meta > :nth-child(2) { animation-delay: .2s; } .inv.enter .inv-meta > :nth-child(3) { animation-delay: .26s; }
 .inv.enter .items tbody tr { animation: rowIn .55s cubic-bezier(.2,.75,.2,1) both; animation-delay: calc(.3s + var(--i, 0) * .07s); }
@@ -355,65 +389,171 @@ img { max-width: 100%; }
 .paper-wrap.swap { animation: swap .5s cubic-bezier(.2,.75,.2,1); }
 @keyframes swap { from { opacity: .2; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }
 
-/* ---------- Licence gate ---------- */
-.gate {
-  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: auto;
-  padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  background: radial-gradient(120% 90% at 50% 0%, #17533F 0%, #0B2A20 45%, #06140F 100%); color: #F3E7CC;
-}
-.gate-card { width: min(440px, 100%); text-align: center; display: grid; gap: 18px; justify-items: center; }
-.gate-seal { width: 132px; height: 132px; }
-.gate-seal .ring { transform-origin: 60px 60px; animation: spin 40s linear infinite; }
-.gate-seal .draw { stroke-dasharray: 300; stroke-dashoffset: 300; animation: draw 1.6s .2s cubic-bezier(.6,0,.2,1) forwards; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* ================= CLIENT VIEW: the private invoice link ================= */
+.cv { --brand: #0F3D2E; --cream: #F4EAD2; --cream-dim: rgba(244,234,210,.72); --gold-solid: #C9A86A;
+  --foil: linear-gradient(100deg, #8A6A35 0%, #E9D39E 28%, #B8935A 46%, #F5E7BE 64%, #A07D42 82%, #E2C88E 100%);
+  position: fixed; inset: 0; z-index: 90; overflow-y: auto; overflow-x: hidden; color: var(--cream); font-family: var(--f-body);
+  background: radial-gradient(90% 60% at 50% 0%, rgba(255,255,255,.10), transparent 60%), linear-gradient(180deg, var(--brand) 0%, #050908 85%); color-scheme: dark; }
+.cv .foil { background: var(--foil); background-size: 220% auto; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; animation: shimmer 7s linear infinite; }
+@keyframes shimmer { to { background-position: 220% center; } }
+.cv-close { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 5; height: 38px; padding: 0 14px; border-radius: 99px; border: 1px solid rgba(244,234,210,.3); background: rgba(0,0,0,.35); color: var(--cream); font-weight: 700; font-size: 13px; backdrop-filter: blur(6px); }
+.cv-preview-tag { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); z-index: 5; font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; padding: 9px 12px; border-radius: 99px; background: rgba(0,0,0,.35); color: #D9BE84; }
+
+/* Scene 1: the sealed envelope */
+.cv-scene { min-height: 100%; display: grid; place-items: center; padding: 70px max(20px, env(safe-area-inset-right, 0px)) 40px max(20px, env(safe-area-inset-left, 0px)); text-align: center; }
+.cv-intro { display: grid; justify-items: center; gap: 14px; max-width: 420px; }
+.cv-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; color: var(--cream-dim); animation: rise .8s .1s both; }
+.cv-from { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: clamp(30px, 8vw, 44px); line-height: 1.05; animation: rise .8s .2s both; }
+.envelope { position: relative; width: min(340px, 84vw); aspect-ratio: 7 / 5; margin: 26px 0 10px; perspective: 900px; animation: rise .9s .35s both; }
+.env-back { position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(160deg, #F7EEDB, #E7D8B6); box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); }
+.env-letter { position: absolute; left: 6%; right: 6%; top: 8%; bottom: 8%; border-radius: 4px; background: #FFFDF8; box-shadow: 0 2px 6px rgba(0,0,0,.12); display: grid; align-content: start; gap: 6px; padding: 16px; text-align: left; color: #2A251C; }
+.env-letter b { font-family: var(--f-display); font-style: italic; font-size: 22px; font-weight: 500; }
+.env-letter span { font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; color: #8A7F6C; }
+.env-letter i { display: block; height: 4px; border-radius: 2px; background: #EDE5D3; }
+.env-front { position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(200deg, #F3E8D0, #E3D2AD); clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%); z-index: 2; }
+.env-flap { position: absolute; left: 0; right: 0; top: 0; height: 58%; transform-origin: top center; z-index: 3; transition: transform .7s cubic-bezier(.6,0,.3,1) .35s; }
+.env-flap::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #EADCBB, #D9C69C); clip-path: polygon(0 0, 100% 0, 50% 96%); border-radius: 8px 8px 0 0; filter: drop-shadow(0 4px 4px rgba(0,0,0,.15)); }
+.seal-btn { position: absolute; left: 50%; top: 58%; width: 96px; height: 96px; margin: -48px 0 0 -48px; z-index: 4; border: 0; padding: 0; background: transparent; border-radius: 50%; }
+.seal-btn:focus-visible { outline: 2px solid #E9D39E; outline-offset: 6px; }
+.seal-half { position: absolute; inset: 0; border-radius: 47% 53% 50% 50% / 52% 48% 52% 48%;
+  background: radial-gradient(circle at 34% 30%, rgba(255,255,255,.35), transparent 38%), radial-gradient(circle at 70% 75%, rgba(0,0,0,.35), transparent 50%), var(--brand);
+  box-shadow: inset 0 0 0 5px rgba(0,0,0,.18), inset 0 0 0 7px rgba(255,255,255,.08), 0 6px 14px rgba(0,0,0,.45); display: grid; place-items: center; transition: transform .6s cubic-bezier(.5,0,.3,1), opacity .5s .2s; }
+.seal-half.l { clip-path: polygon(0 0, 52% 0, 44% 38%, 56% 60%, 46% 100%, 0 100%); }
+.seal-half.r { clip-path: polygon(52% 0, 100% 0, 100% 100%, 46% 100%, 56% 60%, 44% 38%); }
+.seal-half em { font-family: var(--f-display); font-style: italic; font-weight: 600; font-size: 34px; color: #E9D39E; text-shadow: 0 1px 0 rgba(0,0,0,.4); }
+.seal-half::after { content: ""; position: absolute; inset: 14px; border-radius: 50%; border: 1px solid rgba(233,211,158,.55); }
+.seal-btn .pulse { position: absolute; inset: -10px; border-radius: 50%; border: 1px solid rgba(233,211,158,.6); animation: pulse 2.2s ease-out infinite; }
+@keyframes pulse { from { transform: scale(.85); opacity: .9; } to { transform: scale(1.35); opacity: 0; } }
+.cv-tap { font-size: 13px; color: var(--cream-dim); animation: rise .8s .6s both; }
+.cv-for { margin: 0; font-size: 14px; color: var(--cream-dim); animation: rise .8s .5s both; }
+.cv-for b { color: var(--cream); font-weight: 700; }
+.envelope.open .seal-half.l { transform: translate(-46px, 60px) rotate(-38deg); opacity: 0; }
+.envelope.open .seal-half.r { transform: translate(46px, 60px) rotate(38deg); opacity: 0; }
+.envelope.open .pulse { display: none; }
+.envelope.open .env-flap { transform: rotateX(180deg); z-index: 1; }
+.envelope.open .env-letter { animation: letterOut 1s 1s cubic-bezier(.3,0,.2,1) forwards; }
+@keyframes letterOut { to { transform: translateY(-62%) scale(1.04); box-shadow: 0 30px 40px -10px rgba(0,0,0,.35); } }
+.cv-scene.leaving { animation: sceneOut .6s 1.75s cubic-bezier(.6,0,.4,1) forwards; }
+@keyframes sceneOut { to { opacity: 0; transform: scale(1.06); } }
+
+/* Scene 2: the experience */
+.cv-main { grid-template-columns: minmax(0, 1fr); max-width: 600px; margin: 0 auto; padding: 70px max(18px, env(safe-area-inset-right, 0px)) 120px max(18px, env(safe-area-inset-left, 0px)); display: grid; gap: 18px; }
+.cv-main > * { min-width: 0; animation: rise .8s cubic-bezier(.2,.75,.2,1) both; }
+.cv-main > :nth-child(2) { animation-delay: .1s; } .cv-main > :nth-child(3) { animation-delay: .2s; } .cv-main > :nth-child(4) { animation-delay: .3s; } .cv-main > :nth-child(5) { animation-delay: .4s; } .cv-main > :nth-child(6) { animation-delay: .5s; }
+.cv-brand { display: flex; align-items: center; gap: 12px; }
+.cv-brand img, .cv-brand .mono { width: 46px; height: 46px; object-fit: contain; border-radius: 6px; flex: none; }
+.cv-brand .mono { display: grid; place-items: center; border: 1px solid rgba(201,168,106,.6); font-family: var(--f-display); font-style: italic; font-size: 20px; color: #E9D39E; }
+.cv-brand b { display: block; font-family: var(--f-display); font-size: 19px; font-weight: 600; line-height: 1.1; }
+.cv-brand small { font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--cream-dim); }
+.cv-hello h1 { margin: 6px 0 6px; font-family: var(--f-display); font-weight: 500; font-size: clamp(30px, 7.5vw, 44px); overflow-wrap: anywhere; line-height: 1.05; }
+.cv-hello p { margin: 0; color: var(--cream-dim); font-size: 15px; max-width: 44ch; }
+
+.cv-card { border-radius: 20px; background: rgba(255,255,255,.05); border: 1px solid rgba(201,168,106,.28); padding: 22px; }
+.cv-amount { text-align: center; display: grid; gap: 8px; position: relative; overflow: hidden; }
+.cv-amount::before { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 80% at 50% 0%, rgba(233,211,158,.14), transparent 70%); pointer-events: none; }
+.cv-amount .lbl { font-size: 11px; font-weight: 800; letter-spacing: .26em; text-transform: uppercase; color: var(--cream-dim); }
+.cv-amount .amt { font-family: var(--f-display); font-weight: 600; font-size: clamp(40px, 11vw, 58px); line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+.cv-amount .sub { font-size: 13px; color: var(--cream-dim); font-variant-numeric: tabular-nums; }
+.due-chip { justify-self: center; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 99px; font-size: 12.5px; font-weight: 700; background: rgba(233,211,158,.12); color: #F1DDA8; }
+.due-chip.late { background: rgba(255,138,128,.14); color: #FFB4A8; }
+.due-chip.ok { background: rgba(111,211,162,.14); color: #8FE3B9; }
+.due-chip i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+/* The 3-step explainer */
+.cv-guide h2 { margin: 0 0 4px; font-family: var(--f-display); font-weight: 500; font-size: 24px; }
+.cv-guide > p { margin: 0 0 18px; color: var(--cream-dim); font-size: 13.5px; }
+.gsteps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; position: relative; }
+.gstep { display: grid; grid-template-columns: 40px 1fr; gap: 14px; position: relative; padding-bottom: 22px; opacity: .35; transition: opacity .5s; }
+.gstep:last-child { padding-bottom: 0; }
+.gstep.lit { opacity: 1; }
+.gstep .dot { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(201,168,106,.6); font-family: var(--f-display); font-size: 17px; color: #E9D39E; background: rgba(0,0,0,.25); position: relative; z-index: 1; transition: background .5s, color .5s; }
+.gstep.lit .dot { background: linear-gradient(135deg, #B8935A, #E9D39E); color: #1A1307; border-color: transparent; }
+.gstep::before { content: ""; position: absolute; left: 19.5px; top: 40px; bottom: 0; width: 1px; background: rgba(201,168,106,.25); }
+.gstep::after { content: ""; position: absolute; left: 19.5px; top: 40px; width: 1px; height: 0; background: #E9D39E; transition: height .7s ease; }
+.gstep.lit.flow::after { height: calc(100% - 40px); }
+.gstep:last-child::before, .gstep:last-child::after { display: none; }
+.gstep h3 { margin: 8px 0 4px; font-size: 16px; }
+.gstep .body { display: grid; gap: 10px; min-width: 0; }
+.gstep p { margin: 0; color: var(--cream-dim); font-size: 13.5px; }
+.cv-items { display: grid; gap: 8px; font-size: 14px; }
+.cv-items div { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(201,168,106,.16); }
+.cv-items span:first-child { min-width: 0; }
+.cv-items small { display: block; color: var(--cream-dim); font-size: 12px; }
+.cv-items b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cv-bank { display: grid; gap: 8px; padding: 16px; border-radius: 14px; background: rgba(0,0,0,.28); border: 1px solid rgba(201,168,106,.3); }
+.cv-bank .row { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; }
+.cv-bank .row span { color: var(--cream-dim); }
+.cv-bank .acct { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.cv-bank .acct strong { font-size: 24px; letter-spacing: .12em; font-variant-numeric: tabular-nums; }
+.cv .btn { border-color: rgba(244,234,210,.28); background: transparent; color: var(--cream); }
+.cv .btn.gold { color: #1A1307; border-color: transparent; background: linear-gradient(120deg, #8A6A35, #E2C88E 45%, #B08D57); }
+.cv .btn.light { background: var(--cream); color: #1A1307; border-color: transparent; }
+.cv .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.cv-doc > h2 { margin: 0 0 4px; font-family: var(--f-display); font-weight: 500; font-size: 24px; }
+.cv-doc > p { margin: 0 0 14px; color: var(--cream-dim); font-size: 13.5px; }
+.cv-paper { width: 100%; border-radius: 6px; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.7); margin-bottom: 14px; }
+.cv-paper .paper-scale { transform-origin: top left; }
+.cv-verify { display: flex; gap: 14px; align-items: center; padding: 16px; border-radius: 16px; background: rgba(111,211,162,.08); border: 1px solid rgba(111,211,162,.25); font-size: 13px; color: var(--cream-dim); }
+.cv-verify.demo { background: rgba(233,211,158,.08); border-color: rgba(233,211,158,.25); }
+.cv-verify svg { width: 40px; height: 40px; flex: none; }
+.cv-verify svg circle { stroke-dasharray: 120; stroke-dashoffset: 120; animation: draw 1s .9s ease forwards; }
+.cv-verify svg path { stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw .5s 1.6s ease forwards; }
+.cv-verify b { color: var(--cream); display: block; font-size: 14px; }
+.cv-foot { text-align: center; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: rgba(244,234,210,.4); padding-top: 10px; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
-.gate h1 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(38px, 9vw, 54px); line-height: 1; letter-spacing: .02em; text-wrap: balance; }
-.gate p { margin: 0; color: rgba(243,231,204,.75); max-width: 36ch; }
-.gate form { width: 100%; display: grid; gap: 10px; margin-top: 6px; }
-.gate input {
-  height: 52px; border-radius: 12px; border: 1px solid rgba(210,180,124,.4); background: rgba(0,0,0,.25); color: #F7EED8;
-  text-align: center; font-size: 16px; letter-spacing: .16em; text-transform: uppercase; outline: none;
-}
+
+/* ---------- Licence gate ---------- */
+.gate { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: auto;
+  padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: radial-gradient(120% 90% at 50% 0%, #17533F 0%, #0B2A20 45%, #06140F 100%); color: #F3E7CC; }
+.gate-card { width: min(420px, 100%); text-align: center; display: grid; gap: 16px; justify-items: center; }
+.gate-seal { width: 120px; height: 120px; }
+.gate-seal .ring { transform-origin: 60px 60px; animation: spin 40s linear infinite; }
+.gate-seal .draw { stroke-dasharray: 360; stroke-dashoffset: 360; animation: draw 1.6s .2s cubic-bezier(.6,0,.2,1) forwards; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.gate h1 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(40px, 10vw, 56px); line-height: 1; }
+.gate .foil { background: linear-gradient(100deg, #8A6A35, #E9D39E 30%, #B8935A 50%, #F5E7BE 70%, #A07D42); background-size: 220% auto; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; animation: shimmer 7s linear infinite; }
+.gate p { margin: 0; color: rgba(243,231,204,.78); max-width: 34ch; }
+.gate form { width: 100%; display: grid; gap: 10px; margin-top: 8px; }
+.gate input { height: 54px; border-radius: 14px; border: 1px solid rgba(210,180,124,.4); background: rgba(0,0,0,.25); color: #F7EED8; text-align: center; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; outline: none; }
 .gate input:focus { border-color: #D9BE84; box-shadow: 0 0 0 3px rgba(217,190,132,.2); }
-.gate input::placeholder { color: rgba(243,231,204,.4); letter-spacing: .1em; }
-.gate .btn { height: 50px; font-size: 14px; }
-.gate .btn.ghost { color: #F3E7CC; border-color: rgba(243,231,204,.25); }
-.gate .err { min-height: 20px; color: #FFB4A8; font-size: 13px; }
-.gate .fine { font-size: 12px; color: rgba(243,231,204,.55); }
+.gate input::placeholder { color: rgba(243,231,204,.45); letter-spacing: .08em; text-transform: none; }
+.gate .btn { height: 52px; font-size: 15px; }
+.gate .btn.ghost { color: #F3E7CC; border-color: rgba(243,231,204,.28); }
+.gate .err { min-height: 20px; color: #FFB4A8; font-size: 13.5px; }
+.gate .fine { font-size: 12.5px; color: rgba(243,231,204,.6); }
 .gate a { color: #E9D39E; }
 
 /* ---------- Toast ---------- */
-.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; z-index: 200; background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 99px; font-weight: 600; font-size: 13px; transition: .3s; pointer-events: none; max-width: calc(100% - 32px); text-align: center; }
+.toast { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; z-index: 200; background: #0E1F1A; color: #F4F1E8; padding: 11px 18px; border-radius: 99px; font-weight: 600; font-size: 13.5px; transition: .3s; pointer-events: none; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 /* ---------- Mobile ---------- */
-.mobilebar { display: none; }
+.mobile-preview-btn { display: none; }
 @media (max-width: 980px) {
   .studio { grid-template-columns: 1fr; }
-  .editor { border-right: 0; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-  .toolbar { display: none; }
-  .stage-inner { padding: 16px max(16px, env(safe-area-inset-right, 0px)) 120px max(16px, env(safe-area-inset-left, 0px)); }
-  body[data-view="edit"] .stage { display: none; }
-  body[data-view="preview"] .editor { display: none; }
-  .mobilebar {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-    padding: 8px max(10px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
-    background: var(--surface); border-top: 1px solid var(--line);
-  }
-  .mobilebar button { display: grid; justify-items: center; gap: 2px; height: 54px; border: 0; background: transparent; border-radius: 10px; font-size: 11px; font-weight: 700; color: var(--muted); align-content: center; }
-  .mobilebar button svg { width: 20px; height: 20px; }
-  .mobilebar button.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: var(--surface); border-top-left-radius: 18px; border-top-right-radius: 18px; box-shadow: 0 -10px 40px rgba(0,0,0,.25); padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 8px; animation: sheetUp .3s cubic-bezier(.2,.8,.2,1); }
-  .sheet .btn { height: 48px; justify-content: flex-start; }
-  .scrim { position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,.35); }
+  .editor { border-right: 0; min-height: calc(100vh - 58px); }
+  .stage { display: none; }
+  body.show-preview .stage { display: flex; position: fixed; inset: 0; z-index: 70; padding-top: env(safe-area-inset-top, 0px); }
+  .stage-head { padding: 12px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); }
+  .stage-inner { padding: 14px max(14px, env(safe-area-inset-right, 0px)) calc(30px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); }
+  .mobile-preview-btn { display: inline-flex; }
+  .step-head h2 { font-size: 26px; }
 }
-@media (min-width: 981px) { .sheet, .scrim { display: none !important; } }
-@keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
-@media (max-width: 420px) { .row3 { grid-template-columns: 1fr 1fr; } .row3 > :last-child { grid-column: 1 / -1; } .item-card .row3 { grid-template-columns: 70px 1fr; } .item-card .line-total { grid-column: 1 / -1; padding: 0; text-align: right; } }
+@media (min-width: 981px) { .stage-close { display: none; } }
+@media (max-width: 440px) {
+  .row2 { grid-template-columns: 1fr; }
+  .doctype button small { display: none; }
+  .tpl small { display: none; }
+  .send-grid { grid-template-columns: 1fr; }
+  .item-nums { grid-template-columns: 80px 1fr; }
+  .step-nav .total-mini b { font-size: 14px; }
+  .step-nav .btn { padding: 0 14px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; transition-delay: 0s !important; }
 }
 
 /* ---------- Print (Save as PDF) ---------- */
@@ -426,11 +566,10 @@ img { max-width: 100%; }
   #print-root .inv { width: 210mm; min-height: 297mm; box-shadow: none; }
   #print-root .inv * { animation: none !important; }
 }
-/* Off-screen copy used for image export */
 #export-root { position: fixed; left: 0; top: 0; z-index: -1; pointer-events: none; width: 794px; }
 </style>
 </head>
-<body data-view="edit">
+<body>
 
 <!-- ===== Licence gate ===== -->
 <section class="gate" id="gate" aria-labelledby="gate-title" hidden>
@@ -443,211 +582,216 @@ img { max-width: 100%; }
       <text x="60" y="70" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="30" font-style="italic" fill="#E9D39E">Au</text>
     </svg>
     <h1 id="gate-title"><span class="foil">Aurum</span></h1>
-    <p>Invoices, receipts and quotations that make your business look like the big brands.</p>
+    <p>Invoices your clients open like a gift, and remember.</p>
     <form id="gate-form" autocomplete="off">
-      <input id="lic-key" name="key" placeholder="Enter licence key" aria-label="Licence key" maxlength="40" required>
+      <input id="lic-key" name="key" placeholder="Enter your licence key" aria-label="Licence key" maxlength="40" required>
       <button class="btn gold" type="submit" id="lic-submit">Activate</button>
-      <button class="btn ghost" type="button" id="lic-demo">Try the demo (watermarked)</button>
+      <button class="btn ghost" type="button" id="lic-demo">Try it free first</button>
       <div class="err" id="lic-err" role="alert"></div>
     </form>
     <p class="fine" id="gate-fine">One licence works on up to 2 devices.</p>
   </div>
 </section>
 
-<!-- ===== App ===== -->
+<!-- ===== Studio ===== -->
+<div id="studio-root" hidden>
 <header class="appbar">
   <div class="mark">
     <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="var(--gold)" stroke-width="1.2"/><text x="20" y="26" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-style="italic" font-size="17" fill="var(--gold)">Au</text></svg>
-    <div>Aurum<br><small>Invoice Studio</small></div>
+    <div>Aurum<small>Invoice Studio</small></div>
   </div>
-  <span class="lic-chip" id="lic-chip"><i></i><span id="lic-chip-text">Not activated</span></span>
+  <span class="lic-chip" id="lic-chip"><i></i><span id="lic-chip-text"></span></span>
 </header>
 
 <main class="studio" id="main-content">
-  <!-- Editor -->
-  <aside class="editor" id="editor" aria-label="Edit document">
-    <div class="seg" role="group" aria-label="Document type">
-      <button type="button" data-doctype="invoice" aria-pressed="true">Invoice</button>
-      <button type="button" data-doctype="receipt" aria-pressed="false">Receipt</button>
-      <button type="button" data-doctype="quotation" aria-pressed="false">Quotation</button>
-    </div>
+  <aside class="editor" aria-label="Create document">
+    <ol class="steps" id="steps"></ol>
 
-    <div class="sample-note" id="sample-note" hidden>
-      <span>These are <b>example details</b>. Replace them with your own business.</span>
-      <button class="btn sm" type="button" id="clear-sample">Start with my business</button>
-    </div>
-
-    <details class="panel" open>
-      <summary>Your business <span>saved on this device</span></summary>
-      <div class="panel-body">
-        <div class="upload">
-          <div class="thumb" id="logo-thumb"></div>
-          <label class="btn sm">Upload logo<input type="file" id="logo-file" accept="image/*"></label>
-          <button class="btn sm ghost" type="button" id="logo-clear">Remove</button>
-        </div>
-        <label class="field"><span>Business name</span><input id="b-name" data-bind="profile.business.name"></label>
-        <label class="field"><span>Tagline</span><input id="b-tag" data-bind="profile.business.tagline" placeholder="e.g. Bespoke bridal & occasion wear"></label>
-        <label class="field"><span>Address</span><input id="b-addr" data-bind="profile.business.address"></label>
-        <div class="row2">
-          <label class="field"><span>Phone / WhatsApp</span><input id="b-phone" data-bind="profile.business.phone" inputmode="tel"></label>
-          <label class="field"><span>Email</span><input id="b-email" data-bind="profile.business.email" inputmode="email"></label>
-        </div>
-        <div class="row2">
-          <label class="field"><span>CAC / RC number</span><input id="b-rc" data-bind="profile.business.rc" placeholder="Optional"></label>
-          <label class="field"><span>TIN</span><input id="b-tin" data-bind="profile.business.tin" placeholder="Optional"></label>
-        </div>
+    <!-- STEP 1 -->
+    <section class="step" data-step="1">
+      <div class="step-head"><span class="kicker">Step 1 of 6</span><h2>Your business</h2><p>Fill this in once. We'll remember it for every invoice you make on this device.</p></div>
+      <div class="sample-note" id="sample-note" hidden>
+        <span>You're looking at <b>example details</b>.</span>
+        <button class="btn sm" type="button" id="clear-sample">Use my business instead</button>
       </div>
-    </details>
-
-    <details class="panel">
-      <summary>Payment details <span>where clients pay you</span></summary>
-      <div class="panel-body">
-        <label class="field"><span>Bank</span><input id="k-bank" data-bind="profile.bank.bankName" placeholder="e.g. GTBank"></label>
-        <label class="field"><span>Account name</span><input id="k-name" data-bind="profile.bank.accountName"></label>
-        <label class="field"><span>Account number</span><input id="k-no" data-bind="profile.bank.accountNumber" inputmode="numeric" maxlength="10"></label>
-        <label class="field"><span>Online payment link</span><input id="k-link" data-bind="profile.bank.payLink" placeholder="Paystack or Flutterwave link (optional)"></label>
+      <div class="upload">
+        <div class="thumb" id="logo-thumb"><span>LOGO</span></div>
+        <label class="btn sm">Upload logo<input type="file" id="logo-file" accept="image/*"></label>
+        <button class="btn sm ghost" type="button" id="logo-clear">Remove</button>
       </div>
-    </details>
+      <label class="field" id="f-bname"><span>Business name</span><input id="b-name" data-bind="profile.business.name" placeholder="e.g. Adaeze Couture"></label>
+      <label class="field"><span>What you do <em>(short tagline)</em></span><input id="b-tag" data-bind="profile.business.tagline" placeholder="e.g. Bespoke bridal & occasion wear"></label>
+      <div class="row2">
+        <label class="field"><span>WhatsApp number</span><input id="b-phone" data-bind="profile.business.phone" inputmode="tel" placeholder="0803 123 4567"></label>
+        <label class="field"><span>Email <em>(optional)</em></span><input id="b-email" data-bind="profile.business.email" inputmode="email"></label>
+      </div>
+      <label class="field"><span>Business address</span><input id="b-addr" data-bind="profile.business.address" placeholder="Street, area, city"></label>
+      <details class="more"><summary>Add CAC number or TIN</summary><div>
+        <div class="row2">
+          <label class="field"><span>CAC / RC number</span><input id="b-rc" data-bind="profile.business.rc" placeholder="RC 1234567"></label>
+          <label class="field"><span>TIN</span><input id="b-tin" data-bind="profile.business.tin"></label>
+        </div>
+      </div></details>
+    </section>
 
-    <details class="panel" open>
-      <summary id="client-summary">Client</summary>
-      <div class="panel-body">
-        <label class="field"><span>Client name</span><input id="c-name" data-bind="doc.client.name"></label>
-        <label class="field"><span>Company</span><input id="c-co" data-bind="doc.client.company" placeholder="Optional"></label>
+    <!-- STEP 2 -->
+    <section class="step" data-step="2" hidden>
+      <div class="step-head"><span class="kicker">Step 2 of 6</span><h2>Who is it for?</h2><p>Choose what you're sending, then add your client.</p></div>
+      <div class="doctype" role="group" aria-label="Document type">
+        <button type="button" data-doctype="invoice" aria-pressed="true"><b>Invoice</b><small>Ask to be paid</small></button>
+        <button type="button" data-doctype="receipt" aria-pressed="false"><b>Receipt</b><small>Confirm a payment</small></button>
+        <button type="button" data-doctype="quotation" aria-pressed="false"><b>Quotation</b><small>Give a price first</small></button>
+      </div>
+      <label class="field" id="f-cname"><span>Client's name</span><input id="c-name" data-bind="doc.client.name" placeholder="e.g. Mrs. Funmilayo Bakare"></label>
+      <label class="field"><span>Client's WhatsApp number</span><input id="c-phone" data-bind="doc.client.phone" inputmode="tel" placeholder="0809 876 5432"></label>
+      <div class="row2">
+        <label class="field"><span id="issue-label">Date</span><input id="d-issue" type="date" data-bind="doc.issueDate"></label>
+        <label class="field" id="due-field"><span id="due-label">Pay by</span><input id="d-due" type="date" data-bind="doc.dueDate"></label>
+      </div>
+      <details class="more"><summary>Add client's address, company or email</summary><div>
+        <label class="field"><span>Company</span><input id="c-co" data-bind="doc.client.company"></label>
         <label class="field"><span>Address</span><input id="c-addr" data-bind="doc.client.address"></label>
-        <div class="row2">
-          <label class="field"><span>Phone / WhatsApp</span><input id="c-phone" data-bind="doc.client.phone" inputmode="tel"></label>
-          <label class="field"><span>Email</span><input id="c-email" data-bind="doc.client.email" inputmode="email"></label>
-        </div>
-      </div>
-    </details>
+        <label class="field"><span>Email</span><input id="c-email" data-bind="doc.client.email" inputmode="email"></label>
+        <label class="field"><span>Document number</span><input id="d-no" data-bind="doc.number"></label>
+      </div></details>
+    </section>
 
-    <details class="panel" open>
-      <summary>Document</summary>
-      <div class="panel-body">
+    <!-- STEP 3 -->
+    <section class="step" data-step="3" hidden>
+      <div class="step-head"><span class="kicker">Step 3 of 6</span><h2>What are you charging for?</h2><p>Add each product or service. Totals are worked out for you.</p></div>
+      <div class="items-ed" id="items-ed"></div>
+      <button class="btn" type="button" id="add-item">+ Add another item</button>
+      <details class="more" id="charges-more"><summary>Add discount, delivery fee or VAT</summary><div>
         <div class="row2">
-          <label class="field"><span>Number</span><input id="d-no" data-bind="doc.number"></label>
-          <label class="field"><span>Currency</span>
-            <select id="d-cur" data-bind="doc.currency"><option value="NGN">₦ Naira</option><option value="USD">$ US Dollar</option><option value="GBP">£ Pound</option></select>
-          </label>
+          <label class="field"><span>Discount</span><input id="x-disc" data-bind="doc.discount" inputmode="decimal" placeholder="0"></label>
+          <label class="field"><span>Discount is</span><select id="x-dtype" data-bind="doc.discountType"><option value="amount">An amount</option><option value="percent">A percentage %</option></select></label>
         </div>
-        <div class="row2">
-          <label class="field"><span>Issue date</span><input id="d-issue" type="date" data-bind="doc.issueDate"></label>
-          <label class="field" id="due-field"><span id="due-label">Due date</span><input id="d-due" type="date" data-bind="doc.dueDate"></label>
-        </div>
-        <label class="field" id="status-field"><span>Status</span>
-          <select id="d-status" data-bind="doc.status"><option value="unpaid">Unpaid</option><option value="part">Part-paid</option><option value="paid">Paid (stamp)</option><option value="overdue">Overdue (stamp)</option></select>
-        </label>
-      </div>
-    </details>
-
-    <details class="panel" open>
-      <summary>Items <span id="items-count"></span></summary>
-      <div class="panel-body">
-        <div class="items-ed" id="items-ed"></div>
-        <button class="btn" type="button" id="add-item">+ Add item</button>
-      </div>
-    </details>
-
-    <details class="panel" open>
-      <summary>Charges &amp; tax</summary>
-      <div class="panel-body">
-        <div class="row2">
-          <label class="field"><span>Discount</span><input id="x-disc" data-bind="doc.discount" data-num inputmode="decimal"></label>
-          <label class="field"><span>Discount type</span><select id="x-dtype" data-bind="doc.discountType"><option value="amount">Amount</option><option value="percent">Percent %</option></select></label>
-        </div>
-        <label class="field"><span>Delivery / logistics fee</span><input id="x-del" data-bind="doc.delivery" data-num inputmode="decimal"></label>
+        <label class="field"><span>Delivery / logistics fee</span><input id="x-del" data-bind="doc.delivery" inputmode="decimal" placeholder="0"></label>
         <div class="row2" style="align-items:end">
           <label class="check"><input type="checkbox" id="x-vat" data-bind="doc.vatOn"> Add VAT</label>
-          <label class="field"><span>VAT rate %</span><input id="x-vatr" data-bind="doc.vatRate" data-num inputmode="decimal"></label>
+          <label class="field"><span>VAT rate %</span><input id="x-vatr" data-bind="doc.vatRate" inputmode="decimal"></label>
         </div>
-        <label class="field" id="paid-field"><span id="paid-label">Amount already paid (deposit)</span><input id="x-paid" data-bind="doc.amountPaid" data-num inputmode="decimal"></label>
-      </div>
-    </details>
+        <label class="field"><span>Currency</span><select id="d-cur" data-bind="doc.currency"><option value="NGN">₦ Naira</option><option value="USD">$ US Dollar</option><option value="GBP">£ Pound</option></select></label>
+      </div></details>
+      <div class="sumbox" id="sumbox"></div>
+    </section>
 
-    <details class="panel">
-      <summary>Notes &amp; signature</summary>
-      <div class="panel-body">
-        <label class="field"><span>Note to client</span><textarea id="n-notes" data-bind="doc.notes"></textarea></label>
-        <label class="field"><span>Signature style</span>
-          <select id="s-mode" data-bind="profile.business.signMode"><option value="type">Typed (handwritten look)</option><option value="image">Upload my signature</option><option value="none">No signature</option></select>
-        </label>
-        <label class="field" id="sign-text-field"><span>Signature text</span><input id="s-text" data-bind="profile.business.signText"></label>
-        <div class="upload" id="sign-upload" hidden>
-          <div class="thumb" id="sign-thumb"></div>
-          <label class="btn sm">Upload signature<input type="file" id="sign-file" accept="image/*"></label>
-        </div>
-        <div class="row2">
-          <label class="field"><span>Signed by</span><input id="s-name" data-bind="profile.business.signName"></label>
-          <label class="field"><span>Title</span><input id="s-title" data-bind="profile.business.signTitle"></label>
-        </div>
-        <label class="check"><input type="checkbox" id="s-seal" data-bind="profile.design.seal"> Show company seal</label>
+    <!-- STEP 4 -->
+    <section class="step" data-step="4" hidden>
+      <div class="step-head"><span class="kicker">Step 4 of 6</span><h2 id="pay-title">How should they pay you?</h2><p id="pay-sub">Your bank details are saved for next time.</p></div>
+      <div class="row2">
+        <label class="field"><span>Bank</span><input id="k-bank" data-bind="profile.bank.bankName" placeholder="e.g. GTBank"></label>
+        <label class="field"><span>Account number</span><input id="k-no" data-bind="profile.bank.accountNumber" inputmode="numeric" maxlength="10" placeholder="10 digits"></label>
       </div>
-    </details>
-
-    <details class="panel" open>
-      <summary>Design</summary>
-      <div class="panel-body">
-        <div class="tpl-grid" role="group" aria-label="Template">
-          <button type="button" class="tpl" data-template="royal" aria-pressed="true"><i></i>Royal</button>
-          <button type="button" class="tpl" data-template="atelier" aria-pressed="false"><i></i>Atelier</button>
-          <button type="button" class="tpl" data-template="noir" aria-pressed="false"><i></i>Noir</button>
-        </div>
-        <div class="field"><span>Brand colour</span>
-          <div class="swatches" id="swatches">
-            <button type="button" class="swatch" data-color="#0F3D2E" style="background:#0F3D2E" aria-label="Emerald"></button>
-            <button type="button" class="swatch" data-color="#5A1A24" style="background:#5A1A24" aria-label="Oxblood"></button>
-            <button type="button" class="swatch" data-color="#14264F" style="background:#14264F" aria-label="Royal blue"></button>
-            <button type="button" class="swatch" data-color="#3B1F4A" style="background:#3B1F4A" aria-label="Aubergine"></button>
-            <button type="button" class="swatch" data-color="#1E1E1E" style="background:#1E1E1E" aria-label="Onyx"></button>
-            <button type="button" class="swatch" data-color="#6B4A1E" style="background:#6B4A1E" aria-label="Cognac"></button>
-            <span class="swatch-custom" title="Custom colour"><input type="color" id="brand-custom" aria-label="Custom brand colour"></span>
-          </div>
+      <label class="field"><span>Account name</span><input id="k-name" data-bind="profile.bank.accountName"></label>
+      <div id="status-block" class="field"><span>Has the client paid anything yet?</span>
+        <div class="chips" role="group" aria-label="Payment status">
+          <button type="button" data-status="unpaid" aria-pressed="true">Not yet</button>
+          <button type="button" data-status="part" aria-pressed="false">Paid a deposit</button>
+          <button type="button" data-status="paid" aria-pressed="false">Paid in full</button>
+          <button type="button" data-status="overdue" aria-pressed="false">Overdue</button>
         </div>
       </div>
-    </details>
+      <label class="field" id="paid-field"><span>Deposit received</span><input id="x-paid" data-bind="doc.amountPaid" inputmode="decimal" placeholder="0"></label>
+      <details class="more"><summary>Add an online payment link (Paystack, Flutterwave)</summary><div>
+        <label class="field"><span>Payment link</span><input id="k-link" data-bind="profile.bank.payLink" placeholder="https://paystack.com/pay/…"></label>
+      </div></details>
+    </section>
 
-    <details class="panel" id="saved-panel">
-      <summary>Saved documents <span id="saved-count"></span></summary>
-      <div class="panel-body"><div class="saved-list" id="saved-list"></div></div>
-    </details>
+    <!-- STEP 5 -->
+    <section class="step" data-step="5" hidden>
+      <div class="step-head"><span class="kicker">Step 5 of 6</span><h2>Choose your look</h2><p>Pick a design and your brand colour. You can change this any time.</p></div>
+      <div class="tpl-grid" role="group" aria-label="Design">
+        <button type="button" class="tpl" data-template="royal" aria-pressed="true"><i></i><b>Royal</b><small>Colour band, gold lettering</small></button>
+        <button type="button" class="tpl" data-template="atelier" aria-pressed="false"><i></i><b>Atelier</b><small>Clean white, magazine style</small></button>
+        <button type="button" class="tpl" data-template="noir" aria-pressed="false"><i></i><b>Noir</b><small>Black with a gold frame</small></button>
+      </div>
+      <div class="field"><span>Brand colour</span>
+        <div class="swatches">
+          <button type="button" class="swatch" data-color="#0F3D2E" style="background:#0F3D2E" aria-label="Emerald"></button>
+          <button type="button" class="swatch" data-color="#5A1A24" style="background:#5A1A24" aria-label="Oxblood"></button>
+          <button type="button" class="swatch" data-color="#14264F" style="background:#14264F" aria-label="Royal blue"></button>
+          <button type="button" class="swatch" data-color="#3B1F4A" style="background:#3B1F4A" aria-label="Aubergine"></button>
+          <button type="button" class="swatch" data-color="#1E1E1E" style="background:#1E1E1E" aria-label="Onyx"></button>
+          <button type="button" class="swatch" data-color="#6B4A1E" style="background:#6B4A1E" aria-label="Cognac"></button>
+          <span class="swatch-custom" title="Any colour"><input type="color" id="brand-custom" aria-label="Pick any brand colour"></span>
+        </div>
+      </div>
+      <div class="field"><span>Signature</span>
+        <div class="chips" role="group" aria-label="Signature">
+          <button type="button" data-sign="type" aria-pressed="true">Write my name</button>
+          <button type="button" data-sign="image" aria-pressed="false">Upload signature</button>
+          <button type="button" data-sign="none" aria-pressed="false">None</button>
+        </div>
+      </div>
+      <div class="row2" id="sign-type-row">
+        <label class="field"><span>Name as signature</span><input id="s-text" data-bind="profile.business.signText" placeholder="e.g. Adaeze O."></label>
+        <label class="field"><span>Your title</span><input id="s-title" data-bind="profile.business.signTitle" placeholder="e.g. CEO"></label>
+      </div>
+      <div class="upload" id="sign-upload" hidden>
+        <div class="thumb" id="sign-thumb"><span>SIGN</span></div>
+        <label class="btn sm">Upload signature photo<input type="file" id="sign-file" accept="image/*"></label>
+      </div>
+      <label class="field"><span>Full name under signature</span><input id="s-name" data-bind="profile.business.signName"></label>
+      <label class="check"><input type="checkbox" id="s-seal" data-bind="profile.design.seal"> Add my company seal</label>
+      <label class="field"><span>Note to client <em>(optional)</em></span><textarea id="n-notes" data-bind="doc.notes" placeholder="e.g. Kindly send proof of payment on WhatsApp."></textarea></label>
+    </section>
+
+    <!-- STEP 6 -->
+    <section class="step" data-step="6" hidden>
+      <div class="step-head"><span class="kicker">Step 6 of 6</span><h2>Send it in style</h2><p>Your <span id="send-doclabel">invoice</span> is ready.</p></div>
+      <div class="send-hero">
+        <h3>Private invoice link</h3>
+        <p>Your client gets a link, not just a file. Here's what they see:</p>
+        <ul>
+          <li>An envelope sealed with your company seal that they tap to open</li>
+          <li>A short guide: what they're paying for, how to pay, then sending proof</li>
+          <li>Copy your account number in one tap, then download the PDF</li>
+          <li>A QR code so anyone can check the invoice is genuine</li>
+          <li>You see when they open it</li>
+        </ul>
+        <div class="link-box" id="link-box" hidden><code id="link-text"></code><button class="btn sm gold" type="button" id="copy-link">Copy</button></div>
+        <div style="display:grid; gap:8px">
+          <button class="btn gold block" type="button" id="make-link">Create private link</button>
+          <button class="btn ghost block" type="button" id="preview-client">See what your client sees</button>
+        </div>
+      </div>
+      <div class="send-grid">
+        <button class="send-card" type="button" data-act="whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg><b>Send on WhatsApp</b><small>Opens a chat with the link and amount</small></button>
+        <button class="send-card" type="button" data-act="pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 14h6M9 17h4"/></svg><b>Download PDF</b><small>A4, ready to print or email</small></button>
+        <button class="send-card" type="button" data-act="image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg><b>Save as image</b><small>To post on WhatsApp status</small></button>
+        <button class="send-card" type="button" data-act="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12h14"/></svg><b>Start a new one</b><small>Keeps your business details</small></button>
+      </div>
+      <h3 class="sub">Sent and saved</h3>
+      <div class="saved-list" id="saved-list"></div>
+    </section>
+
+    <div class="step-nav">
+      <button class="btn ghost" type="button" id="back-btn">Back</button>
+      <div class="total-mini"><small id="mini-label">INV-0042</small><b id="mini-total">₦0.00</b></div>
+      <button class="btn mobile-preview-btn" type="button" id="open-preview">Preview</button>
+      <button class="btn primary" type="button" id="next-btn">Next</button>
+    </div>
   </aside>
 
-  <!-- Preview -->
-  <section class="stage" aria-label="Preview">
-    <div class="toolbar">
-      <button class="btn" type="button" data-act="new">New</button>
-      <button class="btn" type="button" data-act="save">Save</button>
-      <span class="spacer"></span>
-      <button class="btn" type="button" data-act="whatsapp">Send on WhatsApp</button>
-      <button class="btn" type="button" data-act="image">Save image</button>
-      <button class="btn primary" type="button" data-act="pdf">Download PDF</button>
-    </div>
+  <section class="stage" aria-label="Live preview">
+    <div class="stage-head"><span>Live preview</span><button class="btn sm stage-close" type="button" id="close-preview">Close preview</button></div>
     <div class="stage-inner" id="stage-inner">
       <div class="paper-wrap" id="paper-wrap"><div class="paper-scale" id="paper-scale"><div class="paper-shadow" id="paper"></div></div></div>
     </div>
   </section>
 </main>
-
-<nav class="mobilebar" aria-label="Actions">
-  <button type="button" data-view-btn="edit" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>Edit</button>
-  <button type="button" data-view-btn="preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Preview</button>
-  <button type="button" data-act="whatsapp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20z"/></svg>WhatsApp</button>
-  <button type="button" id="more-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export</button>
-</nav>
-<div class="scrim" id="scrim" hidden></div>
-<div class="sheet" id="sheet" hidden>
-  <button class="btn primary" type="button" data-act="pdf">Download PDF</button>
-  <button class="btn" type="button" data-act="image">Save as image (for WhatsApp)</button>
-  <button class="btn" type="button" data-act="save">Save to my documents</button>
-  <button class="btn" type="button" data-act="new">Start a new document</button>
 </div>
+
+<!-- ===== Client view (the private link) ===== -->
+<div class="cv" id="cv" hidden></div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div id="print-root"></div>
 <div id="export-root" aria-hidden="true"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
 "use strict";
@@ -662,7 +806,7 @@ const CONFIG = {
   OFFLINE_GRACE_DAYS: 7,   // how long the app works offline before it must re-check the licence
 };
 
-/* ---------- tiny helpers ---------- */
+/* ---------- helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const LS = {
@@ -677,142 +821,33 @@ const round2 = (n) => Math.round(n * 100) / 100;
 const iso = (d) => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); };
 const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d; };
 const fmtDate = (s) => { if (!s) return "—"; const d = new Date(s + "T12:00:00"); return isNaN(d) ? s : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }); };
+const daysUntil = (s) => { if (!s) return null; const d = new Date(s + "T12:00:00"); const t = new Date(); t.setHours(12, 0, 0, 0); return Math.round((d - t) / 864e5); };
 const getPath = (o, p) => p.split(".").reduce((a, k) => (a == null ? a : a[k]), o);
 const setPath = (o, p, v) => { const ks = p.split("."); const last = ks.pop(); ks.reduce((a, k) => (a[k] ??= {}), o)[last] = v; };
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const CUR = {
-  NGN: { sym: "₦", major: "Naira", minor: "Kobo" },
-  USD: { sym: "$", major: "Dollars", minor: "Cents" },
-  GBP: { sym: "£", major: "Pounds", minor: "Pence" },
-};
-const money = (n, c = "NGN") => CUR[c].sym + new Intl.NumberFormat("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+const CUR = { NGN: { sym: "₦", major: "Naira", minor: "Kobo" }, USD: { sym: "$", major: "Dollars", minor: "Cents" }, GBP: { sym: "£", major: "Pounds", minor: "Pence" } };
+const money = (n, c = "NGN") => (CUR[c] || CUR.NGN).sym + new Intl.NumberFormat("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+const LABEL = { invoice: "Invoice", receipt: "Receipt", quotation: "Quotation" };
+const PREFIX = { invoice: "INV", receipt: "RCT", quotation: "QUO" };
+const pad = (n) => String(n).padStart(4, "0");
 
 /* ---------- amount in words (Nigerian/British style) ---------- */
 const ONES = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
 const TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
-function under1000(n) {
-  const h = Math.floor(n / 100), r = n % 100; let s = "";
-  if (h) s = ONES[h] + " hundred";
-  if (r) { if (h) s += " and "; s += r < 20 ? ONES[r] : TENS[Math.floor(r / 10)] + (r % 10 ? "-" + ONES[r % 10] : ""); }
-  return s;
-}
-function intWords(n) {
-  if (n === 0) return "zero";
+function under1000(n) { const h = Math.floor(n / 100), r = n % 100; let s = ""; if (h) s = ONES[h] + " hundred"; if (r) { if (h) s += " and "; s += r < 20 ? ONES[r] : TENS[Math.floor(r / 10)] + (r % 10 ? "-" + ONES[r % 10] : ""); } return s; }
+function intWords(n0) {
+  let n = n0; if (n === 0) return "zero";
   const scales = ["", "thousand", "million", "billion", "trillion"]; const parts = []; let i = 0;
-  while (n > 0 && i < scales.length) {
-    const c = n % 1000;
-    if (c) parts.unshift(under1000(c) + (scales[i] ? " " + scales[i] : ""));
-    n = Math.floor(n / 1000); i++;
-  }
-  // "one thousand and five"
-  const lowest = parts.length > 1 && (Math.round(arguments[0]) % 1000) < 100 && (Math.round(arguments[0]) % 1000) > 0;
-  if (lowest) parts[parts.length - 1] = "and " + parts[parts.length - 1];
+  while (n > 0 && i < scales.length) { const c = n % 1000; if (c) parts.unshift(under1000(c) + (scales[i] ? " " + scales[i] : "")); n = Math.floor(n / 1000); i++; }
+  const low = n0 % 1000; if (parts.length > 1 && low > 0 && low < 100) parts[parts.length - 1] = "and " + parts[parts.length - 1];
   return parts.join(" ");
 }
 function amountInWords(amount, c = "NGN") {
-  const v = Math.max(0, round2(amount)); const major = Math.floor(v); const minor = Math.round((v - major) * 100);
-  let s = intWords(major) + " " + CUR[c].major;
-  if (minor) s += ", " + intWords(minor) + " " + CUR[c].minor;
-  s += " only";
+  const cur = CUR[c] || CUR.NGN; const v = Math.max(0, round2(amount)); const major = Math.floor(v); const minor = Math.round((v - major) * 100);
+  let s = intWords(major) + " " + cur.major; if (minor) s += ", " + intWords(minor) + " " + cur.minor; s += " only";
   return s.replace(/\b([a-z])/g, (m, ch, idx, str) => (str.slice(idx, idx + 4) === "and " ? ch : ch.toUpperCase()));
 }
-
-/* ---------- licence (device-locked) ---------- */
-const DEVICE_KEY = "aurum.device";
-const deviceId = LS.get(DEVICE_KEY, null) || (() => { const d = uid(); LS.set(DEVICE_KEY, d); return d; })();
-const configured = () => !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY);
-let licence = LS.get("aurum.licence", null);
-
-async function checkKey(key) {
-  const res = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/rpc/activate_license", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: "Bearer " + CONFIG.SUPABASE_ANON_KEY },
-    body: JSON.stringify({ p_key: key, p_device: deviceId }),
-  });
-  if (!res.ok) throw new Error("server");
-  return res.json();
-}
-const REASONS = {
-  invalid: "That licence key is not valid. Check it and try again.",
-  revoked: "This licence has been disabled. Contact the seller.",
-  device_limit: "This key is already in use on its maximum number of devices. Contact the seller to move it.",
-};
-
-async function bootLicence() {
-  $("#gate-fine").innerHTML = CONFIG.BUY_LINK
-    ? `One licence works on up to 2 devices. <a href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Buy a licence</a>`
-    : "One licence works on up to 2 devices.";
-  if (licence?.mode === "demo") return startApp();
-  if (licence?.mode === "full" && configured()) {
-    try {
-      const r = await checkKey(licence.key);
-      if (r.ok) { licence = { ...licence, email: r.email, checkedAt: Date.now(), used: r.devices_used, max: r.max_devices }; LS.set("aurum.licence", licence); return startApp(); }
-      LS.del("aurum.licence"); licence = null; return showGate(REASONS[r.reason] || REASONS.invalid);
-    } catch {
-      const age = (Date.now() - (licence.checkedAt || 0)) / 864e5;
-      if (age < CONFIG.OFFLINE_GRACE_DAYS) return startApp();
-      return showGate("Connect to the internet so we can confirm your licence.");
-    }
-  }
-  showGate("");
-}
-function showGate(msg) { $("#gate").hidden = false; $("#lic-err").textContent = msg || ""; setTimeout(() => $("#lic-key").focus(), 50); }
-
-$("#gate-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const key = $("#lic-key").value.trim().toUpperCase();
-  if (!key) return;
-  if (!configured()) { $("#lic-err").textContent = "Licensing isn't set up yet. Use the demo for now."; return; }
-  const btn = $("#lic-submit"); btn.disabled = true; btn.textContent = "Checking…"; $("#lic-err").textContent = "";
-  try {
-    const r = await checkKey(key);
-    if (r.ok) {
-      licence = { mode: "full", key, email: r.email, checkedAt: Date.now(), used: r.devices_used, max: r.max_devices };
-      LS.set("aurum.licence", licence); $("#gate").hidden = true; startApp(); toast("Licence activated. Welcome to Aurum.");
-    } else $("#lic-err").textContent = REASONS[r.reason] || REASONS.invalid;
-  } catch { $("#lic-err").textContent = "We couldn't reach the licence server. Check your internet and try again."; }
-  btn.disabled = false; btn.textContent = "Activate";
-});
-$("#lic-demo").addEventListener("click", () => { licence = { mode: "demo" }; LS.set("aurum.licence", licence); $("#gate").hidden = true; startApp(); });
-const isDemo = () => licence?.mode !== "full";
-
-/* ---------- state ---------- */
-const PREFIX = { invoice: "INV", receipt: "RCT", quotation: "QUO" };
-const LABEL = { invoice: "Invoice", receipt: "Receipt", quotation: "Quotation" };
-const pad = (n) => String(n).padStart(4, "0");
-
-const SAMPLE_PROFILE = {
-  isSample: true,
-  business: { name: "Adaeze Couture", tagline: "Bespoke bridal & occasion wear", address: "14B Admiralty Way, Lekki Phase 1, Lagos", phone: "0803 123 4567", email: "hello@adaezecouture.ng", rc: "RC 1234567", tin: "", logo: "", signMode: "type", signText: "Adaeze O.", signImg: "", signName: "Adaeze Okafor", signTitle: "Creative Director" },
-  bank: { bankName: "GTBank", accountName: "Adaeze Couture Ltd", accountNumber: "0123456789", payLink: "" },
-  design: { template: "royal", brand: "#0F3D2E", seal: true },
-  counters: { invoice: 41, receipt: 17, quotation: 8 },
-};
-const blankItem = () => ({ id: uid(), desc: "", note: "", qty: 1, price: 0 });
-const sampleDoc = () => ({
-  id: uid(), type: "invoice", number: "INV-0042", issueDate: iso(new Date()), dueDate: iso(addDays(7)), status: "part", currency: "NGN",
-  client: { name: "Mrs. Funmilayo Bakare", company: "", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 876 5432", email: "" },
-  items: [
-    { id: uid(), desc: "Bespoke lace bridal gown", note: "French lace, hand-beaded bodice, two fittings", qty: 1, price: 385000 },
-    { id: uid(), desc: "Aso-ebi fitting & alterations", note: "Bride's family, 3 outfits", qty: 3, price: 25000 },
-    { id: uid(), desc: "Gele tying & styling", note: "Wedding day, bride and mother", qty: 2, price: 15000 },
-  ],
-  discountType: "amount", discount: 20000, delivery: 5000, vatOn: false, vatRate: 7.5, amountPaid: 150000,
-  notes: "Balance is due before the final fitting. Kindly send your proof of payment on WhatsApp.",
-});
-
-const S = {
-  profile: LS.get("aurum.profile", null) || structuredClone(SAMPLE_PROFILE),
-  doc: LS.get("aurum.draft", null) || sampleDoc(),
-};
-S.profile.design ??= { template: "royal", brand: "#0F3D2E", seal: true };
-S.profile.counters ??= { invoice: 0, receipt: 0, quotation: 0 };
-let history = LS.get("aurum.history", []);
-
-let saveTimer;
-const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { LS.set("aurum.profile", S.profile); LS.set("aurum.draft", S.doc); }, 300); };
-
-/* ---------- totals ---------- */
 function calc(d) {
   const sub = round2(d.items.reduce((a, it) => a + num(it.qty) * num(it.price), 0));
   const disc = round2(d.discountType === "percent" ? sub * num(d.discount) / 100 : num(d.discount));
@@ -820,17 +855,37 @@ function calc(d) {
   const vat = d.vatOn ? round2(taxable * num(d.vatRate) / 100) : 0;
   const delivery = num(d.delivery);
   const total = round2(taxable + vat + delivery);
-  const paid = d.type === "receipt" ? total : round2(num(d.amountPaid));
-  const balance = Math.max(0, round2(total - paid));
-  return { sub, disc, vat, delivery, total, paid, balance };
+  const paid = d.type === "receipt" || d.status === "paid" ? total : d.status === "part" ? round2(num(d.amountPaid)) : 0;
+  return { sub, disc, vat, delivery, total, paid, balance: Math.max(0, round2(total - paid)) };
+}
+function rgba(hex, a) { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim()); if (!m) return `rgba(15,61,46,${a})`; const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+function initials(name) { return (name || "A").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase(); }
+function waNumber(p) { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("0") && d.length === 11) d = "234" + d.slice(1); return d; }
+function openLink(href) { const a = document.createElement("a"); a.href = href; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); }
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch { const t = document.createElement("textarea"); t.value = text; t.style.position = "fixed"; t.style.opacity = "0"; document.body.appendChild(t); t.select(); let ok = false; try { ok = document.execCommand("copy"); } catch {} t.remove(); return ok; }
+}
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2800); }
+
+/* ---------- QR for verification ---------- */
+const qrCache = new Map();
+function qrFor(link) {
+  if (!link || link.length > 600 || typeof QRCode !== "function") return "";
+  if (qrCache.has(link)) return qrCache.get(link);
+  try {
+    const d = document.createElement("div");
+    new QRCode(d, { text: link, width: 256, height: 256, colorDark: "#111111", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+    const c = d.querySelector("canvas"); const url = c ? c.toDataURL("image/png") : "";
+    qrCache.set(link, url); return url;
+  } catch { return ""; }
 }
 
-function rgba(hex, a) { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim()); if (!m) return `rgba(15,61,46,${a})`; const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
-
-/* ---------- seal SVG (unique per business) ---------- */
-function initials(name) { return (name || "A").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase(); }
-function sealSVG(name, color, idSuffix) {
-  const pid = "seal-" + idSuffix;
+/* ---------- seal (unique per business) ---------- */
+let sealN = 0;
+function sealSVG(name, color) {
+  const pid = "seal-" + (++sealN);
   const ring = `${(name || "Your Business").toUpperCase()} · OFFICIAL DOCUMENT · `;
   return `<svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
     <defs><path id="${pid}" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"/></defs>
@@ -843,72 +898,50 @@ function sealSVG(name, color, idSuffix) {
   </svg>`;
 }
 
-/* ---------- invoice markup ---------- */
-let renderCount = 0;
-function invoiceHTML(opts = {}) {
-  const { profile: P, doc: D } = S; const B = P.business, K = P.bank, G = P.design;
-  const t = calc(D); const c = D.currency; const type = D.type; const sid = (opts.sid || "v") + (++renderCount);
-  const goldOnDark = G.template === "noir" ? "#D2B47C" : G.template === "royal" ? G.brand : G.brand;
-  const headLogo = B.logo
-    ? `<img src="${B.logo}" alt="">`
-    : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${G.template === "atelier" ? G.brand : "#C9A86A"}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${G.template === "atelier" ? G.brand : "#C9A86A"}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${G.template === "atelier" ? G.brand : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
-
-  const showStatusStamp = type === "receipt" || (type === "invoice" && (D.status === "paid" || D.status === "overdue"));
-  const stampKind = type === "receipt" ? "paid" : D.status;
-  const stampText = stampKind === "paid" ? "PAID" : "OVERDUE";
-  const stampSub = stampKind === "paid" ? fmtDate(D.issueDate).toUpperCase() : "PAYMENT DUE " + fmtDate(D.dueDate).toUpperCase();
-
-  const stampHTML = showStatusStamp ? `<div class="stamp ${stampKind}${opts.stampIn ? " stamp-in" : ""}">${stampText}<small>${esc(stampSub)}</small></div>` : "";
+/* ---------- the invoice document ---------- */
+function invoiceHTML(P, D, opts = {}) {
+  const B = P.business, K = P.bank, G = P.design; const t = calc(D); const c = D.currency; const type = D.type;
+  const lineCol = G.template === "atelier" ? G.brand : "#C9A86A";
+  const headLogo = B.logo ? `<img src="${B.logo}" alt="">`
+    : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${lineCol}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${lineCol}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${G.template === "atelier" ? G.brand : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
+  const stampKind = type === "receipt" ? "paid" : type === "invoice" && (D.status === "paid" || D.status === "overdue") ? D.status : "";
+  const stampHTML = stampKind ? `<div class="stamp ${stampKind}${opts.stampIn ? " stamp-in" : ""}">${stampKind === "paid" ? "PAID" : "OVERDUE"}<small>${esc(stampKind === "paid" ? fmtDate(D.issueDate).toUpperCase() : "WAS DUE " + fmtDate(D.dueDate).toUpperCase())}</small></div>` : "";
   const partyLabel = type === "receipt" ? "Received from" : type === "quotation" ? "Prepared for" : "Billed to";
+  const statusText = { unpaid: "Unpaid", part: "Part-paid", paid: "Paid", overdue: "Overdue" }[D.status] || "Unpaid";
   const dateRows = [
     `<div><dt>${type === "receipt" ? "Payment date" : "Issued"}</dt><dd>${fmtDate(D.issueDate)}</dd></div>`,
-    type === "invoice" ? `<div><dt>Due</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
+    type === "invoice" ? `<div><dt>Pay by</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
     type === "quotation" ? `<div><dt>Valid until</dt><dd>${fmtDate(D.dueDate)}</dd></div>` : "",
-    type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${D.status}">${{ unpaid: "Unpaid", part: "Part-paid", paid: "Paid", overdue: "Overdue" }[D.status] || "Unpaid"}</span></dd></div>` : "",
+    type === "invoice" ? `<div><dt>Status</dt><dd><span class="pill ${esc(D.status)}">${statusText}</span></dd></div>` : "",
     type === "receipt" ? `<div><dt>Status</dt><dd><span class="pill paid">Paid in full</span></dd></div>` : "",
   ].join("");
-
-  const rows = D.items.length
-    ? D.items.map((it, i) => `<tr style="--i:${i}" class="${opts.newIds?.has(it.id) ? "row-new" : ""}">
-        <td class="n">${String(i + 1).padStart(2, "0")}</td>
-        <td class="desc"><b>${esc(it.desc) || "<span style='opacity:.45'>Item description</span>"}</b>${it.note ? `<small>${esc(it.note)}</small>` : ""}</td>
-        <td class="num q">${esc(num(it.qty))}</td>
-        <td class="num p">${money(num(it.price), c)}</td>
-        <td class="num t">${money(num(it.qty) * num(it.price), c)}</td></tr>`).join("")
+  const rows = D.items.length ? D.items.map((it, i) => `<tr style="--i:${i}" class="${opts.newIds?.has(it.id) ? "row-new" : ""}">
+      <td class="n">${String(i + 1).padStart(2, "0")}</td>
+      <td class="desc"><b>${esc(it.desc) || "<span style='opacity:.45'>Item description</span>"}</b>${it.note ? `<small>${esc(it.note)}</small>` : ""}</td>
+      <td class="num q">${esc(num(it.qty))}</td><td class="num p">${money(num(it.price), c)}</td><td class="num t">${money(num(it.qty) * num(it.price), c)}</td></tr>`).join("")
     : `<tr class="empty"><td colspan="5">Add your first item to get started</td></tr>`;
-
-  const showPaid = type === "invoice" && t.paid > 0;
-  const grandLabel = type === "receipt" ? "Amount received" : type === "quotation" ? "Quoted total" : "Total due";
+  const showPart = type === "invoice" && D.status === "part" && t.paid > 0;
+  const grandLabel = type === "receipt" ? "Amount received" : type === "quotation" ? "Quoted total" : "Total";
   const totals = `
     <div><dt>Subtotal</dt><dd>${money(t.sub, c)}</dd></div>
     ${t.disc ? `<div><dt>Discount${D.discountType === "percent" ? ` (${num(D.discount)}%)` : ""}</dt><dd>− ${money(t.disc, c)}</dd></div>` : ""}
     ${D.vatOn ? `<div><dt>VAT (${num(D.vatRate)}%)</dt><dd>${money(t.vat, c)}</dd></div>` : ""}
     ${t.delivery ? `<div><dt>Delivery</dt><dd>${money(t.delivery, c)}</dd></div>` : ""}
-    <div class="grand"><span>${grandLabel}</span><span class="amt foil" data-amount="${t.total}">${money(t.total, c)}</span></div>
-    ${showPaid ? `<div class="balance"><dt>Paid so far</dt><dd>${money(t.paid, c)}</dd></div><div class="balance"><dt><b>Balance due</b></dt><dd>${money(t.balance, c)}</dd></div>` : ""}`;
-
-  const bankRows = [
-    K.bankName && `<div><dt>Bank</dt><dd>${esc(K.bankName)}</dd></div>`,
-    K.accountName && `<div><dt>Account name</dt><dd>${esc(K.accountName)}</dd></div>`,
-    K.accountNumber && `<div><dt>Account no.</dt><dd class="acct">${esc(K.accountNumber)}</dd></div>`,
-  ].filter(Boolean).join("");
+    <div class="grand"><span>${grandLabel}</span><span class="amt foil">${money(t.total, c)}</span></div>
+    ${showPart ? `<div class="balance"><dt>Deposit paid</dt><dd>${money(t.paid, c)}</dd></div><div class="balance"><dt><b>Balance due</b></dt><dd>${money(t.balance, c)}</dd></div>` : ""}`;
+  const bankRows = [K.bankName && `<div><dt>Bank</dt><dd>${esc(K.bankName)}</dd></div>`, K.accountName && `<div><dt>Account name</dt><dd>${esc(K.accountName)}</dd></div>`, K.accountNumber && `<div><dt>Account no.</dt><dd class="acct">${esc(K.accountNumber)}</dd></div>`].filter(Boolean).join("");
   const bank = type === "receipt"
     ? `<div class="bank"><span class="lbl">Payment received</span><dl><div><dt>Amount</dt><dd>${money(t.total, c)}</dd></div><div><dt>Date</dt><dd>${fmtDate(D.issueDate)}</dd></div><div><dt>Reference</dt><dd>${esc(D.number)}</dd></div></dl></div>`
-    : (bankRows || K.payLink)
-      ? `<div class="bank"><span class="lbl">Payment details</span><dl>${bankRows}</dl>${K.payLink ? `<div class="paylink">Pay online: <b>${esc(K.payLink)}</b></div>` : ""}</div>`
-      : `<div></div>`;
-
+    : (bankRows || K.payLink) ? `<div class="bank"><span class="lbl">Payment details</span><dl>${bankRows}</dl>${K.payLink ? `<div class="paylink">Pay online: <b>${esc(K.payLink)}</b></div>` : ""}</div>` : `<div></div>`;
   const signMark = B.signMode === "image" && B.signImg ? `<img src="${B.signImg}" alt="">` : B.signMode === "type" ? esc(B.signText || B.signName) : "";
   const sign = B.signMode === "none" && !G.seal ? "<div></div>" : `<div class="sign">
-      ${G.seal ? sealSVG(B.name, G.template === "noir" ? "#D2B47C" : G.brand, sid) : ""}
-      ${B.signMode !== "none" ? `<div class="sign-block"><div class="sign-mark">${signMark}</div><div class="sign-line">${esc(B.signName)}</div><div class="sign-title">${esc(B.signTitle)}</div></div>` : ""}
-    </div>`;
-
+      ${G.seal ? sealSVG(B.name, G.template === "noir" ? "#D2B47C" : G.brand) : ""}
+      ${B.signMode !== "none" ? `<div class="sign-block"><div class="sign-mark">${signMark}</div><div class="sign-line">${esc(B.signName)}</div><div class="sign-title">${esc(B.signTitle)}</div></div>` : ""}</div>`;
   const fromLines = [B.address, B.phone, B.email, [B.rc, B.tin && "TIN " + B.tin].filter(Boolean).join(" · ")].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const clientLines = [D.client.company, D.client.address, D.client.phone, D.client.email].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const thanks = type === "quotation" ? "We look forward to working with you" : type === "receipt" ? "Thank you for your payment" : "Thank you for your patronage";
-
-  return `<article class="inv t-${G.template}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)}">
+  const verify = opts.qr ? `<div class="verify"><img src="${opts.qr}" alt=""><span>Scan to view online and confirm this ${LABEL[type].toLowerCase()} is genuine</span></div>` : "";
+  return `<article class="inv t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)}">
     <header class="inv-head px">
       <div class="brand"><div class="logo-box">${headLogo}</div><div style="min-width:0"><h1 class="biz-name foil">${esc(B.name) || "Your Business"}</h1>${B.tagline ? `<p class="tagline">${esc(B.tagline)}</p>` : ""}</div></div>
       <div class="doc-title"><span class="doc-type foil">${LABEL[type]}</span><span class="doc-no">No. ${esc(D.number)}</span></div>
@@ -919,260 +952,515 @@ function invoiceHTML(opts = {}) {
       <dl class="dates">${dateRows}</dl>
     </section>
     <div class="px"><table class="items"><thead><tr><th>S/N</th><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <section class="sum px">
-      <div class="words"><label>Amount in words</label><p>${esc(amountInWords(t.total, c))}</p>${stampHTML}</div>
-      <dl class="totals">${totals}</dl>
-    </section>
+    <section class="sum px"><div class="words"><label>Amount in words</label><p>${esc(amountInWords(t.total, c))}</p>${stampHTML}</div><dl class="totals">${totals}</dl></section>
     <section class="foot px">${bank}${sign}</section>
     ${D.notes ? `<section class="notes px"><label>Note</label><p>${esc(D.notes)}</p></section>` : ""}
     <div class="inv-spacer"></div>
-    <footer class="inv-foot px"><span class="ty">${thanks}</span><span class="contact">${esc([B.phone, B.email].filter(Boolean).join("  ·  "))}</span></footer>
-    ${isDemo() ? `<div class="wm">${"<span>AURUM DEMO</span>".repeat(18)}</div>` : ""}
+    <footer class="inv-foot px"><span class="ty">${thanks}</span><span class="contact">${esc([B.phone, B.email].filter(Boolean).join("  ·  "))}</span>${verify}</footer>
+    ${opts.demo ? `<div class="ribbon">DEMO</div>` : ""}
   </article>`;
 }
 
-/* ---------- preview rendering + animation ---------- */
+/* ---------- export (PDF via print, image via html2canvas) ---------- */
+const fileBase = (D) => `${D.number}-${(D.client.name || "client").replace(/[^a-z0-9]+/gi, "-")}`.replace(/-+$/, "");
+async function fontsReady() { try { await document.fonts.ready; } catch {} }
+async function exportPDF(P, D, opts) {
+  await fontsReady();
+  const root = $("#print-root"); root.innerHTML = invoiceHTML(P, D, opts);
+  document.body.classList.add("printing");
+  const old = document.title; document.title = fileBase(D);
+  const done = () => { document.body.classList.remove("printing"); root.innerHTML = ""; document.title = old; window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  setTimeout(() => { window.print(); setTimeout(done, 1500); }, 80);
+  toast("Choose “Save as PDF” in the print window");
+}
+async function exportImage(P, D, opts) {
+  toast("Preparing image…");
+  try {
+    if (typeof html2canvas !== "function") throw new Error("html2canvas missing");
+    await fontsReady();
+    const root = $("#export-root"); root.innerHTML = invoiceHTML(P, D, { ...opts, static: true });
+    let cv; try { cv = await html2canvas(root.firstElementChild, { scale: 2, backgroundColor: null, useCORS: true, logging: false, windowWidth: 1200 }); } finally { root.innerHTML = ""; }
+    const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+    const file = new File([blob], fileBase(D) + ".png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: `${LABEL[D.type]} ${D.number}` }); return; } catch (err) { if (err?.name === "AbortError") return; }
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+    toast("Image saved");
+  } catch (err) { console.error("Image export failed", err); toast("Couldn’t create the image. Check your internet and try again."); }
+}
+function fitInto(container, P, D, opts) {
+  container.innerHTML = `<div class="paper-scale">${invoiceHTML(P, D, opts)}</div>`;
+  const s = Math.min(1, container.clientWidth / 794); const sc = container.firstElementChild;
+  sc.style.transform = `scale(${s})`; container.style.height = sc.firstElementChild.offsetHeight * s + "px";
+}
+
+/* ---------- server (Supabase) ---------- */
+const configured = () => !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY);
+async function rpc(fn, body) {
+  const res = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/rpc/" + fn, {
+    method: "POST", headers: { "Content-Type": "application/json", apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: "Bearer " + CONFIG.SUPABASE_ANON_KEY }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error("server " + res.status);
+  return res.json();
+}
+
+/* ---------- link encoding for demo links (no server needed) ---------- */
+function b64u(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+function unb64u(s) { const b = atob(s.replace(/-/g, "+").replace(/_/g, "/")); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+async function encodePayload(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  if ("CompressionStream" in window) { const buf = await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer(); return "z" + b64u(new Uint8Array(buf)); }
+  return "j" + b64u(bytes);
+}
+async function decodePayload(s) {
+  const kind = s[0], bytes = unb64u(decodeURIComponent(s.slice(1)));
+  if (kind === "z") { const buf = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer(); return JSON.parse(new TextDecoder().decode(buf)); }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+/* =========================================================
+   CLIENT VIEW — what the customer sees when they open the link
+   ========================================================= */
+function openClientView(payload, ctx = {}) {
+  const P = payload.profile, D = payload.doc, B = P.business, K = P.bank, c = D.currency, t = calc(D), type = D.type;
+  const cv = $("#cv"); cv.hidden = false; cv.scrollTop = 0; cv.style.setProperty("--brand", P.design.brand || "#0F3D2E");
+  document.body.style.overflow = "hidden";
+  const docWord = LABEL[type].toLowerCase();
+  const chrome = ctx.preview ? `<span class="cv-preview-tag">Client preview</span><button class="cv-close" type="button" data-cv="close">Close preview</button>` : "";
+  cv.innerHTML = `${chrome}
+    <div class="cv-scene" id="cv-scene">
+      <div class="cv-intro">
+        <span class="cv-eyebrow">A private ${docWord} from</span>
+        <h1 class="cv-from"><span class="foil">${esc(B.name || "Your Business")}</span></h1>
+        <div class="envelope" id="envelope">
+          <div class="env-back"></div>
+          <div class="env-letter"><span>${esc(LABEL[type])} · ${esc(D.number)}</span><b>${esc(B.name)}</b><i style="width:80%"></i><i style="width:60%"></i><i style="width:70%"></i></div>
+          <div class="env-front"></div>
+          <div class="env-flap"></div>
+          <button class="seal-btn" type="button" id="seal-btn" aria-label="Open your ${docWord}">
+            <span class="pulse"></span>
+            <span class="seal-half l"><em>${esc(initials(B.name))}</em></span>
+            <span class="seal-half r"><em>${esc(initials(B.name))}</em></span>
+          </button>
+        </div>
+        <p class="cv-for">Prepared for <b>${esc(D.client.name || "you")}</b></p>
+        <span class="cv-tap">Tap the seal to open</span>
+      </div>
+    </div>`;
+  const open = () => {
+    $("#envelope").classList.add("open"); $("#cv-scene").classList.add("leaving");
+    setTimeout(() => showMain(), reduceMotion ? 50 : 2400);
+  };
+  $("#seal-btn").addEventListener("click", open, { once: true });
+  cv.onclick = (e) => {
+    const b = e.target.closest("[data-cv]"); if (!b) return;
+    const act = b.dataset.cv;
+    if (act === "close") { cv.hidden = true; cv.innerHTML = ""; document.body.style.overflow = ""; }
+    if (act === "copy") copyText(K.accountNumber).then((ok) => toast(ok ? "Account number copied" : "Press and hold the number to copy it"));
+    if (act === "paylink") openLink(K.payLink);
+    if (act === "pdf") ctx.preview && ctx.noDownloads ? toast("Downloads work on the live link") : exportPDF(P, D, docOpts);
+    if (act === "image") ctx.preview && ctx.noDownloads ? toast("Downloads work on the live link") : exportImage(P, D, docOpts);
+    if (act === "paid" || act === "accept") {
+      if (ctx.id && configured()) rpc("claim_paid", { p_id: ctx.id }).catch(() => {});
+      const msg = act === "paid"
+        ? `Hello ${B.name}, I have paid ${money(type === "invoice" && D.status === "part" ? t.balance : t.total, c)} for ${docWord} ${D.number}. Here is my proof of payment.`
+        : `Hello ${B.name}, I accept quotation ${D.number} for ${money(t.total, c)}. How do we proceed?`;
+      openLink(`https://wa.me/${waNumber(B.phone)}?text=${encodeURIComponent(msg)}`);
+    }
+  };
+  const docOpts = { demo: payload.demo, qr: ctx.verified ? qrFor(location.href) : "" };
+
+  function showMain() {
+    const name = D.client.name || "there";
+    const paidFull = type === "receipt" || D.status === "paid";
+    const n = D.items.length;
+    let lbl, amount, sub = "", chip;
+    if (type === "receipt") { lbl = "Payment received"; amount = t.total; chip = `<span class="due-chip ok"><i></i>Paid in full · ${fmtDate(D.issueDate)}</span>`; }
+    else if (type === "quotation") {
+      lbl = "Quoted total"; amount = t.total; const d = daysUntil(D.dueDate);
+      chip = d !== null && d < 0 ? `<span class="due-chip late"><i></i>This quote expired on ${fmtDate(D.dueDate)}</span>` : `<span class="due-chip"><i></i>Price held until ${fmtDate(D.dueDate)}</span>`;
+    } else if (paidFull) { lbl = "Paid in full"; amount = t.total; chip = `<span class="due-chip ok"><i></i>Thank you, nothing left to pay</span>`; }
+    else {
+      lbl = D.status === "part" && t.paid > 0 ? "Balance to pay" : "Amount to pay"; amount = t.balance;
+      if (D.status === "part" && t.paid > 0) sub = `Total ${money(t.total, c)} · deposit paid ${money(t.paid, c)}`;
+      const d = daysUntil(D.dueDate);
+      chip = d === null ? "" : d < 0 || D.status === "overdue" ? `<span class="due-chip late"><i></i>Was due ${fmtDate(D.dueDate)}</span>` : d === 0 ? `<span class="due-chip"><i></i>Due today</span>` : `<span class="due-chip"><i></i>Due ${fmtDate(D.dueDate)} · in ${d} day${d > 1 ? "s" : ""}</span>`;
+    }
+    const intro = type === "receipt" ? `Thank you for your payment. This is your official receipt from ${esc(B.name)}.`
+      : type === "quotation" ? `Thank you for considering ${esc(B.name)}. Here is your personal quotation.`
+      : paidFull ? `Thank you for your payment. Here is your settled invoice from ${esc(B.name)}.`
+      : `Thank you for choosing ${esc(B.name)}. Settling this ${docWord} takes less than a minute.`;
+    const itemsList = `<div class="cv-items">${D.items.map((it) => `<div><span>${esc(it.desc)}${num(it.qty) !== 1 ? ` × ${esc(num(it.qty))}` : ""}${it.note ? `<small>${esc(it.note)}</small>` : ""}</span><b>${money(num(it.qty) * num(it.price), c)}</b></div>`).join("")}</div>`;
+    const bankCard = K.accountNumber ? `<div class="cv-bank">
+        <div class="row"><span>Bank</span><b>${esc(K.bankName)}</b></div>
+        <div class="row"><span>Account name</span><b>${esc(K.accountName)}</b></div>
+        <div class="acct"><strong>${esc(K.accountNumber)}</strong><button class="btn sm gold" type="button" data-cv="copy">Copy</button></div>
+      </div>` : "";
+    const payBtn = K.payLink ? `<button class="btn light block" type="button" data-cv="paylink">Pay online by card or transfer</button>` : "";
+    let steps;
+    if (type === "quotation") steps = [
+      ["What's included", `<p>${n} item${n > 1 ? "s" : ""} prepared for you.</p>${itemsList}`],
+      ["Price held for you", `<p>This price is reserved until <b>${fmtDate(D.dueDate)}</b>.</p>`],
+      ["Ready to go ahead?", `<p>Accept with one tap and ${esc(B.name)} will take it from there.</p><button class="btn gold block" type="button" data-cv="accept">Accept this quotation</button>`]];
+    else if (paidFull) steps = [
+      ["Your order", itemsList],
+      ["Payment confirmed", `<p>${esc(B.name)} received <b>${money(t.total, c)}</b>${type === "receipt" ? ` on ${fmtDate(D.issueDate)}` : ""}.</p>`],
+      ["Keep your copy", `<p>Download your official ${docWord} below. It carries ${esc(B.name)}'s seal and signature.</p>`]];
+    else steps = [
+      ["Review your order", itemsList],
+      ["Pay in one tap", `<p>Copy the account number and pay <b>${money(t.balance, c)}</b> from your banking app.</p>${bankCard}${payBtn}`],
+      ["Send your proof", `<p>Let ${esc(B.name)} know you've paid, so your order is confirmed quickly.</p><button class="btn gold block" type="button" data-cv="paid">I've paid · notify ${esc(B.name)}</button>`]];
+    const logo = B.logo ? `<img src="${B.logo}" alt="">` : `<span class="mono">${esc(initials(B.name))}</span>`;
+    const verifyCard = ctx.verified
+      ? `<div class="cv-verify"><svg viewBox="0 0 40 40" fill="none" stroke="#6FD3A2" stroke-width="2"><circle cx="20" cy="20" r="18"/><path d="M12 20.5l5.5 5.5L28 15" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Verified document</b>Issued by ${esc(B.name)} through Aurum on ${fmtDate(D.issueDate)}. Reference ${esc(D.number)}.</div></div>`
+      : `<div class="cv-verify demo"><svg viewBox="0 0 40 40" fill="none" stroke="#E9D39E" stroke-width="2"><circle cx="20" cy="20" r="18"/><path d="M20 12v10M20 27v1" stroke-linecap="round"/></svg><div><b>${ctx.preview ? "Preview" : "Shared document"}</b>${ctx.preview ? "On a live link, your client sees a green “Verified document” check here." : `Sent by ${esc(B.name)}. Reference ${esc(D.number)}.`}</div></div>`;
+    cv.innerHTML = `${chrome}<div class="cv-main">
+      <div class="cv-brand">${logo}<div><b>${esc(B.name)}</b><small>${esc(LABEL[type])} · ${esc(D.number)}</small></div></div>
+      <div class="cv-hello"><h1>Dear ${esc(name)},</h1><p>${intro}</p></div>
+      <div class="cv-card cv-amount"><span class="lbl">${lbl}</span><span class="amt foil" id="cv-amt">${money(amount, c)}</span>${sub ? `<span class="sub">${sub}</span>` : ""}${chip}</div>
+      <div class="cv-card cv-guide"><h2>${type === "quotation" ? "Your quotation in 3 steps" : paidFull ? "All settled" : "How this works"}</h2><p>${type === "quotation" ? "Review, then confirm when you're ready." : paidFull ? "Here's a summary of your order." : "Three quick steps and you're done."}</p>
+        <ol class="gsteps">${steps.map((s, i) => `<li class="gstep"><span class="dot">${i + 1}</span><div class="body"><h3>${s[0]}</h3>${s[1]}</div></li>`).join("")}</ol></div>
+      <div class="cv-card cv-doc"><h2>Your official ${docWord}</h2><p>Signed and sealed by ${esc(B.name)}.</p><div class="cv-paper" id="cv-paper"></div>
+        <div class="actions"><button class="btn gold" type="button" data-cv="pdf">Download PDF</button><button class="btn" type="button" data-cv="image">Save image</button></div></div>
+      ${verifyCard}
+      <div class="cv-foot">Delivered privately by Aurum</div>
+    </div>`;
+    cv.scrollTop = 0;
+    fitInto($("#cv-paper"), P, D, docOpts);
+    // count the amount up, then light the steps one by one
+    const el = $("#cv-amt");
+    if (!reduceMotion) { const t0 = performance.now(); const step = (now) => { const p = Math.min(1, (now - t0) / 1400); el.textContent = money(amount * (1 - Math.pow(1 - p, 3)), c); if (p < 1) requestAnimationFrame(step); }; setTimeout(() => requestAnimationFrame(step), 250); }
+    $$(".gstep", cv).forEach((li, i) => setTimeout(() => { li.classList.add("lit"); setTimeout(() => li.classList.add("flow"), 250); }, reduceMotion ? 0 : 900 + i * 900));
+  }
+  if (ctx.skipEnvelope) showMain();
+}
+
+async function bootClient(src) {
+  const cv = $("#cv"); cv.hidden = false;
+  cv.innerHTML = `<div class="cv-scene"><div class="cv-intro"><span class="cv-eyebrow">Opening your document…</span></div></div>`;
+  try {
+    if (src.id) {
+      if (!configured()) throw new Error("not configured");
+      const r = await rpc("view_invoice", { p_id: src.id });
+      if (!r.ok) throw new Error(r.reason || "missing");
+      openClientView(r.payload, { verified: true, id: src.id });
+    } else openClientView(await decodePayload(src.hash), { verified: false });
+  } catch (e) {
+    console.error(e);
+    cv.innerHTML = `<div class="cv-scene"><div class="cv-intro"><span class="cv-eyebrow">Document unavailable</span><h1 class="cv-from">This link isn't working</h1><p class="cv-for">It may have been removed, or the link was copied incompletely. Ask the business to send it again.</p></div></div>`;
+  }
+}
+
+/* =========================================================
+   STUDIO — where the business owner creates the document
+   ========================================================= */
+const DEVICE_KEY = "aurum.device";
+const deviceId = LS.get(DEVICE_KEY, null) || (() => { const d = uid(); LS.set(DEVICE_KEY, d); return d; })();
+let licence = LS.get("aurum.licence", null);
+const isDemo = () => licence?.mode !== "full";
+const REASONS = { invalid: "That licence key isn't valid. Check it and try again.", revoked: "This licence has been switched off. Contact the seller.", device_limit: "This key is already used on its maximum number of devices. Contact the seller to move it." };
+
+async function bootLicence() {
+  $("#gate-fine").innerHTML = CONFIG.BUY_LINK ? `One licence works on up to 2 devices. <a href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Buy a licence</a>` : "One licence works on up to 2 devices.";
+  if (licence?.mode === "demo") return startStudio();
+  if (licence?.mode === "full" && configured()) {
+    try {
+      const r = await rpc("activate_license", { p_key: licence.key, p_device: deviceId });
+      if (r.ok) { licence = { ...licence, email: r.email, checkedAt: Date.now() }; LS.set("aurum.licence", licence); return startStudio(); }
+      LS.del("aurum.licence"); licence = null; return showGate(REASONS[r.reason] || REASONS.invalid);
+    } catch {
+      if ((Date.now() - (licence.checkedAt || 0)) / 864e5 < CONFIG.OFFLINE_GRACE_DAYS) return startStudio();
+      return showGate("Connect to the internet so we can confirm your licence.");
+    }
+  }
+  showGate("");
+}
+function showGate(msg) { $("#gate").hidden = false; $("#lic-err").textContent = msg || ""; }
+$("#gate-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const key = $("#lic-key").value.trim().toUpperCase(); if (!key) return;
+  if (!configured()) { $("#lic-err").textContent = "Licences aren't switched on yet. Tap “Try it free first”."; return; }
+  const btn = $("#lic-submit"); btn.disabled = true; btn.textContent = "Checking…"; $("#lic-err").textContent = "";
+  try {
+    const r = await rpc("activate_license", { p_key: key, p_device: deviceId });
+    if (r.ok) { licence = { mode: "full", key, email: r.email, checkedAt: Date.now() }; LS.set("aurum.licence", licence); startStudio(); toast("Licence activated. Welcome to Aurum."); }
+    else $("#lic-err").textContent = REASONS[r.reason] || REASONS.invalid;
+  } catch { $("#lic-err").textContent = "We couldn't reach the licence server. Check your internet and try again."; }
+  btn.disabled = false; btn.textContent = "Activate";
+});
+$("#lic-demo").addEventListener("click", () => { licence = { mode: "demo" }; LS.set("aurum.licence", licence); startStudio(); });
+
+const SAMPLE_PROFILE = {
+  isSample: true,
+  business: { name: "Adaeze Couture", tagline: "Bespoke bridal & occasion wear", address: "14B Admiralty Way, Lekki Phase 1, Lagos", phone: "0803 123 4567", email: "hello@adaezecouture.ng", rc: "RC 1234567", tin: "", logo: "", signMode: "type", signText: "Adaeze O.", signImg: "", signName: "Adaeze Okafor", signTitle: "Creative Director" },
+  bank: { bankName: "GTBank", accountName: "Adaeze Couture Ltd", accountNumber: "0123456789", payLink: "" },
+  design: { template: "royal", brand: "#0F3D2E", seal: true },
+  counters: { invoice: 41, receipt: 17, quotation: 8 },
+};
+const blankItem = () => ({ id: uid(), desc: "", note: "", qty: 1, price: "" });
+const sampleDoc = () => ({
+  id: uid(), type: "invoice", number: "INV-0042", issueDate: iso(new Date()), dueDate: iso(addDays(7)), status: "part", currency: "NGN",
+  client: { name: "Mrs. Funmilayo Bakare", company: "", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 876 5432", email: "" },
+  items: [
+    { id: uid(), desc: "Bespoke lace bridal gown", note: "French lace, hand-beaded bodice, two fittings", qty: 1, price: 385000 },
+    { id: uid(), desc: "Aso-ebi fitting & alterations", note: "Bride's family, 3 outfits", qty: 3, price: 25000 },
+    { id: uid(), desc: "Gele tying & styling", note: "Wedding day, bride and mother", qty: 2, price: 15000 },
+  ],
+  discountType: "amount", discount: 20000, delivery: 5000, vatOn: false, vatRate: 7.5, amountPaid: 150000,
+  notes: "Balance is due before the final fitting. Kindly send your proof of payment on WhatsApp.", link: "", shareId: "",
+});
+const S = { profile: LS.get("aurum.profile", null) || structuredClone(SAMPLE_PROFILE), doc: LS.get("aurum.draft", null) || sampleDoc() };
+S.profile.design ??= { template: "royal", brand: "#0F3D2E", seal: true };
+S.profile.counters ??= { invoice: 0, receipt: 0, quotation: 0 };
+let history = LS.get("aurum.history", []);
+let activity = {};
+let step = 1;
+let saveTimer;
+const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { LS.set("aurum.profile", S.profile); LS.set("aurum.draft", S.doc); }, 250); };
+const studioOpts = (extra = {}) => ({ demo: isDemo(), qr: S.doc.shareId ? qrFor(S.doc.link) : "", ...extra });
+
+/* live preview */
 let lastTotal = null, lastStamp = null;
-const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 function render({ enter = false, newIds = null } = {}) {
   const D = S.doc; const stampNow = D.type === "receipt" ? "paid" : D.type === "invoice" ? D.status : "none";
   const stampIn = !reduceMotion && lastStamp !== null && stampNow !== lastStamp && (stampNow === "paid" || stampNow === "overdue");
-  $("#paper").innerHTML = invoiceHTML({ enter: enter && !reduceMotion, newIds, stampIn });
+  $("#paper").innerHTML = invoiceHTML(S.profile, D, studioOpts({ enter: enter && !reduceMotion, newIds, stampIn }));
   lastStamp = stampNow;
-  const amtEl = $("#paper .grand .amt"); const target = calc(D).total;
-  if (amtEl && lastTotal !== null && lastTotal !== target && !reduceMotion) countUp(amtEl, lastTotal, target, D.currency);
-  else if (amtEl && enter && !reduceMotion) countUp(amtEl, 0, target, D.currency, 900);
-  lastTotal = target;
-  fitPaper();
+  const t = calc(D); const amtEl = $("#paper .grand .amt");
+  if (amtEl && !reduceMotion && ((lastTotal !== null && lastTotal !== t.total) || enter)) countUp(amtEl, enter ? 0 : lastTotal, t.total, D.currency, enter ? 900 : 550);
+  lastTotal = t.total;
+  $("#mini-label").textContent = `${LABEL[D.type]} ${D.number}`;
+  $("#mini-total").textContent = money(D.type === "invoice" && D.status === "part" ? t.balance : t.total, D.currency);
+  renderSumbox(); fitPaper();
 }
 let rafId;
-function countUp(el, from, to, c, dur = 550) {
-  cancelAnimationFrame(rafId); const t0 = performance.now();
-  const step = (t) => { const p = Math.min(1, (t - t0) / dur); const e = 1 - Math.pow(1 - p, 3); el.textContent = money(from + (to - from) * e, c); if (p < 1) rafId = requestAnimationFrame(step); };
-  rafId = requestAnimationFrame(step);
-}
+function countUp(el, from, to, c, dur) { cancelAnimationFrame(rafId); const t0 = performance.now(); const f = (n) => { const p = Math.min(1, (n - t0) / dur); el.textContent = money(from + (to - from) * (1 - Math.pow(1 - p, 3)), c); if (p < 1) rafId = requestAnimationFrame(f); }; rafId = requestAnimationFrame(f); }
 function fitPaper() {
-  const inner = $("#stage-inner"); const wrap = $("#paper-wrap"); const scaleEl = $("#paper-scale"); const paper = $("#paper");
-  if (!inner.offsetParent && getComputedStyle($(".stage")).display === "none") return;
+  const inner = $("#stage-inner"); if (!inner.clientWidth) return;
   const cs = getComputedStyle(inner); const avail = inner.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   const s = Math.min(1, avail / 794);
-  scaleEl.style.transform = `scale(${s})`;
-  wrap.style.width = 794 * s + "px"; wrap.style.height = paper.offsetHeight * s + "px";
+  $("#paper-scale").style.transform = `scale(${s})`;
+  $("#paper-wrap").style.width = 794 * s + "px"; $("#paper-wrap").style.height = $("#paper").offsetHeight * s + "px";
 }
 new ResizeObserver(() => fitPaper()).observe($("#stage-inner"));
-
-/* ---------- editor binding ---------- */
-function fillInputs() {
-  $$("[data-bind]").forEach((el) => {
-    const v = getPath(S, el.dataset.bind);
-    if (el.type === "checkbox") el.checked = !!v; else el.value = v ?? "";
-  });
-  syncChrome();
+function renderSumbox() {
+  const D = S.doc, t = calc(D), c = D.currency;
+  $("#sumbox").innerHTML = `<div><span>Subtotal</span><b>${money(t.sub, c)}</b></div>${t.disc ? `<div><span>Discount</span><b>− ${money(t.disc, c)}</b></div>` : ""}${t.vat ? `<div><span>VAT</span><b>${money(t.vat, c)}</b></div>` : ""}${t.delivery ? `<div><span>Delivery</span><b>${money(t.delivery, c)}</b></div>` : ""}<div class="big"><span>Total</span><span>${money(t.total, c)}</span></div>`;
 }
+
+/* steps */
+const STEP_NAMES = ["Business", "Client", "Items", "Payment", "Look", "Send"];
+function renderSteps() {
+  $("#steps").innerHTML = STEP_NAMES.map((n, i) => `<li><button type="button" data-goto="${i + 1}" class="${i + 1 < step ? "done" : ""}" ${i + 1 === step ? 'aria-current="step"' : ""}><b>${i + 1 < step ? "✓" : i + 1}</b>${n}</button></li>`).join("");
+  $(`#steps [aria-current]`)?.scrollIntoView({ block: "nearest", inline: "center" });
+}
+function validate(n) {
+  $$(".field.error").forEach((f) => { f.classList.remove("error"); f.querySelector(".err")?.remove(); });
+  const fail = (id, msg) => { const f = $(id); f.classList.add("error"); f.insertAdjacentHTML("beforeend", `<span class="err">${msg}</span>`); f.querySelector("input")?.focus(); return false; };
+  if (n === 1 && !S.profile.business.name.trim()) return fail("#f-bname", "Add your business name to continue");
+  if (n === 2 && !S.doc.client.name.trim()) return fail("#f-cname", "Add who this is for");
+  if (n === 3 && !S.doc.items.some((it) => it.desc.trim() && num(it.price) > 0)) { toast("Add at least one item with a price"); $("#items-ed input")?.focus(); return false; }
+  return true;
+}
+function goStep(n, { force = false } = {}) {
+  n = Math.max(1, Math.min(6, n));
+  if (!force && n > step) { for (let i = step; i < n; i++) if (!validate(i)) { if (i !== step) showStep(i); return; } }
+  showStep(n);
+}
+function showStep(n) {
+  step = n; $$(".step").forEach((s) => (s.hidden = Number(s.dataset.step) !== n));
+  $("#back-btn").style.visibility = n === 1 ? "hidden" : "visible";
+  $("#next-btn").hidden = n === 6;
+  $("#next-btn").textContent = n === 5 ? "Finish" : "Next";
+  renderSteps(); syncChrome();
+  $(".editor").scrollTo?.({ top: 0 }); window.scrollTo({ top: 0 });
+  if (n === 6) { renderHistory(); fetchActivity(); }
+}
+$("#steps").addEventListener("click", (e) => { const b = e.target.closest("[data-goto]"); if (b) goStep(Number(b.dataset.goto)); });
+$("#next-btn").addEventListener("click", () => goStep(step + 1));
+$("#back-btn").addEventListener("click", () => goStep(step - 1, { force: true }));
+
+/* inputs */
+function fillInputs() { $$("[data-bind]").forEach((el) => { const v = getPath(S, el.dataset.bind); if (el.type === "checkbox") el.checked = !!v; else el.value = v ?? ""; }); syncChrome(); }
 function syncChrome() {
   const D = S.doc, P = S.profile;
   $$("[data-doctype]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.doctype === D.type)));
   $$("[data-template]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.template === P.design.template)));
-  $$(".swatch").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.color.toLowerCase() === P.design.brand.toLowerCase())));
-  $("#brand-custom").value = P.design.brand;
+  $$(".swatch").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.color.toLowerCase() === String(P.design.brand).toLowerCase())));
+  $$("[data-status]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.status === D.status)));
+  $$("[data-sign]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sign === P.business.signMode)));
+  $("#brand-custom").value = /^#[0-9a-f]{6}$/i.test(P.design.brand) ? P.design.brand : "#0F3D2E";
   $("#due-field").hidden = D.type === "receipt";
-  $("#due-label").textContent = D.type === "quotation" ? "Valid until" : "Due date";
-  $("#status-field").hidden = D.type !== "invoice";
-  $("#paid-field").hidden = D.type !== "invoice";
-  $("#client-summary").textContent = D.type === "receipt" ? "Received from" : D.type === "quotation" ? "Prepared for" : "Client";
-  $("#sign-text-field").hidden = P.business.signMode !== "type";
+  $("#issue-label").textContent = D.type === "receipt" ? "Date paid" : "Date";
+  $("#due-label").textContent = D.type === "quotation" ? "Price valid until" : "Pay by";
+  $("#status-block").hidden = D.type !== "invoice";
+  $("#paid-field").hidden = !(D.type === "invoice" && D.status === "part");
+  $("#pay-title").textContent = D.type === "receipt" ? "Payment details" : "How should they pay you?";
+  $("#pay-sub").textContent = D.type === "receipt" ? "Optional on a receipt. Saved for your next invoice." : "Your bank details are saved for next time.";
+  $("#sign-type-row").hidden = P.business.signMode !== "type";
   $("#sign-upload").hidden = P.business.signMode !== "image";
-  $("#logo-thumb").style.backgroundImage = P.business.logo ? `url(${P.business.logo})` : "";
-  $("#sign-thumb").style.backgroundImage = P.business.signImg ? `url(${P.business.signImg})` : "";
+  const lt = $("#logo-thumb"); lt.style.backgroundImage = P.business.logo ? `url(${P.business.logo})` : ""; lt.classList.toggle("has", !!P.business.logo);
+  const st = $("#sign-thumb"); st.style.backgroundImage = P.business.signImg ? `url(${P.business.signImg})` : ""; st.classList.toggle("has", !!P.business.signImg);
   $("#sample-note").hidden = !P.isSample;
-  $("#items-count").textContent = D.items.length ? `${D.items.length} item${D.items.length > 1 ? "s" : ""}` : "";
-  const chip = $("#lic-chip");
-  chip.classList.toggle("demo", isDemo());
-  $("#lic-chip-text").textContent = isDemo() ? "Demo mode · watermark on" : `Licensed${licence.email ? " to " + licence.email : ""}`;
+  $("#send-doclabel").textContent = LABEL[D.type].toLowerCase();
+  $("#make-link").textContent = D.link ? "Update private link" : "Create private link";
+  $("#link-box").hidden = !D.link; $("#link-text").textContent = D.link || "";
+  $("#lic-chip").classList.toggle("demo", isDemo());
+  $("#lic-chip-text").textContent = isDemo() ? "Free trial · DEMO ribbon on" : `Licensed${licence.email ? " · " + licence.email : ""}`;
 }
 document.addEventListener("input", (e) => {
-  const el = e.target; if (!el.dataset || !el.dataset.bind) return;
-  let v = el.type === "checkbox" ? el.checked : el.value;
-  if (el.hasAttribute("data-num")) v = el.value;
-  setPath(S, el.dataset.bind, v);
+  const el = e.target; if (!el.dataset?.bind) return;
+  setPath(S, el.dataset.bind, el.type === "checkbox" ? el.checked : el.value);
   if (el.dataset.bind.startsWith("profile.business")) S.profile.isSample = false;
+  el.closest(".field.error")?.classList.remove("error");
   persist(); syncChrome(); render();
 });
-document.addEventListener("change", (e) => { if (e.target.matches("select[data-bind], input[type=checkbox][data-bind]")) { syncChrome(); } });
-
-/* doc type */
+document.addEventListener("change", (e) => { if (e.target.matches("#d-cur")) renderItemsEditor(); });
 $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
   const t = b.dataset.doctype; if (t === S.doc.type) return;
-  S.doc.type = t; S.doc.number = `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`;
-  if (t === "quotation" && !S.doc.dueDate) S.doc.dueDate = iso(addDays(14));
+  S.doc.type = t; S.doc.number = `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`; S.doc.link = ""; S.doc.shareId = "";
+  if (t === "quotation") S.doc.dueDate = iso(addDays(14));
   persist(); fillInputs(); swapAnim(); render({ enter: true });
 }));
-/* design */
+$$("[data-status]").forEach((b) => b.addEventListener("click", () => { S.doc.status = b.dataset.status; persist(); syncChrome(); render(); }));
+$$("[data-sign]").forEach((b) => b.addEventListener("click", () => { S.profile.business.signMode = b.dataset.sign; persist(); syncChrome(); render(); }));
 $$("[data-template]").forEach((b) => b.addEventListener("click", () => { S.profile.design.template = b.dataset.template; persist(); syncChrome(); swapAnim(); render({ enter: true }); }));
 $$(".swatch").forEach((b) => b.addEventListener("click", () => { S.profile.design.brand = b.dataset.color; persist(); syncChrome(); render(); }));
 $("#brand-custom").addEventListener("input", (e) => { S.profile.design.brand = e.target.value; persist(); syncChrome(); render(); });
 function swapAnim() { const w = $("#paper-wrap"); w.classList.remove("swap"); void w.offsetWidth; if (!reduceMotion) w.classList.add("swap"); }
 
-/* images (logo, signature) — downscaled so they stay light */
 function readImage(file, max = 480) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)); const cv = document.createElement("canvas"); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s); cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height); resolve(cv.toDataURL("image/png")); }; img.onerror = reject; img.src = r.result; };
-    r.onerror = reject; r.readAsDataURL(file);
-  });
+  return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)); const cv = document.createElement("canvas"); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s); cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height); resolve(cv.toDataURL("image/png")); }; img.onerror = reject; img.src = r.result; }; r.onerror = reject; r.readAsDataURL(file); });
 }
 $("#logo-file").addEventListener("change", async (e) => { const f = e.target.files[0]; if (!f) return; S.profile.business.logo = await readImage(f); S.profile.isSample = false; persist(); syncChrome(); render(); e.target.value = ""; });
 $("#logo-clear").addEventListener("click", () => { S.profile.business.logo = ""; persist(); syncChrome(); render(); });
 $("#sign-file").addEventListener("change", async (e) => { const f = e.target.files[0]; if (!f) return; S.profile.business.signImg = await readImage(f, 600); persist(); syncChrome(); render(); e.target.value = ""; });
 $("#clear-sample").addEventListener("click", () => {
   S.profile = { isSample: false, business: { name: "", tagline: "", address: "", phone: "", email: "", rc: "", tin: "", logo: "", signMode: "type", signText: "", signImg: "", signName: "", signTitle: "" }, bank: { bankName: "", accountName: "", accountNumber: "", payLink: "" }, design: S.profile.design, counters: { invoice: 0, receipt: 0, quotation: 0 } };
-  newDoc(true); $("#b-name").focus(); toast("Add your business details. They'll be saved for next time.");
+  newDoc(true); showStep(1); $("#b-name").focus();
 });
 
-/* items editor */
+/* items */
 function renderItemsEditor() {
   const c = S.doc.currency;
   $("#items-ed").innerHTML = S.doc.items.map((it, i) => `
     <div class="item-card" data-id="${it.id}">
-      <div class="item-top"><b>ITEM ${String(i + 1).padStart(2, "0")}</b><button type="button" class="btn sm ghost danger" data-remove="${it.id}">Remove</button></div>
-      <label class="field"><span>Description</span><input id="it-d-${it.id}" data-item="desc" value="${esc(it.desc)}" placeholder="What you sold or did"></label>
-      <label class="field"><span>Detail (optional)</span><input id="it-n-${it.id}" data-item="note" value="${esc(it.note)}" placeholder="Size, colour, specification…"></label>
-      <div class="row3">
-        <label class="field"><span>Qty</span><input id="it-q-${it.id}" data-item="qty" value="${esc(it.qty)}" inputmode="decimal"></label>
-        <label class="field"><span>Unit price</span><input id="it-p-${it.id}" data-item="price" value="${esc(it.price)}" inputmode="decimal"></label>
-        <span class="line-total" data-line>${money(num(it.qty) * num(it.price), c)}</span>
+      <div class="item-top">ITEM ${i + 1}<span class="line-total" data-line>${money(num(it.qty) * num(it.price), c)}</span></div>
+      <label class="field"><span>What is it?</span><input id="it-d-${it.id}" data-item="desc" value="${esc(it.desc)}" placeholder="e.g. Lace gown, Logo design, Catering"></label>
+      <div class="item-nums">
+        <label class="field"><span>Quantity</span><input id="it-q-${it.id}" data-item="qty" value="${esc(it.qty)}" inputmode="decimal"></label>
+        <label class="field"><span>Price each (${(CUR[c] || CUR.NGN).sym})</span><input id="it-p-${it.id}" data-item="price" value="${esc(it.price)}" inputmode="decimal" placeholder="0"></label>
       </div>
+      <details class="more"${it.note ? " open" : ""}><summary>Add detail (size, colour, date…)</summary><div><label class="field"><span>Detail</span><input id="it-n-${it.id}" data-item="note" value="${esc(it.note)}"></label></div></details>
+      ${S.doc.items.length > 1 ? `<button type="button" class="btn sm ghost danger" data-remove="${it.id}" style="justify-self:start">Remove item</button>` : ""}
     </div>`).join("");
 }
 $("#items-ed").addEventListener("input", (e) => {
   const card = e.target.closest(".item-card"); const key = e.target.dataset.item; if (!card || !key) return;
   const it = S.doc.items.find((x) => x.id === card.dataset.id); it[key] = e.target.value;
-  $("[data-line]", card).textContent = money(num(it.qty) * num(it.price), S.doc.currency);
-  persist(); render();
+  $("[data-line]", card).textContent = money(num(it.qty) * num(it.price), S.doc.currency); persist(); render();
 });
-$("#items-ed").addEventListener("click", (e) => {
-  const id = e.target.dataset.remove; if (!id) return;
-  S.doc.items = S.doc.items.filter((x) => x.id !== id); persist(); renderItemsEditor(); syncChrome(); render();
-});
-$("#add-item").addEventListener("click", () => {
-  const it = blankItem(); S.doc.items.push(it); persist(); renderItemsEditor(); syncChrome(); render({ newIds: new Set([it.id]) });
-  $(`#it-d-${it.id}`)?.focus();
-});
-$("#d-cur").addEventListener("change", () => renderItemsEditor());
+$("#items-ed").addEventListener("click", (e) => { const id = e.target.dataset.remove; if (!id) return; S.doc.items = S.doc.items.filter((x) => x.id !== id); persist(); renderItemsEditor(); render(); });
+$("#add-item").addEventListener("click", () => { const it = blankItem(); S.doc.items.push(it); persist(); renderItemsEditor(); render({ newIds: new Set([it.id]) }); $(`#it-d-${it.id}`)?.focus(); });
 
-/* ---------- documents: new / save / history ---------- */
+/* documents */
 function newDoc(silent) {
   const t = S.doc.type || "invoice";
-  S.doc = { id: uid(), type: t, number: `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: iso(addDays(t === "quotation" ? 14 : 7)), status: "unpaid", currency: S.doc.currency || "NGN",
-    client: { name: "", company: "", address: "", phone: "", email: "" }, items: [blankItem()], discountType: "amount", discount: 0, delivery: 0, vatOn: false, vatRate: 7.5, amountPaid: 0, notes: "" };
+  S.doc = { id: uid(), type: t, number: `${PREFIX[t]}-${pad((S.profile.counters[t] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: iso(addDays(t === "quotation" ? 14 : 7)), status: t === "receipt" ? "paid" : "unpaid", currency: S.doc.currency || "NGN",
+    client: { name: "", company: "", address: "", phone: "", email: "" }, items: [blankItem()], discountType: "amount", discount: "", delivery: "", vatOn: false, vatRate: 7.5, amountPaid: "", notes: "", link: "", shareId: "" };
   lastTotal = null; persist(); fillInputs(); renderItemsEditor(); swapAnim(); render({ enter: true });
-  if (!silent) toast(`New ${LABEL[t].toLowerCase()} ${S.doc.number}`);
+  if (!silent) { showStep(S.profile.business.name ? 2 : 1); toast(`New ${LABEL[t].toLowerCase()} ${S.doc.number}`); }
 }
-function saveDoc() {
+function saveDoc(silent) {
   const D = S.doc; const n = parseInt(String(D.number).replace(/\D/g, ""), 10);
   if (Number.isFinite(n)) S.profile.counters[D.type] = Math.max(S.profile.counters[D.type] || 0, n);
-  const entry = { id: D.id, savedAt: Date.now(), doc: structuredClone(D) };
-  history = [entry, ...history.filter((h) => h.id !== D.id)].slice(0, 60);
-  LS.set("aurum.history", history); persist(); renderHistory(); toast(`${LABEL[D.type]} ${D.number} saved`);
+  history = [{ id: D.id, savedAt: Date.now(), doc: structuredClone(D) }, ...history.filter((h) => h.id !== D.id)].slice(0, 80);
+  LS.set("aurum.history", history); persist(); renderHistory(); if (!silent) toast(`${LABEL[D.type]} ${D.number} saved`);
 }
 function renderHistory() {
-  $("#saved-count").textContent = history.length ? String(history.length) : "";
-  $("#saved-list").innerHTML = history.length ? history.map((h) => `<div class="saved-item">
-      <div><b>${esc(h.doc.number)} · ${esc(h.doc.client.name || "No client")}</b><small>${LABEL[h.doc.type]} · ${money(calc(h.doc).total, h.doc.currency)} · ${fmtDate(h.doc.issueDate)}</small></div>
-      <button class="btn sm" type="button" data-open="${h.id}">Open</button><button class="btn sm ghost danger" type="button" data-del="${h.id}" aria-label="Delete">✕</button></div>`).join("")
-    : `<p class="hint">Documents you save appear here, so you can reopen them or turn a quotation into an invoice.</p>`;
+  $("#saved-list").innerHTML = history.length ? history.map((h) => {
+    const a = activity[h.id]; const seen = a?.view_count ? `<span class="act">Opened ${a.view_count}× · last ${new Date(a.last_viewed_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</span>` : "";
+    const paid = a?.paid_claimed_at ? ` <span class="act paid">Client says paid</span>` : "";
+    return `<div class="saved-item"><div><b>${esc(h.doc.number)} · ${esc(h.doc.client.name || "No client")}</b><small>${LABEL[h.doc.type]} · ${money(calc(h.doc).total, h.doc.currency)} · ${fmtDate(h.doc.issueDate)}</small>${seen || paid ? `<br>${seen}${paid}` : ""}</div>
+      <button class="btn sm" type="button" data-open="${h.id}">Open</button><button class="btn sm ghost danger" type="button" data-del="${h.id}" aria-label="Delete">✕</button></div>`;
+  }).join("") : `<p class="hint">Each document you send is kept here. When you use private links, you'll also see when your client opens them.</p>`;
 }
 $("#saved-list").addEventListener("click", (e) => {
   const o = e.target.dataset.open, d = e.target.dataset.del;
-  if (o) { const h = history.find((x) => x.id === o); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); fillInputs(); renderItemsEditor(); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); setView("preview"); }
+  if (o) { const h = history.find((x) => x.id === o); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); fillInputs(); renderItemsEditor(); swapAnim(); render({ enter: true }); showStep(2); toast(`Opened ${h.doc.number}`); }
   if (d) { history = history.filter((x) => x.id !== d); LS.set("aurum.history", history); renderHistory(); }
 });
+async function fetchActivity() {
+  if (!configured() || isDemo()) return;
+  try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {}
+}
 
-/* ---------- export ---------- */
-const fileBase = () => `${S.doc.number}-${(S.doc.client.name || "client").replace(/[^a-z0-9]+/gi, "-")}`.replace(/-+$/, "");
-async function ready() { try { await document.fonts.ready; } catch {} }
-async function exportPDF() {
-  await ready();
-  const root = $("#print-root"); root.innerHTML = invoiceHTML({ sid: "p" });
-  document.body.classList.add("printing");
-  const old = document.title; document.title = fileBase();
-  const done = () => { document.body.classList.remove("printing"); root.innerHTML = ""; document.title = old; window.removeEventListener("afterprint", done); };
-  window.addEventListener("afterprint", done);
-  setTimeout(() => { window.print(); setTimeout(done, 1500); }, 80);
-  toast("Choose “Save as PDF” in the print window");
-}
-async function renderCanvas() {
-  if (typeof html2canvas !== "function") throw new Error("lib");
-  await ready();
-  const root = $("#export-root"); root.innerHTML = invoiceHTML({ static: true, sid: "x" });
-  const el = root.firstElementChild;
-  try { return await html2canvas(el, { scale: 2, backgroundColor: null, useCORS: true, logging: false, windowWidth: 1200 }); }
-  finally { root.innerHTML = ""; }
-}
-function downloadBlob(blob, name) {
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
-}
-async function exportImage() {
-  toast("Preparing image…");
+/* send */
+const payload = () => ({ v: 1, demo: isDemo(), profile: { business: S.profile.business, bank: S.profile.bank, design: S.profile.design }, doc: { ...S.doc, link: "", shareId: "" } });
+$("#make-link").addEventListener("click", async () => {
+  const btn = $("#make-link"); btn.disabled = true; btn.textContent = "Creating…";
+  const base = location.href.split(/[?#]/)[0];
   try {
-    const cv = await renderCanvas();
-    const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
-    const file = new File([blob], fileBase() + ".png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: `${LABEL[S.doc.type]} ${S.doc.number}` }); return; } catch (err) { if (err?.name === "AbortError") return; }
+    if (configured() && !isDemo()) {
+      const r = await rpc("publish_invoice", { p_key: licence.key, p_device: deviceId, p_doc_id: S.doc.id, p_payload: payload() });
+      if (!r.ok) throw new Error(r.reason);
+      S.doc.shareId = r.id; S.doc.link = `${base}?i=${r.id}`;
+    } else {
+      const p = payload(); const enc = JSON.stringify(p).length;
+      if (enc > 6000) { p.profile = { ...p.profile, business: { ...p.profile.business, logo: "", signImg: "" } }; }
+      S.doc.shareId = ""; S.doc.link = `${base}#v=${await encodePayload(p)}`;
     }
-    downloadBlob(blob, file.name); toast("Image saved. Attach it in WhatsApp.");
-  } catch (err) { console.error("Image export failed", err); toast("Couldn’t create the image. Check your internet and try again."); }
-}
-function waNumber(p) { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("0") && d.length === 11) d = "234" + d.slice(1); return d; }
+    persist(); saveDoc(true); syncChrome(); render();
+    const ok = await copyText(S.doc.link); toast(ok ? "Private link created and copied" : "Private link created");
+  } catch (err) { console.error(err); toast("Couldn't create the link. Check your internet and try again."); }
+  btn.disabled = false; syncChrome();
+});
+$("#copy-link").addEventListener("click", () => copyText(S.doc.link).then((ok) => toast(ok ? "Link copied" : "Press and hold the link to copy it")));
+$("#preview-client").addEventListener("click", () => openClientView(payload(), { preview: true, verified: false, noDownloads: window.AURUM_NO_DOWNLOADS }));
 function sendWhatsApp() {
-  const D = S.doc, P = S.profile, t = calc(D), c = D.currency; const name = D.client.name ? D.client.name.split(" ").slice(0, 2).join(" ") : "there";
+  const D = S.doc, P = S.profile, t = calc(D), c = D.currency; const name = D.client.name || "there";
   const lines = [`Hello ${name},`, ""];
-  if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}. Your receipt ${D.number} from ${P.business.name} is attached.`);
-  else if (D.type === "quotation") lines.push(`Please find your quotation ${D.number} from ${P.business.name}.`, `Quoted total: ${money(t.total, c)}`, `Valid until: ${fmtDate(D.dueDate)}`);
+  if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}. Here is your receipt ${D.number} from ${P.business.name}.`);
+  else if (D.type === "quotation") lines.push(`Here is your quotation ${D.number} from ${P.business.name}.`, `Quoted total: ${money(t.total, c)}`, `Valid until: ${fmtDate(D.dueDate)}`);
   else {
-    lines.push(`Please find your invoice ${D.number} from ${P.business.name}.`, `Total: ${money(t.total, c)}`);
-    if (t.paid > 0) lines.push(`Paid so far: ${money(t.paid, c)}`, `Balance due: ${money(t.balance, c)}`);
-    lines.push(`Due date: ${fmtDate(D.dueDate)}`);
-    if (P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`);
-    if (P.bank.payLink) lines.push(`Or pay online: ${P.bank.payLink}`);
+    lines.push(`Here is your invoice ${D.number} from ${P.business.name}.`, D.status === "part" ? `Balance to pay: ${money(t.balance, c)}` : `Amount: ${money(t.total, c)}`, `Pay by: ${fmtDate(D.dueDate)}`);
+    if (!D.link && P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`);
   }
+  if (D.link) lines.push("", `View your ${LABEL[D.type].toLowerCase()}:`, D.link);
   lines.push("", "Thank you for your patronage.");
-  const a = document.createElement("a"); a.href = `https://wa.me/${waNumber(D.client.phone)}?text=${encodeURIComponent(lines.join("\n"))}`; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
-  toast("Tip: tap “Save image” and attach it to this chat");
+  openLink(`https://wa.me/${waNumber(D.client.phone)}?text=${encodeURIComponent(lines.join("\n"))}`);
+  saveDoc(true);
 }
 document.addEventListener("click", (e) => {
-  const b = e.target.closest("[data-act]"); if (!b) return; closeSheet();
-  ({ new: () => newDoc(), save: saveDoc, pdf: exportPDF, image: exportImage, whatsapp: sendWhatsApp })[b.dataset.act]?.();
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const act = b.dataset.act;
+  if (act === "whatsapp") sendWhatsApp();
+  if (act === "pdf") { saveDoc(true); window.AURUM_NO_DOWNLOADS ? toast("Downloads work in the hosted app") : exportPDF(S.profile, S.doc, studioOpts()); }
+  if (act === "image") { saveDoc(true); window.AURUM_NO_DOWNLOADS ? toast("Downloads work in the hosted app") : exportImage(S.profile, S.doc, studioOpts()); }
+  if (act === "new") newDoc();
 });
 
-/* ---------- mobile view switching ---------- */
-function setView(v) {
-  if (matchMedia("(min-width: 981px)").matches) return;
-  document.body.dataset.view = v; $$("[data-view-btn]").forEach((b) => b.classList.toggle("on", b.dataset.viewBtn === v));
-  window.scrollTo({ top: 0 });
-  if (v === "preview") { requestAnimationFrame(() => { fitPaper(); render({ enter: true }); }); }
-}
-$$("[data-view-btn]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.viewBtn)));
-function closeSheet() { $("#sheet").hidden = true; $("#scrim").hidden = true; }
-$("#more-btn").addEventListener("click", () => { $("#sheet").hidden = false; $("#scrim").hidden = false; });
-$("#scrim").addEventListener("click", closeSheet);
+/* mobile preview */
+$("#open-preview").addEventListener("click", () => { document.body.classList.add("show-preview"); requestAnimationFrame(() => { fitPaper(); render({ enter: true }); }); });
+$("#close-preview").addEventListener("click", () => document.body.classList.remove("show-preview"));
 
-/* ---------- toast ---------- */
-let toastT;
-function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2600); }
-
-/* ---------- start ---------- */
 let started = false;
-function startApp() {
+function startStudio() {
+  $("#gate").hidden = true; $("#studio-root").hidden = false;
   if (started) { syncChrome(); render(); return; }
-  started = true; $("#gate").hidden = true;
+  started = true;
   fillInputs(); renderItemsEditor(); renderHistory();
-  ready().then(() => render({ enter: true }));
-  render();
+  showStep(S.profile.isSample || !S.profile.business.name ? 1 : 2);
+  render(); fontsReady().then(() => render({ enter: true }));
 }
-bootLicence();
+
+/* ---------- start: client link or studio ---------- */
+const qs = new URLSearchParams(location.search);
+if (qs.get("i")) bootClient({ id: qs.get("i") });
+else if (location.hash.startsWith("#v=")) bootClient({ hash: location.hash.slice(3) });
+else bootLicence();
 })();
 </script>
 </body>
