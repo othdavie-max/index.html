@@ -30,6 +30,48 @@ It ends with a ceremony where their own wax seal is pressed.
 | Chapter III | Payment status, deposit, bank | Method, transaction reference, date paid, balance still owed | Price valid for, deposit to begin (%), delivery timeline |
 | On the document | Status, pay-by/expiry, bank box | Classic "Received from … the sum of … being payment for …" line, Amount received, Received by signature, PAID stamp | Valid until, timeline, deposit in naira, "To accept, pay the deposit to", Accepted by / Signature / Date block |
 
+## Six documents
+Invoice, Receipt and Quotation, plus Delivery note, Credit note and Purchase order. Each has its own steps and layout.
+- **Delivery note:** quantities only, rider/vehicle, delivery address, and a "Received in good condition by" block.
+- **Credit note:** reason, how it's settled (store credit or refund), and the invoice it's against.
+- **Purchase order:** supplier, deliver-by date, your delivery address, and a "Supplier acknowledgement" block.
+
+Start a delivery note or credit note from an invoice in one tap.
+
+## Overview (the money dashboard)
+Opens from **Overview** in the top bar:
+- Received this month, owed to you, invoices this month, open quotations.
+- A six-month chart of money received.
+- **Who owes you:** each unpaid invoice with **Remind** (Gentle / Due today / Overdue WhatsApp messages) and **Got paid** (issues the receipt).
+- **Repeat invoices:** switch on "Repeat every month" when sending, and the invoice is ready each month with one tap.
+- **Top clients** and **VAT collected** per month.
+- **CSV export** for Excel or Google Sheets, e.g. for your accountant.
+
+## Other touches
+- **Item photos:** add a photo to any item. It shows on the document and the client page.
+- **Client page language:** English, Pidgin, Yorùbá, Igbo or Hausa greetings, with "Thank you" in the same language.
+- **Prepared by:** each device can carry a name (e.g. a sales assistant), shown on the documents it prepares.
+
+## Cloud backup (needs Supabase connected)
+Each licence has one backup of its documents, clients, saved items and settings, shared by all its devices.
+- A new phone restores everything and skips the welcome.
+- Saving checks a version number, so two devices can't overwrite each other's newer work. They merge instead.
+- The top bar shows **Backed up / Saving… / Offline · will retry**.
+
+## Referrals
+- Every buyer gets a referral code (e.g. REF-7F3A21), shown in My house → Refer a friend, with a WhatsApp share button.
+- When someone buys with a code, create their licence with `select public.new_licence('Name', 'email', 'phone', 2, 'signature', 'REF-7F3A21');`.
+- See who referred whom with the query at the bottom of `licences.sql`.
+- Set the friend's discount wording in `CONFIG.REFERRAL_OFFER`, and honour it on Selar.
+
+## Install on a phone
+Aurum is an installable app (manifest, icons and offline support via `sw.js`). Buyers install it from My house → "Aurum on your home screen", or from the browser menu. It then opens full screen with its own icon and works without data.
+
+**Note:** offline support only works when the app is served from a real web address (Netlify etc.), not opened as a file.
+
+## The sales page
+`landing.html` sells Aurum, using real screenshots of the product (in `landing/`). Set your Selar link, WhatsApp number and prices in its `CONFIG` at the bottom. When you host the folder, put the sales page on your main address and point "Try it free" at the app, e.g. rename `landing.html` to your home page and keep the app at `index.html` in a subfolder, or set `APP_LINK`.
+
 ## One tap from one document to the next
 **Quotation → Invoice:**
 - Tap **Make invoice** on a quotation's Send step or in the saved list, or tap the quotation chip when starting an invoice.
