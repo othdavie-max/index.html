@@ -1,6 +1,8 @@
 -- Aurum Invoice Studio — licence keys locked to devices
 -- Run this once in Supabase: Dashboard → SQL Editor → New query → paste → Run.
 
+-- pgcrypto lives in the "extensions" schema on Supabase, so the functions that
+-- make random keys include it in their search_path.
 create extension if not exists pgcrypto;
 
 create table if not exists public.licences (
@@ -41,7 +43,7 @@ create or replace function public.activate_license(p_key text, p_device text)
 returns json
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   lic  public.licences;
@@ -89,7 +91,7 @@ create or replace function public.new_licence(p_name text, p_email text, p_phone
 returns text
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare k text;
 begin
@@ -140,7 +142,7 @@ revoke all on function public._licence_ok(text, text) from public, anon, authent
 
 -- Business saves (or updates) an invoice and gets its private link id.
 create or replace function public.publish_invoice(p_key text, p_device text, p_doc_id text, p_payload jsonb)
-returns json language plpgsql security definer set search_path = public as $$
+returns json language plpgsql security definer set search_path = public, extensions as $$
 declare v_id text; v_name text; v_locked text;
 begin
   if not public._licence_ok(p_key, p_device) then return json_build_object('ok', false, 'reason', 'licence'); end if;
