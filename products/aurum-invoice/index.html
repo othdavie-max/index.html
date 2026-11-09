@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Aurum Invoice Studio</title>
 <meta name="description" content="Luxury invoices, receipts and quotations for Nigerian businesses.">
 <meta property="og:title" content="A private document for you">
@@ -1174,6 +1174,18 @@ html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text 
 .team-row b { display: block; font-size: 15px; } .team-row small { color: var(--muted); font-size: 12.5px; }
 .team-row strong { font-family: var(--f-display); font-size: 17px; text-align: right; }
 .pbadge { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #17120A; background: var(--foil-btn); padding: 3px 8px; border-radius: 99px; margin-left: 6px; vertical-align: 2px; }
+
+/* ---------- Behaves like an app: no pinch or double-tap zoom, no text-size jumps ---------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
+body { -webkit-touch-callout: none; }
+input, select, textarea, [contenteditable] { font-size: 16px; -webkit-user-select: text; user-select: text; }
+button, .btn, .chip, .tab, .hn, .kpi, .help-btn, .pick-row, .client-row { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+/* ---------- Two businesses ---------- */
+.brand-switch { justify-self: start; margin-top: 6px; }
+.alert-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--danger); background: rgba(185,60,44,.07); }
+html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
+.alert-card div { flex: 1; min-width: 0; } .alert-card b { display: block; font-size: 14.5px; color: var(--danger); } .alert-card small { color: var(--muted); font-size: 12.5px; }
+.late-tag { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--danger); border: 1px solid currentColor; padding: 2px 7px; border-radius: 99px; margin-left: 6px; vertical-align: 1px; }
 </style>
 </head>
 <body>
@@ -1240,7 +1252,7 @@ html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text 
 
 <section class="home" id="home" hidden aria-label="Home">
   <div class="home-wrap">
-    <header class="home-hello"><span class="eyebrow" id="home-date"></span><h1 id="home-title">Welcome</h1><p id="home-sub"></p></header>
+    <header class="home-hello"><span class="eyebrow" id="home-date"></span><h1 id="home-title">Welcome</h1><p id="home-sub"></p><button class="link-btn brand-switch" type="button" id="home-brand" hidden></button></header>
     <div id="home-draft"></div>
     <div class="home-new">
       <button class="hn" type="button" data-new="invoice"><span class="hn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg></span><b>New invoice</b><small>Ask a client to pay</small></button>
@@ -2324,17 +2336,54 @@ const SYNC = { version: LS.get("aurum.syncVersion", 0), timer: null, busy: false
 const canSync = () => configured() && licence?.mode === "full";
 function setSync(state) { const el = $("#sync-state"); if (!el) return; el.hidden = !canSync(); el.dataset.state = state; el.textContent = { saving: "Saving…", saved: "Backed up", offline: "Offline · will retry", error: "Backup paused" }[state] || ""; }
 function pushSoon() { if (!canSync()) return; setSync("saving"); clearTimeout(SYNC.timer); SYNC.timer = setTimeout(push, 3500); }
-const workspace = () => ({ v: 1, profile: S.profile, history, clients: S.clients, catalog: S.catalog, savedAt: Date.now() });
+/* ---- Two businesses (Prestige). The live data always belongs to the active business; the other one is parked in storage. ---- */
+const brandId = () => LS.get("aurum.brandActive", "a");
+const otherId = () => (brandId() === "a" ? "b" : "a");
+const brandBundle = (id) => LS.get("aurum.brand." + id, null);
+const hasSecondBrand = () => !!brandBundle(otherId());
+const otherBrandName = () => brandBundle(otherId())?.profile?.business?.name || "your other business";
+function switchBrand(toId, create = false) {
+  if (toId === brandId()) return false;
+  const stored = brandBundle(toId); if (!stored && !create) return false;
+  LS.set("aurum.brand." + brandId(), { profile: S.profile, doc: S.doc, history, clients: S.clients, catalog: S.catalog });
+  let bun = stored;
+  if (!bun) { const p = blankProfile(); bun = { profile: p, doc: newDocFor(p), history: [], clients: [], catalog: [] }; }
+  S.profile = bun.profile; S.doc = bun.doc || newDocFor(bun.profile); history = bun.history || []; S.clients = bun.clients || []; S.catalog = bun.catalog || [];
+  LS.set("aurum.brandActive", toId); LS.del("aurum.brand." + toId);
+  lastProfileJSON = ""; LS.set("aurum.history", history); LS.set("aurum.profile", S.profile); LS.set("aurum.draft", S.doc); LS.set("aurum.clients", S.clients); LS.set("aurum.catalog", S.catalog);
+  persist(); return true;
+}
+const workspace = () => {
+  const brands = { [brandId()]: { profile: S.profile, history, clients: S.clients, catalog: S.catalog } };
+  const o = brandBundle(otherId()); if (o) brands[otherId()] = { profile: o.profile, history: o.history || [], clients: o.clients || [], catalog: o.catalog || [] };
+  return { v: 2, brands, savedAt: Date.now() };
+};
+function mergeBundle(L, R) {
+  const byId = new Map((L.history || []).map((h) => [h.id, h]));
+  (R.history || []).forEach((h) => { const mine = byId.get(h.id); if (!mine || (h.savedAt || 0) > (mine.savedAt || 0)) byId.set(h.id, h); });
+  const hist = [...byId.values()].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0)).slice(0, 300);
+  const cl = new Map((L.clients || []).map((c) => [c.name.toLowerCase(), c])); (R.clients || []).forEach((c) => { const k = c.name.toLowerCase(); if (!cl.has(k) || (c.last || 0) > (cl.get(k).last || 0)) cl.set(k, c); });
+  const ct = new Map((L.catalog || []).map((x) => [x.desc.toLowerCase(), x])); (R.catalog || []).forEach((x) => { const k = x.desc.toLowerCase(); if (!ct.has(k) || (x.uses || 0) > (ct.get(k).uses || 0)) ct.set(k, x); });
+  let profile = L.profile;
+  if (R.profile && ((R.profile.updatedAt || 0) > (L.profile.updatedAt || 0) || !L.profile.setupDone)) {
+    const counters = { ...(R.profile.counters || {}) }; Object.entries(L.profile.counters || {}).forEach(([k, v]) => (counters[k] = Math.max(counters[k] || 0, v)));
+    profile = { ...R.profile, counters };
+  }
+  return { profile, history: hist, clients: [...cl.values()], catalog: [...ct.values()] };
+}
 function mergeWorkspace(remote) {
   if (!remote) return;
-  const byId = new Map(history.map((h) => [h.id, h]));
-  (remote.history || []).forEach((h) => { const mine = byId.get(h.id); if (!mine || (h.savedAt || 0) > (mine.savedAt || 0)) byId.set(h.id, h); });
-  history = [...byId.values()].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0)).slice(0, 300);
-  const cl = new Map(S.clients.map((c) => [c.name.toLowerCase(), c])); (remote.clients || []).forEach((c) => { const k = c.name.toLowerCase(); if (!cl.has(k) || (c.last || 0) > (cl.get(k).last || 0)) cl.set(k, c); }); S.clients = [...cl.values()];
-  const ct = new Map(S.catalog.map((x) => [x.desc.toLowerCase(), x])); (remote.catalog || []).forEach((x) => { const k = x.desc.toLowerCase(); if (!ct.has(k) || (x.uses || 0) > (ct.get(k).uses || 0)) ct.set(k, x); }); S.catalog = [...ct.values()];
-  if (remote.profile && ((remote.profile.updatedAt || 0) > (S.profile.updatedAt || 0) || !S.profile.setupDone)) {
-    const counters = { ...remote.profile.counters }; Object.entries(S.profile.counters || {}).forEach(([k, v]) => (counters[k] = Math.max(counters[k] || 0, v)));
-    S.profile = { ...remote.profile, counters };
+  const rb = remote.v === 2 && remote.brands ? remote.brands : { a: remote };
+  for (const [id, rbun] of Object.entries(rb)) {
+    if (!rbun || !rbun.profile) continue;
+    if (id === brandId()) {
+      const m = mergeBundle({ profile: S.profile, history, clients: S.clients, catalog: S.catalog }, rbun);
+      S.profile = m.profile; history = m.history; S.clients = m.clients; S.catalog = m.catalog;
+    } else if (id === "a" || id === "b") {
+      const lb = brandBundle(id);
+      if (!lb) LS.set("aurum.brand." + id, { profile: rbun.profile, doc: newDocFor(rbun.profile), history: rbun.history || [], clients: rbun.clients || [], catalog: rbun.catalog || [] });
+      else LS.set("aurum.brand." + id, { ...lb, ...mergeBundle(lb, rbun) });
+    }
   }
   LS.set("aurum.history", history); LS.set("aurum.profile", S.profile); LS.set("aurum.clients", S.clients); LS.set("aurum.catalog", S.catalog);
 }
@@ -2775,6 +2824,7 @@ function rememberDoc() {
     }
   }
   LS.set("aurum.history", history); persist(); renderHistory();
+  syncInvoiceState(D); if (D.type === "receipt" && D.fromId) syncInvoiceState(history.find((h) => h.id === D.fromId)?.doc);
 }
 /* one-tap conversions */
 const dueOn = (inv) => { const t = calc(inv); return inv.status === "paid" ? 0 : inv.status === "part" ? t.balance : t.total; };
@@ -2895,6 +2945,7 @@ function openHouse(focus) {
 ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class="pbadge">5 devices</span></h3>
         <div class="card-line"><span><b>Phone alerts</b><small id="push-sub">Know the moment a client opens or pays.</small></span><button class="btn sm primary" type="button" data-h="push" id="push-btn">Turn on</button></div>
         <label class="toggle card-line" style="margin-top:10px"><span><b style="display:block">Your logo in the wax seal</b><small style="color:var(--muted);font-size:13px">${B.logo ? "On the envelope and thank-you card." : "Upload your logo above first."}</small></span><span class="switch"><input type="checkbox" data-bind="profile.design.sealLogo" ${G.sealLogo ? "checked" : ""} ${B.logo ? "" : "disabled"}><i></i></span></label>
+        <div class="card-line" style="margin-top:10px"><span><b>Your businesses</b><small>${hasSecondBrand() ? esc(B.name || "This business") + " · " + esc(otherBrandName()) : "Run a second business from the same licence, with its own clients and documents."}</small></span><button class="btn sm ${hasSecondBrand() ? "" : "primary"}" type="button" data-h="brand">${hasSecondBrand() ? "Switch" : "Add second"}</button></div>
         <p class="hint" style="margin-top:10px">Each team member sets their own name below, so you can see who sent what in the Team tab.</p></section>` : `<section><div class="lock-card"><h3>Prestige <span class="pbadge">₦35,000</span></h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts when a client opens or pays</li><li>Monthly business report PDF</li><li>Team view: who sent what</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div></section>`}
       <section><h3 class="sub">Your thank-you message</h3>
         <p class="hint">Shown on the thank-you card your client receives when they pay. Keep it short and warm.</p>
@@ -2948,6 +2999,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
     const gr = e.target.closest("[data-greet]"); if (gr) { G.greeting = gr.dataset.greet; persist(); return openHouse(); }
     if (h?.dataset.h === "push") return togglePush();
+    if (h?.dataset.h === "brand") return hasSecondBrand() ? doSwitchBrand() : addBrandSheet();
     if (h?.dataset.h === "customise") return openCustomise();
     if (h?.dataset.h === "nologo") { B.logo = ""; persist(); openHouse(); render(); }
   };
@@ -3192,7 +3244,11 @@ function renderHome() {
   $("#home-owed").innerHTML = `<small>Owed to you</small><b>${money(owed)}</b><span>${L.owing.length ? L.owing.length + " unpaid · see who" : "Nobody owes you"}</span>`;
   $("#home-month").innerHTML = `<small>Paid this month</small><b>${money(inMonth)}</b><span>Open overview</span>`;
   const D = S.doc, started = (D.client.name || "").trim() || D.items.some((i) => (i.desc || "").trim());
-  $("#home-draft").innerHTML = started && !history.some((x) => x.id === D.id) ? `<div class="draft-card"><div><b>Continue your ${LABEL[D.type].toLowerCase()}</b><small>${esc(D.number)}${D.client.name ? " for " + esc(D.client.name) : ""} · not sent yet</small></div><button class="btn sm primary" type="button" id="draft-go">Continue</button></div>` : "";
+  const late = overdueDocs();
+  $("#home-brand").hidden = !(isPrestige() && hasSecondBrand()); $("#home-brand").textContent = "Switch to " + otherBrandName() + " ⇄";
+  $("#home-owed").querySelector("span").textContent = late.length ? `${late.length} overdue · see who` : L.owing.length ? L.owing.length + " unpaid · see who" : "Nobody owes you";
+  const lateCard = late.length ? `<div class="alert-card"><div><b>${plural(late.length, "invoice")} overdue</b><small>${esc(late.slice(0, 2).map((d) => d.client.name || d.number).join(", "))}${late.length > 2 ? " and more" : ""}</small></div><button class="btn sm primary" type="button" data-late>Remind</button></div>` : "";
+  $("#home-draft").innerHTML = lateCard + (started && !history.some((x) => x.id === D.id) ? `<div class="draft-card"><div><b>Continue your ${LABEL[D.type].toLowerCase()}</b><small>${esc(D.number)}${D.client.name ? " for " + esc(D.client.name) : ""} · not sent yet</small></div><button class="btn sm primary" type="button" id="draft-go">Continue</button></div>` : "");
   $("#home-recent").innerHTML = history.length ? history.slice(0, 5).map(docRow).join("") : `<div class="home-empty">Your invoices, receipts and quotations will appear here. Start with <b>New invoice</b> above.</div>`;
   $("#home-all").hidden = history.length <= 5;
   $$(".js-support").forEach((a) => (a.href = supportHref()));
@@ -3207,6 +3263,8 @@ function newOfType(t) {
 $("#home").addEventListener("click", (e) => {
   const n = e.target.closest("[data-new]"); if (n) return newOfType(n.dataset.new);
   if (e.target.closest("#draft-go")) return showStep(1);
+  if (e.target.closest("#home-brand")) return doSwitchBrand();
+  if (e.target.closest("[data-late]")) return showDash("owe");
   if (e.target.closest("#home-owed")) return showDash("owe");
   if (e.target.closest("#home-month")) return showDash("docs");
   if (e.target.closest("#home-all")) return showDash("docs");
@@ -3224,6 +3282,21 @@ document.addEventListener("click", (e) => {
     <a class="btn primary block" style="margin:6px 0 4px" href="${esc(supportHref())}" target="_blank" rel="noopener">Still stuck? WhatsApp us</a>`);
 });
 
+/* ---------- overdue, status sync, switching businesses ---------- */
+const isLate = (d) => d.type === "invoice" && d.status !== "paid" && !!d.payBy && d.payBy < iso(new Date());
+const overdueDocs = () => history.map((h) => h.doc).filter(isLate).sort((a, b) => a.payBy.localeCompare(b.payBy));
+// Tell the server when an invoice is marked paid or its pay-by date changes, so overdue alerts are never wrong.
+function syncInvoiceState(d) { if (!canSync() || !d || d.type !== "invoice" || !d.shareId) return; rpc("set_invoice_state", { p_key: licence.key, p_device: deviceId, p_doc_id: d.id, p_status: d.status || "unpaid", p_pay_by: d.payBy || "" }).catch(() => {}); }
+function afterBrandChange() {
+  closeLayer(); lastTotal = null;
+  if (!S.profile.setupDone) return startWelcome();
+  syncChrome(); renderItemsEditor(); renderHistory(); render({ enter: true }); showHome(); toast(`Now working in ${S.profile.business.name || "your business"}`);
+}
+function doSwitchBrand() { if (switchBrand(otherId())) afterBrandChange(); }
+function addBrandSheet() {
+  sheet("Add a second business", `<div class="lock-card" style="margin:6px 4px 8px"><h3>A second business, one licence</h3><ul><li>Its own name, logo, colours and bank details</li><li>Its own clients, prices and documents</li><li>Its own invoice numbers</li><li>Switch between them in one tap</li></ul><button class="btn primary" type="button" data-addbrand>Set it up</button></div>`,
+    { onClick: (e) => { if (e.target.closest("[data-addbrand]")) { if (switchBrand(otherId(), true)) afterBrandChange(); } } });
+}
 /* ---------- Prestige: upgrade prompt, phone alerts, monthly report ---------- */
 const upgradeHref = () => `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to upgrade my Aurum licence to Prestige.")}`;
 function upgradeSheet(feature) {
@@ -3370,7 +3443,7 @@ function renderDash() {
   }
   if (dashState.tab === "owe") {
     const ago = (n) => (n <= 0 ? "today" : n === 1 ? "yesterday" : `${n} days ago`);
-    $("#dash-owe").innerHTML = L.owing.length ? `<div class="doc-list">${L.owing.map((o) => `<div class="owe-row"><div><b>${esc(o.d.client.name || "No name")}</b><small>${esc(o.d.number)} · sent ${ago(o.age)}${o.d.reminded ? " · reminded " + ago(-daysUntil(o.d.reminded)) : ""}</small></div><strong>${money(o.due, o.d.currency)}</strong><div class="row-btns"><button class="btn sm primary" type="button" data-remind="${o.d.id}">Remind on WhatsApp</button><button class="btn sm" type="button" data-conv="${o.d.id}">Got paid</button></div></div>`).join("")}</div>` : `<div class="home-empty">Nobody owes you right now. Lovely.</div>`;
+    $("#dash-owe").innerHTML = L.owing.length ? `<div class="doc-list">${L.owing.map((o) => `<div class="owe-row"><div><b>${esc(o.d.client.name || "No name")}</b><small>${esc(o.d.number)} · sent ${ago(o.age)}${o.d.reminded ? " · reminded " + ago(-daysUntil(o.d.reminded)) : ""}${isLate(o.d) ? ` <span class="late-tag">Overdue</span>` : ""}</small></div><strong>${money(o.due, o.d.currency)}</strong><div class="row-btns"><button class="btn sm primary" type="button" data-remind="${o.d.id}">Remind on WhatsApp</button><button class="btn sm" type="button" data-conv="${o.d.id}">Got paid</button></div></div>`).join("")}</div>` : `<div class="home-empty">Nobody owes you right now. Lovely.</div>`;
   }
 }
 function openClient(c) {
@@ -3503,6 +3576,12 @@ function openDemoHouse() {
     + `<a class="btn primary block" style="margin:14px 0 4px" href="${esc(buyHref())}" target="_blank" rel="noopener">Get Aurum</a>`,
     { onClick: (e) => { const b = e.target.closest("[data-demo-house]"); if (!b) return; applyDemoHouse(Number(b.dataset.demoHouse)); closeLayer(); startStudio(); showStep(1); swapAnim(); render({ enter: true }); toast("Sample business changed"); } });
 }
+
+/* ---------- stay put: no pinch or double-tap zoom ---------- */
+["gesturestart", "gesturechange", "gestureend"].forEach((t) => document.addEventListener(t, (e) => e.preventDefault()));
+document.addEventListener("touchmove", (e) => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+let lastTouchEnd = 0;
+document.addEventListener("touchend", (e) => { const n = Date.now(); if (n - lastTouchEnd < 300 && !e.target.closest("input, textarea, select")) e.preventDefault(); lastTouchEnd = n; }, { passive: false });
 
 /* ---------- start: a client link, or the studio ---------- */
 const qs = new URLSearchParams(location.search);

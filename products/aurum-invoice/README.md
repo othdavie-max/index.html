@@ -230,3 +230,6 @@ These commands are at the bottom of `licences.sql`:
 - **Prestige only:** phone alerts (client opened your invoice, says they paid, accepted a quotation), monthly business report PDF, Team tab (who prepared what), your logo pressed into the wax seal, 5 devices.
 - **Phone alerts** use Web Push. Deploy `functions/notify/index.ts` with JWT verification **off**, set secrets `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NOTIFY_SECRET`, and run `licences-extras.sql`. On iPhone the app must be added to the Home Screen first (iOS 16.4+).
 - **WhatsApp previews:** `invoice.html`, `receipt.html`, `quotation.html`, `delivery-note.html`, `credit-note.html`, `purchase-order.html` each carry a preview picture (`og/`). Links the app creates point at the page for their document type.
+- **Two businesses** on a Prestige licence: each has its own profile, clients, prices, documents and numbering; switch from Home or My house. Both sync to the cloud backup. The server allows two business names on Prestige and one on Signature.
+- **Overdue alerts:** the app tells the server when an invoice is marked paid, and every morning at 8am (Lagos) Prestige businesses with alerts on get one alert listing their overdue invoices.
+- **App behaviour:** pinch and double-tap zoom are switched off in the app so it feels like an installed app.

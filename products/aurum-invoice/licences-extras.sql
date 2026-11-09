@@ -122,3 +122,76 @@ begin
 end; $$;
 revoke all on function public.view_invoice(text), public.claim_paid(text, text, text) from public;
 grant execute on function public.view_invoice(text), public.claim_paid(text, text, text) to anon, authenticated;
+
+-- ---------------------------------------------------------------
+-- Two businesses on a Prestige licence, and daily overdue alerts
+-- ---------------------------------------------------------------
+alter table public.licences add column if not exists business_name_2 text;
+alter table public.invoices add column if not exists pay_by date;
+alter table public.invoices add column if not exists pay_status text not null default 'unpaid';
+alter table public.invoices add column if not exists overdue_notified date;
+
+-- publish_invoice: Signature locks one business name; Prestige locks up to two.
+create or replace function public.publish_invoice(p_key text, p_device text, p_doc_id text, p_payload jsonb)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare v_id text; v_name text; v_locked text; v_locked2 text; v_plan text; v_payby date; v_status text;
+begin
+  if not public._licence_ok(p_key, p_device) then return json_build_object('ok', false, 'reason', 'licence'); end if;
+  if octet_length(p_payload::text) > 1500000 then return json_build_object('ok', false, 'reason', 'too_large'); end if;
+  v_name := lower(regexp_replace(trim(coalesce(p_payload->'profile'->'business'->>'name', '')), '\s+', ' ', 'g'));
+  select business_name, business_name_2, plan into v_locked, v_locked2, v_plan from public.licences where key = upper(trim(p_key));
+  if v_locked is null then
+    update public.licences set business_name = v_name where key = upper(trim(p_key));
+  elsif v_locked <> v_name then
+    if v_plan = 'prestige' and v_locked2 is null then update public.licences set business_name_2 = v_name where key = upper(trim(p_key));
+    elsif v_plan = 'prestige' and v_locked2 = v_name then null;
+    else return json_build_object('ok', false, 'reason', 'business_mismatch'); end if;
+  end if;
+  begin v_payby := nullif(p_payload->'doc'->>'payBy', '')::date; exception when others then v_payby := null; end;
+  v_status := case when p_payload->'doc'->>'status' in ('paid', 'part', 'unpaid') then p_payload->'doc'->>'status' else 'unpaid' end;
+  select id into v_id from public.invoices where licence_key = upper(trim(p_key)) and doc_id = p_doc_id;
+  if v_id is null then
+    loop v_id := lower(substr(encode(gen_random_bytes(9), 'hex'), 1, 12)); exit when not exists (select 1 from public.invoices where id = v_id); end loop;
+    insert into public.invoices (id, licence_key, doc_id, payload, pay_by, pay_status) values (v_id, upper(trim(p_key)), p_doc_id, p_payload, v_payby, v_status);
+  else
+    update public.invoices set payload = p_payload, updated_at = now(), pay_by = v_payby, pay_status = v_status where id = v_id;
+  end if;
+  return json_build_object('ok', true, 'id', v_id);
+end; $$;
+
+-- The app tells the server when an invoice is marked paid or its pay-by date changes.
+create or replace function public.set_invoice_state(p_key text, p_device text, p_doc_id text, p_status text, p_pay_by text)
+returns json language plpgsql security definer set search_path = public as $$
+declare d date;
+begin
+  if not public._licence_ok(p_key, p_device) then return json_build_object('ok', false, 'reason', 'licence'); end if;
+  begin d := nullif(p_pay_by, '')::date; exception when others then d := null; end;
+  update public.invoices set pay_status = case when p_status in ('paid', 'part', 'unpaid') then p_status else 'unpaid' end, pay_by = d where licence_key = upper(trim(p_key)) and doc_id = p_doc_id;
+  return json_build_object('ok', true);
+end; $$;
+revoke all on function public.publish_invoice(text, text, text, jsonb), public.set_invoice_state(text, text, text, text, text) from public;
+grant execute on function public.publish_invoice(text, text, text, jsonb), public.set_invoice_state(text, text, text, text, text) to anon, authenticated;
+
+-- One alert per Prestige business listing its overdue invoices, at most every 3 days. Runs daily at 8am Lagos time.
+create or replace function public.send_overdue_alerts()
+returns integer language plpgsql security definer set search_path = public, extensions as $$
+declare r record; today date := (now() at time zone 'Africa/Lagos')::date; n int := 0; names text;
+begin
+  for r in
+    select i.licence_key, count(*) as c, string_agg(coalesce(nullif(i.payload->'doc'->'client'->>'name', ''), 'A client') || ' (' || coalesce(i.payload->'doc'->>'number', '') || ')', ', ' order by i.pay_by) as who
+    from public.invoices i join public.licences l on l.key = i.licence_key
+    where l.active and l.plan = 'prestige' and i.pay_status in ('unpaid', 'part') and i.pay_by is not null and i.pay_by < today
+      and (i.overdue_notified is null or i.overdue_notified <= today - 3)
+      and exists (select 1 from public.push_subs s where s.licence_key = i.licence_key)
+    group by i.licence_key
+  loop
+    names := r.who; if length(names) > 110 then names := left(names, 107) || '...'; end if;
+    perform public._notify(r.licence_key, case when r.c = 1 then '1 invoice is overdue' else r.c || ' invoices are overdue' end, names, '/app/', 'overdue-' || today::text);
+    update public.invoices set overdue_notified = today where licence_key = r.licence_key and pay_status in ('unpaid', 'part') and pay_by < today;
+    n := n + 1;
+  end loop;
+  return n;
+end; $$;
+revoke all on function public.send_overdue_alerts() from public, anon, authenticated;
+create extension if not exists pg_cron;
+select cron.schedule('aurum-overdue-alerts', '0 7 * * *', 'select public.send_overdue_alerts()');
