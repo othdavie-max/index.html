@@ -181,7 +181,7 @@ Selling is manual for now:
 2. When a buyer messages you, run this in the Supabase SQL Editor:
    ```sql
    select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567');
-   -- Prestige: select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567', 3, 'prestige');
+   -- Prestige: select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567', 5, 'prestige');
    ```
 3. Send them the key and the app link.
 
@@ -204,7 +204,7 @@ Prices are decided in the database (`price_kobo`), not in the browser, and the B
 ### 5. Prestige: connect their own web address
 In Netlify, open **Domain management → Add a domain alias**, enter the buyer's address (e.g. `invoice.theirbrand.ng`), and give them the DNS record Netlify shows. Once it's live, the buyer opens the app from their own address, and every link they send uses it automatically. Then upgrade their key:
 ```sql
-update licences set plan = 'prestige', max_devices = 3 where key = 'AUR-XXXX-XXXX-XXXX';
+update licences set plan = 'prestige', max_devices = 5 where key = 'AUR-XXXX-XXXX-XXXX';
 ```
 
 ### Everyday admin

@@ -84,7 +84,7 @@ grant execute on function public.activate_license(text, text) to anon, authentic
 
 -- Make a new key for a buyer (run in the SQL editor, never from the app):
 --   select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567');
---   Prestige buyer:  select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567', 3, 'prestige');
+--   Prestige buyer:  select public.new_licence('Chioma Eze', 'chioma@example.com', '08031234567', 5, 'prestige');
 drop function if exists public.new_licence(text, text, text, int);
 drop function if exists public.new_licence(text, text, text, int, text);
 create or replace function public.new_licence(p_name text, p_email text, p_phone text default null, p_devices int default 2, p_plan text default 'signature', p_referred_by text default null)
@@ -251,7 +251,7 @@ grant execute on function public.save_workspace(text, text, jsonb, bigint), publ
 
 -- Everyday admin (run in the SQL editor):
 --   Block a key that was shared:      update licences set active = false where key = 'AUR-XXXX-XXXX-XXXX';
---   Upgrade to Prestige:              update licences set plan = 'prestige', max_devices = 3 where key = 'AUR-XXXX-XXXX-XXXX';
+--   Upgrade to Prestige:              update licences set plan = 'prestige', max_devices = 5 where key = 'AUR-XXXX-XXXX-XXXX';
 --   Let a buyer rename their business: update licences set business_name = null where key = 'AUR-XXXX-XXXX-XXXX';
 --   Referrals per buyer:              select l.buyer_name, l.ref_code, count(r.*) referred from licences l left join licences r on r.referred_by = l.ref_code group by l.key order by referred desc;
 --   New buyer who used a code:        select public.new_licence('Ada Obi', 'ada@example.com', '0802...', 2, 'signature', 'REF-1A2B3C');
@@ -364,7 +364,7 @@ begin
     update public.orders set status = 'underpaid', paid_kobo = p_paid_kobo where reference = p_reference;
     return json_build_object('ok', false, 'reason', 'underpaid');
   end if;
-  k := public.new_licence(o.name, o.email, o.phone, case o.plan when 'prestige' then 3 else 2 end, o.plan, o.referred_by);
+  k := public.new_licence(o.name, o.email, o.phone, case o.plan when 'prestige' then 5 else 2 end, o.plan, o.referred_by);
   if o.mode = 'test' then update public.licences set active = false, buyer_name = 'TEST ' || o.name where key = k; end if;
   update public.orders set status = 'paid', paid_at = now(), paid_kobo = p_paid_kobo, channel = p_channel, licence_key = k where reference = p_reference;
   return json_build_object('ok', true, 'key', k, 'plan', o.plan, 'test', o.mode = 'test');
