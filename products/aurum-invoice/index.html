@@ -962,6 +962,30 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 /* ---------- Match the reference photograph ---------- */
 .env-stage::after { content: ""; position: absolute; left: -12%; right: -12%; bottom: -34px; height: 60px; background: radial-gradient(ellipse at 50% 0, rgba(204,150,60,.30), transparent 68%); pointer-events: none; z-index: 0; }
 .env-flap .face.front > svg path:nth-of-type(2) { stroke: rgba(217,190,132,.6); stroke-width: .55; }
+/* ---------- Make install obvious ---------- */
+.install-bar { gap: 12px; padding-block: 12px; background: linear-gradient(90deg, #B8935A, #E9D39E 55%, #B8935A); border-bottom: 1px solid #7A5A1E; color: #16130C; }
+.install-bar > svg { width: 28px; height: 28px; flex: none; fill: none; stroke: #16130C; stroke-width: 1.6; }
+.install-bar b { color: #16130C; font-size: 15px; }
+.install-bar small { color: rgba(22,19,12,.72); font-size: 12.5px; }
+.install-bar .btn { background: #16130C; color: #E9D39E; border-color: #16130C; font-weight: 700; white-space: nowrap; }
+.install-bar .bar-x { color: rgba(22,19,12,.7); }
+.gate-install-wrap { margin: 14px 0 4px; }
+.gate-install { width: 100%; justify-content: flex-start; gap: 14px; padding: 14px 18px; border: 1.5px solid var(--gold); background: linear-gradient(180deg, rgba(217,190,132,.16), rgba(217,190,132,.06)); color: var(--ink); text-align: left; border-radius: 14px; display: flex; align-items: center; }
+.gate-install svg { width: 30px; height: 30px; flex: none; fill: none; stroke: var(--gold); stroke-width: 1.6; }
+.gate-install span { display: grid; gap: 1px; font-weight: 700; font-size: 16px; }
+.gate-install small { font-weight: 500; font-size: 12.5px; color: var(--muted); }
+.gate-install:hover { background: rgba(217,190,132,.22); }
+/* ---------- Free demo ---------- */
+.trial-bar { display: flex; align-items: center; gap: 12px; padding: 9px max(16px, env(safe-area-inset-left, 0px)); background: #1A1610; border-bottom: 1px solid var(--line-2); }
+.trial-bar[hidden] { display: none; }
+.trial-bar > span { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.trial-bar b { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+.trial-bar small { font-size: 12px; color: var(--muted); }
+[data-locked] { cursor: pointer; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23B8935A' stroke-width='1.8'><rect x='5' y='11' width='14' height='9' rx='2'/><path d='M8 11V8a4 4 0 0 1 8 0v3'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+.is-trial .it-photo-row { display: none; }
+.pick-row { display: grid; gap: 2px; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 8px; border: 1px solid var(--line-2); border-radius: 12px; background: transparent; color: var(--ink); cursor: pointer; font: inherit; }
+.pick-row b { font-weight: 600; font-size: 15.5px; } .pick-row small { color: var(--muted); font-size: 13px; }
+.pick-row:hover, .pick-row[aria-pressed="true"] { border-color: var(--gold); background: rgba(217,190,132,.08); }
 </style>
 </head>
 <body>
@@ -983,8 +1007,8 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
         <div class="key-row"><input id="lic-key" name="key" placeholder="Your licence key" maxlength="40" required><button class="btn primary" type="submit" id="lic-submit">Enter</button></div>
         <div class="err" id="lic-err" role="alert"></div>
       </form>
-      <div class="gate-alt g-in" style="--d:.6s"><button class="link-btn" type="button" id="lic-demo">Explore the free trial <span aria-hidden="true">→</span></button></div>
-      <div class="gate-alt g-in" style="--d:.65s"><button class="link-btn js-install" type="button">Install Aurum on your phone <span aria-hidden="true">↓</span></button></div>
+      <div class="gate-install-wrap g-in" style="--d:.55s"><button class="btn gate-install js-install" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span>Install the app on your phone<small>Android &amp; iPhone</small></span></button></div>
+      <div class="gate-alt g-in" style="--d:.6s"><button class="link-btn" type="button" id="lic-demo">Explore the free demo <span aria-hidden="true">→</span></button></div>
       <p class="fine g-in" style="--d:.7s" id="gate-fine">Your licence is personal to you and works on your own devices.</p>
     </div>
     <div class="gate-art" aria-hidden="true">
@@ -1020,7 +1044,9 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
     <button class="icon-btn" type="button" id="open-house"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l8-6 8 6v10H4z"/><path d="M10 20v-6h4v6"/></svg>My house</button>
   </div>
 </header>
-<div class="install-bar" id="install-bar" hidden><span><b>Get Aurum as an app</b><small>Android &amp; iPhone. Opens full screen, works offline.</small></span><button class="btn sm primary js-install" type="button">Install</button><button class="bar-x" type="button" id="bar-x" aria-label="Hide this">×</button></div>
+<div class="install-bar" id="install-bar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span><b>Install Aurum on your phone</b><small>Android &amp; iPhone. Opens full screen, works offline.</small></span><button class="btn sm js-install" type="button">Install app</button><button class="bar-x" type="button" id="bar-x" aria-label="Hide this">×</button></div>
+
+<div class="trial-bar" id="trial-bar" hidden><span><b>Free demo</b><small>Sample business and sample amounts only. Get Aurum to use your own.</small></span><a class="btn sm primary" id="trial-buy" href="#" target="_blank" rel="noopener">Get Aurum</a></div>
 
 <main class="studio" id="main-content">
   <aside class="editor" aria-label="Create document">
@@ -1953,7 +1979,7 @@ $("#gate-form").addEventListener("submit", async (e) => {
   const btn = $("#lic-submit"); btn.disabled = true; btn.textContent = "Checking…"; $("#lic-err").textContent = "";
   try {
     const r = await rpc("activate_license", { p_key: key, p_device: deviceId });
-    if (r.ok) { licence = { mode: "full", key, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || "", checkedAt: Date.now() }; LS.set("aurum.licence", licence); enter(); toast("Welcome to Aurum"); }
+    if (r.ok) { licence = { mode: "full", key, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || "", checkedAt: Date.now() }; LS.set("aurum.licence", licence); if (S.profile.demo) resetForRealBusiness(); enter(); toast("Welcome to Aurum"); }
     else $("#lic-err").textContent = REASONS[r.reason] || REASONS.invalid;
   } catch { $("#lic-err").textContent = "We couldn't reach the licence server. Check your internet and try again."; }
   btn.disabled = false; btn.textContent = "Enter";
@@ -1976,6 +2002,38 @@ const sampleDoc = () => ({ ...newDocFor(SAMPLE_PROFILE()), number: "INV-0042", s
   items: [{ id: uid(), desc: "Bespoke lace bridal gown", note: "French lace, hand-beaded bodice", qty: 1, price: 385000 }, { id: uid(), desc: "Aso-ebi outfit", note: "Bride's family", qty: 3, price: 25000 }, { id: uid(), desc: "Gele tying", note: "Wedding day", qty: 2, price: 15000 }],
   discount: 20000, delivery: 5000, amountPaid: 150000, notes: "Kindly send proof of payment on WhatsApp." });
 
+/* ---- Free trial: sample businesses, sample clients, fixed prices. Nothing is typed. ---- */
+const DEMO_HOUSES = [
+  { k: "fashion", name: "Adaeze Couture", tagline: "Bespoke bridal & occasion wear", brand: "#5A1A24" },
+  { k: "events", name: "Lekki Luxe Events", tagline: "Weddings, décor & planning", brand: "#1B2A4A" },
+  { k: "beauty", name: "Glow by Kemi", tagline: "Makeup, gele & bridal beauty", brand: "#4A1F3D" },
+  { k: "food", name: "Mama Nkechi Catering", tagline: "Small chops, buffets & cakes", brand: "#3A2A1A" },
+  { k: "property", name: "Prime Gate Realty", tagline: "Lagos homes & lettings", brand: "#1B2A4A" },
+  { k: "media", name: "Frame & Light Studio", tagline: "Photo, video & albums", brand: "#2B2B2B" },
+];
+const DEMO_CLIENTS = [
+  { name: "Mrs. Funmilayo Bakare", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 000 0001" },
+  { name: "Chief Emeka Obi", address: "12 Adeola Odeku, Victoria Island, Lagos", phone: "0809 000 0002" },
+  { name: "Dr. Aisha Bello", address: "5 Gana Street, Maitama, Abuja", phone: "0809 000 0003" },
+  { name: "Mr. Tunde Adeyemi", address: "3 Ring Road, Ibadan", phone: "0809 000 0004" },
+  { name: "Mrs. Ngozi Eze", address: "21 Independence Layout, Enugu", phone: "0809 000 0005" },
+  { name: "Alhaji Musa Danjuma", address: "9 Aminu Kano Crescent, Wuse 2, Abuja", phone: "0809 000 0006" },
+];
+const demoPrice = (d) => (4 + (hashStr(d) % 37)) * 5000;
+const demoItemsFor = (k) => (INDUSTRIES[k]?.items || INDUSTRIES.other.items).map((d) => ({ desc: d, price: demoPrice(d) }));
+function applyDemoHouse(i = 0) {
+  const h = DEMO_HOUSES[i] || DEMO_HOUSES[0], b = blankProfile();
+  S.profile = { ...b, setupDone: true, isSample: true, demo: true, demoHouse: i,
+    business: { ...b.business, name: h.name, tagline: h.tagline, industry: h.k, address: "Sample address, Lekki, Lagos", phone: "0800 000 0000", email: "hello@sample.ng", signMode: "type", signText: h.name.split(" ")[0], signName: "Sample Owner", signTitle: "Director" },
+    bank: { bankName: "Sample Bank", accountName: h.name, accountNumber: "0000000000", payLink: "", paystackKey: "" },
+    design: { template: "royal", brand: h.brand, seal: true, greeting: "en" }, counters: { invoice: 41, receipt: 17, quotation: 8, delivery: 3, credit: 1, purchase: 5 } };
+  const c = DEMO_CLIENTS[0], its = demoItemsFor(h.k).slice(0, 2);
+  S.doc = { ...newDocFor(S.profile), client: { name: c.name, company: "", address: c.address, phone: c.phone, email: "" }, items: its.map((x) => ({ ...blankItem(), desc: x.desc, price: x.price })) };
+  S.clients = []; S.catalog = []; history = []; LS.set("aurum.history", []);
+  persist();
+}
+const resetForRealBusiness = () => { const b = blankProfile(); S.profile = b; S.doc = newDocFor(b); S.clients = []; S.catalog = []; history = []; LS.set("aurum.history", []); persist(); };
+
 const S = { profile: LS.get("aurum.profile", null) || blankProfile(), doc: LS.get("aurum.draft", null), clients: LS.get("aurum.clients", []), catalog: LS.get("aurum.catalog", []) };
 S.profile.bank.paystackKey ??= ""; S.profile.design ??= { template: "royal", brand: "#1A1817", seal: true };
 if (!S.doc) S.doc = newDocFor(S.profile);
@@ -1991,6 +2049,8 @@ const studioOpts = (extra = {}) => ({ demo: isDemo(), qr: S.doc.shareId ? qrFor(
 
 async function enter() {
   $("#gate").hidden = true;
+  document.body.classList.toggle("is-trial", isDemo());
+  if (isDemo() && !S.profile.demo) applyDemoHouse(0);
   if (canSync()) { await Promise.race([pull(), wait(6000)]); if (!history.some((h) => h.id === S.doc.id)) { S.doc.number = `${PREFIX[S.doc.type]}-${pad((S.profile.counters[S.doc.type] || 0) + 1)}`; persist(); } }
   if (!S.profile.setupDone) return startWelcome();
   startStudio();
@@ -2330,6 +2390,7 @@ function syncChrome() {
   $("#link-box").hidden = !D.link; $("#link-text").textContent = D.link || "";
   // plan chip
   const chip = $("#plan-chip"); chip.classList.toggle("trial", isDemo()); $("#plan-text").textContent = isDemo() ? "Trial" : isPrestige() ? "Prestige" : "Signature";
+  updateTrialBar();
 }
 document.addEventListener("input", (e) => {
   const el = e.target; if (!el.dataset?.bind) return;
@@ -2546,6 +2607,7 @@ $("#x-vat").addEventListener("change", () => { S.doc.vatOn = $("#x-vat").checked
    MY HOUSE — settings drawer
    ========================================================= */
 function openHouse(focus) {
+  if (isDemo()) return openDemoHouse();
   const P = S.profile, B = P.business, K = P.bank, G = P.design;
   const f = (label, path, attrs = "") => `<label class="field"><span>${label}</span><input data-bind="${path}" value="${esc(getPath(S, path) || "")}" ${attrs}></label>`;
   $("#layer").innerHTML = `<div class="scrim" data-close></div><aside class="drawer" role="dialog" aria-label="My house">
@@ -2805,22 +2867,64 @@ function openInstall(tab) {
   } });
 }
 function updateInstallBar() {
-  let dismissed = false; try { dismissed = localStorage.getItem("aurum.installHidden") === "1"; } catch (e) {}
+  let dismissed = false; try { dismissed = sessionStorage.getItem("aurum.installHidden") === "1"; } catch (e) {}
   const bar = $("#install-bar"); if (bar) bar.hidden = standalone() || dismissed;
   if (standalone()) $$(".js-install").forEach((b) => { if (b.closest(".gate-alt")) b.closest(".gate-alt").hidden = true; });
 }
 document.addEventListener("click", (e) => {
   if (e.target.closest(".js-install")) return openInstall();
-  if (e.target.closest("#bar-x")) { try { localStorage.setItem("aurum.installHidden", "1"); } catch (err) {} updateInstallBar(); }
+  if (e.target.closest("#bar-x")) { try { sessionStorage.setItem("aurum.installHidden", "1"); } catch (err) {} updateInstallBar(); }
 });
 updateInstallBar();
 if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !window.AURUM_NO_DOWNLOADS) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+/* ---------- free trial: sample details only ---------- */
+const buyHref = () => CONFIG.BUY_LINK || (CONFIG.SELLER_WHATSAPP ? `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to buy Aurum.")}` : "#");
+function updateTrialBar() { const b = $("#trial-bar"); if (!b) return; b.hidden = !isDemo(); const a = $("#trial-buy"); if (a) a.href = buyHref(); }
+const TRIAL_TEXT = "input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=date]):not([type=file]):not([type=hidden]):not([type=button]), textarea";
+let lockQueued = false;
+function lockTrial() {
+  lockQueued = false; if (!isDemo()) return;
+  document.querySelectorAll(TRIAL_TEXT).forEach((el) => {
+    if (el.dataset.locked || el.id === "lic-key" || el.id === "sheet-search" || el.closest("#gate") || el.closest(".cv")) return;
+    el.readOnly = true; el.dataset.locked = "1"; el.setAttribute("inputmode", "none");
+  });
+}
+new MutationObserver(() => { if (isDemo() && !lockQueued) { lockQueued = true; requestAnimationFrame(lockTrial); } }).observe(document.body, { childList: true, subtree: true });
+let lastTrialTap = 0;
+function trialTap(e) {
+  const el = e.target.closest?.("[data-locked]"); if (!el || !isDemo()) return;
+  e.preventDefault(); e.stopPropagation(); el.blur?.();
+  const now = Date.now(); if (now - lastTrialTap < 500) return; lastTrialTap = now;
+  if (el.id.startsWith("c-")) return openDemoClients();
+  if (el.dataset.item === "desc") return openDemoItems(el.closest(".item-card")?.dataset.id);
+  if (el.dataset.item === "price" || el.dataset.item === "qty") return toast("In the free trial, the amounts are set for you.");
+  toast("The free trial uses sample details. Get Aurum to type your own.");
+}
+document.addEventListener("click", trialTap, true);
+document.addEventListener("focusin", trialTap, true);
+function openDemoClients() {
+  sheet("Pick a sample client", DEMO_CLIENTS.map((c, i) => `<button type="button" class="pick-row" data-demo-client="${i}"><b>${esc(c.name)}</b><small>${esc(c.address)}</small></button>`).join(""),
+    { onClick: (e) => { const b = e.target.closest("[data-demo-client]"); if (!b) return; fillClient(DEMO_CLIENTS[Number(b.dataset.demoClient)]); closeLayer(); } });
+}
+function openDemoItems(id) {
+  const list = demoItemsFor(S.profile.business.industry);
+  sheet("Pick an item", `<p class="hint" style="padding:0 8px 10px">In the free trial, prices are set for you.</p>` + list.map((x, i) => `<button type="button" class="pick-row" data-demo-item="${i}"><b>${esc(x.desc)}</b><small>${money(x.price, S.doc.currency)}</small></button>`).join(""),
+    { onClick: (e) => { const b = e.target.closest("[data-demo-item]"); if (!b) return; const x = list[Number(b.dataset.demoItem)]; const it = S.doc.items.find((y) => y.id === id) || S.doc.items[S.doc.items.length - 1]; it.desc = x.desc; it.price = x.price; it.qty = it.qty || 1; persist(); closeLayer(); renderItemsEditor(); render(); } });
+}
+function openDemoHouse() {
+  const cur = S.profile.demoHouse ?? 0;
+  sheet("Try a sample business", `<p class="hint" style="padding:0 8px 12px">This is the free trial, so it runs on sample businesses with sample prices. Get Aurum to use your own name, logo, bank details, clients and amounts.</p>`
+    + DEMO_HOUSES.map((h, i) => `<button type="button" class="pick-row" data-demo-house="${i}" aria-pressed="${i === cur}"><b>${esc(h.name)}</b><small>${esc(h.tagline)}</small></button>`).join("")
+    + `<a class="btn primary block" style="margin:14px 0 4px" href="${esc(buyHref())}" target="_blank" rel="noopener">Get Aurum</a>`,
+    { onClick: (e) => { const b = e.target.closest("[data-demo-house]"); if (!b) return; applyDemoHouse(Number(b.dataset.demoHouse)); closeLayer(); startStudio(); showStep(1); swapAnim(); render({ enter: true }); toast("Sample business changed"); } });
+}
 
 /* ---------- start: a client link, or the studio ---------- */
 const qs = new URLSearchParams(location.search);
 if (qs.get("i")) bootClient({ id: qs.get("i") });
 else if (location.hash.startsWith("#v=")) bootClient({ hash: location.hash.slice(3) });
-else bootLicence();
+else { bootLicence(); const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
 })();
 </script>
 </body>

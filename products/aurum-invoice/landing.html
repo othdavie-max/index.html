@@ -158,11 +158,36 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
   .mark span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+
+/* ---------- Bonanza ---------- */
+.promo { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 4px 18px; padding: 9px max(16px, env(safe-area-inset-left, 0px)); background: linear-gradient(90deg, #7A5A1E, #E3C98C 50%, #7A5A1E); color: #16130C; font-size: 13.5px; font-weight: 600; text-align: center; }
+.promo[hidden], [data-promo-only][hidden] { display: none !important; }
+.promo b { font-family: var(--f-display); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+.promo s { opacity: .6; font-weight: 500; margin: 0 2px; }
+.promo time { font-variant-numeric: tabular-nums; font-weight: 800; }
+.promo-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.promo-line .pill { background: var(--gold); color: #16130C; font-weight: 800; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; padding: 5px 11px; border-radius: 99px; }
+.promo-line time { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.btn s { opacity: .6; font-weight: 500; margin-left: 6px; font-size: .9em; }
+@media (max-width: 640px) { .promo > span:nth-of-type(1) { display: none; } .promo { padding-block: 7px; } }
+.count { display: flex; justify-content: center; gap: 10px; margin: 0 auto 30px; flex-wrap: wrap; }
+.count div { min-width: 74px; padding: 12px 10px 10px; border: 1px solid var(--line-2); border-radius: 14px; background: var(--surface); text-align: center; }
+.count b { display: block; font-family: var(--f-display); font-size: 32px; line-height: 1; color: var(--gold); font-variant-numeric: tabular-nums; }
+.count small { display: block; margin-top: 6px; font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.count-head { text-align: center; margin: 0 0 14px; font-size: 13px; letter-spacing: .24em; text-transform: uppercase; font-weight: 700; color: var(--gold); }
+.plan .save { justify-self: start; font-size: 13px; font-weight: 700; color: #7FD6A0; }
+.install-sec { text-align: center; }
+.install-btns { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 26px; }
+.install-btns .btn { min-width: 220px; justify-content: center; padding: 18px 26px; font-size: 16px; display: inline-flex; align-items: center; gap: 12px; }
+.install-btns svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.install-sec small { display: block; margin-top: 16px; color: var(--muted); font-size: 13.5px; }
 </style>
 </head>
 <body>
 
-<header class="nav"><div class="wrap">
+<header class="nav">
+<div class="promo" data-promo-only hidden><b>November Bonanza</b><span>Signature <strong data-p="signature"></strong> <s data-n="signature"></s> &middot; Prestige <strong data-p="prestige"></strong> <s data-n="prestige"></s></span><span>Ends in <time data-timer></time></span></div>
+<div class="wrap">
   <a class="mark" href="#top" aria-label="Aurum"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="#D9BE84" stroke-width="1"/><circle cx="20" cy="20" r="15.5" fill="none" stroke="#D9BE84" stroke-width=".5"/><text x="20" y="25.5" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-weight="600" font-size="15" fill="#E9D39E">Au</text></svg><span>AURUM</span></a>
   <nav class="nav-links" aria-label="Sections"><a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#faq">Questions</a></nav>
   <a class="btn primary" data-buy href="#pricing">Get Aurum</a>
@@ -174,7 +199,8 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
       <span class="eyebrow in">For businesses that care how they're remembered</span>
       <h1 class="in d1">Invoices your clients <em>open like a gift.</em></h1>
       <p class="lead in d2">Your invoice arrives as a private link, sealed with your own wax seal. Your client breaks it, pays in one tap, and gets a thank-you card. It's the most memorable invoice they'll receive this year.</p>
-      <div class="ctas in d3"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span></a><a class="btn" data-app href="./">Try it free</a></div>
+      <div class="ctas in d3"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span><s data-n="signature" data-promo-only hidden></s></a><a class="btn" data-app href="./">Try the free demo</a></div>
+      <div class="promo-line in d3" data-promo-only hidden><span class="pill">November Bonanza</span><span>Save <b data-save="signature"></b> on Signature. Ends in <time data-timer></time></span></div>
       <div class="trust in d4"><span>One-time payment</span><span>Works on your phone</span><span>Made for Nigerian businesses</span></div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -246,11 +272,14 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
 
   <section class="block" id="pricing"><div class="wrap">
     <div class="head center"><span class="eyebrow">Pricing</span><h2>Pay once. <em>Look expensive forever.</em></h2><p>Your licence is personal: it works on your own devices and for your own business.</p></div>
+    <div class="count-head" data-promo-only hidden>November Bonanza ends in</div>
+    <div class="count" data-promo-only hidden id="count"><div><b data-cd="d">0</b><small>Days</small></div><div><b data-cd="h">0</b><small>Hours</small></div><div><b data-cd="m">0</b><small>Mins</small></div><div><b data-cd="s">0</b><small>Secs</small></div></div>
     <div class="pricing">
       <div class="plan">
         <span class="name">Signature</span>
-        <span class="launch-tag">Launch price</span>
-        <div class="price"><s class="was" data-was="signature"></s><span data-price="signature">₦10,000</span><small>one-time</small></div>
+        <span class="launch-tag" data-promo-only hidden>Bonanza price</span>
+        <div class="price"><s class="was" data-was="signature" data-promo-only hidden></s><span data-price="signature">₦10,000</span><small>one-time</small></div>
+        <span class="save" data-promo-only hidden>You save <span data-save="signature"></span> until 30 November</span>
         <ul class="ticks">
           <li><span>All six documents and every design</span></li>
           <li><span>Private links with envelope, gift box and card</span></li>
@@ -262,8 +291,9 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
       </div>
       <div class="plan featured">
         <span class="name">Prestige</span>
-        <span class="launch-tag">Launch price</span>
-        <div class="price"><s class="was" data-was="prestige"></s><span data-price="prestige">₦35,000</span><small>one-time</small></div>
+        <span class="launch-tag" data-promo-only hidden>Bonanza price</span>
+        <div class="price"><s class="was" data-was="prestige" data-promo-only hidden></s><span data-price="prestige">₦35,000</span><small>one-time</small></div>
+        <span class="save" data-promo-only hidden>You save <span data-save="prestige"></span> until 30 November</span>
         <ul class="ticks">
           <li><span>Everything in Signature</span></li>
           <li><span><b>Your own web address</b>, e.g. invoice.yourbrand.ng</span></li>
@@ -275,6 +305,15 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
       </div>
     </div>
     <p class="note">Not sure yet? <a data-app href="./">Try it free</a>. Every feature works, with a small DEMO ribbon on your documents.</p>
+  </div></section>
+
+  <section class="block install-sec" id="install"><div class="wrap">
+    <div class="head center"><span class="eyebrow">On your phone</span><h2>Install it. <em>Open it like any app.</em></h2><p>After you buy, add Aurum to your home screen in one minute. It gets its own icon, opens full screen and works even without data.</p></div>
+    <div class="install-btns">
+      <a class="btn primary" data-app-install="android" href="app/?install=android"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>Install on Android</a>
+      <a class="btn primary" data-app-install="ios" href="app/?install=ios"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>Install on iPhone</a>
+    </div>
+    <small>Android uses Chrome. iPhone uses Safari: tap Share, then Add to Home Screen.</small>
   </div></section>
 
   <section class="block" id="faq" style="padding-top:0"><div class="wrap">
@@ -293,7 +332,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
   <section class="block final"><div class="wrap">
     <span class="eyebrow">Aurum</span>
     <h2 style="margin-top:14px">Your next invoice could be <em>the one they talk about.</em></h2>
-    <div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span></a><a class="btn" data-app href="./">Try it free</a></div>
+    <div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span><s data-n="signature" data-promo-only hidden></s></a><a class="btn" data-app href="./">Try the free demo</a></div>
   </div></section>
 </main>
 
@@ -304,25 +343,47 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
    SELLER SETTINGS — the same links as the app (see README.md)
    ========================================================= */
 const CONFIG = {
-  BUY_LINK: "",                // your Selar product page
-  SELLER_WHATSAPP: "2348071117403",         // e.g. 2348031234567
-  APP_LINK: "./",              // where the app lives (index.html in this folder)
-  PRICE_SIGNATURE: "₦10,000",   // launch price you charge today
-  PRICE_PRESTIGE: "₦35,000",
-  WAS_SIGNATURE: "₦15,000",     // the normal price, shown crossed out. Leave "" to hide.
-  WAS_PRESTIGE: "₦50,000",
+  BUY_LINK: "",                    // your Selar product page
+  SELLER_WHATSAPP: "2348071117403",
+  APP_LINK: "./",                  // where the app lives
+  // Normal prices
+  NORMAL_SIGNATURE: 15000,
+  NORMAL_PRESTIGE: 50000,
+  // Bonanza prices, valid until PROMO_ENDS. After that the page shows the normal prices by itself.
+  PROMO_SIGNATURE: 10000,
+  PROMO_PRESTIGE: 35000,
+  PROMO_ENDS: "2026-11-30T23:59:59+01:00",   // end of 30 November, Lagos time
 };
 (() => {
+  const naira = (n) => "₦" + Math.round(n).toLocaleString("en-NG");
+  const ENDS = new Date(CONFIG.PROMO_ENDS).getTime();
   const wa = (text) => CONFIG.SELLER_WHATSAPP ? `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent(text)}` : "";
-  const buy = CONFIG.BUY_LINK || wa("Hello, I'd like to buy Aurum Signature.") || "#pricing";
-  document.querySelectorAll("[data-buy]").forEach((a) => { a.href = buy; if (/^https?:/.test(buy)) { a.target = "_blank"; a.rel = "noopener"; } });
-  const pre = wa("Hello, I'd like to know more about Aurum Prestige.") || buy;
-  document.querySelectorAll("[data-prestige]").forEach((a) => { a.href = pre; if (/^https?:/.test(pre)) { a.target = "_blank"; a.rel = "noopener"; } });
-  document.querySelectorAll("[data-app]").forEach((a) => (a.href = CONFIG.APP_LINK));
-  document.querySelectorAll('[data-price="signature"]').forEach((s) => (s.textContent = CONFIG.PRICE_SIGNATURE));
-  document.querySelectorAll('[data-price="prestige"]').forEach((s) => (s.textContent = CONFIG.PRICE_PRESTIGE));
-  [['signature', CONFIG.WAS_SIGNATURE], ['prestige', CONFIG.WAS_PRESTIGE]].forEach(([k, v]) => document.querySelectorAll(`[data-was="${k}"]`).forEach((el) => { if (v) el.textContent = v; else { el.hidden = true; const t = el.closest('.plan')?.querySelector('.launch-tag'); if (t) t.hidden = true; } }));
-  const c = document.querySelector("[data-contact]"); if (c && CONFIG.SELLER_WHATSAPP) c.innerHTML = `Questions? <a href="${wa("Hello, I have a question about Aurum.")}" target="_blank" rel="noopener">Chat on WhatsApp</a>`;
+  const $$ = (q) => [...document.querySelectorAll(q)];
+  const pad2 = (n) => String(n).padStart(2, "0");
+  function paint() {
+    const left = ENDS - Date.now(), on = left > 0;
+    const price = { signature: on ? CONFIG.PROMO_SIGNATURE : CONFIG.NORMAL_SIGNATURE, prestige: on ? CONFIG.PROMO_PRESTIGE : CONFIG.NORMAL_PRESTIGE };
+    const normal = { signature: CONFIG.NORMAL_SIGNATURE, prestige: CONFIG.NORMAL_PRESTIGE };
+    $$("[data-price]").forEach((el) => (el.textContent = naira(price[el.dataset.price])));
+    $$("[data-p]").forEach((el) => (el.textContent = naira(CONFIG["PROMO_" + el.dataset.p.toUpperCase()])));
+    $$("[data-n], [data-was]").forEach((el) => (el.textContent = naira(normal[el.dataset.n || el.dataset.was])));
+    $$("[data-save]").forEach((el) => (el.textContent = naira(normal[el.dataset.save] - CONFIG["PROMO_" + el.dataset.save.toUpperCase()])));
+    $$("[data-promo-only]").forEach((el) => (el.hidden = !on));
+    if (on) {
+      const t = Math.floor(left / 1000), d = Math.floor(t / 86400), h = Math.floor(t % 86400 / 3600), m = Math.floor(t % 3600 / 60), sec = t % 60;
+      $$("[data-timer]").forEach((el) => (el.textContent = `${d}d ${pad2(h)}h ${pad2(m)}m ${pad2(sec)}s`));
+      const cd = { d, h: pad2(h), m: pad2(m), s: pad2(sec) }; $$("[data-cd]").forEach((el) => (el.textContent = cd[el.dataset.cd]));
+    }
+    const msg = on ? `Hello, I'd like to buy Aurum Signature at the November bonanza price of ${naira(CONFIG.PROMO_SIGNATURE)}.` : "Hello, I'd like to buy Aurum Signature.";
+    const buy = CONFIG.BUY_LINK || wa(msg) || "#pricing";
+    $$("[data-buy]").forEach((a) => { a.href = buy; if (/^https?:/.test(buy)) { a.target = "_blank"; a.rel = "noopener"; } });
+    const pre = wa(on ? `Hello, I'd like to buy Aurum Prestige at the November bonanza price of ${naira(CONFIG.PROMO_PRESTIGE)}.` : "Hello, I'd like to know more about Aurum Prestige.") || buy;
+    $$("[data-prestige]").forEach((a) => { a.href = pre; if (/^https?:/.test(pre)) { a.target = "_blank"; a.rel = "noopener"; } });
+  }
+  paint(); setInterval(paint, 1000);
+  $$("[data-app]").forEach((a) => (a.href = CONFIG.APP_LINK));
+  $$("[data-app-install]").forEach((a) => (a.href = CONFIG.APP_LINK.replace(/\/?$/, "/") + "?install=" + a.dataset.appInstall));
+  const c = document.querySelector("[data-contact]"); if (c && CONFIG.SELLER_WHATSAPP) c.innerHTML = `Questions? <a href="${wa("Hello, I have a question about Aurum.")}" target="_blank" rel="noopener">WhatsApp us</a>`;
   document.getElementById("yr").textContent = new Date().getFullYear();
 })();
 </script>
