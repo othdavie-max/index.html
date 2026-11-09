@@ -468,6 +468,9 @@ const CONFIG = {
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltbXhoamZjZmFhd3JlYnhveGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMDE3NjcsImV4cCI6MjEwOTc3Nzc2N30.03NhALj3puOulUJTDiKBhnctwM9iLzMoiH_flKwHDyM",
   PAYSTACK_PUBLIC_KEY_LIVE: "pk_live_63cd2a1203b07cfcc7e3e9461567fe7c78d06f7c",
   PAYSTACK_PUBLIC_KEY_TEST: "pk_test_624bffc567bf5b8b679ed84c3ca9f29ebda657dd",
+  // Ad tracking. Paste your pixel IDs here when you start running ads. Empty = switched off.
+  META_PIXEL_ID: "",      // Facebook & Instagram ads (Events Manager > Data sources > Pixel ID)
+  TIKTOK_PIXEL_ID: "",    // TikTok ads (Ads Manager > Assets > Events > Web events)
 };
 (() => {
   const naira = (n) => "₦" + Math.round(n).toLocaleString("en-NG");
@@ -503,6 +506,43 @@ const CONFIG = {
 })();
 </script>
 <script>
+/* Anonymous visit stats for your owner dashboard (admin.html), plus optional ad pixels. */
+(() => {
+  const API = CONFIG.SUPABASE_URL, AK = CONFIG.SUPABASE_ANON_KEY;
+  const store = (s) => (k, v) => { try { if (v === undefined) return s.getItem(k); s.setItem(k, v); } catch (e) { return null; } };
+  const ss = store(window.sessionStorage), ls = store(window.localStorage);
+  let sid = ss("aurumSid"); if (!sid) { sid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36); ss("aurumSid", sid); }
+  const q = new URLSearchParams(location.search);
+  let host = ""; try { if (document.referrer) { const u = new URL(document.referrer); if (u.hostname !== location.hostname) host = u.hostname.replace(/^(www|m|l|lm|web)\./, ""); } } catch (e) {}
+  const guess = (q.get("utm_source") || q.get("src") || "").toLowerCase() || (/instagram/.test(host) ? "instagram" : /facebook|fb\.com/.test(host) ? "facebook" : /tiktok/.test(host) ? "tiktok" : /(^|\.)t\.co$|twitter|x\.com/.test(host) ? "x" : /google/.test(host) ? "google" : /whatsapp|wa\.me/.test(host) ? "whatsapp" : host);
+  if (guess && (q.get("utm_source") || !ls("aurumSrc"))) ls("aurumSrc", guess);
+  if (q.get("utm_campaign")) ls("aurumCmp", q.get("utm_campaign"));
+  const src = ls("aurumSrc") || "direct", cmp = ls("aurumCmp") || "";
+  const ua = navigator.userAgent, device = /iphone|ipad|ipod/i.test(ua) ? "iphone" : /android/i.test(ua) ? "android" : "computer";
+  window.aurumTrack = (type, meta) => { try { fetch(`${API}/rest/v1/rpc/track`, { method: "POST", keepalive: true, headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK }, body: JSON.stringify({ p_session: sid, p_type: type, p_page: "home", p_source: src, p_campaign: cmp, p_referrer: host, p_device: device, p_meta: meta || null }) }).catch(() => {}); } catch (e) {} };
+  aurumTrack("view");
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("[data-buy], [data-prestige], [data-app], [data-app-install], a[href*='wa.me']"); if (!a) return;
+    if (a.matches("[data-buy], [data-prestige]")) aurumTrack("click_buy", { plan: a.hasAttribute("data-prestige") ? "prestige" : "signature" });
+    else if (a.matches("[data-app-install]")) aurumTrack("click_install", { os: a.dataset.appInstall });
+    else if (a.matches("[data-app]")) aurumTrack("click_demo");
+    else aurumTrack("whatsapp_click");
+  }, true);
+  document.addEventListener("toggle", (e) => { if (e.target.tagName === "DETAILS" && e.target.open) aurumTrack("faq_open", { q: (e.target.querySelector("summary")?.textContent || "").slice(0, 60) }); }, true);
+
+  // Ad pixels: only load when an ID is filled in above.
+  if (CONFIG.META_PIXEL_ID) {
+    !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+    fbq("init", CONFIG.META_PIXEL_ID); fbq("track", "PageView");
+  }
+  if (CONFIG.TIKTOK_PIXEL_ID) {
+    !function (w, d, t) { w.TiktokAnalyticsObject = t; var ttq = w[t] = w[t] || []; ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie"]; ttq.setAndDefer = function (t, e) { t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))); }; }; for (var i = 0; i < ttq.methods.length; i++) ttq.setAndDefer(ttq, ttq.methods[i]); ttq.instance = function (t) { for (var e = ttq._i[t] || [], n = 0; n < ttq.methods.length; n++) ttq.setAndDefer(e, ttq.methods[n]); return e; }; ttq.load = function (e, n) { var i = "https://analytics.tiktok.com/i18n/pixel/events.js"; ttq._i = ttq._i || {}; ttq._i[e] = []; ttq._i[e]._u = i; ttq._t = ttq._t || {}; ttq._t[e] = +new Date(); ttq._o = ttq._o || {}; ttq._o[e] = n || {}; var o = document.createElement("script"); o.type = "text/javascript"; o.async = !0; o.src = i + "?sdkid=" + e + "&lib=" + t; var a = document.getElementsByTagName("script")[0]; a.parentNode.insertBefore(o, a); }; }(window, document, "ttq");
+    ttq.load(CONFIG.TIKTOK_PIXEL_ID); ttq.page();
+  }
+  window.aurumAd = (ev, data) => { try { if (window.fbq) fbq("track", ev, data); if (window.ttq) ttq.track(ev === "Purchase" ? "CompletePayment" : ev, data); } catch (e) {} };
+})();
+</script>
+<script>
 (() => {
   const $ = (q) => document.querySelector(q);
   const API = CONFIG.SUPABASE_URL, AK = CONFIG.SUPABASE_ANON_KEY;
@@ -527,10 +567,12 @@ const CONFIG = {
     $("#co-was").hidden = !pr.was; $("#co-was").textContent = pr.was ? naira(pr.was) : "";
     $("#co-pay").textContent = "Pay " + naira(pr.now); $("#co-pay").disabled = false; $("#co-err").textContent = "";
     $("#co-test").hidden = mode !== "test"; show("co-form-view"); open(); setTimeout(() => $("#co-name").focus(), 50);
+    window.aurumTrack?.("checkout_open", { plan: p }); window.aurumAd?.("InitiateCheckout", { value: pr.now, currency: "NGN", content_name: PLAN[p].name });
   }
 
-  function showDone(r, phone, name) {
-    lastKey = r.key; $("#co-key").textContent = r.key;
+  function showDone(r, phone, name, reference) {
+    lastKey = r.key;
+    if (reference && !r.test && !store.get("aurumPaid_" + reference)) { store.set("aurumPaid_" + reference, "1"); let o = {}; try { o = JSON.parse(store.get("aurumOrder") || "{}") || {}; } catch (e) {} window.aurumTrack?.("purchase", { plan: r.plan || o.plan, naira: o.naira }); window.aurumAd?.("Purchase", { value: o.naira || 0, currency: "NGN", content_name: r.plan || o.plan }); } $("#co-key").textContent = r.key;
     $("#co-done-title").textContent = "Thank you" + (name ? ", " + name.split(" ")[0] : "");
     $("#co-done-test").hidden = !r.test;
     const msg = `My Aurum licence key: ${r.key}\nInstall and open the app: ${location.origin}${location.pathname.replace(/[^/]*$/, "")}app/`;
@@ -545,10 +587,10 @@ const CONFIG = {
     for (let i = 0; i < 24; i++) {
       try {
         const r = await verify(reference);
-        if (r && r.ok && r.key) { showDone(r, phone, name); paying = false; return; }
+        if (r && r.ok && r.key) { showDone(r, phone, name, reference); paying = false; return; }
         if (r && r.reason && !["pending"].includes(r.reason)) { if (r.reason === "not_configured") break; }
         const st = await rpc("order_status", { p_reference: reference });
-        if (st && st.status === "paid") { showDone({ key: st.key, test: st.test }, phone, name); paying = false; return; }
+        if (st && st.status === "paid") { showDone({ key: st.key, test: st.test, plan: st.plan }, phone, name, reference); paying = false; return; }
       } catch (e) { /* try again */ }
       await new Promise((res) => setTimeout(res, 2500));
     }
@@ -569,7 +611,8 @@ const CONFIG = {
         if (o.reason === "off") { close(); location.href = `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to buy Aurum " + PLAN[plan].name.split(" ")[1] + ".")}`; return; }
         return err(o.reason === "email" ? "Please enter a valid email address." : o.reason === "name" ? "Please enter your name." : "Something went wrong. Please try again."); }
       $("#co-amt").textContent = naira(o.amount_kobo / 100);
-      store.set("aurumOrder", JSON.stringify({ reference: o.reference, phone, name }));
+      store.set("aurumOrder", JSON.stringify({ reference: o.reference, phone, name, plan, naira: o.amount_kobo / 100 }));
+      window.aurumTrack?.("checkout_start", { plan });
       const i = await init(o.reference);
       if (!i || !i.ok || !i.authorization_url) { paying = false; $("#co-pay").disabled = false; $("#co-pay").textContent = "Pay " + naira(o.amount_kobo / 100); return err("We couldn't open the payment page. Please try again, or message us on WhatsApp."); }
       $("#co-pay").textContent = "Taking you to Paystack…";

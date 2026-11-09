@@ -2158,12 +2158,19 @@ $("#gate-form").addEventListener("submit", async (e) => {
   const btn = $("#lic-submit"); btn.disabled = true; btn.textContent = "Checking…"; $("#lic-err").textContent = "";
   try {
     const r = await rpc("activate_license", { p_key: key, p_device: deviceId });
-    if (r.ok) { licence = { mode: "full", key, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || "", checkedAt: Date.now() }; LS.set("aurum.licence", licence); if (S.profile.demo) resetForRealBusiness(); enter(); toast("Welcome to Aurum"); }
+    if (r.ok) { licence = { mode: "full", key, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || "", checkedAt: Date.now() }; LS.set("aurum.licence", licence); trackEvt("key_activated", { plan: licence.plan }); if (S.profile.demo) resetForRealBusiness(); enter(); toast("Welcome to Aurum"); }
     else $("#lic-err").textContent = REASONS[r.reason] || REASONS.invalid;
   } catch { $("#lic-err").textContent = "We couldn't reach the licence server. Check your internet and try again."; }
   btn.disabled = false; btn.textContent = "Enter";
 });
-$("#lic-demo").addEventListener("click", () => { licence = { mode: "demo" }; LS.set("aurum.licence", licence); enter(); });
+// Anonymous counts for the owner dashboard: demo starts and key activations.
+function trackEvt(type, meta) {
+  try { if (!configured()) return; let sid = sessionStorage.getItem("aurumSid"); if (!sid) { sid = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)); sessionStorage.setItem("aurumSid", sid); }
+    const ua = navigator.userAgent, device = /iphone|ipad|ipod/i.test(ua) ? "iphone" : /android/i.test(ua) ? "android" : "computer";
+    rpc("track", { p_session: sid, p_type: type, p_page: "app", p_source: localStorage.getItem("aurumSrc") || "direct", p_campaign: localStorage.getItem("aurumCmp") || "", p_referrer: "", p_device: device, p_meta: meta || null }).catch(() => {});
+  } catch (e) {}
+}
+$("#lic-demo").addEventListener("click", () => { trackEvt("demo_start"); licence = { mode: "demo" }; LS.set("aurum.licence", licence); enter(); });
 
 /* =========================================================
    STATE
