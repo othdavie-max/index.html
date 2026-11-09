@@ -565,7 +565,8 @@ const CONFIG = {
   async function resume() {
     let saved = null; try { saved = JSON.parse(store.get("aurumOrder") || "null"); } catch (e) {}
     if (!saved?.reference) return;
-    try { const st = await rpc("order_status", { p_reference: saved.reference });
+    try { let st = await rpc("order_status", { p_reference: saved.reference });
+      if (st?.status === "pending") { const v = await verify(saved.reference); if (v?.ok && v.key) st = { status: "paid", key: v.key, test: v.test }; }
       if (st?.status === "paid") { const b = $("#my-key"); b.hidden = false; b.onclick = (ev) => { ev.preventDefault(); showDone({ key: st.key, test: st.test }, saved.phone, saved.name); }; }
     } catch (e) {}
   }
