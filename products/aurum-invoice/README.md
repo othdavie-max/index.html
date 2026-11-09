@@ -217,3 +217,10 @@ These commands are at the bottom of `licences.sql`:
 - **Signature:** ₦15,000–₦25,000 one-time.
 - **Prestige:** ₦50,000+ one-time, plus the buyer's own domain.
 - **Launch offer:** the first 20 buyers at a discount in exchange for a testimonial video of their client opening the envelope.
+
+## Latest additions
+- **Home screen** in the app: big New invoice / New receipt / New quotation buttons, who owes you, money this month, recent documents with one-tap "Issue receipt", and a Help area (how-to, WhatsApp support, refunds and terms).
+- **Light and dark mode** (light by default; switch at the top or in My house, including "Match my phone"). The client's envelope page always stays dark.
+- **PDF on phones** is a real PDF file that opens the share menu (WhatsApp, Files, Email).
+- **policies.html**: refund policy, terms of use and privacy notice, linked from the sales page footer, the pricing section and the app.
+- **Sales page** rebuilt phone-first in ivory and gold, with swipeable screenshots, a Black Friday card with countdown and a sticky buy bar on phones.

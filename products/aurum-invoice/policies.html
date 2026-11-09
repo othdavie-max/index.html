@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aurum Policies</title>
+<meta name="description" content="Refund policy, terms of use and privacy notice for Aurum Invoice Studio.">
+<meta name="theme-color" content="#F6F1E7">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #F6F1E7; --paper: #FFFFFF; --ink: #1C1813; --muted: #6C6352; --line: rgba(70,52,22,.14); --gold: #9C7637; --gold-hi: #D9BE84;
+  --f-display: "Playfair Display", Georgia, serif; --f-body: Manrope, system-ui, -apple-system, Segoe UI, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15.5px/1.65 var(--f-body); -webkit-font-smoothing: antialiased; }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: rgba(246,241,231,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.top .in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 14px; height: 60px; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-family: var(--f-display); letter-spacing: .3em; font-size: 14px; margin-right: auto; }
+.brand svg { width: 30px; height: 30px; }
+.tabs { display: flex; gap: 4px; }
+.tabs a { text-decoration: none; color: var(--muted); font-weight: 600; font-size: 13.5px; padding: 8px 10px; border-radius: 99px; }
+.tabs a:hover { color: var(--ink); background: rgba(156,118,55,.08); }
+main { max-width: 760px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; color: var(--gold); }
+h1 { font-family: var(--f-display); font-weight: 500; font-size: clamp(32px, 8vw, 44px); line-height: 1.08; margin: 8px 0 6px; text-wrap: balance; }
+.meta { color: var(--muted); font-size: 13.5px; margin: 0 0 26px; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 26px clamp(18px, 4vw, 34px); margin-bottom: 18px; }
+h2 { font-family: var(--f-display); font-weight: 500; font-size: 28px; margin: 4px 0 14px; }
+h3 { font-size: 16px; margin: 22px 0 6px; }
+p { margin: 0 0 12px; max-width: 64ch; }
+ul { margin: 0 0 12px; padding-left: 20px; max-width: 64ch; } li { margin: 4px 0; }
+.summary { border-left: 3px solid var(--gold); background: rgba(156,118,55,.07); border-radius: 0 12px 12px 0; padding: 14px 16px; margin: 0 0 18px; }
+.summary p { margin: 0; }
+.yes li::marker { content: "✓  "; color: #23804F; font-weight: 800; }
+.no li::marker { content: "✕  "; color: #B93C2C; font-weight: 800; }
+.contact { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 12px 18px; border-radius: 99px; background: linear-gradient(115deg, #A9864F 0%, #E8D19B 38%, #C29E62 62%, #EBD6A4 100%); color: #17120A; text-decoration: none; font-weight: 700; }
+a { color: var(--gold); }
+footer { text-align: center; color: var(--muted); font-size: 13px; padding: 10px 18px 40px; }
+@media (max-width: 520px) { .brand span { display: none; } .tabs a { padding: 8px 8px; font-size: 13px; } section { border-radius: 16px; } h2 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="brand" href="./"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="#9C7637" stroke-width="1"/><circle cx="20" cy="20" r="15.5" fill="none" stroke="#9C7637" stroke-width=".5"/><text x="20" y="25.5" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="15" fill="#9C7637">Au</text></svg><span>AURUM</span></a>
+  <nav class="tabs" aria-label="Policies"><a href="#refunds">Refunds</a><a href="#terms">Terms</a><a href="#privacy">Privacy</a></nav>
+</div></header>
+
+<main>
+  <span class="eyebrow">Aurum Invoice Studio</span>
+  <h1>Policies</h1>
+  <p class="meta">Last updated 9 November 2026. Questions: WhatsApp <a href="https://wa.me/2348071117403" target="_blank" rel="noopener">0807 111 7403</a>.</p>
+
+  <section id="refunds">
+    <span class="eyebrow">Refund policy</span>
+    <h2>Refunds</h2>
+    <div class="summary"><p><b>In short:</b> try the free demo before you buy. If something is wrong on our side and we can't fix it, you get your money back. We don't refund a change of mind once your licence key has been used.</p></div>
+
+    <h3>What you are buying</h3>
+    <p>Aurum is sold as a digital licence key. It is delivered on screen straight after payment and starts working the moment you enter it, so it can't be "returned" like a physical product. That's why there is a free demo that shows exactly what you and your clients will see, and why this policy is clear about when refunds apply.</p>
+
+    <h3>You get a full refund if</h3>
+    <ul class="yes">
+      <li>You were <b>charged twice</b> for the same purchase. We refund the extra payment.</li>
+      <li>You paid but <b>didn't receive your licence key</b>, and we can't deliver it within 24 hours of you contacting us.</li>
+      <li>Your key <b>won't activate</b> because of a fault on our side, and we can't fix it within 72 hours of you reporting it.</li>
+      <li>A main feature (creating documents, private links, PDF or image download) <b>doesn't work on your phone or computer</b> because of a fault on our side, and we can't fix it within 7 days of you reporting it.</li>
+    </ul>
+
+    <h3>We don't refund</h3>
+    <ul class="no">
+      <li>A change of mind after the licence key has been entered in the app.</li>
+      <li>Not using Aurum, or no longer needing it.</li>
+      <li>Problems caused by your internet connection, your device, or clearing your browser's data. We will always help you restore your licence and backup instead.</li>
+      <li>A key that has been switched off for breaking our terms, such as sharing or reselling it, or using Aurum for fraud.</li>
+      <li>The difference when a price drops later, or when you missed a sale such as Black Friday.</li>
+    </ul>
+
+    <h3>How to ask for a refund</h3>
+    <p>Message us on WhatsApp within <b>7 days of your purchase</b> with:</p>
+    <ul>
+      <li>the email address you paid with,</li>
+      <li>your payment reference (it starts with <b>AUR-</b> and is in your Paystack receipt email),</li>
+      <li>what went wrong, with a screenshot if you can.</li>
+    </ul>
+    <p>We reply within one working day. Most problems are fixed the same day, so please let us try first.</p>
+
+    <h3>How refunds are paid</h3>
+    <p>Approved refunds are paid back to the card or account you paid with, through Paystack, for the full amount you paid. Banks usually take 5 to 10 working days to show it. Your licence key is switched off when the refund is made.</p>
+
+    <h3>Disputes and chargebacks</h3>
+    <p>Please contact us before opening a dispute with your bank. We can usually sort things out faster. While a dispute is open, the licence key is paused.</p>
+
+    <h3>Your legal rights</h3>
+    <p>Nothing in this policy takes away your rights under the Federal Competition and Consumer Protection Act 2018 or any other Nigerian law.</p>
+    <a class="contact" href="https://wa.me/2348071117403?text=Hello%2C%20I%27d%20like%20help%20with%20my%20Aurum%20purchase." target="_blank" rel="noopener">WhatsApp us about a purchase</a>
+  </section>
+
+  <section id="terms">
+    <span class="eyebrow">Terms of use</span>
+    <h2>Terms</h2>
+    <h3>Your licence</h3>
+    <ul>
+      <li>You pay once. There is no monthly fee for Aurum itself.</li>
+      <li>A licence is for <b>one business</b>. It works on up to 2 devices (Signature) or 3 devices (Prestige). The first business name you send documents with is locked to the licence.</li>
+      <li>You may not share, sell or give away your licence key. Keys that are shared can be switched off without a refund.</li>
+      <li>If you change phones, message us and we'll move your licence across.</li>
+    </ul>
+    <h3>What you create</h3>
+    <ul>
+      <li>You are responsible for the documents you create and send, including their amounts, details and accuracy.</li>
+      <li>Aurum must not be used for fake receipts, fraud or anything illegal. We will switch off licences used this way and may report it.</li>
+      <li>Private links are stored on our servers so your clients can open them. Anyone with a link can view that document, so only send it to the right person.</li>
+    </ul>
+    <h3>Payments from your clients</h3>
+    <p>If you add your Paystack key, your clients pay you directly through Paystack. Aurum never holds your money and isn't part of that payment. Paystack's own fees and terms apply.</p>
+    <h3>The service</h3>
+    <ul>
+      <li>We work to keep Aurum running reliably and include updates at no extra cost. Features may improve or change over time.</li>
+      <li>Aurum is provided as it is. As far as the law allows, our total liability to you is limited to the amount you paid for your licence.</li>
+      <li>We may update these terms. The date at the top of this page shows the latest version.</li>
+    </ul>
+  </section>
+
+  <section id="privacy">
+    <span class="eyebrow">Privacy notice</span>
+    <h2>Privacy</h2>
+    <h3>What we collect</h3>
+    <ul>
+      <li><b>When you buy:</b> your name, email address and WhatsApp number, so we can deliver and support your licence.</li>
+      <li><b>When you pay:</b> Paystack handles your card or bank details. We never see them. We receive a confirmation and a payment reference.</li>
+      <li><b>When you use Aurum:</b> your licence key and a random device code (to keep to your device limit), the documents you send as private links, and your backup, if you use it.</li>
+    </ul>
+    <h3>How we use it</h3>
+    <p>Only to run Aurum: deliver your licence, open your private links for your clients, keep your backup, stop shared keys, and help you when you contact us. We don't sell your data or your clients' data, and we don't send marketing messages without asking.</p>
+    <h3>Where it is kept</h3>
+    <p>Data is stored securely with our hosting provider, Supabase, on servers in London. Documents that are not sent as links stay on your own device.</p>
+    <h3>Your clients' details</h3>
+    <p>The client details you put on documents belong to your business. We store them only to deliver your documents and backups.</p>
+    <h3>Your rights</h3>
+    <p>Under the Nigeria Data Protection Act 2023 you can ask to see, correct or delete your data. Message us on WhatsApp and we'll do it within 30 days. Deleting your data switches off your licence's backup and private links.</p>
+  </section>
+</main>
+<footer>© <span id="yr">2026</span> Aurum Invoice Studio · <a href="./">Back to Aurum</a></footer>
+<script>document.getElementById("yr").textContent = new Date().getFullYear();</script>
+</body>
+</html>

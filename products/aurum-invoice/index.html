@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Aurum Invoice Studio</title>
 <meta name="description" content="Luxury invoices, receipts and quotations for Nigerian businesses.">
-<meta name="theme-color" content="#0B0A09">
+<meta name="theme-color" content="#F6F1E7">
+<script>(function(){var d="light",t="light";try{t=localStorage.getItem("aurum.theme")||"light";d=t==="auto"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;}catch(e){}document.documentElement.setAttribute("data-theme",d);document.documentElement.setAttribute("data-theme-pref",t);})();</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/favicon-64.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -958,7 +959,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .inst-note { border-left: 2px solid var(--gold); padding: 2px 0 2px 12px; color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 0; }
 .inst-note b { color: var(--ink); }
 /* sheets open above the sign-in screen too */
-#layer .scrim { z-index: 150; } #layer .sheet { z-index: 151; }
+#layer .scrim { z-index: 150; } #layer .sheet, #layer .drawer { z-index: 151; }
 /* ---------- Match the reference photograph ---------- */
 .env-stage::after { content: ""; position: absolute; left: -12%; right: -12%; bottom: -34px; height: 60px; background: radial-gradient(ellipse at 50% 0, rgba(204,150,60,.30), transparent 68%); pointer-events: none; z-index: 0; }
 .env-flap .face.front > svg path:nth-of-type(2) { stroke: rgba(217,190,132,.6); stroke-width: .55; }
@@ -986,6 +987,141 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .pick-row { display: grid; gap: 2px; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 8px; border: 1px solid var(--line-2); border-radius: 12px; background: transparent; color: var(--ink); cursor: pointer; font: inherit; }
 .pick-row b { font-weight: 600; font-size: 15.5px; } .pick-row small { color: var(--muted); font-size: 13px; }
 .pick-row:hover, .pick-row[aria-pressed="true"] { border-color: var(--gold); background: rgba(217,190,132,.08); }
+
+/* =========================================================
+   LIGHT MODE (default). Ivory paper, ink type, antique gold.
+   The page your client opens stays dark: that is the brand moment.
+   ========================================================= */
+html[data-theme="light"] {
+  --bg: #F6F1E7; --bg-2: #FBF8F2; --surface: #FFFFFF; --surface-2: #F4EEE3; --field: #FFFFFF;
+  --line: rgba(70, 52, 22, .12); --line-2: rgba(70, 52, 22, .22);
+  --ink: #1C1813; --muted: #6C6352; --faint: #9A907D;
+  --gold: #9C7637; --gold-deep: #7C5B27;
+  --foil: linear-gradient(100deg, #6E5020 0%, #A9844A 30%, #7C5B27 55%, #B08D57 78%, #6E5020 100%);
+  --danger: #B93C2C; --ok: #23804F;
+  color-scheme: light;
+}
+html[data-theme="light"] body { background: var(--bg); color: var(--ink); }
+html[data-theme="light"] ::selection { background: rgba(156,118,55,.22); }
+html[data-theme="light"] .appbar { background: rgba(251,248,242,.9); }
+html[data-theme="light"] .stage { background: radial-gradient(70% 55% at 50% 18%, rgba(176,141,87,.14), transparent 70%), #EEE6D6; }
+html[data-theme="light"] .step-nav { background: linear-gradient(to top, var(--bg-2) 72%, rgba(251,248,242,.88)); }
+html[data-theme="light"] .btn.solid { color: var(--bg-2); }
+html[data-theme="light"] .field > span, html[data-theme="light"] .label { color: #3D362B; }
+html[data-theme="light"] .field input:focus, html[data-theme="light"] .field select:focus, html[data-theme="light"] .field textarea:focus { border-color: rgba(156,118,55,.75); box-shadow: 0 0 0 4px rgba(156,118,55,.12); }
+html[data-theme="light"] .chip { color: #4A4236; background: var(--surface); }
+html[data-theme="light"] .chip[aria-pressed="true"] { color: var(--gold-deep); background: rgba(156,118,55,.1); border-color: var(--gold); }
+html[data-theme="light"] .suggest { box-shadow: 0 20px 40px -14px rgba(60,45,20,.28); }
+html[data-theme="light"] .sumbox { background: linear-gradient(160deg, rgba(156,118,55,.08), transparent 60%), var(--surface); }
+html[data-theme="light"] .switch input:checked + i { background: rgba(156,118,55,.28); }
+html[data-theme="light"] .send-hero { background: radial-gradient(100% 80% at 100% 0%, rgba(176,141,87,.2), transparent 55%), linear-gradient(160deg, #FFFFFF, #F4EDE0); border-color: rgba(156,118,55,.35); }
+html[data-theme="light"] .link-box { background: var(--surface-2); }
+html[data-theme="light"] .scrim { background: rgba(40,32,20,.32); }
+html[data-theme="light"] .sheet { box-shadow: 0 -30px 80px rgba(60,45,20,.25); }
+html[data-theme="light"] .drawer { box-shadow: -30px 0 80px rgba(60,45,20,.2); }
+html[data-theme="light"] .paper-shadow { box-shadow: 0 2px 4px rgba(60,45,20,.12), 0 40px 80px -30px rgba(60,45,20,.35), 0 0 0 1px rgba(60,45,20,.06); }
+html[data-theme="light"] .prestige-card { background: radial-gradient(90% 90% at 100% 0%, rgba(176,141,87,.16), transparent 60%), var(--surface); }
+html[data-theme="light"] .gate { background: radial-gradient(55% 60% at 72% 46%, rgba(176,141,87,.18), transparent 70%), radial-gradient(90% 70% at 10% 110%, rgba(90,26,36,.08), transparent 70%), var(--bg); }
+html[data-theme="light"] .gate-frame { border-color: rgba(156,118,55,.28); }
+html[data-theme="light"] .key-row { background: #FFFFFF; }
+html[data-theme="light"] .gate-install { background: linear-gradient(180deg, rgba(156,118,55,.12), rgba(156,118,55,.04)); }
+html[data-theme="light"] .ob { background: radial-gradient(80% 50% at 50% 0%, rgba(176,141,87,.14), transparent 70%), var(--bg); }
+html[data-theme="light"] .ind[aria-pressed="true"] { background: rgba(156,118,55,.08); }
+html[data-theme="light"] .trial-bar { background: #EFE6D3; }
+html[data-theme="light"] .toast { background: #1C1813; color: #F6F1E7; }
+html[data-theme="light"] .pick-row:hover, html[data-theme="light"] .pick-row[aria-pressed="true"] { background: rgba(156,118,55,.08); }
+html[data-theme="light"] .art-env .env { filter: drop-shadow(0 40px 40px rgba(60,45,20,.35)); }
+/* the client's page and the thank-you card are always dark */
+html[data-theme="light"] :is(.cv, .tyx) {
+  --bg: #0B0A09; --bg-2: #100F0D; --surface: #161512; --surface-2: #1E1C18; --field: #0F0E0C;
+  --line: rgba(232, 214, 170, .12); --line-2: rgba(232, 214, 170, .24);
+  --ink: #F3ECDD; --muted: #A69D8A; --faint: #6E6657; --gold: #D9BE84; --gold-deep: #B08D57;
+  --foil: linear-gradient(100deg, #8A6A35 0%, #E9D39E 28%, #B8935A 46%, #F5E7BE 64%, #A07D42 82%, #E2C88E 100%);
+  --danger: #F0857A; --ok: #8FD8B0; color-scheme: dark;
+}
+
+/* theme switch */
+.theme-btn { width: 38px; padding: 0; justify-content: center; }
+.theme-btn .i-moon { display: none; }
+html[data-theme="dark"] .theme-btn .i-sun { display: none; }
+html[data-theme="dark"] .theme-btn .i-moon { display: block; }
+
+/* ---------- Home ---------- */
+.home-back { display: none; padding: 0 12px 0 8px; gap: 4px; }
+.in-editor .home-back { display: inline-flex; }
+.home { padding-block: 18px calc(40px + env(safe-area-inset-bottom, 0px)); padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.home-wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 22px; }
+.home-hello { display: grid; gap: 4px; }
+.home-hello h1 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(30px, 8vw, 44px); line-height: 1.05; }
+.home-hello p { margin: 0; color: var(--muted); font-size: 15px; }
+.home-new { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.hn { display: grid; gap: 6px; justify-items: start; text-align: left; padding: 16px 14px; border-radius: 18px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); cursor: pointer; transition: border-color .2s, transform .2s; min-width: 0; }
+.hn:hover { border-color: var(--gold); }
+.hn:active { transform: scale(.98); }
+.hn b { font-size: 15px; font-weight: 700; line-height: 1.2; }
+.hn small { color: var(--muted); font-size: 12.5px; line-height: 1.3; }
+.hn-ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--foil-btn); color: #17120A; }
+.hn-ic svg { width: 22px; height: 22px; }
+.home-more { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.home-more span { font-size: 13px; color: var(--muted); margin-right: 2px; }
+.home-more .chip { height: 36px; font-size: 13px; }
+.home-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.kpi { display: grid; gap: 2px; text-align: left; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; min-width: 0; }
+.kpi small { font-size: 12px; font-weight: 600; color: var(--muted); }
+.kpi b { font-family: var(--f-display); font-size: clamp(20px, 5.6vw, 26px); font-weight: 600; font-variant-numeric: lining-nums tabular-nums; overflow-wrap: anywhere; }
+.kpi span { font-size: 12px; color: var(--gold); font-weight: 600; }
+.home-sec, .home-help { display: grid; gap: 10px; }
+.home-sec-head { display: flex; align-items: baseline; justify-content: space-between; }
+.home-sec h2, .home-help h2 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 22px; }
+.doc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); }
+.doc-row b { display: block; font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc-row small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.doc-row .pill { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--line-2); color: var(--muted); }
+.doc-row .pill.paid { color: var(--ok); border-color: currentColor; }
+.doc-row .pill.due { color: var(--danger); border-color: currentColor; }
+.doc-row .row-btns { display: grid; gap: 6px; justify-items: end; }
+.doc-row .btn { height: 34px; padding: 0 14px; font-size: 13px; white-space: nowrap; }
+.home-empty { padding: 22px 18px; border: 1px dashed var(--line-2); border-radius: 16px; color: var(--muted); font-size: 14px; text-align: center; }
+.draft-card { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--gold); background: rgba(156,118,55,.07); }
+.draft-card div { flex: 1; min-width: 0; } .draft-card b { display: block; font-size: 14.5px; } .draft-card small { color: var(--muted); font-size: 12.5px; }
+.help-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.help-btn { display: flex; align-items: center; gap: 10px; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 14px var(--f-ui, inherit); text-decoration: none; cursor: pointer; text-align: left; min-width: 0; }
+.help-btn svg { width: 22px; height: 22px; flex: none; color: var(--gold); }
+.howto { list-style: none; margin: 0; padding: 4px 8px 10px; display: grid; gap: 14px; counter-reset: h; }
+.howto li { counter-increment: h; position: relative; padding-left: 42px; line-height: 1.5; font-size: 15px; }
+.howto li::before { content: counter(h); position: absolute; left: 0; top: -1px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--foil-btn); color: #17120A; font-weight: 800; font-size: 14px; }
+.howto b { font-weight: 700; }
+
+/* ---------- Phones: less chrome, more room for the work ---------- */
+@media (max-width: 640px) {
+  .home-new { grid-template-columns: minmax(0, 1fr); }
+  .hn { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 14px; row-gap: 2px; align-items: center; padding: 14px 16px; }
+  .hn .hn-ic { grid-row: span 2; }
+  .install-bar { padding-block: 8px; gap: 10px; }
+  .install-bar small, .trial-bar small { display: none; }
+  .install-bar > svg { width: 22px; height: 22px; }
+  .install-bar b { font-size: 14px; }
+  .trial-bar { padding-block: 7px; }
+  .steps button { padding: 10px 4px 9px; gap: 2px; }
+  .steps button b { font-size: 13px; }
+  .steps button span { font-size: 10px; letter-spacing: .14em; }
+  .step { padding-block: 18px 20px; gap: 18px; }
+  .step-head h2 { font-size: 27px; }
+  .step-head .eyebrow { display: none; }
+  .plan-chip { display: none; }
+  .appbar { gap: 8px; }
+  .appbar .mark span { display: none; }
+}
+/* messages appear at the top, so they never cover a button */
+.toast { top: calc(14px + env(safe-area-inset-top, 0px)); bottom: auto; transform: translate(-50%, -16px); max-width: calc(100vw - 32px); text-align: center; }
+.toast.show { transform: translate(-50%, 0); }
+
+/* fixes from the phone review */
+.card-line > span:first-child { min-width: 0; flex: 1; }
+.card-line small { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.intro h1 { overflow-wrap: anywhere; text-wrap: balance; max-width: 100%; }
+html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg circle { stroke: #9C7637; }
+html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text { fill: #9C7637; }
 </style>
 </head>
 <body>
@@ -1037,9 +1173,11 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
     <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="#D9BE84" stroke-width="1"/><circle cx="20" cy="20" r="15.5" fill="none" stroke="#D9BE84" stroke-width=".5"/><text x="20" y="25.5" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-style="italic" font-size="15" fill="#E9D39E">Au</text></svg>
     <span>AURUM</span>
   </a>
+  <button class="icon-btn home-back" type="button" id="go-home" aria-label="Back to home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 18l-6-6 6-6"/></svg>Home</button>
   <div class="bar-right">
     <span class="sync-state" id="sync-state" hidden></span>
     <span class="plan-chip" id="plan-chip"><i></i><span id="plan-text">Trial</span></span>
+    <button class="icon-btn theme-btn" type="button" id="theme-btn" aria-label="Switch between light and dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="i-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="i-moon"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
     <button class="icon-btn" type="button" id="open-overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="hide-sm">Overview</span></button>
     <button class="icon-btn" type="button" id="open-house"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l8-6 8 6v10H4z"/><path d="M10 20v-6h4v6"/></svg>My house</button>
   </div>
@@ -1047,6 +1185,30 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 <div class="install-bar" id="install-bar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span><b>Install Aurum on your phone</b><small>Android &amp; iPhone. Opens full screen, works offline.</small></span><button class="btn sm js-install" type="button">Install app</button><button class="bar-x" type="button" id="bar-x" aria-label="Hide this">×</button></div>
 
 <div class="trial-bar" id="trial-bar" hidden><span><b>Free demo</b><small>Sample business and sample amounts only. Get Aurum to use your own.</small></span><a class="btn sm primary" id="trial-buy" href="#" target="_blank" rel="noopener">Get Aurum</a></div>
+
+<section class="home" id="home" hidden aria-label="Home">
+  <div class="home-wrap">
+    <header class="home-hello"><span class="eyebrow" id="home-date"></span><h1 id="home-title">Welcome</h1><p id="home-sub"></p></header>
+    <div id="home-draft"></div>
+    <div class="home-new">
+      <button class="hn" type="button" data-new="invoice"><span class="hn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg></span><b>New invoice</b><small>Ask a client to pay</small></button>
+      <button class="hn" type="button" data-new="receipt"><span class="hn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 9l2 2 4-4M9 15h6"/></svg></span><b>New receipt</b><small>Confirm you were paid</small></button>
+      <button class="hn" type="button" data-new="quotation"><span class="hn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></span><b>New quotation</b><small>Give a price first</small></button>
+    </div>
+    <div class="home-more"><span>Also:</span><button class="chip" type="button" data-new="delivery">Delivery note</button><button class="chip" type="button" data-new="credit">Credit note</button><button class="chip" type="button" data-new="purchase">Purchase order</button></div>
+    <div class="home-kpis"><button class="kpi" type="button" id="home-owed"></button><button class="kpi" type="button" id="home-month"></button></div>
+    <section class="home-sec"><div class="home-sec-head"><h2>Recent</h2><button class="link-btn" type="button" id="home-all">See all</button></div><div id="home-recent"></div></section>
+    <section class="home-help">
+      <h2>Need a hand?</h2>
+      <div class="help-row">
+        <button class="help-btn js-howto" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>How Aurum works</button>
+        <a class="help-btn js-support" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/></svg>WhatsApp support</a>
+        <button class="help-btn js-install" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg>Install on your phone</button>
+        <a class="help-btn" href="policies.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Refunds &amp; terms</a>
+      </div>
+    </section>
+  </div>
+</section>
 
 <main class="studio" id="main-content">
   <aside class="editor" aria-label="Create document">
@@ -1478,8 +1640,25 @@ function watermarkHTML(B, X) {
 const fileBase = (D) => `${D.number}-${(D.client.name || "client").replace(/[^a-z0-9]+/gi, "-")}`.replace(/-+$/, "");
 async function fontsReady() { try { await document.fonts.ready; } catch {} }
 const noDownloads = () => !!window.AURUM_NO_DOWNLOADS;
+const onPhone = () => matchMedia("(pointer: coarse)").matches;
+// On phones, build a real PDF file and open the share menu (WhatsApp, Files, Email).
+async function exportPDFFile(P, D, opts) {
+  toast("Preparing your PDF…");
+  try {
+    if (!window.jspdf) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    const root = $("#export-root"); root.innerHTML = invoiceHTML(P, D, { ...opts, static: true }); let blob;
+    try { blob = await snap(root.firstElementChild); } finally { root.innerHTML = ""; }
+    const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+    const im = await new Promise((r, j) => { const x = new Image(); x.onload = () => r(x); x.onerror = j; x.src = url; });
+    const w = 210, h = Math.round((210 * im.height / im.width) * 100) / 100;
+    const pdf = new window.jspdf.jsPDF({ unit: "mm", format: [w, h], orientation: h >= w ? "portrait" : "landscape", compress: true });
+    pdf.addImage(url, "PNG", 0, 0, w, h);
+    await shareOrSave(pdf.output("blob"), fileBase(D) + ".pdf", `${LABEL[D.type]} ${D.number}`);
+  } catch (err) { console.error("PDF failed", err); toast("Couldn’t make the PDF. Check your internet and try again."); }
+}
 async function exportPDF(P, D, opts) {
   if (noDownloads()) return toast("Downloads work on the live app");
+  if (onPhone()) return exportPDFFile(P, D, opts);
   await fontsReady();
   const root = $("#print-root"); root.innerHTML = invoiceHTML(P, D, opts);
   document.body.classList.add("printing"); const old = document.title; document.title = fileBase(D);
@@ -2050,6 +2229,7 @@ const studioOpts = (extra = {}) => ({ demo: isDemo(), qr: S.doc.shareId ? qrFor(
 async function enter() {
   $("#gate").hidden = true;
   document.body.classList.toggle("is-trial", isDemo());
+  requestAnimationFrame(() => typeof lockTrial === "function" && lockTrial());
   if (isDemo() && !S.profile.demo) applyDemoHouse(0);
   if (canSync()) { await Promise.race([pull(), wait(6000)]); if (!history.some((h) => h.id === S.doc.id)) { S.doc.number = `${PREFIX[S.doc.type]}-${pad((S.profile.counters[S.doc.type] || 0) + 1)}`; persist(); } }
   if (!S.profile.setupDone) return startWelcome();
@@ -2240,6 +2420,7 @@ function goStep(n, { force = false } = {}) {
   showStep(n);
 }
 function showStep(n) {
+  showEditor();
   step = n; $$(".step").forEach((s) => (s.hidden = Number(s.dataset.step) !== n));
   $("#back-btn").style.visibility = n === 1 ? "hidden" : "visible";
   $("#next-btn").hidden = n === 4; $("#next-btn").textContent = n === 3 ? "Finish" : "Continue";
@@ -2555,13 +2736,14 @@ function renderHistory() {
       <div class="saved-btns">${conv}<button class="btn sm" type="button" data-open="${h.id}">Open</button>${d.type !== "quotation" ? `<button class="btn sm ghost" type="button" data-copy="${h.id}">Copy</button>` : ""}</div></div>`;
   }).join("") : `<p class="hint">Everything you send is kept here. With private links you'll see when your client opens them.</p>`;
 }
-$("#saved-list").addEventListener("click", (e) => {
+function handleSaved(e) {
   const cv = e.target.closest("[data-conv]"); if (cv) return convertFrom(cv.dataset.conv);
   const cp = e.target.closest("[data-copy]");
   if (cp) { const h = history.find((x) => x.id === cp.dataset.copy); if (!h) return; const t = h.doc.type === "quotation" ? "invoice" : h.doc.type; const fresh = newDocFor(S.profile, t);
     S.doc = { ...structuredClone(h.doc), id: fresh.id, type: t, number: fresh.number, issueDate: fresh.issueDate, dueDate: "", payBy: "", status: t === "receipt" ? "paid" : "unpaid", amountPaid: "", link: "", shareId: "", fromDoc: "", fromId: "", settled: false, receipts: [], items: h.doc.items.map((it) => ({ ...it, id: uid() })) };
     lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(h.doc.type === "quotation" ? `Invoice ${S.doc.number} created from ${h.doc.number}` : `Copied into ${S.doc.number}. Check the details and send.`); return; }
-  const o = e.target.closest("[data-open]"); if (!o) return; const h = history.find((x) => x.id === o.dataset.open); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); });
+  const o = e.target.closest("[data-open]"); if (!o) return; const h = history.find((x) => x.id === o.dataset.open); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); }
+$("#saved-list").addEventListener("click", handleSaved);
 async function fetchActivity() { if (!configured() || isDemo()) return; try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {} }
 
 /* send */
@@ -2626,6 +2808,10 @@ function openHouse(focus) {
         <label class="field"><span>Paystack public key <em>(optional)</em></span><input data-bind="profile.bank.paystackKey" value="${esc(K.paystackKey)}" placeholder="pk_live_…" autocomplete="off" spellcheck="false"></label>
         <p class="hint">With Paystack, clients pay by card, transfer or USSD right inside your envelope. Find the key in Paystack → Settings → API Keys. Use the <b>public</b> key only, never the secret key.</p>
       </section>
+      <section><h3 class="sub">Appearance</h3>
+        <div class="chips">${[["light", "Light"], ["dark", "Dark"], ["auto", "Match my phone"]].map(([k, v]) => `<button type="button" class="chip" data-theme-pick="${k}" aria-pressed="${themePref() === k}">${v}</button>`).join("")}</div></section>
+      <section><h3 class="sub">Help</h3>
+        <div class="help-row"><button class="help-btn js-howto" type="button">How Aurum works</button><a class="help-btn js-support" href="${esc(supportHref())}" target="_blank" rel="noopener">WhatsApp support</a><a class="help-btn" href="policies.html" target="_blank" rel="noopener">Refunds &amp; terms</a><a class="help-btn" href="policies.html#privacy" target="_blank" rel="noopener">Privacy</a></div></section>
       <section><h3 class="sub">Aurum on your home screen</h3>
         ${standalone() ? `<p class="hint">Installed. Aurum opens like an app and works without data. Your links and licence sync when you're back online.</p>`
           : `<button class="btn primary block js-install" type="button">Install Aurum on your phone</button><p class="hint">Android and iPhone. It gets its own icon, opens full screen, and works offline.</p>`}</section>
@@ -2821,7 +3007,8 @@ $("#send-customise").addEventListener("click", () => openCustomise());
 $("#repeat-on").addEventListener("change", (e) => { S.doc.recurring = e.target.checked; if (e.target.checked && !S.doc.repeatFrom) S.doc.repeatFrom = S.doc.issueDate; persist(); rememberDoc(); toast(e.target.checked ? "This invoice will be ready again each month in Overview" : "Repeat switched off"); });
 $("#open-overview").addEventListener("click", () => openOverview());
 $("#next-doc").addEventListener("click", () => { rememberDoc(); const src = structuredClone(S.doc); if (src.type === "invoice") receiptFrom(src); else if (src.type === "quotation") invoiceFrom(src); });
-$("#home-mark").addEventListener("click", (e) => { e.preventDefault(); showStep(1); });
+$("#home-mark").addEventListener("click", (e) => { e.preventDefault(); showHome(); });
+$("#go-home").addEventListener("click", () => showHome());
 
 /* mobile preview */
 $("#open-preview").addEventListener("click", () => { document.body.classList.add("show-preview"); requestAnimationFrame(() => { fitPaper(); render({ enter: true }); }); });
@@ -2831,7 +3018,7 @@ let started = false;
 function startStudio() {
   setSync(canSync() ? "saved" : "");
   $("#gate").hidden = true; $("#ob").hidden = true; $("#studio-root").hidden = false;
-  if (!started) { started = true; showStep(1); fontsReady().then(() => render({ enter: true })); }
+  if (!started) { started = true; showStep(1); fontsReady().then(() => render({ enter: true })); syncChrome(); render(); showHome(); return; }
   syncChrome(); render();
 }
 
@@ -2878,22 +3065,91 @@ document.addEventListener("click", (e) => {
 updateInstallBar();
 if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !window.AURUM_NO_DOWNLOADS) navigator.serviceWorker.register("sw.js").catch(() => {});
 
+/* ---------- theme ---------- */
+const themePref = () => { try { return localStorage.getItem("aurum.theme") || "light"; } catch (e) { return "light"; } };
+function applyTheme(pref) {
+  const dark = pref === "dark" || (pref === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light"); document.documentElement.setAttribute("data-theme-pref", pref);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", dark ? "#0B0A09" : "#F6F1E7");
+}
+function setTheme(pref) { try { localStorage.setItem("aurum.theme", pref); } catch (e) {} applyTheme(pref); $$("[data-theme-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themePick === pref))); }
+applyTheme(themePref());
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (themePref() === "auto") applyTheme("auto"); });
+$("#theme-btn").addEventListener("click", () => { const d = document.documentElement.getAttribute("data-theme") === "dark"; setTheme(d ? "light" : "dark"); toast(d ? "Light mode" : "Dark mode"); });
+
+/* ---------- home ---------- */
+const supportHref = () => `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I need help with Aurum" + (S.profile.business.name ? " (" + S.profile.business.name + ")" : "") + ".")}`;
+function showEditor() { document.body.classList.add("in-editor"); $("#home").hidden = true; $("#main-content").hidden = false; }
+function showHome() { closeLayer(); document.body.classList.remove("in-editor"); $("#main-content").hidden = true; $("#home").hidden = false; renderHome(); scrollTo(0, 0); }
+function docRow(h) {
+  const d = h.doc, t = calc(d);
+  const pill = d.type === "invoice" ? (d.status === "paid" ? `<span class="pill paid">Paid</span>` : d.status === "part" ? `<span class="pill due">${short(t.balance)} left</span>` : `<span class="pill due">Unpaid</span>`) : d.type === "receipt" ? `<span class="pill paid">Receipt</span>` : `<span class="pill">${LABEL[d.type]}</span>`;
+  const conv = d.type === "invoice" && d.status !== "paid" ? `<button class="btn sm primary" type="button" data-conv="${h.id}">Issue receipt</button>` : d.type === "quotation" ? `<button class="btn sm primary" type="button" data-conv="${h.id}">Make invoice</button>` : "";
+  return `<div class="doc-row"><div><b>${esc(d.client.name || "No client")}</b><small>${esc(d.number)} · ${money(t.total, d.currency)} · ${fmtDate(d.issueDate)}</small>${pill}</div><div class="row-btns">${conv}<button class="btn sm" type="button" data-open="${h.id}">Open</button></div></div>`;
+}
+function renderHome() {
+  const B = S.profile.business, hr = new Date().getHours();
+  $("#home-date").textContent = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  $("#home-title").textContent = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+  $("#home-sub").textContent = B.name ? `${B.name}. What would you like to send?` : "What would you like to send?";
+  const L = ledger(), thisM = monthKey(iso(new Date()));
+  const owed = L.owing.reduce((a, o) => a + o.due, 0), inMonth = L.received.filter((r) => monthKey(r.date) === thisM).reduce((a, r) => a + r.amount, 0);
+  $("#home-owed").innerHTML = `<small>Owed to you</small><b>${money(owed)}</b><span>${L.owing.length ? L.owing.length + " unpaid · see who" : "Nobody owes you"}</span>`;
+  $("#home-month").innerHTML = `<small>Paid this month</small><b>${money(inMonth)}</b><span>Open overview</span>`;
+  const D = S.doc, started = (D.client.name || "").trim() || D.items.some((i) => (i.desc || "").trim());
+  $("#home-draft").innerHTML = started && !history.some((x) => x.id === D.id) ? `<div class="draft-card"><div><b>Continue your ${LABEL[D.type].toLowerCase()}</b><small>${esc(D.number)}${D.client.name ? " for " + esc(D.client.name) : ""} · not sent yet</small></div><button class="btn sm primary" type="button" id="draft-go">Continue</button></div>` : "";
+  $("#home-recent").innerHTML = history.length ? history.slice(0, 5).map(docRow).join("") : `<div class="home-empty">Your invoices, receipts and quotations will appear here. Start with <b>New invoice</b> above.</div>`;
+  $("#home-all").hidden = history.length <= 5;
+  $$(".js-support").forEach((a) => (a.href = supportHref()));
+}
+function newOfType(t) {
+  S.doc = newDocFor(S.profile, "invoice"); lastTotal = null;
+  showEditor();
+  if (t !== "invoice") $(`[data-doctype="${t}"]`)?.click();
+  if (inTrial()) { const c = DEMO_CLIENTS[Math.floor(Math.random() * DEMO_CLIENTS.length)]; S.doc.client = { name: c.name, company: "", address: c.address, phone: c.phone, email: "" }; S.doc.items = demoItemsFor(S.profile.business.industry).slice(0, 2).map((x) => ({ ...blankItem(), desc: x.desc, price: x.price })); }
+  persist(); showStep(1); syncChrome(); swapAnim(); render({ enter: true });
+}
+$("#home").addEventListener("click", (e) => {
+  const n = e.target.closest("[data-new]"); if (n) return newOfType(n.dataset.new);
+  if (e.target.closest("#draft-go")) return showStep(1);
+  if (e.target.closest("#home-owed, #home-month")) return openOverview();
+  if (e.target.closest("#home-all")) return sheet("All documents", history.map(docRow).join(""), { onClick: (ev) => { if (ev.target.closest("[data-open], [data-conv]")) { closeLayer(); handleSaved(ev); } } });
+  if (e.target.closest("[data-open], [data-conv]")) handleSaved(e);
+});
+document.addEventListener("click", (e) => {
+  const tp = e.target.closest("[data-theme-pick]"); if (tp) return setTheme(tp.dataset.themePick);
+  if (e.target.closest(".js-howto")) return sheet("How Aurum works", `<ol class="howto">
+    <li>On the home screen, tap <b>New invoice</b> (or receipt, or quotation).</li>
+    <li><b>Who is it for?</b> Type your client's name. Next time Aurum remembers them.</li>
+    <li><b>What did you sell?</b> Add your items. Saved items and prices fill in with one tap.</li>
+    <li><b>How do they pay?</b> Your bank details are already on it. Add a deposit or discount if you like.</li>
+    <li><b>Send.</b> Choose how it opens, tap <b>Create private link</b>, then send it on WhatsApp. You can also download a PDF or image.</li>
+    <li>When they pay, open the invoice from <b>Recent</b> and tap <b>Issue receipt</b>. Done.</li></ol>
+    <a class="btn primary block" style="margin:6px 0 4px" href="${esc(supportHref())}" target="_blank" rel="noopener">Still stuck? WhatsApp us</a>`);
+});
+
 /* ---------- free trial: sample details only ---------- */
 const buyHref = () => CONFIG.BUY_LINK || (CONFIG.SELLER_WHATSAPP ? `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to buy Aurum.")}` : "#");
 function updateTrialBar() { const b = $("#trial-bar"); if (!b) return; b.hidden = !isDemo(); const a = $("#trial-buy"); if (a) a.href = buyHref(); }
 const TRIAL_TEXT = "input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=date]):not([type=file]):not([type=hidden]):not([type=button]), textarea";
 let lockQueued = false;
+// Only the free demo is locked. A visitor who hasn't entered a key yet, and every paying customer, can type freely.
+const inTrial = () => licence?.mode === "demo";
 function lockTrial() {
-  lockQueued = false; if (!isDemo()) return;
+  lockQueued = false;
+  if (!inTrial()) {
+    document.querySelectorAll("[data-locked]").forEach((el) => { el.readOnly = false; el.removeAttribute("data-locked"); if (el.dataset.im) el.setAttribute("inputmode", el.dataset.im); else el.removeAttribute("inputmode"); delete el.dataset.im; });
+    return;
+  }
   document.querySelectorAll(TRIAL_TEXT).forEach((el) => {
     if (el.dataset.locked || el.id === "lic-key" || el.id === "sheet-search" || el.closest("#gate") || el.closest(".cv")) return;
-    el.readOnly = true; el.dataset.locked = "1"; el.setAttribute("inputmode", "none");
+    el.dataset.im = el.getAttribute("inputmode") || ""; el.readOnly = true; el.dataset.locked = "1"; el.setAttribute("inputmode", "none");
   });
 }
-new MutationObserver(() => { if (isDemo() && !lockQueued) { lockQueued = true; requestAnimationFrame(lockTrial); } }).observe(document.body, { childList: true, subtree: true });
+new MutationObserver(() => { if (!lockQueued && (inTrial() || document.querySelector("[data-locked]"))) { lockQueued = true; requestAnimationFrame(lockTrial); } }).observe(document.body, { childList: true, subtree: true });
 let lastTrialTap = 0;
 function trialTap(e) {
-  const el = e.target.closest?.("[data-locked]"); if (!el || !isDemo()) return;
+  const el = e.target.closest?.("[data-locked]"); if (!el || !inTrial()) return;
   e.preventDefault(); e.stopPropagation(); el.blur?.();
   const now = Date.now(); if (now - lastTrialTap < 500) return; lastTrialTap = now;
   if (el.id.startsWith("c-")) return openDemoClients();
