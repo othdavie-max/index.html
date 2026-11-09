@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Aurum Invoice Studio</title>
 <meta name="description" content="Luxury invoices, receipts and quotations for Nigerian businesses.">
+<meta property="og:title" content="A private document for you">
+<meta property="og:description" content="Tap to open it securely. No app or login needed.">
+<meta property="og:image" content="https://auruminvoice.netlify.app/app/og/invoice.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="theme-color" content="#F6F1E7">
 <script>(function(){var d="light",t="light";try{t=localStorage.getItem("aurum.theme")||"light";d=t==="auto"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;}catch(e){}document.documentElement.setAttribute("data-theme",d);document.documentElement.setAttribute("data-theme-pref",t);})();</script>
 <link rel="manifest" href="manifest.webmanifest">
@@ -1122,6 +1127,41 @@ html[data-theme="dark"] .theme-btn .i-moon { display: block; }
 .intro h1 { overflow-wrap: anywhere; text-wrap: balance; max-width: 100%; }
 html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg circle { stroke: #9C7637; }
 html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text { fill: #9C7637; }
+
+/* ---------- Dashboard ---------- */
+.dash { padding-block: 18px calc(40px + env(safe-area-inset-bottom, 0px)); padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.dash .home-wrap { gap: 16px; }
+.dash-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.dash-head h1 { margin: 2px 0 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(30px, 8vw, 42px); line-height: 1.05; }
+.dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
+.tab { height: 42px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: 700 13.5px var(--f-ui, inherit); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.dash-search { width: 100%; height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--field); color: var(--ink); font-size: 16px; margin-bottom: 10px; }
+#dash-docs .chips { margin-bottom: 8px; }
+.dash-total { margin: 4px 0 8px; font-size: 13.5px; color: var(--muted); }
+.doc-list { display: grid; gap: 8px; }
+.client-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; text-align: left; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font: inherit; }
+.client-row b { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.client-row small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.client-row .amt { text-align: right; font-family: var(--f-display); font-size: 17px; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
+.client-row .amt small { font-family: var(--f-ui, inherit); font-weight: 700; }
+.client-row .amt small.due { color: var(--danger); } .client-row .amt small.ok { color: var(--ok); }
+.client-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 2px 0 12px; }
+.client-sum div { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.client-sum small { display: block; font-size: 11.5px; color: var(--muted); font-weight: 700; }
+.client-sum b { font-family: var(--f-display); font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+.client-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.client-acts .btn { min-height: 44px; padding: 0 10px; font-size: 13.5px; white-space: normal; line-height: 1.2; text-align: center; }
+.client-sheet { padding: 4px 6px 10px; }
+.client-sheet .doc-list { margin-top: 4px; }
+.owe-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); }
+.owe-row b { display: block; font-size: 15px; } .owe-row small { color: var(--muted); font-size: 12.5px; }
+.owe-row strong { display: block; text-align: right; font-family: var(--f-display); font-size: 17px; color: var(--danger); }
+.owe-row .row-btns { display: flex; gap: 6px; grid-column: 1 / -1; }
+.owe-row .row-btns .btn { flex: 1; height: 40px; }
+.tymsg { font-style: italic; }
+.ty-card .t-msg { font-family: var(--f-display); font-style: italic; font-size: 14px; color: #3D352A; max-width: 30ch; margin: 0; line-height: 1.35; }
 </style>
 </head>
 <body>
@@ -1207,6 +1247,24 @@ html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text 
         <a class="help-btn" href="policies.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Refunds &amp; terms</a>
       </div>
     </section>
+  </div>
+</section>
+
+<section class="dash" id="dash" hidden aria-label="Dashboard">
+  <div class="home-wrap">
+    <header class="dash-head"><div><span class="eyebrow">Your business</span><h1>Dashboard</h1></div><button class="btn sm" type="button" id="dash-money">Money details</button></header>
+    <div class="chips" id="dash-period"><button class="chip" type="button" data-period="month" aria-pressed="true">This month</button><button class="chip" type="button" data-period="last">Last month</button><button class="chip" type="button" data-period="year">This year</button><button class="chip" type="button" data-period="all">All time</button></div>
+    <div class="home-kpis dash-kpis" id="dash-kpis"></div>
+    <div class="tabs" role="tablist"><button class="tab" type="button" role="tab" data-tab="docs" aria-selected="true">Documents</button><button class="tab" type="button" role="tab" data-tab="clients" aria-selected="false">Clients</button><button class="tab" type="button" role="tab" data-tab="owe" aria-selected="false">Who owes you</button></div>
+    <div id="dash-docs">
+      <input class="input dash-search" id="dash-q" type="search" placeholder="Search client, number or item" autocomplete="off">
+      <div class="chips" id="dash-type"><button class="chip" type="button" data-dtype="all" aria-pressed="true">All</button><button class="chip" type="button" data-dtype="invoice" aria-pressed="false">Invoices</button><button class="chip" type="button" data-dtype="receipt" aria-pressed="false">Receipts</button><button class="chip" type="button" data-dtype="quotation" aria-pressed="false">Quotations</button><button class="chip" type="button" data-dtype="other" aria-pressed="false">Others</button></div>
+      <div class="chips" id="dash-status"><button class="chip" type="button" data-dstatus="any" aria-pressed="true">Any status</button><button class="chip" type="button" data-dstatus="unpaid" aria-pressed="false">Unpaid</button><button class="chip" type="button" data-dstatus="paid" aria-pressed="false">Paid</button></div>
+      <p class="dash-total" id="dash-total"></p>
+      <div class="doc-list" id="dash-list"></div>
+    </div>
+    <div id="dash-clients" hidden></div>
+    <div id="dash-owe" hidden></div>
   </div>
 </section>
 
@@ -1370,7 +1428,7 @@ const CONFIG = {
   SUPABASE_URL: "https://ymmxhjfcfaawrebxoxbu.supabase.co",        // e.g. https://abcd1234.supabase.co
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltbXhoamZjZmFhd3JlYnhveGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMDE3NjcsImV4cCI6MjEwOTc3Nzc2N30.03NhALj3puOulUJTDiKBhnctwM9iLzMoiH_flKwHDyM",   // Supabase → Project Settings → API → anon public key
   BUY_LINK: "",            // your Selar product page
-  SELLER_WHATSAPP: "2348071117403",     // e.g. 2348031234567 — buyers contact you here (Prestige upgrades, device moves)
+  SELLER_WHATSAPP: "2347032978008",     // e.g. 2348031234567 — buyers contact you here (Prestige upgrades, device moves)
   OFFLINE_GRACE_DAYS: 7,
   REFERRAL_OFFER: "₦2,000 off", // what a friend gets with a buyer's referral code (honour it on Selar)
 };
@@ -1993,7 +2051,7 @@ function openClientView(payload, ctx = {}) {
     const sig = B.signMode === "type" ? esc(B.signText || B.signName) : esc(B.signName || B.name);
     const layer = $("#layer");
     layer.innerHTML = `<div class="tyx" id="ty"><canvas class="leaf" id="leaf"></canvas><div class="ty-inner">
-      <div class="ty-card" id="ty-card"><div class="wax">${waxSVG(initials(B.name), wax, B.name)}</div><span class="t-eye">With gratitude${G.ty !== "Thank you" ? " · Thank you" : ""}</span><h2>${esc(G.ty)}</h2><span class="t-name">${esc(D.client.name || "")}</span>${lines}<span class="t-sign">${sig}</span><span class="t-foot">${esc(B.name)} · ${fmtDate(iso(new Date()))}</span></div>
+      <div class="ty-card" id="ty-card"><div class="wax">${waxSVG(initials(B.name), wax, B.name)}</div><span class="t-eye">With gratitude${G.ty !== "Thank you" ? " · Thank you" : ""}</span><h2>${esc(G.ty)}</h2><span class="t-name">${esc(D.client.name || "")}</span>${lines}${P.design && P.design.thanksMsg ? `<p class="t-msg">${esc(String(P.design.thanksMsg).slice(0, 160))}</p>` : ""}<span class="t-sign">${sig}</span><span class="t-foot">${esc(B.name)} · ${fmtDate(iso(new Date()))}</span></div>
       <div class="btns">
         ${kind === "paystack" ? "" : `<button class="btn primary block" type="button" data-ty="wa">${kind === "accept" ? "Confirm on WhatsApp" : "Send proof of payment on WhatsApp"}</button>`}
         <button class="btn block" type="button" data-ty="save">Save this card</button>
@@ -2761,10 +2819,10 @@ $("#make-link").addEventListener("click", async () => {
     if (configured() && !isDemo()) {
       const r = await rpc("publish_invoice", { p_key: licence.key, p_device: deviceId, p_doc_id: S.doc.id, p_payload: payload() });
       if (!r.ok) throw new Error(r.reason === "business_mismatch" ? "This licence belongs to another business name. Contact the seller to change it." : r.reason);
-      S.doc.shareId = r.id; S.doc.link = `${base}?i=${r.id}`;
+      S.doc.shareId = r.id; S.doc.link = `${linkPage(base, S.doc.type)}?i=${r.id}`;
     } else {
       const p = payload(); if (JSON.stringify(p).length > 6000) p.profile = { ...p.profile, business: { ...p.profile.business, logo: "", signImg: "" } };
-      S.doc.shareId = ""; S.doc.link = `${base}#v=${await encodePayload(p)}`;
+      S.doc.shareId = ""; S.doc.link = `${linkPage(base, S.doc.type)}#v=${await encodePayload(p)}`;
     }
     rememberDoc(); syncChrome(); render(); renderHistory();
     const ok = await copyText(S.doc.link); toast(ok ? "Private link created and copied" : "Private link created");
@@ -2773,13 +2831,16 @@ $("#make-link").addEventListener("click", async () => {
 });
 $("#copy-link").addEventListener("click", () => copyText(S.doc.link).then((ok) => toast(ok ? "Link copied" : "Press and hold the link to copy it")));
 $("#preview-client").addEventListener("click", () => openClientView(payload(), { preview: true, verified: false }));
+// Each document type has its own little page with its own WhatsApp preview picture.
+const LINK_PAGES = { invoice: "invoice.html", receipt: "receipt.html", quotation: "quotation.html", delivery: "delivery-note.html", credit: "credit-note.html", purchase: "purchase-order.html" };
+const linkPage = (base, type) => base.replace(/[^/]*$/, "") + (LINK_PAGES[type] || "");
 function sendWhatsApp() {
   const D = S.doc, P = S.profile, t = calc(D), c = D.currency; const lines = [`Hello ${D.client.name || "there"},`, ""];
   if (["delivery", "credit", "purchase"].includes(D.type)) lines.push(`Here is ${D.type === "purchase" ? "our" : "your"} ${LABEL[D.type].toLowerCase()} ${D.number} from ${P.business.name}.`, D.type === "delivery" ? `${D.items.filter((it) => it.desc).length} item(s) dispatched ${fmtDate(D.issueDate)}${D.rider ? " with " + D.rider : ""}.` : D.type === "credit" ? `Credit: ${money(t.total, c)}${D.reason ? " (" + D.reason + ")" : ""}.` : `Order total: ${money(t.total, c)}${D.deliverBy ? ", needed by " + fmtDate(D.deliverBy) : ""}.`);
   else if (D.type === "receipt") lines.push(`Thank you for your payment of ${money(t.total, c)}${D.paidFor ? " for " + D.paidFor : ""}. Here is your receipt ${D.number} from ${P.business.name}.`);
   else if (D.type === "quotation") lines.push(`Here is your quotation ${D.number} from ${P.business.name}.`, `Quoted total: ${money(t.total, c)}`);
   else { lines.push(`Here is your invoice ${D.number} from ${P.business.name}.`, D.status === "part" ? `Balance to pay: ${money(t.balance, c)}` : `Amount: ${money(t.total, c)}`); if (D.payBy) lines.push(`Pay by: ${fmtDate(D.payBy)}`); if (D.dueDate) lines.push(`Valid until: ${fmtDate(D.dueDate)}`); if (!D.link && P.bank.accountNumber) lines.push("", `Pay to: ${P.bank.bankName} · ${P.bank.accountNumber} · ${P.bank.accountName}`); }
-  if (D.link) lines.push("", "Open your sealed envelope:", D.link);
+  if (D.link) lines.push("", `Open your ${LABEL[D.type].toLowerCase()} here (secure, no login needed):`, D.link);
   lines.push("", "Thank you for your patronage.");
   openLink(`https://wa.me/${waNumber(D.client.phone)}?text=${encodeURIComponent(lines.join("\n"))}`); rememberDoc();
 }
@@ -2815,6 +2876,9 @@ function openHouse(focus) {
         <label class="field"><span>Paystack public key <em>(optional)</em></span><input data-bind="profile.bank.paystackKey" value="${esc(K.paystackKey)}" placeholder="pk_live_…" autocomplete="off" spellcheck="false"></label>
         <p class="hint">With Paystack, clients pay by card, transfer or USSD right inside your envelope. Find the key in Paystack → Settings → API Keys. Use the <b>public</b> key only, never the secret key.</p>
       </section>
+      <section><h3 class="sub">Your thank-you message</h3>
+        <p class="hint">Shown on the thank-you card your client receives when they pay. Keep it short and warm.</p>
+        <label class="field"><textarea class="input tymsg" data-bind="profile.design.thanksMsg" maxlength="160" rows="3" placeholder="e.g. It was a joy dressing you. See you at the next celebration!" style="height:auto;min-height:84px;padding:14px 16px">${esc(G.thanksMsg || "")}</textarea></label></section>
       <section><h3 class="sub">Appearance</h3>
         <div class="chips">${[["light", "Light"], ["dark", "Dark"], ["auto", "Match my phone"]].map(([k, v]) => `<button type="button" class="chip" data-theme-pick="${k}" aria-pressed="${themePref() === k}">${v}</button>`).join("")}</div></section>
       <section><h3 class="sub">Help</h3>
@@ -2915,12 +2979,15 @@ function openCustomise(type = S.doc.type) {
    ========================================================= */
 const monthKey = (iso) => String(iso || "").slice(0, 7);
 const addMonths = (isoDate, n) => { const d = new Date(isoDate + "T12:00:00"); const day = d.getDate(); d.setMonth(d.getMonth() + n); if (d.getDate() < day) d.setDate(0); return iso(d); };
+// Money paid on an invoice that isn't covered by a linked receipt (e.g. a deposit marked on the invoice itself).
+const linkedReceipts = (inv) => history.filter((h) => h.doc.type === "receipt" && h.doc.fromId === inv.id).reduce((a, h) => a + calc(h.doc).total, 0);
+const directPaid = (inv) => { const t = calc(inv); const paid = inv.status === "paid" ? t.total : inv.status === "part" ? num(inv.amountPaid) : 0; return Math.max(0, round2(paid - linkedReceipts(inv))); };
 function ledger() {
   const docs = history.map((h) => h.doc);
   const received = []; // { date, amount, client }
   docs.forEach((d) => {
     if (d.type === "receipt") received.push({ date: d.issueDate, amount: calc(d).total, client: d.client.name, cur: d.currency });
-    else if (d.type === "invoice" && !(d.receipts || []).length) { const t = calc(d); const got = d.status === "paid" ? t.total : d.status === "part" ? num(d.amountPaid) : 0; if (got) received.push({ date: d.issueDate, amount: got, client: d.client.name, cur: d.currency }); }
+    else if (d.type === "invoice") { const got = directPaid(d); if (got) received.push({ date: d.issueDate, amount: got, client: d.client.name, cur: d.currency }); }
   });
   const owing = docs.filter((d) => d.type === "invoice" && d.status !== "paid" && dueOn(d) > 0).map((d) => ({ d, due: dueOn(d), age: -daysUntil(d.issueDate), expired: isExpired(d) })).sort((a, b) => b.age - a.age);
   const today = iso(new Date());
@@ -3012,7 +3079,7 @@ $("#open-house").addEventListener("click", () => openHouse());
 $("#open-customise").addEventListener("click", () => openCustomise());
 $("#send-customise").addEventListener("click", () => openCustomise());
 $("#repeat-on").addEventListener("change", (e) => { S.doc.recurring = e.target.checked; if (e.target.checked && !S.doc.repeatFrom) S.doc.repeatFrom = S.doc.issueDate; persist(); rememberDoc(); toast(e.target.checked ? "This invoice will be ready again each month in Overview" : "Repeat switched off"); });
-$("#open-overview").addEventListener("click", () => openOverview());
+$("#open-overview").addEventListener("click", () => showDash());
 $("#next-doc").addEventListener("click", () => { rememberDoc(); const src = structuredClone(S.doc); if (src.type === "invoice") receiptFrom(src); else if (src.type === "quotation") invoiceFrom(src); });
 $("#home-mark").addEventListener("click", (e) => { e.preventDefault(); showHome(); });
 $("#go-home").addEventListener("click", () => showHome());
@@ -3086,8 +3153,8 @@ $("#theme-btn").addEventListener("click", () => { const d = document.documentEle
 
 /* ---------- home ---------- */
 const supportHref = () => `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I need help with Aurum" + (S.profile.business.name ? " (" + S.profile.business.name + ")" : "") + ".")}`;
-function showEditor() { document.body.classList.add("in-editor"); $("#home").hidden = true; $("#main-content").hidden = false; }
-function showHome() { closeLayer(); document.body.classList.remove("in-editor"); $("#main-content").hidden = true; $("#home").hidden = false; renderHome(); scrollTo(0, 0); }
+function showEditor() { document.body.classList.add("in-editor"); $("#home").hidden = true; $("#dash").hidden = true; $("#main-content").hidden = false; }
+function showHome() { closeLayer(); document.body.classList.remove("in-editor"); $("#main-content").hidden = true; $("#dash").hidden = true; $("#home").hidden = false; renderHome(); scrollTo(0, 0); }
 function docRow(h) {
   const d = h.doc, t = calc(d);
   const pill = d.type === "invoice" ? (d.status === "paid" ? `<span class="pill paid">Paid</span>` : d.status === "part" ? `<span class="pill due">${short(t.balance)} left</span>` : `<span class="pill due">Unpaid</span>`) : d.type === "receipt" ? `<span class="pill paid">Receipt</span>` : `<span class="pill">${LABEL[d.type]}</span>`;
@@ -3119,8 +3186,9 @@ function newOfType(t) {
 $("#home").addEventListener("click", (e) => {
   const n = e.target.closest("[data-new]"); if (n) return newOfType(n.dataset.new);
   if (e.target.closest("#draft-go")) return showStep(1);
-  if (e.target.closest("#home-owed, #home-month")) return openOverview();
-  if (e.target.closest("#home-all")) return sheet("All documents", history.map(docRow).join(""), { onClick: (ev) => { if (ev.target.closest("[data-open], [data-conv]")) { closeLayer(); handleSaved(ev); } } });
+  if (e.target.closest("#home-owed")) return showDash("owe");
+  if (e.target.closest("#home-month")) return showDash("docs");
+  if (e.target.closest("#home-all")) return showDash("docs");
   if (e.target.closest("[data-open], [data-conv]")) handleSaved(e);
 });
 document.addEventListener("click", (e) => {
@@ -3134,6 +3202,152 @@ document.addEventListener("click", (e) => {
     <li>When they pay, open the invoice from <b>Recent</b> and tap <b>Issue receipt</b>. Done.</li></ol>
     <a class="btn primary block" style="margin:6px 0 4px" href="${esc(supportHref())}" target="_blank" rel="noopener">Still stuck? WhatsApp us</a>`);
 });
+
+/* ---------- Dashboard ---------- */
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+const dashState = { tab: "docs", period: "month", q: "", type: "all", status: "any" };
+function periodRange(p) {
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+  if (p === "month") return [iso(new Date(y, m, 1)), iso(new Date(y, m + 1, 0))];
+  if (p === "last") return [iso(new Date(y, m - 1, 1)), iso(new Date(y, m, 0))];
+  if (p === "year") return [iso(new Date(y, 0, 1)), iso(new Date(y, 11, 31))];
+  return ["0000-01-01", "9999-12-31"];
+}
+const inRange = (d, [a, b]) => (d || "") >= a && (d || "") <= b;
+function showDash(tab) {
+  closeLayer(); document.body.classList.remove("in-editor");
+  $("#main-content").hidden = true; $("#home").hidden = true; $("#dash").hidden = false;
+  if (tab) dashState.tab = tab; renderDash(); scrollTo(0, 0);
+}
+function clientBook() {
+  const map = new Map();
+  history.forEach(({ doc: d }) => {
+    const name = (d.client.name || "").trim(); if (!name) return;
+    const k = name.toLowerCase(); if (!map.has(k)) map.set(k, { name, phone: "", email: "", address: "", docs: [], invoiced: 0, received: 0, owing: 0, last: "" });
+    const c = map.get(k), t = calc(d); c.docs.push(d);
+    if (d.client.phone && !c.phone) c.phone = d.client.phone; if (d.client.email && !c.email) c.email = d.client.email; if (d.client.address && !c.address) c.address = d.client.address;
+    if ((d.issueDate || "") > c.last) c.last = d.issueDate;
+    if (d.type === "invoice") { c.invoiced += t.total; c.received += directPaid(d); if (d.status !== "paid") c.owing += dueOn(d); }
+    if (d.type === "receipt") c.received += t.total;
+  });
+  return [...map.values()].sort((a, b) => b.invoiced + b.received - (a.invoiced + a.received));
+}
+function renderDash() {
+  const R = periodRange(dashState.period), L = ledger();
+  const docsIn = history.filter((h) => inRange(h.doc.issueDate, R));
+  const received = L.received.filter((r) => inRange(r.date, R)).reduce((a, r) => a + r.amount, 0);
+  const invoiced = docsIn.filter((h) => h.doc.type === "invoice").reduce((a, h) => a + calc(h.doc).total, 0);
+  const owed = L.owing.reduce((a, o) => a + o.due, 0);
+  $("#dash-kpis").innerHTML = `<button class="kpi" type="button" data-kt="docs"><small>Money received</small><b>${money(received)}</b><span>${plural(docsIn.filter((h) => h.doc.type === "receipt").length, "receipt")}</span></button>
+    <button class="kpi" type="button" data-kt="docs"><small>Invoiced</small><b>${money(invoiced)}</b><span>${plural(docsIn.filter((h) => h.doc.type === "invoice").length, "invoice")}</span></button>
+    <button class="kpi" type="button" data-kt="owe"><small>Owed to you now</small><b>${money(owed)}</b><span>${L.owing.length ? L.owing.length + " unpaid · remind" : "Nobody owes you"}</span></button>
+    <button class="kpi" type="button" data-kt="clients"><small>Clients</small><b>${clientBook().length}</b><span>See each client</span></button>`;
+  $$("#dash-period [data-period]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.period === dashState.period)));
+  $$(".tabs [data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === dashState.tab)));
+  $("#dash-docs").hidden = dashState.tab !== "docs"; $("#dash-clients").hidden = dashState.tab !== "clients"; $("#dash-owe").hidden = dashState.tab !== "owe";
+  if (dashState.tab === "docs") {
+    const q = dashState.q.trim().toLowerCase();
+    const list = docsIn.filter(({ doc: d }) => {
+      if (dashState.type === "other" ? !["delivery", "credit", "purchase"].includes(d.type) : dashState.type !== "all" && d.type !== dashState.type) return false;
+      if (dashState.status === "unpaid" && !(d.type === "invoice" && d.status !== "paid")) return false;
+      if (dashState.status === "paid" && !((d.type === "invoice" && d.status === "paid") || d.type === "receipt")) return false;
+      if (q && ![d.client.name, d.number, ...d.items.map((i) => i.desc)].join(" ").toLowerCase().includes(q)) return false;
+      return true;
+    });
+    const total = list.reduce((a, h) => a + calc(h.doc).total, 0);
+    $("#dash-total").textContent = list.length ? `${list.length} document${list.length === 1 ? "" : "s"} · ${money(total)}` : "";
+    $("#dash-list").innerHTML = list.length ? list.map(docRow).join("") : `<div class="home-empty">${history.length ? "Nothing matches. Try another period or filter." : "Your documents will appear here once you send your first one."}</div>`;
+  }
+  if (dashState.tab === "clients") {
+    const book = clientBook();
+    $("#dash-clients").innerHTML = book.length ? `<div class="doc-list">${book.map((c, i) => `<button class="client-row" type="button" data-client="${i}"><div><b>${esc(c.name)}</b><small>${c.docs.length} document${c.docs.length === 1 ? "" : "s"} · last ${fmtDate(c.last)}</small></div><div class="amt">${money(c.invoiced || c.received)}<small class="${c.owing ? "due" : "ok"}">${c.owing ? money(c.owing) + " owed" : "All paid"}</small></div></button>`).join("")}</div>` : `<div class="home-empty">Clients appear here after your first invoice or receipt.</div>`;
+  }
+  if (dashState.tab === "owe") {
+    const ago = (n) => (n <= 0 ? "today" : n === 1 ? "yesterday" : `${n} days ago`);
+    $("#dash-owe").innerHTML = L.owing.length ? `<div class="doc-list">${L.owing.map((o) => `<div class="owe-row"><div><b>${esc(o.d.client.name || "No name")}</b><small>${esc(o.d.number)} · sent ${ago(o.age)}${o.d.reminded ? " · reminded " + ago(-daysUntil(o.d.reminded)) : ""}</small></div><strong>${money(o.due, o.d.currency)}</strong><div class="row-btns"><button class="btn sm primary" type="button" data-remind="${o.d.id}">Remind on WhatsApp</button><button class="btn sm" type="button" data-conv="${o.d.id}">Got paid</button></div></div>`).join("")}</div>` : `<div class="home-empty">Nobody owes you right now. Lovely.</div>`;
+  }
+}
+function openClient(c) {
+  const wa = waNumber(c.phone);
+  const html = `<div class="client-sheet">
+    <div class="client-sum"><div><small>Invoiced</small><b>${short(c.invoiced)}</b></div><div><small>Paid</small><b>${short(c.received)}</b></div><div><small>Owes</small><b style="color:${c.owing ? "var(--danger)" : "var(--ok)"}">${short(c.owing)}</b></div></div>
+    <div class="client-acts">
+      <button class="btn primary" type="button" data-cs="statement">Statement of account (PDF)</button>
+      <button class="btn" type="button" data-cs="new">New invoice for them</button>
+      ${wa ? `<a class="btn" href="https://wa.me/${wa}" target="_blank" rel="noopener">Message on WhatsApp</a>` : ""}
+      ${c.owing ? `<button class="btn" type="button" data-cs="remind">Send a reminder</button>` : ""}
+    </div>
+    <div class="doc-list">${c.docs.slice().sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || "")).map((d) => docRow(history.find((h) => h.doc === d))).join("")}</div></div>`;
+  sheet(c.name, html, { onClick: (e) => {
+    const b = e.target.closest("[data-cs]");
+    if (b?.dataset.cs === "statement") return exportStatement(c);
+    if (b?.dataset.cs === "new") { closeLayer(); newOfType("invoice"); S.doc.client = { name: c.name, company: "", address: c.address, phone: c.phone, email: c.email }; persist(); syncChrome(); render(); return; }
+    if (b?.dataset.cs === "remind") { const o = ledger().owing.find((x) => (x.d.client.name || "").trim().toLowerCase() === c.name.toLowerCase()); if (o) return remindSheet(o.d.id); }
+    if (e.target.closest("[data-open], [data-conv]")) { closeLayer(); handleSaved(e); }
+  } });
+}
+/* Statement of account: every invoice, payment and credit for one client, with a running balance. */
+function statementHTML(c) {
+  const B = S.profile.business, brand = S.profile.design.brand || "#1A1817";
+  const rows = [];
+  c.docs.forEach((d) => { const t = calc(d);
+    if (d.type === "invoice") { rows.push({ ord: 0, date: d.issueDate, ref: d.number, what: "Invoice" + (d.items[0]?.desc ? " · " + d.items.filter((i) => i.desc).map((i) => i.desc).slice(0, 2).join(", ") : ""), debit: t.total, credit: 0 });
+      const got = directPaid(d); if (got) rows.push({ ord: 1, date: d.issueDate, ref: d.number, what: "Payment received (deposit)", debit: 0, credit: got }); }
+    if (d.type === "receipt") rows.push({ ord: 2, date: d.issueDate, ref: d.number, what: "Payment received" + (d.fromDoc ? " for " + d.fromDoc : ""), debit: 0, credit: t.total });
+    if (d.type === "credit") rows.push({ ord: 2, date: d.issueDate, ref: d.number, what: "Credit note", debit: 0, credit: t.total });
+  });
+  rows.sort((a, b) => (a.date || "").localeCompare(b.date || "") || a.ord - b.ord);
+  let bal = 0; rows.forEach((r) => { bal = round2(bal + r.debit - r.credit); r.bal = bal; });
+  const tot = rows.reduce((a, r) => ({ d: a.d + r.debit, c: a.c + r.credit }), { d: 0, c: 0 });
+  const cell = "padding:9px 10px;border-bottom:1px solid #E7E0D2;font-size:12.5px;";
+  return `<div style="width:794px;background:#fff;color:#1E1A14;font-family:Manrope,Arial,sans-serif;">
+    <div style="background:${esc(brand)};color:#F7EFDD;padding:30px 40px;display:flex;justify-content:space-between;align-items:center;gap:20px">
+      <div style="display:flex;align-items:center;gap:14px">${B.logo ? `<img src="${B.logo}" style="width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff">` : ""}<div><div style="font-family:'Playfair Display',Georgia,serif;font-size:24px">${esc(B.name || "")}</div><div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.8">${esc(B.tagline || "")}</div></div></div>
+      <div style="text-align:right"><div style="font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:28px">Statement</div><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.8">of account · ${fmtDate(iso(new Date()))}</div></div>
+    </div>
+    <div style="padding:26px 40px 10px;display:flex;justify-content:space-between;gap:20px;font-size:12.5px;line-height:1.55">
+      <div><div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#8C7F68;font-weight:700">Account of</div><div style="font-family:'Playfair Display',Georgia,serif;font-size:19px;margin:2px 0">${esc(c.name)}</div>${esc(c.address || "")}${c.phone ? "<br>" + esc(c.phone) : ""}</div>
+      <div style="text-align:right"><div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#8C7F68;font-weight:700">From</div>${esc(B.address || "")}<br>${esc(B.phone || "")}<br>${esc(B.email || "")}</div>
+    </div>
+    <div style="padding:6px 40px">
+      <table style="width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums">
+        <thead><tr style="background:#F5EFE3;text-align:left;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6C6352"><th style="${cell}">Date</th><th style="${cell}">Ref</th><th style="${cell}">Details</th><th style="${cell}text-align:right">Charged</th><th style="${cell}text-align:right">Paid</th><th style="${cell}text-align:right">Balance</th></tr></thead>
+        <tbody>${rows.map((r) => `<tr><td style="${cell}white-space:nowrap">${fmtDate(r.date)}</td><td style="${cell}white-space:nowrap">${esc(r.ref)}</td><td style="${cell}">${esc(r.what)}</td><td style="${cell}text-align:right">${r.debit ? money(r.debit) : ""}</td><td style="${cell}text-align:right">${r.credit ? money(r.credit) : ""}</td><td style="${cell}text-align:right;font-weight:700">${money(r.bal)}</td></tr>`).join("")}</tbody>
+        <tfoot><tr><td colspan="3" style="${cell}font-weight:700">Totals</td><td style="${cell}text-align:right;font-weight:700">${money(tot.d)}</td><td style="${cell}text-align:right;font-weight:700">${money(tot.c)}</td><td style="${cell}"></td></tr></tfoot>
+      </table>
+    </div>
+    <div style="margin:18px 40px 0;padding:18px 22px;background:${esc(brand)};color:#F7EFDD;display:flex;justify-content:space-between;align-items:center;border-radius:4px"><span style="font-size:11px;letter-spacing:.2em;text-transform:uppercase">${bal > 0 ? "Balance due" : bal < 0 ? "In credit" : "Account settled"}</span><span style="font-family:'Playfair Display',Georgia,serif;font-size:26px">${money(Math.abs(bal))}</span></div>
+    ${bal > 0 && S.profile.bank.accountNumber ? `<div style="margin:16px 40px 0;font-size:12.5px;color:#4A4236">Pay to <b>${esc(S.profile.bank.bankName)}</b> · <b>${esc(S.profile.bank.accountNumber)}</b> · ${esc(S.profile.bank.accountName)}</div>` : ""}
+    <div style="margin-top:30px;padding:16px 40px;border-top:1px solid #E7E0D2;font-size:11px;color:#8C7F68;display:flex;justify-content:space-between"><span>${esc(B.name || "")}</span><span>Statement prepared ${fmtDate(iso(new Date()))}</span></div>
+  </div>`;
+}
+async function exportStatement(c) {
+  if (noDownloads()) return toast("Downloads work on the live app");
+  toast("Preparing the statement…");
+  try {
+    if (!window.jspdf) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    const root = $("#export-root"); root.innerHTML = statementHTML(c); let blob;
+    try { blob = await snap(root.firstElementChild); } finally { root.innerHTML = ""; }
+    const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+    const im = await new Promise((r, j) => { const x = new Image(); x.onload = () => r(x); x.onerror = j; x.src = url; });
+    const w = 210, h = Math.round((210 * im.height / im.width) * 100) / 100;
+    const ph = Math.max(h, 297), pdf = new window.jspdf.jsPDF({ unit: "mm", format: [w, ph], orientation: "portrait", compress: true });
+    pdf.addImage(url, "PNG", 0, 0, w, h);
+    await shareOrSave(pdf.output("blob"), `Statement-${c.name.replace(/[^\w]+/g, "-")}.pdf`, `Statement for ${c.name}`);
+  } catch (err) { console.error(err); toast("Couldn’t make the statement. Check your internet and try again."); }
+}
+$("#dash").addEventListener("click", (e) => {
+  const p = e.target.closest("[data-period]"); if (p) { dashState.period = p.dataset.period; return renderDash(); }
+  const t = e.target.closest("[data-tab]"); if (t) { dashState.tab = t.dataset.tab; return renderDash(); }
+  const kt = e.target.closest("[data-kt]"); if (kt) { dashState.tab = kt.dataset.kt; return renderDash(); }
+  const ty = e.target.closest("[data-dtype]"); if (ty) { dashState.type = ty.dataset.dtype; $$("#dash-type .chip").forEach((b) => b.setAttribute("aria-pressed", String(b === ty))); return renderDash(); }
+  const st = e.target.closest("[data-dstatus]"); if (st) { dashState.status = st.dataset.dstatus; $$("#dash-status .chip").forEach((b) => b.setAttribute("aria-pressed", String(b === st))); return renderDash(); }
+  const cl = e.target.closest("[data-client]"); if (cl) return openClient(clientBook()[Number(cl.dataset.client)]);
+  const rm = e.target.closest("[data-remind]"); if (rm) return remindSheet(rm.dataset.remind);
+  if (e.target.closest("#dash-money")) return openOverview();
+  if (e.target.closest("[data-open], [data-conv]")) handleSaved(e);
+});
+$("#dash-q").addEventListener("input", (e) => { dashState.q = e.target.value; renderDash(); });
 
 /* ---------- free trial: sample details only ---------- */
 const buyHref = () => CONFIG.BUY_LINK || (CONFIG.SELLER_WHATSAPP ? `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to buy Aurum.")}` : "#");
@@ -3149,7 +3363,7 @@ function lockTrial() {
     return;
   }
   document.querySelectorAll(TRIAL_TEXT).forEach((el) => {
-    if (el.dataset.locked || el.id === "lic-key" || el.id === "sheet-search" || el.closest("#gate") || el.closest(".cv")) return;
+    if (el.dataset.locked || el.id === "lic-key" || el.id === "sheet-search" || el.type === "search" || el.closest("#gate") || el.closest(".cv")) return;
     el.dataset.im = el.getAttribute("inputmode") || ""; el.readOnly = true; el.dataset.locked = "1"; el.setAttribute("inputmode", "none");
   });
 }
