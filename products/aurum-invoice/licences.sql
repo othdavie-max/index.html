@@ -346,7 +346,7 @@ declare o public.orders;
 begin
   select * into o from public.orders where reference = p_reference;
   if not found then return json_build_object('ok', false, 'reason', 'unknown'); end if;
-  return json_build_object('ok', true, 'mode', o.mode, 'status', o.status, 'amount_kobo', o.amount_kobo);
+  return json_build_object('ok', true, 'mode', o.mode, 'status', o.status, 'amount_kobo', o.amount_kobo, 'email', o.email, 'plan', o.plan);
 end; $$;
 revoke all on function public.order_for_verify(text) from public, anon, authenticated;
 grant execute on function public.order_for_verify(text) to service_role;

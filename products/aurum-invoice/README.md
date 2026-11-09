@@ -189,10 +189,10 @@ Check whether Selar can deliver a unique code per buyer automatically. If it can
 
 ### 4b. Online checkout with Paystack (instead of selling by hand)
 
-Buyers pay on the sales page and their licence key appears on the screen straight away.
+Buyers pay on Paystack's own payment page (card, transfer or USSD), come back to the sales page, and their licence key appears on the screen straight away. (The Paystack popup was dropped because some phone browsers show it as a blank white screen.)
 
 1. Run the whole of `licences.sql` in the Supabase SQL editor (it includes the checkout tables).
-2. Deploy `functions/paystack/index.ts` as an Edge Function named `paystack`, with JWT verification **off** (Paystack cannot send a login). Every payment is re-checked with Paystack anyway.
+2. Deploy `functions/paystack/index.ts` as an Edge Function named `paystack`, with JWT verification **off** (Paystack cannot send a login). Every payment is re-checked with Paystack anyway. Redeploying switches JWT verification back on, so turn it off again each time. Set `SITE_URL` in the function to your website address.
 3. In Supabase, Edge Functions, Secrets, add `PAYSTACK_LIVE_SECRET_KEY` and `PAYSTACK_TEST_SECRET_KEY`. These stay in Supabase only.
 4. In Paystack, Settings, API Keys & Webhooks, set both the test and the live webhook URL to
    `https://<your-project>.supabase.co/functions/v1/paystack`

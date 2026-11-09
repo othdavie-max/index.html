@@ -478,6 +478,7 @@ const CONFIG = {
   const naira = (n) => "₦" + Math.round(n).toLocaleString("en-NG");
   const H = { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK };
   const rpc = async (fn, body) => (await fetch(`${API}/rest/v1/rpc/${fn}`, { method: "POST", headers: H, body: JSON.stringify(body || {}) })).json();
+  const init = async (reference) => (await fetch(`${API}/functions/v1/paystack`, { method: "POST", headers: H, body: JSON.stringify({ action: "init", reference }) })).json();
   const verify = async (reference) => (await fetch(`${API}/functions/v1/paystack`, { method: "POST", headers: H, body: JSON.stringify({ action: "verify", reference }) })).json();
   const PLAN = { signature: { name: "Aurum Signature", key: "SIGNATURE" }, prestige: { name: "Aurum Prestige", key: "PRESTIGE" } };
   const priceNow = (plan) => { const on = new Date(CONFIG.PROMO_ENDS).getTime() > Date.now(); const k = PLAN[plan].key; return { now: on ? CONFIG["PROMO_" + k] : CONFIG["NORMAL_" + k], was: on ? CONFIG["NORMAL_" + k] : 0 }; };
@@ -537,20 +538,14 @@ const CONFIG = {
         if (o.reason === "off") { close(); location.href = `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to buy Aurum " + PLAN[plan].name.split(" ")[1] + ".")}`; return; }
         return err(o.reason === "email" ? "Please enter a valid email address." : o.reason === "name" ? "Please enter your name." : "Something went wrong. Please try again."); }
       $("#co-amt").textContent = naira(o.amount_kobo / 100);
-      await loadPaystack();
       store.set("aurumOrder", JSON.stringify({ reference: o.reference, phone, name }));
-      const handler = window.PaystackPop.setup({
-        key: o.mode === "live" ? CONFIG.PAYSTACK_PUBLIC_KEY_LIVE : CONFIG.PAYSTACK_PUBLIC_KEY_TEST, email: o.email, amount: o.amount_kobo, currency: "NGN", ref: o.reference,
-        metadata: { plan, name, phone, custom_fields: [{ display_name: "Plan", variable_name: "plan", value: plan }] },
-        callback: function () { finish(o.reference, phone, name); },
-        onClose: function () { if (!$("#co-form-view").hidden) { paying = false; $("#co-pay").disabled = false; $("#co-pay").textContent = "Pay " + naira(o.amount_kobo / 100); } },
-      });
-      handler.openIframe();
+      const i = await init(o.reference);
+      if (!i || !i.ok || !i.authorization_url) { paying = false; $("#co-pay").disabled = false; $("#co-pay").textContent = "Pay " + naira(o.amount_kobo / 100); return err("We couldn't open the payment page. Please try again, or message us on WhatsApp."); }
+      $("#co-pay").textContent = "Taking you to Paystack…";
+      location.href = i.authorization_url;
     } catch (x) { paying = false; $("#co-pay").disabled = false; $("#co-pay").textContent = "Pay " + naira(priceNow(plan).now); err("We couldn't start the payment. Check your internet and try again."); }
   }
 
-  let psLoad = null;
-  const loadPaystack = () => window.PaystackPop ? Promise.resolve() : (psLoad ||= new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = "https://js.paystack.co/v1/inline.js"; sc.onload = res; sc.onerror = () => { psLoad = null; rej(new Error("paystack")); }; document.head.appendChild(sc); }));
 
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-co-close]")) return close();
@@ -570,6 +565,16 @@ const CONFIG = {
       if (st?.status === "paid") { const b = $("#my-key"); b.hidden = false; b.onclick = (ev) => { ev.preventDefault(); showDone({ key: st.key, test: st.test }, saved.phone, saved.name); }; }
     } catch (e) {}
   }
+
+  // Paystack sends the buyer back here with ?reference=... after paying.
+  const back = new URLSearchParams(location.search), rref = back.get("reference") || back.get("trxref");
+  if (rref && /^AUR-[A-Z0-9]{20}$/.test(rref)) {
+    history.replaceState(null, "", location.pathname + location.hash);
+    let saved = {}; try { saved = JSON.parse(store.get("aurumOrder") || "{}") || {}; } catch (e) {}
+    const mine = saved.reference === rref; open(); finish(rref, mine ? saved.phone : "", mine ? saved.name : "");
+  }
+  // Coming back with the Back button from Paystack: let the buyer try again.
+  addEventListener("pageshow", (ev) => { if (ev.persisted) { paying = false; const b = $("#co-pay"); if (b) { b.disabled = false; b.textContent = "Pay " + naira(priceNow(plan).now); } } });
 
   (async () => {
     try { const m = await rpc("payments_mode"); mode = typeof m === "string" ? m : "off"; } catch (e) { mode = "off"; }

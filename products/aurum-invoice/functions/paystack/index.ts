@@ -1,11 +1,13 @@
-// Aurum: confirms Paystack payments and hands out licence keys.
+// Aurum: starts Paystack payments, confirms them, and hands out licence keys.
 //
-// Two callers:
-//   1. The buyer's browser right after paying:  POST { action: "verify", reference }
-//   2. Paystack itself (webhook):               POST with an x-paystack-signature header
+// Callers:
+//   1. Buyer's browser, to start paying:  POST { action: "init", reference }   -> { authorization_url }
+//   2. Buyer's browser, after paying:     POST { action: "verify", reference } -> { key }
+//   3. Paystack itself (webhook):         POST with an x-paystack-signature header
 //
-// Neither caller is trusted. Every payment is re-checked directly with Paystack using
-// your secret key, and the amount is compared with the price stored in the database.
+// Nobody is trusted. The amount comes from the database, every payment is re-checked
+// directly with Paystack using your secret key, and the key is only issued once the full
+// amount has been confirmed.
 //
 // Secrets (Supabase, Edge Functions, Secrets):
 //   PAYSTACK_LIVE_SECRET_KEY   sk_live_...
@@ -13,6 +15,8 @@
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// Where Paystack sends the buyer back to after paying. Change this if you move to your own domain.
+const SITE_URL = "https://auruninvoice.netlify.app/";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +36,7 @@ async function rpc(fn: string, args: Record<string, unknown>) {
 }
 
 const secretFor = (mode: string) => Deno.env.get(mode === "live" ? "PAYSTACK_LIVE_SECRET_KEY" : "PAYSTACK_TEST_SECRET_KEY") || "";
+const validRef = (r: string) => /^AUR-[A-Z0-9]{20}$/.test(r);
 
 async function hmacSha512Hex(secret: string, text: string) {
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-512" }, false, ["sign"]);
@@ -39,9 +44,30 @@ async function hmacSha512Hex(secret: string, text: string) {
   return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Ask Paystack for a hosted payment page for an order we created.
+async function initPayment(reference: string) {
+  if (!validRef(reference)) return { ok: false, reason: "unknown" };
+  const order = await rpc("order_for_verify", { p_reference: reference });
+  if (!order?.ok) return { ok: false, reason: "unknown" };
+  if (order.status === "paid") return { ok: false, reason: "already_paid" };
+  const secret = secretFor(order.mode);
+  if (!secret) return { ok: false, reason: "not_configured" };
+  const res = await fetch("https://api.paystack.co/transaction/initialize", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: order.email, amount: order.amount_kobo, currency: "NGN", reference, callback_url: SITE_URL,
+      metadata: { plan: order.plan, custom_fields: [{ display_name: "Plan", variable_name: "plan", value: order.plan }] },
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.status || !data?.data?.authorization_url) return { ok: false, reason: "init_failed" };
+  return { ok: true, authorization_url: data.data.authorization_url };
+}
+
 // Ask Paystack whether this reference was really paid, then let the database issue the key.
 async function verifyAndFulfil(reference: string) {
-  if (!/^AUR-[A-Z0-9]{20}$/.test(reference)) return { ok: false, reason: "unknown" };
+  if (!validRef(reference)) return { ok: false, reason: "unknown" };
   const order = await rpc("order_for_verify", { p_reference: reference });
   if (!order?.ok) return { ok: false, reason: "unknown" };
   if (order.status === "paid") return await rpc("fulfil_order", { p_reference: reference, p_paid_kobo: order.amount_kobo, p_channel: null });
@@ -85,7 +111,11 @@ Deno.serve(async (req) => {
   // Buyer's browser
   let body: { action?: string; reference?: string } = {};
   try { body = JSON.parse(raw); } catch (_) { return json({ ok: false, reason: "bad_request" }, 400); }
-  if (body.action !== "verify" || !body.reference) return json({ ok: false, reason: "bad_request" }, 400);
-  const out = await verifyAndFulfil(String(body.reference));
-  return json(out.ok ? { ok: true, key: out.key, plan: out.plan, test: out.test } : { ok: false, reason: out.reason });
+  if (!body.reference) return json({ ok: false, reason: "bad_request" }, 400);
+  if (body.action === "init") return json(await initPayment(String(body.reference)));
+  if (body.action === "verify") {
+    const out = await verifyAndFulfil(String(body.reference));
+    return json(out.ok ? { ok: true, key: out.key, plan: out.plan, test: out.test } : { ok: false, reason: out.reason });
+  }
+  return json({ ok: false, reason: "bad_request" }, 400);
 });
