@@ -498,6 +498,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .env-flap { position: absolute; left: 0; right: 0; top: 0; height: 58%; transform-origin: 50% 0; transform-style: preserve-3d; will-change: transform; }
 .env-flap .face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: visible; }
 .env-flap .face.back { transform: rotateX(180deg); }
+.env-flap .face.back > svg { transform: scaleY(-1); } /* the lining is drawn tip-up, so the opened flap points away from the envelope like a real one */
 .seal-wrap { position: absolute; left: 50%; top: 58%; width: 30%; aspect-ratio: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 5px 6px rgba(0,0,0,.55)) drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
 .seal-half { position: absolute; inset: 0; will-change: transform; }
 .seal-half svg, .wax svg { width: 100%; height: 100%; display: block; overflow: visible; }
@@ -937,6 +938,27 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
   #print-root .inv * { animation: none !important; }
 }
 #export-root { position: fixed; left: 0; top: 0; z-index: -1; pointer-events: none; width: 794px; }
+
+/* ---------- Install on phone ---------- */
+.install-bar { display: flex; align-items: center; gap: 12px; padding: 10px max(16px, env(safe-area-inset-left, 0px)); background: linear-gradient(90deg, #1C1810, #241E12); border-bottom: 1px solid var(--line-2); }
+.install-bar[hidden] { display: none; }
+.install-bar > span { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.install-bar b { font-size: 13.5px; color: var(--gold-hi, #E9D39E); font-weight: 600; }
+.install-bar small { font-size: 12px; color: var(--muted); }
+.bar-x { appearance: none; border: 0; background: transparent; color: var(--muted); font-size: 24px; line-height: 1; width: 32px; height: 32px; cursor: pointer; border-radius: 50%; }
+.bar-x:hover { color: var(--ink); }
+.inst-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 6px 4px 14px; }
+.inst-tab { appearance: none; border: 1px solid var(--line-2); background: transparent; color: var(--ink); font: 600 15px var(--f-ui, inherit); padding: 13px 10px; border-radius: 12px; cursor: pointer; }
+.inst-tab[aria-pressed="true"] { border-color: var(--gold); background: rgba(201,166,89,.12); color: var(--gold-hi, #E9D39E); }
+.inst { padding: 4px 6px 8px; display: grid; gap: 14px; }
+.inst-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: i; }
+.inst-steps li { counter-increment: i; position: relative; padding-left: 40px; min-height: 28px; line-height: 1.5; font-size: 15px; }
+.inst-steps li::before { content: counter(i); position: absolute; left: 0; top: -1px; width: 28px; height: 28px; border: 1px solid var(--gold); border-radius: 50%; display: grid; place-items: center; font-family: var(--f-display); color: var(--gold); font-size: 14px; }
+.inst-steps svg { width: 18px; height: 18px; vertical-align: -4px; stroke: var(--gold); fill: none; stroke-width: 1.7; }
+.inst-note { border-left: 2px solid var(--gold); padding: 2px 0 2px 12px; color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 0; }
+.inst-note b { color: var(--ink); }
+/* sheets open above the sign-in screen too */
+#layer .scrim { z-index: 150; } #layer .sheet { z-index: 151; }
 </style>
 </head>
 <body>
@@ -959,6 +981,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
         <div class="err" id="lic-err" role="alert"></div>
       </form>
       <div class="gate-alt g-in" style="--d:.6s"><button class="link-btn" type="button" id="lic-demo">Explore the free trial <span aria-hidden="true">→</span></button></div>
+      <div class="gate-alt g-in" style="--d:.65s"><button class="link-btn js-install" type="button">Install Aurum on your phone <span aria-hidden="true">↓</span></button></div>
       <p class="fine g-in" style="--d:.7s" id="gate-fine">Your licence is personal to you and works on your own devices.</p>
     </div>
     <div class="gate-art" aria-hidden="true">
@@ -994,6 +1017,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
     <button class="icon-btn" type="button" id="open-house"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l8-6 8 6v10H4z"/><path d="M10 20v-6h4v6"/></svg>My house</button>
   </div>
 </header>
+<div class="install-bar" id="install-bar" hidden><span><b>Get Aurum as an app</b><small>Android &amp; iPhone. Opens full screen, works offline.</small></span><button class="btn sm primary js-install" type="button">Install</button><button class="bar-x" type="button" id="bar-x" aria-label="Hide this">×</button></div>
 
 <main class="studio" id="main-content">
   <aside class="editor" aria-label="Create document">
@@ -2539,9 +2563,7 @@ function openHouse(focus) {
       </section>
       <section><h3 class="sub">Aurum on your home screen</h3>
         ${standalone() ? `<p class="hint">Installed. Aurum opens like an app and works without data. Your links and licence sync when you're back online.</p>`
-          : installPrompt ? `<button class="btn primary block" type="button" data-h="install">Install Aurum on this device</button><p class="hint">It gets its own icon, opens full screen, and works offline.</p>`
-          : isIOS() ? `<p class="hint">On iPhone: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>.</p>`
-          : `<p class="hint">In Chrome: open the menu (⋮) and tap <b>Install app</b> or <b>Add to Home screen</b>.</p>`}</section>
+          : `<button class="btn primary block js-install" type="button">Install Aurum on your phone</button><p class="hint">Android and iPhone. It gets its own icon, opens full screen, and works offline.</p>`}</section>
       <section><h3 class="sub">Client page language</h3>
         <p class="hint">How your private link greets clients.</p>
         <div class="chips">${Object.entries(GREET).map(([k, v]) => `<button type="button" class="chip" data-greet="${k}" aria-pressed="${(G.greeting || "en") === k}">${v.name}</button>`).join("")}</div>
@@ -2583,7 +2605,6 @@ function openHouse(focus) {
     if (sg) { B.signMode = sg.dataset.sign; persist(); openHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
     const gr = e.target.closest("[data-greet]"); if (gr) { G.greeting = gr.dataset.greet; persist(); return openHouse(); }
-    if (h?.dataset.h === "install" && installPrompt) { installPrompt.prompt(); installPrompt.userChoice.finally(() => { installPrompt = null; openHouse(); }); return; }
     if (h?.dataset.h === "customise") return openCustomise();
     if (h?.dataset.h === "nologo") { B.logo = ""; persist(); openHouse(); render(); }
   };
@@ -2754,7 +2775,42 @@ let installPrompt = null;
 const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; });
-addEventListener("appinstalled", () => { installPrompt = null; toast("Aurum is on your home screen"); });
+addEventListener("appinstalled", () => { installPrompt = null; updateInstallBar(); toast("Aurum is on your home screen"); });
+const ARROW_UP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M6 12H5v8h14v-8h-1"/></svg>';
+function openInstall(tab) {
+  tab = tab || (isIOS() ? "ios" : "android");
+  const panel = () => standalone()
+    ? `<div class="inst"><p>Aurum is already on this phone. Open it from your home screen.</p></div>`
+    : tab === "ios"
+      ? `<div class="inst"><ol class="inst-steps">
+          <li>Open this page in <b>Safari</b>.</li>
+          <li>Tap the <b>Share</b> button ${ARROW_UP} at the bottom of the screen.</li>
+          <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+          <li>Tap <b>Add</b>. Aurum now has its own icon.</li></ol>
+          <p class="inst-note"><b>Install first, then enter your key.</b> Open Aurum from your home screen and enter your licence key there. An iPhone treats the installed app as a separate device, so entering the key in Safari too would use up one of your device places.</p></div>`
+      : `<div class="inst">${installPrompt
+          ? `<button class="btn primary block" type="button" data-inst="go">Install on Android</button><p class="hint">Aurum gets its own icon, opens full screen and works offline.</p>`
+          : `<ol class="inst-steps">
+              <li>Open this page in <b>Chrome</b>.</li>
+              <li>Tap the menu <b>⋮</b> at the top right.</li>
+              <li>Tap <b>Install app</b> (or <b>Add to Home screen</b>).</li>
+              <li>Tap <b>Install</b>. Aurum now has its own icon.</li></ol>`}</div>`;
+  const body = () => `<div class="inst-tabs"><button class="inst-tab" type="button" data-tab="android" aria-pressed="${tab === "android"}">Android</button><button class="inst-tab" type="button" data-tab="ios" aria-pressed="${tab === "ios"}">iPhone</button></div>${panel()}`;
+  sheet("Put Aurum on your phone", body(), { onClick: (e) => {
+    const t = e.target.closest("[data-tab]"); if (t) { tab = t.dataset.tab; $("#sheet-body").innerHTML = body(); return; }
+    if (e.target.closest("[data-inst=go]") && installPrompt) { installPrompt.prompt(); installPrompt.userChoice.finally(() => { installPrompt = null; closeLayer(); updateInstallBar(); }); }
+  } });
+}
+function updateInstallBar() {
+  let dismissed = false; try { dismissed = localStorage.getItem("aurum.installHidden") === "1"; } catch (e) {}
+  const bar = $("#install-bar"); if (bar) bar.hidden = standalone() || dismissed;
+  if (standalone()) $$(".js-install").forEach((b) => { if (b.closest(".gate-alt")) b.closest(".gate-alt").hidden = true; });
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".js-install")) return openInstall();
+  if (e.target.closest("#bar-x")) { try { localStorage.setItem("aurum.installHidden", "1"); } catch (err) {} updateInstallBar(); }
+});
+updateInstallBar();
 if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !window.AURUM_NO_DOWNLOADS) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 /* ---------- start: a client link, or the studio ---------- */

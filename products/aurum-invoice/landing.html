@@ -115,6 +115,9 @@ section.block { padding: clamp(64px, 9vw, 120px) 0; }
 .plan.featured { border-color: rgba(217,190,132,.55); background: radial-gradient(90% 70% at 100% 0%, rgba(217,190,132,.16), transparent 60%), var(--surface); }
 .plan .name { font-family: var(--f-display); font-size: 28px; font-weight: 500; }
 .plan .price { font-family: var(--f-display); font-size: 46px; font-weight: 600; line-height: 1; }
+.plan .launch-tag { justify-self: start; width: max-content; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #16130C; background: var(--gold, #C9A659); padding: 4px 10px; border-radius: 99px; }
+.plan .price .was { display: block; font-family: var(--f-body); font-size: 18px; font-weight: 500; color: var(--muted); text-decoration: line-through; margin-bottom: 4px; }
+.plan .price small { white-space: nowrap; }
 .plan .price small { font-family: var(--f-body); font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 6px; }
 .plan .ticks { margin: 4px 0 8px; }
 .plan .btn { width: 100%; }
@@ -147,7 +150,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
   .docs { max-width: 520px; margin: 0 auto; }
   .features { grid-template-columns: 1fr 1fr; }
   .split { grid-template-columns: 1fr; }
-  .pricing { grid-template-columns: 1fr; }
+  .pricing { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   .features { grid-template-columns: 1fr; }
@@ -171,7 +174,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
       <span class="eyebrow in">For businesses that care how they're remembered</span>
       <h1 class="in d1">Invoices your clients <em>open like a gift.</em></h1>
       <p class="lead in d2">Your invoice arrives as a private link, sealed with your own wax seal. Your client breaks it, pays in one tap, and gets a thank-you card. It's the most memorable invoice they'll receive this year.</p>
-      <div class="ctas in d3"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦15,000</span></a><a class="btn" data-app href="./">Try it free</a></div>
+      <div class="ctas in d3"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span></a><a class="btn" data-app href="./">Try it free</a></div>
       <div class="trust in d4"><span>One-time payment</span><span>Works on your phone</span><span>Made for Nigerian businesses</span></div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -246,7 +249,8 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
     <div class="pricing">
       <div class="plan">
         <span class="name">Signature</span>
-        <div class="price"><span data-price="signature">₦15,000</span><small>one-time</small></div>
+        <span class="launch-tag">Launch price</span>
+        <div class="price"><s class="was" data-was="signature"></s><span data-price="signature">₦10,000</span><small>one-time</small></div>
         <ul class="ticks">
           <li><span>All six documents and every design</span></li>
           <li><span>Private links with envelope, gift box and card</span></li>
@@ -258,7 +262,8 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
       </div>
       <div class="plan featured">
         <span class="name">Prestige</span>
-        <div class="price"><span data-price="prestige">₦50,000</span><small>one-time</small></div>
+        <span class="launch-tag">Launch price</span>
+        <div class="price"><s class="was" data-was="prestige"></s><span data-price="prestige">₦35,000</span><small>one-time</small></div>
         <ul class="ticks">
           <li><span>Everything in Signature</span></li>
           <li><span><b>Your own web address</b>, e.g. invoice.yourbrand.ng</span></li>
@@ -288,7 +293,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: 
   <section class="block final"><div class="wrap">
     <span class="eyebrow">Aurum</span>
     <h2 style="margin-top:14px">Your next invoice could be <em>the one they talk about.</em></h2>
-    <div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦15,000</span></a><a class="btn" data-app href="./">Try it free</a></div>
+    <div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span></a><a class="btn" data-app href="./">Try it free</a></div>
   </div></section>
 </main>
 
@@ -302,8 +307,10 @@ const CONFIG = {
   BUY_LINK: "",                // your Selar product page
   SELLER_WHATSAPP: "2348071117403",         // e.g. 2348031234567
   APP_LINK: "./",              // where the app lives (index.html in this folder)
-  PRICE_SIGNATURE: "₦15,000",
-  PRICE_PRESTIGE: "₦50,000",
+  PRICE_SIGNATURE: "₦10,000",   // launch price you charge today
+  PRICE_PRESTIGE: "₦35,000",
+  WAS_SIGNATURE: "₦15,000",     // the normal price, shown crossed out. Leave "" to hide.
+  WAS_PRESTIGE: "₦50,000",
 };
 (() => {
   const wa = (text) => CONFIG.SELLER_WHATSAPP ? `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent(text)}` : "";
@@ -314,6 +321,7 @@ const CONFIG = {
   document.querySelectorAll("[data-app]").forEach((a) => (a.href = CONFIG.APP_LINK));
   document.querySelectorAll('[data-price="signature"]').forEach((s) => (s.textContent = CONFIG.PRICE_SIGNATURE));
   document.querySelectorAll('[data-price="prestige"]').forEach((s) => (s.textContent = CONFIG.PRICE_PRESTIGE));
+  [['signature', CONFIG.WAS_SIGNATURE], ['prestige', CONFIG.WAS_PRESTIGE]].forEach(([k, v]) => document.querySelectorAll(`[data-was="${k}"]`).forEach((el) => { if (v) el.textContent = v; else { el.hidden = true; const t = el.closest('.plan')?.querySelector('.launch-tag'); if (t) t.hidden = true; } }));
   const c = document.querySelector("[data-contact]"); if (c && CONFIG.SELLER_WHATSAPP) c.innerHTML = `Questions? <a href="${wa("Hello, I have a question about Aurum.")}" target="_blank" rel="noopener">Chat on WhatsApp</a>`;
   document.getElementById("yr").textContent = new Date().getFullYear();
 })();
