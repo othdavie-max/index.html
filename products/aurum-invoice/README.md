@@ -187,6 +187,20 @@ Selling is manual for now:
 
 Check whether Selar can deliver a unique code per buyer automatically. If it can, you can upload a batch of keys and skip step 2.
 
+### 4b. Online checkout with Paystack (instead of selling by hand)
+
+Buyers pay on the sales page and their licence key appears on the screen straight away.
+
+1. Run the whole of `licences.sql` in the Supabase SQL editor (it includes the checkout tables).
+2. Deploy `functions/paystack/index.ts` as an Edge Function named `paystack`, with JWT verification **off** (Paystack cannot send a login). Every payment is re-checked with Paystack anyway.
+3. In Supabase, Edge Functions, Secrets, add `PAYSTACK_LIVE_SECRET_KEY` and `PAYSTACK_TEST_SECRET_KEY`. These stay in Supabase only.
+4. In Paystack, Settings, API Keys & Webhooks, set both the test and the live webhook URL to
+   `https://<your-project>.supabase.co/functions/v1/paystack`
+5. Put the two **public** keys in `CONFIG` in `landing.html`.
+6. Switch it on: `update app_config set value = 'test' where key = 'paystack_mode';` (pretend money, the key it gives is switched off), then `'live'` for real money. While it is `'off'`, the buy buttons open WhatsApp instead.
+
+Prices are decided in the database (`price_kobo`), not in the browser, and the Black Friday price ends by itself on the date in `promo_ends`. Keys made this way are created fresh, so they never touch the 200 pre-made keys.
+
 ### 5. Prestige: connect their own web address
 In Netlify, open **Domain management → Add a domain alias**, enter the buyer's address (e.g. `invoice.theirbrand.ng`), and give them the DNS record Netlify shows. Once it's live, the buyer opens the app from their own address, and every link they send uses it automatically. Then upgrade their key:
 ```sql

@@ -260,3 +260,118 @@ grant execute on function public.save_workspace(text, text, jsonb, bigint), publ
 --   See who uses which key:           select l.buyer_name, l.key, count(d.*) devices, max(d.last_seen) last_used
 --                                     from licences l left join licence_devices d on d.licence_key = l.key
 --                                     group by l.key order by last_used desc nulls last;
+
+-- ---------------------------------------------------------------
+-- Online checkout (Paystack): buyers pay on the sales page and get their key at once.
+-- The Edge Function in functions/paystack/index.ts confirms each payment with Paystack
+-- and then calls fulfil_order. Prices are decided here, never in the browser.
+-- ---------------------------------------------------------------
+create table if not exists public.app_config (key text primary key, value text not null);
+alter table public.app_config enable row level security;
+-- paystack_mode: 'off' (buttons fall back to WhatsApp), 'test' (pretend money), 'live' (real money)
+insert into public.app_config (key, value) values ('paystack_mode', 'off'), ('promo_ends', '2026-11-30T23:59:59+01:00') on conflict (key) do nothing;
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  reference text not null unique,
+  plan text not null check (plan in ('signature','prestige')),
+  name text not null,
+  email text not null,
+  phone text,
+  referred_by text,
+  amount_kobo bigint not null,
+  mode text not null check (mode in ('test','live')),
+  status text not null default 'pending' check (status in ('pending','paid','underpaid')),
+  paid_kobo bigint,
+  channel text,
+  licence_key text references public.licences(key),
+  created_at timestamptz not null default now(),
+  paid_at timestamptz
+);
+alter table public.orders enable row level security;
+create index if not exists orders_created_idx on public.orders (created_at desc);
+
+-- Prices in kobo. Black Friday prices apply until promo_ends, then the normal prices.
+create or replace function public.price_kobo(p_plan text) returns bigint
+language plpgsql stable security definer set search_path = public as $$
+declare promo boolean;
+begin
+  promo := now() < (select value::timestamptz from public.app_config where key = 'promo_ends');
+  if p_plan = 'signature' then return (case when promo then 10000 else 15000 end) * 100; end if;
+  if p_plan = 'prestige' then return (case when promo then 35000 else 50000 end) * 100; end if;
+  return null;
+end; $$;
+revoke all on function public.price_kobo(text) from public, anon, authenticated;
+
+create or replace function public.payments_mode() returns text
+language sql stable security definer set search_path = public as $$
+  select coalesce((select value from public.app_config where key = 'paystack_mode'), 'off');
+$$;
+revoke all on function public.payments_mode() from public;
+grant execute on function public.payments_mode() to anon, authenticated;
+
+create or replace function public.create_order(p_plan text, p_name text, p_email text, p_phone text default null, p_ref text default null)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare m text; amt bigint; r text; nm text := trim(coalesce(p_name, '')); em text := lower(trim(coalesce(p_email, ''))); ph text := left(trim(coalesce(p_phone, '')), 20);
+begin
+  m := public.payments_mode();
+  if m not in ('test', 'live') then return json_build_object('ok', false, 'reason', 'off'); end if;
+  if p_plan not in ('signature', 'prestige') then return json_build_object('ok', false, 'reason', 'plan'); end if;
+  if length(nm) < 2 or length(nm) > 80 then return json_build_object('ok', false, 'reason', 'name'); end if;
+  if em !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' or length(em) > 120 then return json_build_object('ok', false, 'reason', 'email'); end if;
+  amt := public.price_kobo(p_plan);
+  r := 'AUR-' || upper(encode(gen_random_bytes(10), 'hex'));
+  insert into public.orders (reference, plan, name, email, phone, referred_by, amount_kobo, mode) values (r, p_plan, nm, em, nullif(ph, ''), upper(nullif(trim(coalesce(p_ref, '')), '')), amt, m);
+  return json_build_object('ok', true, 'reference', r, 'amount_kobo', amt, 'mode', m, 'email', em);
+end; $$;
+revoke all on function public.create_order(text, text, text, text, text) from public;
+grant execute on function public.create_order(text, text, text, text, text) to anon, authenticated;
+
+create or replace function public.order_status(p_reference text)
+returns json language plpgsql security definer set search_path = public as $$
+declare o public.orders;
+begin
+  select * into o from public.orders where reference = p_reference;
+  if not found then return json_build_object('ok', false, 'reason', 'unknown'); end if;
+  if o.status = 'paid' then return json_build_object('ok', true, 'status', 'paid', 'key', o.licence_key, 'plan', o.plan, 'test', o.mode = 'test', 'name', o.name, 'phone', o.phone); end if;
+  return json_build_object('ok', true, 'status', o.status);
+end; $$;
+revoke all on function public.order_status(text) from public;
+grant execute on function public.order_status(text) to anon, authenticated;
+
+-- Only the Edge Function (service role) can use these two.
+create or replace function public.order_for_verify(p_reference text)
+returns json language plpgsql security definer set search_path = public as $$
+declare o public.orders;
+begin
+  select * into o from public.orders where reference = p_reference;
+  if not found then return json_build_object('ok', false, 'reason', 'unknown'); end if;
+  return json_build_object('ok', true, 'mode', o.mode, 'status', o.status, 'amount_kobo', o.amount_kobo);
+end; $$;
+revoke all on function public.order_for_verify(text) from public, anon, authenticated;
+grant execute on function public.order_for_verify(text) to service_role;
+
+-- Issues the licence for a confirmed payment. Safe to call twice: the same key comes back.
+-- Test-mode orders get a key that is switched off.
+create or replace function public.fulfil_order(p_reference text, p_paid_kobo bigint, p_channel text default null)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare o public.orders; k text;
+begin
+  select * into o from public.orders where reference = p_reference for update;
+  if not found then return json_build_object('ok', false, 'reason', 'unknown'); end if;
+  if o.status = 'paid' then return json_build_object('ok', true, 'key', o.licence_key, 'plan', o.plan, 'test', o.mode = 'test'); end if;
+  if p_paid_kobo is null or p_paid_kobo < o.amount_kobo then
+    update public.orders set status = 'underpaid', paid_kobo = p_paid_kobo where reference = p_reference;
+    return json_build_object('ok', false, 'reason', 'underpaid');
+  end if;
+  k := public.new_licence(o.name, o.email, o.phone, case o.plan when 'prestige' then 3 else 2 end, o.plan, o.referred_by);
+  if o.mode = 'test' then update public.licences set active = false, buyer_name = 'TEST ' || o.name where key = k; end if;
+  update public.orders set status = 'paid', paid_at = now(), paid_kobo = p_paid_kobo, channel = p_channel, licence_key = k where reference = p_reference;
+  return json_build_object('ok', true, 'key', k, 'plan', o.plan, 'test', o.mode = 'test');
+end; $$;
+revoke all on function public.fulfil_order(text, bigint, text) from public, anon, authenticated;
+grant execute on function public.fulfil_order(text, bigint, text) to service_role;
+
+--   Switch checkout:  update app_config set value = 'live' where key = 'paystack_mode';   ('off' | 'test' | 'live')
+--   Recent sales:     select created_at, plan, name, email, phone, amount_kobo/100 as naira, status, licence_key from orders order by created_at desc limit 50;
+--   Total sold:       select plan, count(*), sum(paid_kobo)/100 as naira from orders where status = 'paid' and mode = 'live' group by plan;
