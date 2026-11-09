@@ -1131,7 +1131,8 @@ html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text 
 /* ---------- Dashboard ---------- */
 .dash { padding-block: 18px calc(40px + env(safe-area-inset-bottom, 0px)); padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
 .dash .home-wrap { gap: 16px; }
-.dash-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.dash-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 12px; }
+.dash-head > div:last-child { display: flex; gap: 8px; max-width: 100%; }
 .dash-head h1 { margin: 2px 0 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(30px, 8vw, 42px); line-height: 1.05; }
 .dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
@@ -1162,6 +1163,17 @@ html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text 
 .owe-row .row-btns .btn { flex: 1; height: 40px; }
 .tymsg { font-style: italic; }
 .ty-card .t-msg { font-family: var(--f-display); font-style: italic; font-size: 14px; color: #3D352A; max-width: 30ch; margin: 0; line-height: 1.35; }
+
+/* ---------- Prestige extras ---------- */
+.tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tab { font-size: 12.5px; padding: 0 2px; }
+.lock-card { display: grid; gap: 10px; padding: 18px; border-radius: 18px; border: 1px dashed var(--gold); background: rgba(156,118,55,.06); }
+.lock-card h3 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 21px; }
+.lock-card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; display: grid; gap: 4px; }
+.team-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); }
+.team-row b { display: block; font-size: 15px; } .team-row small { color: var(--muted); font-size: 12.5px; }
+.team-row strong { font-family: var(--f-display); font-size: 17px; text-align: right; }
+.pbadge { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #17120A; background: var(--foil-btn); padding: 3px 8px; border-radius: 99px; margin-left: 6px; vertical-align: 2px; }
 </style>
 </head>
 <body>
@@ -1252,10 +1264,10 @@ html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text 
 
 <section class="dash" id="dash" hidden aria-label="Dashboard">
   <div class="home-wrap">
-    <header class="dash-head"><div><span class="eyebrow">Your business</span><h1>Dashboard</h1></div><button class="btn sm" type="button" id="dash-money">Money details</button></header>
+    <header class="dash-head"><div><span class="eyebrow">Your business</span><h1>Dashboard</h1></div><div style="display:flex;gap:8px"><button class="btn sm" type="button" id="dash-report">Monthly report</button><button class="btn sm" type="button" id="dash-money">Money</button></div></header>
     <div class="chips" id="dash-period"><button class="chip" type="button" data-period="month" aria-pressed="true">This month</button><button class="chip" type="button" data-period="last">Last month</button><button class="chip" type="button" data-period="year">This year</button><button class="chip" type="button" data-period="all">All time</button></div>
     <div class="home-kpis dash-kpis" id="dash-kpis"></div>
-    <div class="tabs" role="tablist"><button class="tab" type="button" role="tab" data-tab="docs" aria-selected="true">Documents</button><button class="tab" type="button" role="tab" data-tab="clients" aria-selected="false">Clients</button><button class="tab" type="button" role="tab" data-tab="owe" aria-selected="false">Who owes you</button></div>
+    <div class="tabs" role="tablist"><button class="tab" type="button" role="tab" data-tab="docs" aria-selected="true">Documents</button><button class="tab" type="button" role="tab" data-tab="clients" aria-selected="false">Clients</button><button class="tab" type="button" role="tab" data-tab="owe" aria-selected="false">Who owes</button><button class="tab" type="button" role="tab" data-tab="team" aria-selected="false">Team</button></div>
     <div id="dash-docs">
       <input class="input dash-search" id="dash-q" type="search" placeholder="Search client, number or item" autocomplete="off">
       <div class="chips" id="dash-type"><button class="chip" type="button" data-dtype="all" aria-pressed="true">All</button><button class="chip" type="button" data-dtype="invoice" aria-pressed="false">Invoices</button><button class="chip" type="button" data-dtype="receipt" aria-pressed="false">Receipts</button><button class="chip" type="button" data-dtype="quotation" aria-pressed="false">Quotations</button><button class="chip" type="button" data-dtype="other" aria-pressed="false">Others</button></div>
@@ -1265,6 +1277,7 @@ html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text 
     </div>
     <div id="dash-clients" hidden></div>
     <div id="dash-owe" hidden></div>
+    <div id="dash-team" hidden></div>
   </div>
 </section>
 
@@ -1552,7 +1565,8 @@ let gid = 0;
 function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 function hashStr(s) { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 const waxColorFor = (brand) => (lum(brand) < .012 ? "#2A2522" : brand);
-function waxSVG(mono, color, seedStr, { plain = false } = {}) {
+function waxSVG(mono, color, seedStr, { plain = false, logo } = {}) {
+  logo = plain ? "" : (logo !== undefined ? logo : (window.__SEAL_LOGO || ""));
   const r = rng(hashStr(seedStr || mono)); const id = "w" + (++gid);
   const p0 = r() * 6.28, p1 = r() * 6.28, p2 = r() * 6.28, N = 140, pts = [];
   for (let i = 0; i < N; i++) { const a = (i / N) * Math.PI * 2; const rad = 51 + 2.7 * Math.sin(11 * a + p0) + 1.1 * Math.sin(3 * a + p2) + .7 * Math.sin(23 * a + p1) + (r() - .5) * .4; pts.push([60 + rad * Math.cos(a), 60 + rad * Math.sin(a)]); }
@@ -1568,9 +1582,10 @@ function waxSVG(mono, color, seedStr, { plain = false } = {}) {
     <circle cx="59.4" cy="59.4" r="38.5" fill="none" stroke="${deep}" stroke-opacity=".75" stroke-width="1.5"/>
     <circle cx="60" cy="60" r="33.5" fill="none" stroke="url(#${id}g)" stroke-width="1.25" opacity="1"/>
     <circle cx="60" cy="60" r="31.6" fill="none" stroke="url(#${id}g)" stroke-width=".3" opacity=".35"/>
+    ${logo ? `<clipPath id="${id}lc"><circle cx="60" cy="60" r="29"/></clipPath><image href="${esc(logo)}" x="31" y="31" width="58" height="58" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id}lc)"/><circle cx="60" cy="60" r="29" fill="none" stroke="url(#${id}g)" stroke-width=".8"/>` : `
     <text x="60.9" y="${60 + fs * .34 + .9}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-weight="500" font-size="${fs}" fill="${deep}" opacity=".85">${m}</text>
     <text x="59.4" y="${60 + fs * .34 - .6}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-weight="500" font-size="${fs}" fill="#FFF6DD" opacity=".5">${m}</text>
-    <text x="60" y="${60 + fs * .34}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-weight="500" font-size="${fs}" fill="url(#${id}g)">${m}</text>`;
+    <text x="60" y="${60 + fs * .34}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-weight="500" font-size="${fs}" fill="url(#${id}g)">${m}</text>`}`;
   return `<svg viewBox="0 0 120 120" aria-hidden="true">
     <defs>
       <radialGradient id="${id}b" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="${light}"/><stop offset=".42" stop-color="${base}"/><stop offset=".85" stop-color="${dark}"/><stop offset="1" stop-color="${deep}"/></radialGradient>
@@ -2018,6 +2033,7 @@ function revealStage(style, B, D, P) {
 function openClientView(payload, ctx = {}) {
   const P = payload.profile, D = payload.doc, B = P.business, K = P.bank, c = D.currency, t = calc(D), type = D.type; const G = GREET[P.design.greeting] || GREET.en;
   const brandless = !!payload.brandless; const wax = waxColorFor(P.design.brand || "#1A1817");
+  window.__SEAL_LOGO = (P.design && P.design.sealLogo && B.logo) || "";
   const cv = $("#cv"); cv.hidden = false; cv.scrollTop = 0; document.body.style.overflow = "hidden";
   cv.style.setProperty("--glow", rgba(lum(P.design.brand) < .02 ? "#D9BE84" : P.design.brand, .22));
   const docWord = LABEL[type].toLowerCase();
@@ -2812,7 +2828,7 @@ $("#saved-list").addEventListener("click", handleSaved);
 async function fetchActivity() { if (!configured() || isDemo()) return; try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {} }
 
 /* send */
-const payload = () => ({ v: 2, demo: isDemo(), brandless: isPrestige(), profile: { business: S.profile.business, bank: S.profile.bank, design: S.profile.design, docStyle: S.profile.docStyle || {} }, doc: { ...S.doc, link: "", shareId: "", items: S.doc.items.filter((it) => it.desc || num(it.price)) } });
+const payload = () => ({ v: 2, demo: isDemo(), brandless: isPrestige(), profile: { business: S.profile.business, bank: S.profile.bank, design: { ...S.profile.design, sealLogo: isPrestige() && !!S.profile.design.sealLogo }, docStyle: S.profile.docStyle || {} }, doc: { ...S.doc, link: "", shareId: "", items: S.doc.items.filter((it) => it.desc || num(it.price)) } });
 $("#make-link").addEventListener("click", async () => {
   const btn = $("#make-link"); btn.disabled = true; btn.textContent = "Sealing your envelope…"; const base = location.href.split(/[?#]/)[0];
   try {
@@ -2876,6 +2892,10 @@ function openHouse(focus) {
         <label class="field"><span>Paystack public key <em>(optional)</em></span><input data-bind="profile.bank.paystackKey" value="${esc(K.paystackKey)}" placeholder="pk_live_…" autocomplete="off" spellcheck="false"></label>
         <p class="hint">With Paystack, clients pay by card, transfer or USSD right inside your envelope. Find the key in Paystack → Settings → API Keys. Use the <b>public</b> key only, never the secret key.</p>
       </section>
+${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class="pbadge">5 devices</span></h3>
+        <div class="card-line"><span><b>Phone alerts</b><small id="push-sub">Know the moment a client opens or pays.</small></span><button class="btn sm primary" type="button" data-h="push" id="push-btn">Turn on</button></div>
+        <label class="toggle card-line" style="margin-top:10px"><span><b style="display:block">Your logo in the wax seal</b><small style="color:var(--muted);font-size:13px">${B.logo ? "On the envelope and thank-you card." : "Upload your logo above first."}</small></span><span class="switch"><input type="checkbox" data-bind="profile.design.sealLogo" ${G.sealLogo ? "checked" : ""} ${B.logo ? "" : "disabled"}><i></i></span></label>
+        <p class="hint" style="margin-top:10px">Each team member sets their own name below, so you can see who sent what in the Team tab.</p></section>` : `<section><div class="lock-card"><h3>Prestige <span class="pbadge">₦35,000</span></h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts when a client opens or pays</li><li>Monthly business report PDF</li><li>Team view: who sent what</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div></section>`}
       <section><h3 class="sub">Your thank-you message</h3>
         <p class="hint">Shown on the thank-you card your client receives when they pay. Keep it short and warm.</p>
         <label class="field"><textarea class="input tymsg" data-bind="profile.design.thanksMsg" maxlength="160" rows="3" placeholder="e.g. It was a joy dressing you. See you at the next celebration!" style="height:auto;min-height:84px;padding:14px 16px">${esc(G.thanksMsg || "")}</textarea></label></section>
@@ -2927,6 +2947,7 @@ function openHouse(focus) {
     if (sg) { B.signMode = sg.dataset.sign; persist(); openHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
     const gr = e.target.closest("[data-greet]"); if (gr) { G.greeting = gr.dataset.greet; persist(); return openHouse(); }
+    if (h?.dataset.h === "push") return togglePush();
     if (h?.dataset.h === "customise") return openCustomise();
     if (h?.dataset.h === "nologo") { B.logo = ""; persist(); openHouse(); render(); }
   };
@@ -3203,6 +3224,82 @@ document.addEventListener("click", (e) => {
     <a class="btn primary block" style="margin:6px 0 4px" href="${esc(supportHref())}" target="_blank" rel="noopener">Still stuck? WhatsApp us</a>`);
 });
 
+/* ---------- Prestige: upgrade prompt, phone alerts, monthly report ---------- */
+const upgradeHref = () => `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to upgrade my Aurum licence to Prestige.")}`;
+function upgradeSheet(feature) {
+  sheet(feature, `<div class="lock-card" style="margin:6px 4px 8px"><h3>This is a Prestige feature</h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts, monthly report and team view</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div>`);
+}
+const VAPID_PUBLIC = "BK-5BBGbQog_X3Fd7WlJX40qIBBJ2Ejb-mcA5XpBxEgsPZ838yFaE0h8wH7AHMqaq66xLH12s7i2U5OCvh5BoUI";
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const b64ToBytes = (b) => Uint8Array.from(atob((b + "=".repeat((4 - (b.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+async function pushIsOn() { try { if (!pushSupported() || Notification.permission !== "granted") return false; const reg = await navigator.serviceWorker.getRegistration(); return !!(reg && await reg.pushManager.getSubscription()); } catch (e) { return false; } }
+async function refreshPushUI() {
+  const b = $("#push-btn"); if (!b) return; const on = await pushIsOn();
+  b.textContent = on ? "Turn off" : "Turn on"; b.classList.toggle("primary", !on);
+  const sub = $("#push-sub"); if (sub) sub.textContent = on ? "On for this phone. You'll be told when a client opens or pays." : "Know the moment a client opens or pays.";
+}
+async function togglePush() {
+  if (!isPrestige()) return upgradeSheet("Phone alerts");
+  if (!pushSupported()) return toast(isIOS() && !standalone() ? "On iPhone, add Aurum to your Home Screen first, then turn alerts on." : "This browser can't show phone alerts. Try Chrome.");
+  try {
+    if (await pushIsOn()) { const reg = await navigator.serviceWorker.getRegistration(); const sub = await reg.pushManager.getSubscription(); await sub?.unsubscribe(); rpc("remove_push", { p_key: licence.key, p_device: deviceId }).catch(() => {}); toast("Phone alerts are off"); return refreshPushUI(); }
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") return toast("Alerts are blocked. Allow notifications for Aurum in your phone's settings.");
+    const reg = await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) }));
+    const j = sub.toJSON(); const r = await rpc("save_push", { p_key: licence.key, p_device: deviceId, p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth });
+    if (!r.ok) throw new Error(r.reason);
+    await reg.showNotification("Phone alerts are on", { body: "You'll be told when a client opens an invoice or says they've paid.", icon: "./icons/icon-192.png", tag: "aurum-welcome" });
+    toast("Phone alerts are on"); refreshPushUI();
+  } catch (e) { console.error(e); toast("Couldn't turn alerts on. Check your internet and try again."); }
+}
+const reportMonths = () => Array.from({ length: 12 }, (_, i) => { const d = new Date(new Date().getFullYear(), new Date().getMonth() - i, 1); return { k: iso(d).slice(0, 7), label: d.toLocaleDateString("en-GB", { month: "long", year: "numeric" }) }; });
+function openReportPicker() {
+  sheet("Monthly business report", `<p class="hint" style="padding:0 8px 10px">A one-page PDF of your sales, money received, best clients and what's still owed.</p>` + reportMonths().map((m) => `<button type="button" class="pick-row" data-rm="${m.k}"><b>${m.label}</b></button>`).join(""),
+    { onClick: (e) => { const b = e.target.closest("[data-rm]"); if (b) { closeLayer(); exportReport(b.dataset.rm); } } });
+}
+function reportData(mk) {
+  const L = ledger(), docs = history.map((h) => h.doc).filter((d) => monthKey(d.issueDate) === mk);
+  const invoices = docs.filter((d) => d.type === "invoice"), receipts = docs.filter((d) => d.type === "receipt");
+  const invoiced = invoices.reduce((a, d) => a + calc(d).total, 0), received = L.received.filter((r) => monthKey(r.date) === mk).reduce((a, r) => a + r.amount, 0);
+  const clients = Object.entries(L.received.filter((r) => monthKey(r.date) === mk).reduce((a, r) => { const k = r.client || "—"; a[k] = (a[k] || 0) + r.amount; return a; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const items = Object.entries(invoices.reduce((a, d) => { d.items.filter((i) => i.desc).forEach((i) => { const k = i.desc.trim(); const t = num(i.qty) * num(i.price); const e = a[k] || (a[k] = { q: 0, v: 0 }); e.q += num(i.qty); e.v += t; }); return a; }, {})).sort((a, b) => b[1].v - a[1].v).slice(0, 5);
+  const byMethod = Object.entries(receipts.reduce((a, d) => { const k = d.method || d.payMethod || "Other"; a[k] = (a[k] || 0) + calc(d).total; return a; }, {})).sort((a, b) => b[1] - a[1]);
+  return { mk, invoices, receipts, quotes: docs.filter((d) => d.type === "quotation"), invoiced, received, owing: L.owing, owed: L.owing.reduce((a, o) => a + o.due, 0), clients, items, byMethod, vat: L.vat[mk] || 0 };
+}
+function reportHTML(mk) {
+  const B = S.profile.business, brand = S.profile.design.brand || "#1A1817", R = reportData(mk), c = "padding:9px 10px;border-bottom:1px solid #E7E0D2;font-size:12.5px;";
+  const label = new Date(mk + "-01T12:00:00").toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const kpi = (a, b, d) => `<div style="flex:1;padding:14px 16px;border:1px solid #E7E0D2;border-radius:6px"><div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8C7F68;font-weight:700">${a}</div><div style="font-family:'Playfair Display',Georgia,serif;font-size:22px;margin:4px 0 2px">${b}</div><div style="font-size:11px;color:#8C7F68">${d}</div></div>`;
+  const tbl = (head, rows) => `<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#F5EFE3;text-align:left;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6C6352">${head.map((h, i) => `<th style="${c}${i ? "text-align:right" : ""}">${h}</th>`).join("")}</tr></thead><tbody>${rows.length ? rows.map((r) => `<tr>${r.map((v, i) => `<td style="${c}${i ? "text-align:right;font-variant-numeric:tabular-nums" : ""}">${v}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${head.length}" style="${c}color:#8C7F68">Nothing this month.</td></tr>`}</tbody></table>`;
+  return `<div style="width:794px;background:#fff;color:#1E1A14;font-family:Manrope,Arial,sans-serif;">
+    <div style="background:${esc(brand)};color:#F7EFDD;padding:30px 40px;display:flex;justify-content:space-between;align-items:center;gap:20px"><div style="display:flex;align-items:center;gap:14px">${B.logo ? `<img src="${B.logo}" style="width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff">` : ""}<div style="font-family:'Playfair Display',Georgia,serif;font-size:24px">${esc(B.name || "")}</div></div><div style="text-align:right"><div style="font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:28px">Business report</div><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.85">${label}</div></div></div>
+    <div style="padding:24px 40px 6px;display:flex;gap:12px">${kpi("Invoiced", money(R.invoiced), plural(R.invoices.length, "invoice"))}${kpi("Money received", money(R.received), plural(R.receipts.length, "receipt"))}${kpi("Still owed (today)", money(R.owed), plural(R.owing.length, "unpaid invoice"))}${kpi("VAT collected", money(R.vat), plural(R.quotes.length, "quotation") + " sent")}</div>
+    <div style="padding:14px 40px;display:grid;gap:18px">
+      <div><div style="font-family:'Playfair Display',Georgia,serif;font-size:17px;margin-bottom:6px">Best clients (money received)</div>${tbl(["Client", "Received"], R.clients.map(([n, v]) => [esc(n), money(v)]))}</div>
+      <div><div style="font-family:'Playfair Display',Georgia,serif;font-size:17px;margin-bottom:6px">Best-selling items</div>${tbl(["Item", "Sold", "Value"], R.items.map(([n, e]) => [esc(n), e.q, money(e.v)]).map((r) => [r[0], String(r[1]).replace(/\.0+$/, ""), r[2]]))}</div>
+      <div><div style="font-family:'Playfair Display',Georgia,serif;font-size:17px;margin-bottom:6px">Who still owes you</div>${tbl(["Client", "Invoice", "Owes"], R.owing.slice(0, 8).map((o) => [esc(o.d.client.name || "—"), esc(o.d.number), money(o.due)]))}</div>
+    </div>
+    <div style="margin-top:12px;padding:14px 40px;border-top:1px solid #E7E0D2;font-size:11px;color:#8C7F68;display:flex;justify-content:space-between"><span>${esc(B.name || "")}</span><span>Report prepared ${fmtDate(iso(new Date()))}</span></div></div>`;
+}
+async function htmlToPDF(html, file, title) {
+  if (noDownloads()) return toast("Downloads work on the live app");
+  toast("Preparing your PDF…");
+  try {
+    if (!window.jspdf) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    const root = $("#export-root"); root.innerHTML = html; let blob;
+    try { blob = await snap(root.firstElementChild); } finally { root.innerHTML = ""; }
+    const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+    const im = await new Promise((r, j) => { const x = new Image(); x.onload = () => r(x); x.onerror = j; x.src = url; });
+    const w = 210, h = Math.round((210 * im.height / im.width) * 100) / 100, ph = Math.max(h, 297);
+    const pdf = new window.jspdf.jsPDF({ unit: "mm", format: [w, ph], orientation: "portrait", compress: true });
+    pdf.addImage(url, "PNG", 0, 0, w, h);
+    await shareOrSave(pdf.output("blob"), file, title);
+  } catch (err) { console.error(err); toast("Couldn’t make the PDF. Check your internet and try again."); }
+}
+function exportReport(mk) { return htmlToPDF(reportHTML(mk), `Business-report-${mk}.pdf`, "Business report " + mk); }
+if (new URLSearchParams(location.search).get("alerts") === "1") setTimeout(() => { if (isPrestige()) openHouse(); }, 1500);
+
 /* ---------- Dashboard ---------- */
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 const dashState = { tab: "docs", period: "month", q: "", type: "all", status: "any" };
@@ -3244,7 +3341,7 @@ function renderDash() {
     <button class="kpi" type="button" data-kt="clients"><small>Clients</small><b>${clientBook().length}</b><span>See each client</span></button>`;
   $$("#dash-period [data-period]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.period === dashState.period)));
   $$(".tabs [data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === dashState.tab)));
-  $("#dash-docs").hidden = dashState.tab !== "docs"; $("#dash-clients").hidden = dashState.tab !== "clients"; $("#dash-owe").hidden = dashState.tab !== "owe";
+  $("#dash-docs").hidden = dashState.tab !== "docs"; $("#dash-clients").hidden = dashState.tab !== "clients"; $("#dash-owe").hidden = dashState.tab !== "owe"; $("#dash-team").hidden = dashState.tab !== "team";
   if (dashState.tab === "docs") {
     const q = dashState.q.trim().toLowerCase();
     const list = docsIn.filter(({ doc: d }) => {
@@ -3261,6 +3358,15 @@ function renderDash() {
   if (dashState.tab === "clients") {
     const book = clientBook();
     $("#dash-clients").innerHTML = book.length ? `<div class="doc-list">${book.map((c, i) => `<button class="client-row" type="button" data-client="${i}"><div><b>${esc(c.name)}</b><small>${c.docs.length} document${c.docs.length === 1 ? "" : "s"} · last ${fmtDate(c.last)}</small></div><div class="amt">${money(c.invoiced || c.received)}<small class="${c.owing ? "due" : "ok"}">${c.owing ? money(c.owing) + " owed" : "All paid"}</small></div></button>`).join("")}</div>` : `<div class="home-empty">Clients appear here after your first invoice or receipt.</div>`;
+  }
+  if (dashState.tab === "team") {
+    if (!isPrestige() && !isDemo()) $("#dash-team").innerHTML = `<div class="lock-card"><h3>Team view <span class="pbadge">Prestige</span></h3><ul><li>See who on your team made each document</li><li>Each person's invoices and money received</li><li>Works on up to 5 phones and laptops</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div>`;
+    else {
+      const people = new Map();
+      docsIn.forEach(({ doc: d }) => { const n = (d.preparedBy || "").trim() || "Owner"; if (!people.has(n)) people.set(n, { n, docs: 0, inv: 0, rec: 0 }); const p = people.get(n), t = calc(d); p.docs++; if (d.type === "invoice") p.inv += t.total; if (d.type === "receipt") p.rec += t.total; });
+      const list = [...people.values()].sort((a, b) => b.inv + b.rec - (a.inv + a.rec));
+      $("#dash-team").innerHTML = (list.length ? `<div class="doc-list">${list.map((p) => `<div class="team-row"><div><b>${esc(p.n)}</b><small>${plural(p.docs, "document")}</small></div><div><strong>${money(p.inv)}</strong><small style="display:block;text-align:right">invoiced · ${short(p.rec)} received</small></div></div>`).join("")}</div>` : `<div class="home-empty">Nothing in this period yet.</div>`) + `<p class="hint" style="margin-top:12px">Each team member sets their own name in My house on their phone. It then shows as "Prepared by" on their documents.</p>`;
+    }
   }
   if (dashState.tab === "owe") {
     const ago = (n) => (n <= 0 ? "today" : n === 1 ? "yesterday" : `${n} days ago`);
@@ -3345,6 +3451,7 @@ $("#dash").addEventListener("click", (e) => {
   const cl = e.target.closest("[data-client]"); if (cl) return openClient(clientBook()[Number(cl.dataset.client)]);
   const rm = e.target.closest("[data-remind]"); if (rm) return remindSheet(rm.dataset.remind);
   if (e.target.closest("#dash-money")) return openOverview();
+  if (e.target.closest("#dash-report")) return isPrestige() || isDemo() ? openReportPicker() : upgradeSheet("Monthly business report");
   if (e.target.closest("[data-open], [data-conv]")) handleSaved(e);
 });
 $("#dash-q").addEventListener("input", (e) => { dashState.q = e.target.value; renderDash(); });

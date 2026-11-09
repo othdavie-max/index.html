@@ -224,3 +224,9 @@ These commands are at the bottom of `licences.sql`:
 - **PDF on phones** is a real PDF file that opens the share menu (WhatsApp, Files, Email).
 - **policies.html**: refund policy, terms of use and privacy notice, linked from the sales page footer, the pricing section and the app.
 - **Sales page** rebuilt phone-first in ivory and gold, with swipeable screenshots, a Black Friday card with countdown and a sticky buy bar on phones.
+
+## Prestige extras (stage 2)
+- **Business dashboard** (everyone): documents with search and filters, clients with full history and a statement-of-account PDF, who owes you with one-tap reminders. Everyone also gets a custom thank-you message on the client's card.
+- **Prestige only:** phone alerts (client opened your invoice, says they paid, accepted a quotation), monthly business report PDF, Team tab (who prepared what), your logo pressed into the wax seal, 5 devices.
+- **Phone alerts** use Web Push. Deploy `functions/notify/index.ts` with JWT verification **off**, set secrets `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NOTIFY_SECRET`, and run `licences-extras.sql`. On iPhone the app must be added to the Home Screen first (iOS 16.4+).
+- **WhatsApp previews:** `invoice.html`, `receipt.html`, `quotation.html`, `delivery-note.html`, `credit-note.html`, `purchase-order.html` each carry a preview picture (`og/`). Links the app creates point at the page for their document type.
