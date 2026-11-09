@@ -461,7 +461,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 }
 .cv { --brand: #1A1817; --glow: rgba(217,190,132,.12); --cream: #F4EAD2; --cream-dim: rgba(244,234,210,.68);
   position: fixed; inset: 0; z-index: 90; overflow-y: auto; overflow-x: hidden; color: var(--cream); color-scheme: dark;
-  background: radial-gradient(70% 45% at 50% 34%, var(--glow), transparent 70%), radial-gradient(120% 80% at 50% 120%, #000, transparent 70%), #080706; }
+  background: radial-gradient(55% 34% at 6% 4%, rgba(204,150,60,.40), transparent 72%), radial-gradient(70% 45% at 50% 34%, var(--glow), transparent 70%), radial-gradient(120% 80% at 50% 120%, #000, transparent 70%), #080706; }
 .cv-close { position: fixed; z-index: 6; top: calc(14px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); height: 38px; padding: 0 16px; border-radius: 99px; border: 1px solid rgba(244,234,210,.25); background: rgba(0,0,0,.45); color: var(--cream); font-weight: 600; font-size: 13px; backdrop-filter: blur(8px); }
 .cv-tag { position: fixed; z-index: 6; top: calc(14px + env(safe-area-inset-top, 0px)); left: max(14px, env(safe-area-inset-left, 0px)); font-size: 10.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; padding: 11px 14px; border-radius: 99px; background: rgba(0,0,0,.45); color: var(--gold); }
 .dust { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -481,8 +481,8 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .env-stage { position: relative; width: min(360px, 84vw); margin: 34px 0 26px; }
 .env { position: relative; width: 100%; aspect-ratio: 1.46; perspective: 1500px; perspective-origin: 50% 0%; }
 .env-back { z-index: 1; } .env-liner { z-index: 2; } .letter { z-index: 3; } .env-pocket { z-index: 4; } .env-flap { z-index: 5; } .seal-wrap { z-index: 6; }
-.env-back { position: absolute; inset: 0; border-radius: 6px; background: var(--grain), linear-gradient(180deg, #24221E, #161512);
-  box-shadow: 0 60px 90px -40px rgba(0,0,0,1), 0 24px 40px -18px rgba(0,0,0,.85), inset 0 0 0 1px rgba(255,255,255,.035); }
+.env-back { position: absolute; inset: 0; border-radius: 3px; background: var(--grain), linear-gradient(180deg, #1D1B17, #100F0D);
+  box-shadow: 0 60px 90px -40px rgba(0,0,0,1), 0 24px 40px -18px rgba(0,0,0,.85), inset 0 0 0 1px rgba(255,255,255,.035), inset 0 1px 0 rgba(217,190,132,.55); }
 .env-liner { position: absolute; left: 3.2%; right: 3.2%; top: 3.2%; height: 52%; border-radius: 3px;
   background: repeating-linear-gradient(135deg, rgba(60,40,10,.22) 0 1px, transparent 1px 6px), linear-gradient(115deg, #8A6A35, #E9D39E 35%, #B8935A 55%, #F2E1B2 75%, #A07D42); }
 .letter { position: absolute; left: 6.5%; right: 6.5%; top: 6%; height: 86%; border-radius: 3px; color: #2A251C; text-align: left;
@@ -959,6 +959,9 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .inst-note b { color: var(--ink); }
 /* sheets open above the sign-in screen too */
 #layer .scrim { z-index: 150; } #layer .sheet { z-index: 151; }
+/* ---------- Match the reference photograph ---------- */
+.env-stage::after { content: ""; position: absolute; left: -12%; right: -12%; bottom: -34px; height: 60px; background: radial-gradient(ellipse at 50% 0, rgba(204,150,60,.30), transparent 68%); pointer-events: none; z-index: 0; }
+.env-flap .face.front > svg path:nth-of-type(2) { stroke: rgba(217,190,132,.6); stroke-width: .55; }
 </style>
 </head>
 <body>
@@ -1305,8 +1308,8 @@ function hashStr(s) { let h = 2166136261; for (const ch of String(s)) { h ^= ch.
 const waxColorFor = (brand) => (lum(brand) < .012 ? "#2A2522" : brand);
 function waxSVG(mono, color, seedStr, { plain = false } = {}) {
   const r = rng(hashStr(seedStr || mono)); const id = "w" + (++gid);
-  const p0 = r() * 6.28, p1 = r() * 6.28, p2 = r() * 6.28, N = 90, pts = [];
-  for (let i = 0; i < N; i++) { const a = (i / N) * Math.PI * 2; const rad = 51.5 + 2.4 * Math.sin(3 * a + p0) + 1.7 * Math.sin(7 * a + p1) + 1.1 * Math.sin(12 * a + p2) + (r() - .5) * 1.1; pts.push([60 + rad * Math.cos(a), 60 + rad * Math.sin(a)]); }
+  const p0 = r() * 6.28, p1 = r() * 6.28, p2 = r() * 6.28, N = 140, pts = [];
+  for (let i = 0; i < N; i++) { const a = (i / N) * Math.PI * 2; const rad = 51 + 2.7 * Math.sin(11 * a + p0) + 1.1 * Math.sin(3 * a + p2) + .7 * Math.sin(23 * a + p1) + (r() - .5) * .4; pts.push([60 + rad * Math.cos(a), 60 + rad * Math.sin(a)]); }
   const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
   let d = `M${mid(pts[N - 1], pts[0]).map((v) => v.toFixed(2)).join(" ")}`;
   for (let i = 0; i < N; i++) { const m = mid(pts[i], pts[(i + 1) % N]); d += ` Q${pts[i][0].toFixed(2)} ${pts[i][1].toFixed(2)} ${m[0].toFixed(2)} ${m[1].toFixed(2)}`; }
@@ -1317,11 +1320,11 @@ function waxSVG(mono, color, seedStr, { plain = false } = {}) {
     <circle cx="60" cy="60" r="38.5" fill="url(#${id}c)"/>
     <circle cx="60.7" cy="60.7" r="38.5" fill="none" stroke="${light}" stroke-opacity=".55" stroke-width="1.3"/>
     <circle cx="59.4" cy="59.4" r="38.5" fill="none" stroke="${deep}" stroke-opacity=".75" stroke-width="1.5"/>
-    <circle cx="60" cy="60" r="33.5" fill="none" stroke="url(#${id}g)" stroke-width=".9" opacity=".95"/>
-    <circle cx="60" cy="60" r="31.6" fill="none" stroke="url(#${id}g)" stroke-width=".35" opacity=".8"/>
-    <text x="60.9" y="${60 + fs * .34 + .9}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-style="italic" font-weight="600" font-size="${fs}" fill="${deep}" opacity=".85">${m}</text>
-    <text x="59.4" y="${60 + fs * .34 - .6}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-style="italic" font-weight="600" font-size="${fs}" fill="#FFF6DD" opacity=".55">${m}</text>
-    <text x="60" y="${60 + fs * .34}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-style="italic" font-weight="600" font-size="${fs}" fill="url(#${id}g)">${m}</text>`;
+    <circle cx="60" cy="60" r="33.5" fill="none" stroke="url(#${id}g)" stroke-width="1.25" opacity="1"/>
+    <circle cx="60" cy="60" r="31.6" fill="none" stroke="url(#${id}g)" stroke-width=".3" opacity=".35"/>
+    <text x="60.9" y="${60 + fs * .34 + .9}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-weight="500" font-size="${fs}" fill="${deep}" opacity=".85">${m}</text>
+    <text x="59.4" y="${60 + fs * .34 - .6}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-weight="500" font-size="${fs}" fill="#FFF6DD" opacity=".5">${m}</text>
+    <text x="60" y="${60 + fs * .34}" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-weight="500" font-size="${fs}" fill="url(#${id}g)">${m}</text>`;
   return `<svg viewBox="0 0 120 120" aria-hidden="true">
     <defs>
       <radialGradient id="${id}b" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="${light}"/><stop offset=".42" stop-color="${base}"/><stop offset=".85" stop-color="${dark}"/><stop offset="1" stop-color="${deep}"/></radialGradient>
@@ -1601,7 +1604,7 @@ function envelopeHTML(B, D, wax) {
           <defs><linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2824"/><stop offset="1" stop-color="#1D1B18"/></linearGradient>
             <filter id="${id}fs" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-color="#000" flood-opacity=".7"/></filter></defs>
           <path d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="url(#${id}f)" filter="url(#${id}fs)"/>
-          <path d="M0 0 L65 53 Q73 58.5 81 53 L146 0" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".35" vector-effect="non-scaling-stroke"/>
+          <path d="M0 0 L65 53 Q73 58.5 81 53 L146 0" fill="none" stroke="rgba(217,190,132,.55)" stroke-width=".9" vector-effect="non-scaling-stroke"/>
           <path class="shade" d="M0 0 H146 L81 53 Q73 58.5 65 53 Z" fill="#000" opacity="0"/>
         </svg>
         <div class="seal-top-wrap"><div class="seal-top" id="sealTop" style="clip-path:${upper}">${seal}</div></div>
