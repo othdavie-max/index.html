@@ -3614,7 +3614,7 @@ document.addEventListener("touchend", (e) => { const n = Date.now(); if (n - las
 const qs = new URLSearchParams(location.search);
 if (qs.get("i")) bootClient({ id: qs.get("i") });
 else if (location.hash.startsWith("#v=")) bootClient({ hash: location.hash.slice(3) });
-else { bootLicence(); const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
+else { bootLicence(); const pre = (qs.get("key") || "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 40); if (pre) { const kf = document.querySelector("#lic-key"); if (kf) kf.value = pre; try { history.replaceState(null, "", location.pathname); } catch (e) {} } const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
 })();
 </script>
 </body>
