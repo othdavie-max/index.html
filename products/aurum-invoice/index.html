@@ -1118,11 +1118,37 @@ html[data-theme="dark"] .theme-btn .i-moon { display: block; }
   .appbar .mark span { display: none; }
 }
 /* messages appear at the top, so they never cover a button */
-.toast { top: calc(14px + env(safe-area-inset-top, 0px)); bottom: auto; transform: translate(-50%, -16px); max-width: calc(100vw - 32px); text-align: center; }
+.toast { top: auto; bottom: calc(138px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); width: max-content; max-width: calc(100vw - 40px); text-align: center; border-radius: 18px; line-height: 1.35; }
 .toast.show { transform: translate(-50%, 0); }
 
 /* fixes from the phone review */
 .card-line > span:first-child { min-width: 0; flex: 1; }
+/* ---------- UI polish pass ---------- */
+html[data-theme="light"] .rv { color: #4A4236; }
+html[data-theme="light"] .rv[aria-pressed="true"] { color: #7A5A24; }
+.home-more { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-right: calc(-1 * var(--pad, 0px)); padding-right: 4px; }
+.home-more::-webkit-scrollbar { display: none; }
+.home-more .chip { flex: 0 0 auto; padding: 0 13px; font-size: 12.5px; }
+.home-more span { flex: 0 0 auto; }
+.step-nav [hidden] { display: none !important; }
+@media (max-width: 720px) {
+  .step-nav { padding-top: 12px; }
+  .step-nav .total-mini { order: -1; }
+  .step-nav #back-btn { order: 0; min-width: 0; padding: 0 14px; }
+  .saved-item { flex-wrap: wrap; row-gap: 12px; }
+  .saved-item > div:first-child { flex: 1 0 100%; }
+  .saved-item b { white-space: normal; }
+  .saved-btns { flex: 1 0 100%; }
+  .saved-btns .btn { flex: 1; }
+}
+h3.sub { margin-top: 14px; }
+
+:is(#dash-period, #dash-type, #dash-status) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding: 2px 0; }
+:is(#dash-period, #dash-type, #dash-status)::-webkit-scrollbar { display: none; }
+:is(#dash-period, #dash-type, #dash-status) .chip { flex: 0 0 auto; }
+:is(#dash-period, #dash-type, #dash-status, .home-more) { min-width: 0; max-width: 100%; contain: inline-size; }
+@media (max-width: 440px) { .home-more span { display: none; } .toast { bottom: calc(118px + env(safe-area-inset-bottom, 0px)); } }
+
 .card-line small { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .intro h1 { overflow-wrap: anywhere; text-wrap: balance; max-width: 100%; }
 html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg circle { stroke: #9C7637; }
@@ -1391,9 +1417,6 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
     <!-- IV. SEND -->
     <section class="step" data-step="4" hidden>
       <div class="step-head"><span class="eyebrow">Chapter IV</span><h2>Send it beautifully</h2><p id="send-sub">Your invoice is ready.</p></div>
-      <label class="toggle card-line" id="repeat-line"><span><b style="display:block">Repeat every month</b><small style="color:var(--muted);font-size:13px">For retainers, rent or subscriptions. It'll be waiting in Overview each month.</small></span><span class="switch"><input type="checkbox" id="repeat-on"><i></i></span></label>
-      <button class="card-line next-doc" type="button" id="next-doc" style="text-align:left;color:inherit"><div><b id="next-doc-title"></b><small id="next-doc-sub"></small></div><span class="btn sm primary" id="next-doc-btn"></span></button>
-      <button class="card-line" type="button" id="send-customise" style="text-align:left;color:inherit"><div><b>Customise the look</b><small>Watermark, title, what shows, terms</small></div><span class="btn sm">Customise</span></button>
       <div class="field"><span class="label">How it opens for your client</span><div class="reveal-grid" id="reveal-grid"></div></div>
       <div class="send-hero">
         <span class="eyebrow">The Aurum private link</span>
@@ -1411,6 +1434,10 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
         <button class="send-card" type="button" data-act="image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg><b>Image</b><small>For WhatsApp</small></button>
         <button class="send-card" type="button" data-act="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg><b>New</b><small>Start another</small></button>
       </div>
+      <h3 class="sub">More options</h3>
+      <label class="toggle card-line" id="repeat-line"><span><b style="display:block">Repeat every month</b><small style="color:var(--muted);font-size:13px">For retainers, rent or subscriptions. It'll be waiting in Overview each month.</small></span><span class="switch"><input type="checkbox" id="repeat-on"><i></i></span></label>
+      <button class="card-line next-doc" type="button" id="next-doc" style="text-align:left;color:inherit"><div><b id="next-doc-title"></b><small id="next-doc-sub"></small></div><span class="btn sm primary" id="next-doc-btn"></span></button>
+      <button class="card-line" type="button" id="send-customise" style="text-align:left;color:inherit"><div><b>Customise the look</b><small>Watermark, title, what shows, terms</small></div><span class="btn sm">Customise</span></button>
       <h3 class="sub">Sent &amp; saved</h3>
       <div class="saved-list" id="saved-list"></div>
     </section>
@@ -2552,7 +2579,7 @@ function goStep(n, { force = false } = {}) {
 function showStep(n) {
   showEditor();
   step = n; $$(".step").forEach((s) => (s.hidden = Number(s.dataset.step) !== n));
-  $("#back-btn").style.visibility = n === 1 ? "hidden" : "visible";
+  $("#back-btn").hidden = n === 1;
   $("#next-btn").hidden = n === 4; $("#next-btn").textContent = n === 3 ? "Finish" : "Continue";
   renderSteps(); syncChrome(); window.scrollTo({ top: 0 });
   if (n === 2) renderItemsEditor();
