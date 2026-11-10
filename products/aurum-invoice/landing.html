@@ -150,7 +150,9 @@ h2 em, h1 em { font-family: var(--f-accent); font-style: italic; font-weight: 60
 .price .now small { color: var(--muted); font-size: 14px; }
 .save { justify-self: start; font-size: 12.5px; font-weight: 800; color: var(--ok); background: rgba(35,128,79,.1); padding: 5px 10px; border-radius: 99px; }
 .plan ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 14.5px; }
+.co-pres { margin: 14px 0 4px; padding: 14px; border: 1px solid rgba(156,118,55,.4); border-radius: 14px; background: rgba(217,190,132,.12); font-size: 14px; }
 .plan li { position: relative; padding-left: 28px; }
+.dom-note { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
 .plan li::before { content: "✓"; position: absolute; left: 2px; top: 0; color: var(--gold); font-weight: 800; }
 .plan .btn { width: 100%; }
 .after-price { display: grid; gap: 6px; text-align: center; color: var(--muted); font-size: 13.5px; margin-top: 18px; }
@@ -359,7 +361,7 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
         <span class="save" data-promo-only hidden>You save <span data-save="prestige">₦15,000</span></span>
         <ul>
           <li>Everything in Signature</li>
-          <li><b>Your own web address</b>, e.g. invoice.yourbrand.ng</li>
+          <li><b>Your own web address</b>, e.g. invoice.yourbrand.ng<small class="dom-note">We connect it for you within 24 hours. You buy the name yourself (about ₦10,000 to ₦20,000 a year).</small></li>
           <li><b>No Aurum name</b> anywhere your client looks</li>
           <li><b>5 devices</b> for you and your staff</li>
           <li><b>Phone alerts</b> when a client opens, pays or is overdue</li>
@@ -392,6 +394,7 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
     <div class="sec-head center"><span class="eyebrow">Questions</span><h2>Good to <em>know</em></h2></div>
     <div class="faq">
       <details><summary>How do I get my licence key?</summary><p>It appears on your screen straight after you pay, with buttons to copy it or send it to your WhatsApp. If anything goes wrong, message us on WhatsApp with the email you paid with.</p></details>
+      <details><summary>How does my own web address work (Prestige)?</summary><p>Your clients open your invoices from your own address, like <b>invoice.yourbrand.ng</b>, and they never see the Aurum name. How it works: <b>1.</b> You buy the name you want from any domain seller (about ₦10,000 to ₦20,000 a year, paid to them, not to us). <b>2.</b> After you pay for Prestige, send us the name on WhatsApp. <b>3.</b> We send you one short setting to paste into your domain seller's website, and connect it on our side. <b>4.</b> Within 24 hours your invoices open from your own address. Until then everything else in Prestige already works.</p></details>
       <details><summary>Is it a monthly subscription?</summary><p>No. You pay once and it's yours. Updates are included.</p></details>
       <details><summary>Do my clients need to download anything?</summary><p>No. They open your link in their phone's browser, like any website. No app and no account.</p></details>
       <details><summary>How do my clients pay me?</summary><p>By transfer to your own bank account (they copy the number in one tap), or by card, transfer or USSD through your own Paystack. The money goes straight to you. Aurum never touches it.</p></details>
@@ -450,6 +453,7 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
         <li><b>Set up your business</b> and send your first invoice.</li>
       </ol>
       <div class="co-row"><a class="btn primary" id="co-open" href="app/">Open Aurum</a><a class="btn" id="co-wa" href="#" target="_blank" rel="noopener">Send key to my WhatsApp</a></div>
+      <div class="co-pres" id="co-pres" hidden><b>One more step for Prestige: your own web address</b><p class="co-fine" style="margin:4px 0 10px">Buy the name you want (about ₦10,000 to ₦20,000 a year from any domain seller), then send it to us. We connect it within 24 hours.</p><a class="btn sm primary" id="co-pres-wa" href="#" target="_blank" rel="noopener">Send my web address on WhatsApp</a></div>
       <p class="co-note"><b style="color:var(--ink)">iPhone:</b> install first, then enter the key inside the installed app. If you enter it in Safari first, it uses one of your device places.</p>
     </div>
   </div>
@@ -582,6 +586,8 @@ const CONFIG = {
     if (reference && !r.test && !store.get("aurumPaid_" + reference)) { store.set("aurumPaid_" + reference, "1"); let o = {}; try { o = JSON.parse(store.get("aurumOrder") || "{}") || {}; } catch (e) {} window.aurumTrack?.("purchase", { plan: r.plan || o.plan, naira: o.naira }); window.aurumAd?.("Purchase", { value: o.naira || 0, currency: "NGN", content_name: r.plan || o.plan }); } $("#co-key").textContent = r.key;
     $("#co-done-title").textContent = "Thank you" + (name ? ", " + name.split(" ")[0] : "");
     $("#co-done-test").hidden = !r.test;
+    const pres = (r.plan || "") === "prestige" && !r.test; $("#co-pres").hidden = !pres;
+    if (pres && CONFIG.SELLER_WHATSAPP) $("#co-pres-wa").href = `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I bought Aurum Prestige. My licence key: " + r.key + "\nThe web address I want: ")}`;
     const msg = `My Aurum licence key: ${r.key}\nInstall and open the app: ${location.origin}${location.pathname.replace(/[^/]*$/, "")}app/`;
     let d = String(phone || "").replace(/\D/g, ""); if (d.startsWith("0")) d = "234" + d.slice(1);
     $("#co-wa").href = `https://wa.me/${d.length >= 12 ? d : ""}?text=${encodeURIComponent(msg)}`;
