@@ -16,7 +16,7 @@
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Where Paystack sends the buyer back to after paying. Change this if you move to your own domain.
-const SITE_URL = "https://auruminvoice.netlify.app/";
+const SITE_URL = "https://auruminvoicestudio.netlify.app/";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
