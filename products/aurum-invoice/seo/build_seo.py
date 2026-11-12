@@ -184,6 +184,9 @@ def main():
     if os.path.exists(OUT): shutil.rmtree(OUT)
     os.makedirs(OUT)
     shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "seo.css"), os.path.join(OUT, "seo.css"))
+    import glob
+    for vf in glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "google*.html")):
+        shutil.copy(vf, os.path.join(OUT, os.path.basename(vf)))  # Google Search Console ownership file
     kind_map = {g["slug"]: (f"/guides/{g['slug']}/", g["nav"]) for g in GUIDES}
     kind_map.update({p["slug"]: (f"/{p['slug']}/", p["nav"]) for p in PRODUCTS})
     urls = [("/", "1.0", "weekly"), ("/guides/", "0.8", "weekly")]
