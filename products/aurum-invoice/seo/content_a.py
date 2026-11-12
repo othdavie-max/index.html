@@ -33,7 +33,7 @@ G1 = dict(
     related=["invoice-template-nigeria", "invoice-vs-receipt-vs-quotation", "how-to-get-paid-on-time-nigeria", "vat-on-invoices-nigeria", "invoice-app-nigeria"])
 
 G2 = dict(
-    slug="invoice-template-nigeria", nav="Invoice template for Nigeria",
+    slug="invoice-template-nigeria", dl=[('Excel invoice template (auto-calculates totals)', 'Aurum-Invoice-Template.xlsx'), ('Word invoice template', 'Aurum-Invoice-Template.docx')], nav="Invoice template for Nigeria",
     title="Free Invoice Template for Nigeria (Copy and Use)",
     desc="A simple invoice template you can copy for your Nigerian business, with every field explained, plus tips to make it look professional.",
     h1="Free invoice template for Nigerian businesses",
@@ -62,7 +62,7 @@ G2 = dict(
     related=["how-to-write-an-invoice-in-nigeria", "receipt-template-nigeria", "quotation-template-nigeria", "invoice-app-nigeria"])
 
 G3 = dict(
-    slug="receipt-template-nigeria", nav="Receipt template for Nigeria",
+    slug="receipt-template-nigeria", dl=[('Excel receipt template', 'Aurum-Receipt-Template.xlsx')], nav="Receipt template for Nigeria",
     title="Receipt Template for Nigeria: What to Include",
     desc="A simple payment receipt template for Nigerian businesses, what a receipt must show, and how it differs from an invoice.",
     h1="Receipt template for Nigerian businesses",
@@ -88,7 +88,7 @@ G3 = dict(
     related=["invoice-vs-receipt-vs-quotation", "invoice-template-nigeria", "deposit-and-part-payment-invoice", "receipt-maker-nigeria"])
 
 G4 = dict(
-    slug="quotation-template-nigeria", nav="Quotation template for Nigeria",
+    slug="quotation-template-nigeria", dl=[('Excel quotation template (auto-calculates totals)', 'Aurum-Quotation-Template.xlsx')], nav="Quotation template for Nigeria",
     title="Quotation Template for Nigeria (with Example)",
     desc="How to write a price quotation in Nigeria, a copyable template, and how to turn an accepted quote into an invoice.",
     h1="Quotation template for Nigerian businesses",

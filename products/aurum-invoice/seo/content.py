@@ -2,9 +2,11 @@
 from content_a import GUIDES_A, script, callout
 from content_b import GUIDES_B
 from content_c import GBEST, ABOUT
+from content_d import GUIDES_D
+from content_e import REVIEWS
 
 SITE_NAME = "Aurum Invoice Studio"
-GUIDES = GUIDES_A + GUIDES_B + [GBEST]
+GUIDES = GUIDES_A + GUIDES_B + [GBEST] + GUIDES_D
 
 HUB = dict(
     title="Invoicing Guides and Templates for Nigerian Businesses",
@@ -27,6 +29,7 @@ P1 = product("invoice-app-nigeria", "Invoice app for Nigerian businesses",
      ("Made for Nigeria", "<ul><li>Amounts in naira, with the amount in words.</li><li>Every Nigerian bank in a list, from GTBank to OPay and Moniepoint.</li><li>Built around WhatsApp: send the link, the PDF or an image.</li><li>Fields for your CAC (RC) number and TIN.</li><li>VAT and delivery lines when you need them.</li></ul>"),
      ("How it works", "<ol><li><b>Set up your business once:</b> logo, name, bank details, signature.</li><li><b>Make an invoice in under a minute:</b> pick or type the client, add what you sold, choose how it opens.</li><li><b>Send the private link</b> on WhatsApp.</li><li><b>See when it is opened,</b> then turn it into a receipt in one tap when you are paid.</li></ol>"),
      ("Who it is for", "<p>Fashion designers, caterers, event planners, photographers, freelancers, consultants, contractors, online sellers and anyone who sends customers a price and wants to be paid. If you have ever typed &quot;this one is ₦50,000, that one is ₦150,000, account number below&quot; into a chat, this is for you. Read more in <a href=\"/guides/invoicing-for-instagram-whatsapp-vendors/\">invoicing for Instagram and WhatsApp sellers</a>.</p>"),
+     ("What customers say", '<div data-reviews data-limit="4"></div><p><a href="/reviews/">Read all reviews or write one</a></p>'),
      ("Plans", "<p><b>Signature</b> covers your business on 2 devices, with every document and design. <b>Prestige</b> adds your own web address with no Aurum name, phone alerts when a client opens or pays, a monthly report, team view, your logo in the wax seal and two businesses. See current prices on the <a href=\"/#pricing\">pricing section</a>. Both are one-time payments.</p>")],
     [("Is Aurum free?", "There is a free demo with sample data so you can see how it works. Using it for your own business needs a licence, which is a one-time payment with no monthly fees."),
      ("Does it work on my phone?", "Yes. It installs like an app from your browser on Android and iPhone, and works without data once installed."),

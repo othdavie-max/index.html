@@ -22,8 +22,11 @@
   }
   track("view");
   document.addEventListener("click", function (e) {
+    var cp = e.target.closest && e.target.closest("[data-copy]");
+    if (cp) { var u = cp.getAttribute("data-copy"); try { navigator.clipboard.writeText(u).then(function () { cp.textContent = "Link copied"; }); } catch (err) { window.prompt("Copy this link", u); } return; }
     var a = e.target.closest && e.target.closest("[data-cta]"); if (!a) return;
     var k = a.getAttribute("data-cta");
+    if (k === "dl" || k === "share") { try { if (window.fbq) fbq("track", k === "dl" ? "Lead" : "Share"); } catch (err) {} return; }
     track(k === "demo" ? "click_demo" : k === "wa" ? "whatsapp_click" : "click_buy", { from: page, where: a.getAttribute("data-where") || "" });
     try { if (window.fbq) fbq("track", "ViewContent", { content_name: document.title }); } catch (err) {}
   }, true);

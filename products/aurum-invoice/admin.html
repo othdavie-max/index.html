@@ -38,6 +38,14 @@ main { max-width: 1100px; margin: 0 auto; padding: 18px max(16px, env(safe-area-
 .kpi span { font-size: 12px; color: var(--faint); }
 .kpi.gold { background: var(--onyx); color: #F3ECDD; border-color: var(--onyx); }
 .kpi.gold small, .kpi.gold span { color: #B7AD98; } .kpi.gold b { color: var(--gold-hi); }
+.rvrow { display: grid; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); }
+.rvrow:first-child { border-top: 0; }
+.rvrow p { margin: 0; font-size: 14.5px; line-height: 1.5; }
+.rvrow .meta { font-size: 12.5px; color: var(--muted); }
+.rvbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.rvbtns .btn { height: 38px; padding: 0 14px; font-size: 13px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 2px 9px; border-radius: 99px; border: 1px solid var(--line-2); }
+.tag.pending { background: #FFF4D6; border-color: #E2C36B; } .tag.approved { background: #EAF5EE; border-color: #8CC9A6; } .tag.hidden { background: #F1EEE8; color: var(--muted); }
 .card { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
 .card h2 { font-family: var(--f-display); font-weight: 500; font-size: 21px; margin: 0; }
 .card p.hint { margin: 0; color: var(--muted); font-size: 13.5px; }
@@ -101,6 +109,7 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
     <div class="card"><h2>Campaigns</h2><div class="tbl" id="campaigns"></div></div>
     <div class="card"><h2>Phones and computers</h2><div class="tbl" id="devices"></div></div>
   </div>
+  <div class="card" id="reviews"><h2>Customer reviews</h2><p class="hint">People send reviews from your website. Nothing shows publicly until you press Approve.</p><div id="rvlist">Loading…</div></div>
   <div class="card"><h2>Recent sales</h2><div class="tbl" id="sales"></div></div>
   <div class="card"><h2>Your customers using the app</h2><div class="kpis" id="appk" style="grid-template-columns:repeat(2,minmax(0,1fr))"></div></div>
   <div class="card utm">
@@ -130,7 +139,7 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
   async function load() {
     const r = await (await fetch(`${API}/rest/v1/rpc/admin_stats`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK }, body: JSON.stringify({ p_pass: pass, p_days: days }) })).json();
     if (!r || !r.ok) { store.del("aurumAdminPass"); pass = ""; showLogin("That passcode isn't right."); return; }
-    render(r);
+    render(r); loadReviews();
   }
   function showLogin(msg) { $("#dash").hidden = true; $("#login").hidden = false; $("#refresh").hidden = $("#logout").hidden = true; $("#err").textContent = msg || ""; clearInterval(timer); }
   function showDash() { $("#login").hidden = true; $("#dash").hidden = false; $("#refresh").hidden = $("#logout").hidden = false; clearInterval(timer); timer = setInterval(load, 60000); }
@@ -169,6 +178,20 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
     $("#updated").textContent = "Updated " + new Date().toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" }) + ". Refreshes every minute.";
   }
 
+  async function loadReviews() {
+    try {
+      const r = await (await fetch(`${API}/rest/v1/rpc/admin_reviews`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK }, body: JSON.stringify({ p_pass: pass }) })).json();
+      if (!r || !r.ok) { $("#rvlist").textContent = "Could not load reviews."; return; }
+      const it = r.items || [];
+      $("#rvlist").innerHTML = it.length ? it.map((x) => `<div class="rvrow"><div><span class="tag ${esc(x.status)}">${esc(x.status)}</span> <b>${"★".repeat(x.rating)}${"☆".repeat(5 - x.rating)}</b></div><p>${esc(x.body)}</p><div class="meta">${esc(x.name)}${x.business ? " · " + esc(x.business) : ""} · ${new Date(x.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}${x.verified ? " · Verified buyer" : ""}</div><div class="rvbtns">${x.status !== "approved" ? `<button class="btn primary" data-rv="${x.id}" data-st="approved">Approve</button>` : ""}${x.status !== "hidden" ? `<button class="btn" data-rv="${x.id}" data-st="hidden">Hide</button>` : ""}<button class="btn" data-rv="${x.id}" data-ver="${x.verified ? 0 : 1}">${x.verified ? "Remove verified" : "Mark verified buyer"}</button></div></div>`).join("") : '<p class="hint">No reviews yet. When someone sends one, it appears here.</p>';
+    } catch (e) { $("#rvlist").textContent = "Could not load reviews."; }
+  }
+  $("#rvlist").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-rv]"); if (!b) return; b.disabled = true;
+    const body = { p_pass: pass, p_id: Number(b.dataset.rv) }; if (b.dataset.st) body.p_status = b.dataset.st; if (b.dataset.ver !== undefined) body.p_verified = b.dataset.ver === "1";
+    try { await fetch(`${API}/rest/v1/rpc/admin_review_set`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK }, body: JSON.stringify(body) }); } catch (err) {}
+    loadReviews();
+  });
   function utm() { const s = $("#u-src").value.trim().toLowerCase().replace(/\s+/g, "-"), c = $("#u-cmp").value.trim().toLowerCase().replace(/\s+/g, "-"); $("#u-out").textContent = `${SITE}?utm_source=${encodeURIComponent(s || "instagram")}${c ? "&utm_campaign=" + encodeURIComponent(c) : ""}`; }
   $("#u-src").addEventListener("input", utm); $("#u-cmp").addEventListener("input", utm); utm();
   $("#u-copy").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#u-out").textContent); $("#u-copy").textContent = "Copied"; } catch (e) { const r = document.createRange(); r.selectNodeContents($("#u-out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("#u-copy").textContent = "Selected"; } setTimeout(() => ($("#u-copy").textContent = "Copy"), 2000); });

@@ -63,3 +63,9 @@ Every guide and product page now counts visits and button clicks in your owner d
 - Pages show as `seo/g/<guide name>` (guides) or `seo/<page name>` (product pages).
 - Visitors who came from Google are labelled **google** as their source, and the label follows them to the sales page, so you can see how many Google visitors tapped "Get Aurum" or paid.
 - The Meta Pixel is also on these pages, so you can run a cheap ad aimed only at people who read a guide and did not buy. Ask me to set it up once a few hundred people have visited.
+
+## Customer reviews (new)
+Visitors can send a review from the sales page and from `/reviews/`. **Nothing appears publicly until you approve it** in your owner dashboard (admin page, "Customer reviews" card): Approve, Hide, or Mark verified buyer (use it only when you know they paid). Check it twice a week. Ask every buyer for a review with the message in `SOCIAL-30-DAYS.md`.
+
+## Free templates and share buttons (new)
+The Excel and Word templates on the guides are real downloads that add up the totals by themselves. People share them, and sites that list templates may link to you. Each guide also has a "Share on WhatsApp" button.
