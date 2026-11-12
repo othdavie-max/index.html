@@ -291,14 +291,18 @@ create table if not exists public.orders (
 alter table public.orders enable row level security;
 create index if not exists orders_created_idx on public.orders (created_at desc);
 
--- Prices in kobo. Black Friday prices apply until promo_ends, then the normal prices.
+-- Prices in kobo. Sales calendar (Lagos time): Black Friday, End of Year, New Year, then the normal prices for good.
+-- Keep these numbers identical to CONFIG.PHASES in landing.html.
 create or replace function public.price_kobo(p_plan text) returns bigint
 language plpgsql stable security definer set search_path = public as $$
-declare promo boolean;
+declare n timestamptz := now(); sig int; pre int;
 begin
-  promo := now() < (select value::timestamptz from public.app_config where key = 'promo_ends');
-  if p_plan = 'signature' then return (case when promo then 10000 else 15000 end) * 100; end if;
-  if p_plan = 'prestige' then return (case when promo then 35000 else 50000 end) * 100; end if;
+  if n < '2026-11-30T23:59:59+01:00'::timestamptz then sig := 10000; pre := 35000;
+  elsif n < '2026-12-30T23:59:59+01:00'::timestamptz then sig := 12000; pre := 40000;
+  elsif n < '2027-01-10T23:59:59+01:00'::timestamptz then sig := 13500; pre := 45000;
+  else sig := 15000; pre := 50000; end if;
+  if p_plan = 'signature' then return sig::bigint * 100; end if;
+  if p_plan = 'prestige' then return pre::bigint * 100; end if;
   return null;
 end; $$;
 revoke all on function public.price_kobo(text) from public, anon, authenticated;

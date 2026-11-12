@@ -48,7 +48,7 @@ Tell me the topic and I will write and publish it in the same style.
 
 ## Part 5. Do these three upgrades when you can
 1. **Buy your own domain** (about N10,000 to N20,000 a year), such as `aurum-invoice.com` or a `.ng` name. Google trusts a name you own more than a `netlify.app` address, and it looks more serious. Tell me before you buy and I will move everything across, including the Paystack return address.
-2. **After 30 November, update the prices.** The structured data on the sales page shows N10,000 and N35,000 with an end date of 30 November. After that date, tell me and I will change it to N15,000 and N50,000, so the prices Google shows match your page.
+2. **Prices change by themselves.** The sales page, the checkout, the database and the data Google reads all follow the same calendar: Black Friday until 30 Nov, End of Year until 30 Dec, New Year until 10 Jan, then the normal prices. Nothing to update by hand.
 3. **Collect real reviews.** When you have genuine customers who agree, ask them for a short review and a name. I can add review markup, which can show stars on Google. Never invent reviews.
 
 ## Part 6. What not to do
