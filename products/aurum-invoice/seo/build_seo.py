@@ -3,7 +3,7 @@
 Run:  python3 build_seo.py
 Content lives in content.py. Edit it there, then run this again and redeploy."""
 import os, re, html, json, shutil, datetime
-from content import GUIDES, PRODUCTS, HUB, SITE_NAME
+from content import GUIDES, PRODUCTS, HUB, SITE_NAME, ABOUT
 
 BASE = "https://auruminvoicestudio.netlify.app"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "site-seo")
@@ -54,13 +54,14 @@ def head(title, desc, path, og_type="article", extra=""):
 {FONTS}
 {CSS_LINK}
 {extra}
+<script src="/seo.js" defer></script>
 </head>
 """
 
 def header():
     return """<header class="top"><div class="wrap bar">
   <a class="brand" href="/" aria-label="Aurum Invoice Studio, home"><span class="mark">Au</span><span class="name">AURUM</span></a>
-  <nav aria-label="Main"><a href="/guides/">Guides</a><a href="/#pricing">Pricing</a><a class="btn sm" href="/#pricing">Get Aurum</a></nav>
+  <nav aria-label="Main"><a href="/guides/">Guides</a><a href="/#pricing">Pricing</a><a class="btn sm" href="/#pricing" data-cta="buy" data-where="header">Get Aurum</a></nav>
 </div></header>"""
 
 def footer():
@@ -69,7 +70,7 @@ def footer():
     return f"""<footer class="foot"><div class="wrap cols">
   <div><div class="brand"><span class="mark">Au</span><span class="name">AURUM</span></div>
   <p>Invoices, receipts and quotations your clients open like a gift. Made for Nigerian businesses.</p></div>
-  <div><h4>Aurum</h4><ul>{p}<li><a href="/#pricing">Pricing</a></li><li><a href="/policies.html">Refunds &amp; terms</a></li></ul></div>
+  <div><h4>Aurum</h4><ul>{p}<li><a href="/#pricing">Pricing</a></li><li><a href="/about/">About &amp; contact</a></li><li><a href="/policies.html">Refunds &amp; terms</a></li></ul></div>
   <div><h4>Guides</h4><ul>{g}<li><a href="/guides/">All guides</a></li></ul></div>
 </div><div class="wrap fine">&copy; 2026 Aurum Invoice Studio. Lagos, Nigeria.</div></footer>"""
 
@@ -77,17 +78,22 @@ def cta(kind="guide"):
     if kind == "product":
         return """<section class="cta"><h2>Make your next invoice look as good as your work</h2>
 <p>Pay once, use it on your phone, no monthly fees. Your client opens a wax-sealed private link, sees exactly what to pay, and you see the moment they open it.</p>
-<a class="btn primary" href="/#pricing">See plans and pricing</a> <a class="btn" href="/#see">See how it looks</a></section>"""
+<a class="btn primary" href="/#pricing" data-cta="buy" data-where="end">See plans and pricing</a> <a class="btn" href="/app/" data-cta="demo" data-where="end">Try the free demo</a></section>"""
     return """<section class="cta"><h2>Want this done for you in under a minute?</h2>
 <p><b>Aurum Invoice Studio</b> makes invoices, receipts and quotations with your logo, signature and bank details, then delivers them as a private wax-sealed link your client opens like a gift. Pay once, no monthly fees.</p>
-<a class="btn primary" href="/#pricing">See plans and pricing</a> <a class="btn" href="/#see">See how it looks</a></section>"""
+<a class="btn primary" href="/#pricing" data-cta="buy" data-where="end">See plans and pricing</a> <a class="btn" href="/app/" data-cta="demo" data-where="end">Try the free demo</a></section>"""
+
+MID = """<aside class="mid-cta"><div><b>See it before you pay.</b><span>Open a sample wax-sealed invoice in the free demo. Sample data, nothing to pay.</span></div><a class="btn primary" href="/app/" data-cta="demo" data-where="mid">Try the free demo</a></aside>"""
+
+STICKY = """<div class="sticky" role="complementary" aria-label="Get Aurum"><a class="btn" href="/app/" data-cta="demo" data-where="sticky">Try free demo</a><a class="btn primary" href="/#pricing" data-cta="buy" data-where="sticky">Get Aurum</a></div>"""
 
 def toc_and_body(sections):
     toc, body = [], []
-    for h, content in sections:
+    for i, (h, content) in enumerate(sections):
         sid = slugify(h)
         toc.append(f'<li><a href="#{sid}">{esc(h)}</a></li>')
         body.append(f'<section id="{sid}"><h2>{esc(h)}</h2>{content}</section>')
+        if i == 1 and len(sections) >= 4: body.append(MID)
     return "".join(toc), "\n".join(body)
 
 def faq_html(faq):
@@ -144,6 +150,7 @@ def page(item, section, kind_map):
 {related_html(item.get("related"), kind_map)}
 </main>
 {footer()}
+{STICKY}
 </body>
 </html>
 """
@@ -170,6 +177,7 @@ def hub_page(kind_map):
 {cta("product")}
 </main>
 {footer()}
+{STICKY}
 </body>
 </html>
 """
@@ -183,18 +191,24 @@ def write(path, doc):
 def main():
     if os.path.exists(OUT): shutil.rmtree(OUT)
     os.makedirs(OUT)
-    shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "seo.css"), os.path.join(OUT, "seo.css"))
+    for f in ("seo.css", "seo.js"):
+        shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), f), os.path.join(OUT, f))
+    kf = os.path.join(os.path.dirname(os.path.abspath(__file__)), "indexnow.key")
+    if os.path.exists(kf):
+        key = open(kf).read().strip(); open(os.path.join(OUT, key + ".txt"), "w").write(key)
     import glob
     for vf in glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "google*.html")):
         shutil.copy(vf, os.path.join(OUT, os.path.basename(vf)))  # Google Search Console ownership file
     kind_map = {g["slug"]: (f"/guides/{g['slug']}/", g["nav"]) for g in GUIDES}
     kind_map.update({p["slug"]: (f"/{p['slug']}/", p["nav"]) for p in PRODUCTS})
+    kind_map["about"] = ("/about/", ABOUT["nav"])
     urls = [("/", "1.0", "weekly"), ("/guides/", "0.8", "weekly")]
     total_words = 0
     for g in GUIDES:
         path, doc, n = page(g, "guides", kind_map); write(path, doc); urls.append((path, "0.7", "monthly")); total_words += n
     for p in PRODUCTS:
         path, doc, n = page(p, None, kind_map); write(path, doc); urls.append((path, "0.9", "monthly")); total_words += n
+    path, doc, n = page(ABOUT, None, kind_map); write(path, doc); urls.append((path, "0.5", "yearly")); total_words += n
     path, doc = hub_page(kind_map); write(path, doc)
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for u, pr, fr in urls:

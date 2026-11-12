@@ -57,3 +57,9 @@ Tell me the topic and I will write and publish it in the same style.
 - Do not stuff the same phrase into every sentence. The pages are written to read naturally.
 - Do not change page addresses once Google has found them.
 - Keep the private app pages out of Google. They are already marked "do not index" so that clients' invoices never appear in search.
+
+## Reading your SEO numbers
+Every guide and product page now counts visits and button clicks in your owner dashboard (admin page), under the same stats as the sales page.
+- Pages show as `seo/g/<guide name>` (guides) or `seo/<page name>` (product pages).
+- Visitors who came from Google are labelled **google** as their source, and the label follows them to the sales page, so you can see how many Google visitors tapped "Get Aurum" or paid.
+- The Meta Pixel is also on these pages, so you can run a cheap ad aimed only at people who read a guide and did not buy. Ask me to set it up once a few hundred people have visited.

@@ -1,9 +1,10 @@
 """All SEO page content. Edit text here, run build_seo.py, deploy."""
 from content_a import GUIDES_A, script, callout
 from content_b import GUIDES_B
+from content_c import GBEST, ABOUT
 
 SITE_NAME = "Aurum Invoice Studio"
-GUIDES = GUIDES_A + GUIDES_B
+GUIDES = GUIDES_A + GUIDES_B + [GBEST]
 
 HUB = dict(
     title="Invoicing Guides and Templates for Nigerian Businesses",
