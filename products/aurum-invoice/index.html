@@ -435,6 +435,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .t-noir .ribbon { position: absolute; }
 
 /* Demo ribbon — one quiet corner sash instead of a full-page watermark */
+.free-mark { position: absolute; left: 0; right: 0; bottom: 10px; z-index: 5; text-align: center; font: 700 9px/1 Arial, sans-serif; letter-spacing: .22em; text-transform: uppercase; color: #8a6b2a; opacity: .75; pointer-events: none; }
 .ribbon { position: absolute; top: 26px; right: -46px; z-index: 6; width: 190px; transform: rotate(45deg); text-align: center;
   background: rgba(255,255,255,.88); color: #6B5A3A; font: 800 9.5px/1 var(--f-body); letter-spacing: .32em; padding: 7px 0;
   box-shadow: 0 2px 8px rgba(0,0,0,.18); pointer-events: none; }
@@ -1235,7 +1236,14 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
         <div class="err" id="lic-err" role="alert"></div>
       </form>
       <div class="gate-install-wrap g-in" style="--d:.55s"><button class="btn gate-install js-install" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span>Install the app on your phone<small>Android &amp; iPhone</small></span></button></div>
-      <div class="gate-alt g-in" style="--d:.6s"><button class="link-btn" type="button" id="lic-demo">Explore the free demo <span aria-hidden="true">→</span></button></div>
+      <div class="gate-alt g-in" style="--d:.6s;display:flex;flex-wrap:wrap;gap:4px 18px"><button class="link-btn" type="button" id="lic-free">Start free: 3 documents a month <span aria-hidden="true">→</span></button> <button class="link-btn" type="button" id="lic-demo">Explore the demo</button></div>
+      <form id="free-form" class="g-in" style="--d:.62s;margin-top:10px" autocomplete="on" hidden>
+        <label class="sr" for="free-email">Your email</label>
+        <div class="key-row"><input id="free-email" style="min-width:0" name="email" type="email" placeholder="Your email address" maxlength="120" autocomplete="email" required><button class="btn primary" type="submit" id="free-submit">Send link</button></div>
+        <input id="free-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+        <div class="err" id="free-msg" role="alert"></div>
+        <p class="fine" style="margin-top:6px">3 free documents every month. We email you a link to confirm. No card needed.</p>
+      </form>
       <p class="fine g-in" style="--d:.7s" id="gate-fine">Your licence is personal to you and works on your own devices.</p>
     </div>
     <div class="gate-art" aria-hidden="true">
@@ -1727,6 +1735,7 @@ function invoiceHTML(P, D, opts = {}) {
     <footer class="inv-foot px"><span class="ty">${esc(X.footer || thanks)}</span><span class="contact">${esc([B.phone, B.email].filter(Boolean).join("  ·  "))}</span>${verify}</footer>
     ${watermarkHTML(B, X)}
     ${opts.demo ? `<div class="ribbon">DEMO</div>` : ""}
+    ${opts.free ? `<div class="free-mark">Made with Aurum Invoice Studio</div>` : ""}
   </article>`;
 }
 
@@ -2078,7 +2087,7 @@ function openClientView(payload, ctx = {}) {
   cv.style.setProperty("--glow", rgba(lum(P.design.brand) < .02 ? "#D9BE84" : P.design.brand, .22));
   const docWord = LABEL[type].toLowerCase();
   const chrome = ctx.preview ? `<span class="cv-tag">Client preview</span><button class="cv-close" type="button" data-cv="close">Close</button>` : "";
-  const docOpts = { demo: payload.demo, qr: ctx.verified ? qrFor(location.href) : "" };
+  const docOpts = { demo: payload.demo, free: !!payload.free, qr: ctx.verified ? qrFor(location.href) : "" };
   let stopDust = () => {};
 
   const style = REVEALS[D.reveal] ? D.reveal : REVEALS[P.design.reveal] ? P.design.reveal : "envelope";
@@ -2210,7 +2219,7 @@ function openClientView(payload, ctx = {}) {
       <div class="cv-card cv-doc"><h2>Your official ${docWord}</h2><p>Signed and sealed by ${esc(B.name)}.</p><div class="cv-paper" id="cv-paper"></div>
         <div class="actions"><button class="btn primary" type="button" data-cv="pdf">Download PDF</button><button class="btn" type="button" data-cv="image">Save image</button></div></div>
       ${verifyCard}
-      ${brandless ? "" : `<div class="cv-foot">Delivered privately by Aurum</div>`}
+      ${brandless ? "" : payload.free ? `<div class="cv-foot">Made with Aurum Invoice Studio · <a href="https://auruminvoicestudio.netlify.app/" style="color:inherit">Make yours free</a></div>` : `<div class="cv-foot">Delivered privately by Aurum</div>`}
     </div>`;
     cv.scrollTop = 0;
     fitInto($("#cv-paper", cv), P, D, docOpts);
@@ -2244,6 +2253,9 @@ const deviceId = LS.get(DEVICE_KEY, null) || (() => { const d = uid(); LS.set(DE
 let licence = LS.get("aurum.licence", null);
 const isDemo = () => licence?.mode !== "full";
 const isPrestige = () => licence?.mode === "full" && licence.plan === "prestige";
+const isFree = () => licence?.mode === "full" && licence.plan === "free";
+let freeLeft = null;
+const FREE_REASONS = { email: "That email doesn't look right. Check it and try again.", disposable: "Please use your real email address, not a temporary one.", email_limit: "Too many tries for that email. Check your inbox and spam folder, or try again tomorrow.", ip_limit: "Too many sign-ups from this network today. Try again tomorrow.", device_limit: "Too many tries from this phone today. Try again tomorrow.", device: "Please reload the page and try again.", not_configured: "Free sign-up is not switched on yet. Try the demo for now.", mail_failed: "We couldn't send the email. Check the address and try again.", expired: "That link has expired. Ask for a new one below.", invalid: "That link isn't valid. Ask for a new one below.", device_used: "A free account already exists on this phone. Use that email, or buy a licence." };
 const REASONS = { invalid: "That licence key isn't valid. Check it and try again.", revoked: "This licence has been switched off. Contact the seller.", device_limit: "This key is already in use on its devices. Contact the seller to move it to this one." };
 
 async function bootLicence() {
@@ -2283,6 +2295,43 @@ function trackEvt(type, meta) {
     const ua = navigator.userAgent, device = /iphone|ipad|ipod/i.test(ua) ? "iphone" : /android/i.test(ua) ? "android" : "computer";
     rpc("track", { p_session: sid, p_type: type, p_page: "app", p_source: localStorage.getItem("aurumSrc") || "direct", p_campaign: localStorage.getItem("aurumCmp") || "", p_referrer: "", p_device: device, p_meta: meta || null }).catch(() => {});
   } catch (e) {}
+}
+$("#lic-free").addEventListener("click", () => { const f = $("#free-form"); f.hidden = false; $("#free-email").focus(); });
+$("#free-form").addEventListener("submit", async (e) => {
+  e.preventDefault(); const btn = $("#free-submit"), msg = $("#free-msg"); const email = $("#free-email").value.trim();
+  if (!email) return; btn.disabled = true; btn.textContent = "Sending…"; msg.textContent = ""; msg.style.color = "";
+  try {
+    const res = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/, "") + "/functions/v1/free-signup", { method: "POST", headers: { "Content-Type": "application/json", apikey: CONFIG.SUPABASE_ANON_KEY }, body: JSON.stringify({ email, device: deviceId, website: $("#free-hp").value }) });
+    const r = await res.json().catch(() => ({}));
+    if (r.ok) { msg.style.color = "var(--gold)"; msg.textContent = "Check your inbox (and spam) for the link. Tap it on this phone."; trackEvt("free_signup"); }
+    else msg.textContent = FREE_REASONS[r.reason] || "Something went wrong. Try again in a moment.";
+  } catch { msg.textContent = "We couldn't reach the server. Check your internet and try again."; }
+  btn.disabled = false; btn.textContent = "Send link";
+});
+// The email link opens the app with ?free=TOKEN: collect the free key and enter.
+async function claimFree(tok) {
+  try { window.history.replaceState(null, "", location.pathname); } catch (e) {}
+  if (licence?.mode === "full" && licence.plan !== "free") return;
+  $("#gate").hidden = false; $("#lic-err").textContent = "Opening your free Aurum…";
+  try {
+    const c = await rpc("claim_free", { p_token: tok, p_device: deviceId });
+    if (!c.ok) return showGate(FREE_REASONS[c.reason] || FREE_REASONS.invalid);
+    const r = await rpc("activate_license", { p_key: c.key, p_device: deviceId });
+    if (!r.ok) return showGate(REASONS[r.reason] || REASONS.invalid);
+    licence = { mode: "full", key: c.key, email: r.email, plan: "free", refCode: "", checkedAt: Date.now() }; LS.set("aurum.licence", licence);
+    trackEvt("free_started"); if (S.profile.demo) resetForRealBusiness(); enter(); toast("Welcome to Aurum. You have 3 free documents this month.");
+  } catch { showGate("We couldn't reach the server. Check your internet and open the link again."); }
+}
+// Free plan: each new document (link, PDF, image or WhatsApp) is counted on the server before it is sent.
+async function refreshFree() { if (!isFree() || !configured()) return; try { const r = await rpc("free_status", { p_key: licence.key, p_device: deviceId }); if (r.ok && r.plan === "free") { freeLeft = r.left; if (typeof syncChrome === "function") syncChrome(); } } catch {} }
+async function freeGo(D) {
+  if (!isFree()) return true;
+  try {
+    const r = await rpc("free_use", { p_key: licence.key, p_device: deviceId, p_doc_id: D.id, p_sig: [D.client.name || "", Math.round(calc(D).total), D.number].join("|") });
+    if (r.ok) { freeLeft = r.left; syncChrome(); return true; }
+    if (r.reason === "free_limit") { freeLeft = 0; syncChrome(); freeSheet("Your 3 free documents are used"); return false; }
+    toast(REASONS[r.reason] || "Couldn't confirm your free plan. Try again."); return false;
+  } catch { toast("Connect to the internet to send on the free plan."); return false; }
 }
 $("#lic-demo").addEventListener("click", () => { trackEvt("demo_start"); licence = { mode: "demo" }; LS.set("aurum.licence", licence); enter(); });
 
@@ -2345,7 +2394,7 @@ let lastProfileJSON = "";
 const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => {
   const pj = JSON.stringify(S.profile); if (lastProfileJSON && pj !== lastProfileJSON) { S.profile.updatedAt = Date.now(); } lastProfileJSON = JSON.stringify(S.profile);
   LS.set("aurum.profile", S.profile); LS.set("aurum.draft", S.doc); LS.set("aurum.clients", S.clients); LS.set("aurum.catalog", S.catalog); pushSoon(); }, 250); };
-const studioOpts = (extra = {}) => ({ demo: isDemo(), qr: S.doc.shareId ? qrFor(S.doc.link) : "", ...extra });
+const studioOpts = (extra = {}) => ({ demo: isDemo(), free: isFree(), qr: S.doc.shareId ? qrFor(S.doc.link) : "", ...extra });
 
 async function enter() {
   $("#gate").hidden = true;
@@ -2728,7 +2777,7 @@ function syncChrome() {
   $("#next-doc-btn").textContent = D.type === "quotation" ? "Make invoice" : "Issue receipt";
   $("#link-box").hidden = !D.link; $("#link-text").textContent = D.link || "";
   // plan chip
-  const chip = $("#plan-chip"); chip.classList.toggle("trial", isDemo()); $("#plan-text").textContent = isDemo() ? "Trial" : isPrestige() ? "Prestige" : "Signature";
+  const chip = $("#plan-chip"); chip.classList.toggle("trial", isDemo()); $("#plan-text").textContent = isDemo() ? "Trial" : isFree() ? (freeLeft == null ? "Free" : `Free · ${freeLeft} left`) : isPrestige() ? "Prestige" : "Signature";
   updateTrialBar();
 }
 document.addEventListener("input", (e) => {
@@ -2766,7 +2815,7 @@ $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
 $("#bank-line").addEventListener("click", () => openHouse("bank"));
 $("#payby-on").addEventListener("change", (e) => { S.doc.payBy = e.target.checked ? iso(addDays(7)) : ""; persist(); syncChrome(); render(); });
 $("#exp-on").addEventListener("change", (e) => { S.doc.dueDate = e.target.checked ? iso(addDays(14)) : ""; persist(); syncChrome(); render(); });
-$("#reveal-grid").addEventListener("click", (e) => { const b = e.target.closest("[data-reveal]"); if (!b) return; S.doc.reveal = b.dataset.reveal; S.profile.design.reveal = b.dataset.reveal; persist(); syncChrome(); toast(`Your client will see: ${REVEALS[b.dataset.reveal].name}`); });
+$("#reveal-grid").addEventListener("click", (e) => { const b = e.target.closest("[data-reveal]"); if (!b) return; if (isFree() && b.dataset.reveal !== "envelope") return freeSheet("More opening styles"); S.doc.reveal = b.dataset.reveal; S.profile.design.reveal = b.dataset.reveal; persist(); syncChrome(); toast(`Your client will see: ${REVEALS[b.dataset.reveal].name}`); });
 function swapAnim() { const w = $("#paper-wrap"); w.classList.remove("swap"); void w.offsetWidth; if (!reduceMotion) w.classList.add("swap"); }
 
 /* client autocomplete */
@@ -2903,11 +2952,12 @@ function handleSaved(e) {
     lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(h.doc.type === "quotation" ? `Invoice ${S.doc.number} created from ${h.doc.number}` : `Copied into ${S.doc.number}. Check the details and send.`); return; }
   const o = e.target.closest("[data-open]"); if (!o) return; const h = history.find((x) => x.id === o.dataset.open); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); }
 $("#saved-list").addEventListener("click", handleSaved);
-async function fetchActivity() { if (!configured() || isDemo()) return; try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {} }
+async function fetchActivity() { if (isFree()) refreshFree(); if (!configured() || isDemo()) return; try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {} }
 
 /* send */
-const payload = () => ({ v: 2, demo: isDemo(), brandless: isPrestige(), profile: { business: S.profile.business, bank: S.profile.bank, design: { ...S.profile.design, sealLogo: isPrestige() && !!S.profile.design.sealLogo }, docStyle: S.profile.docStyle || {} }, doc: { ...S.doc, link: "", shareId: "", items: S.doc.items.filter((it) => it.desc || num(it.price)) } });
+const payload = () => ({ v: 2, demo: isDemo(), free: isFree(), brandless: isPrestige(), profile: { business: S.profile.business, bank: S.profile.bank, design: { ...S.profile.design, sealLogo: isPrestige() && !!S.profile.design.sealLogo }, docStyle: S.profile.docStyle || {} }, doc: { ...S.doc, reveal: isFree() ? "envelope" : S.doc.reveal, link: "", shareId: "", items: S.doc.items.filter((it) => it.desc || num(it.price)) } });
 $("#make-link").addEventListener("click", async () => {
+  if (!(await freeGo(S.doc))) return;
   const btn = $("#make-link"); btn.disabled = true; btn.textContent = "Sealing your envelope…"; const base = location.href.split(/[?#]/)[0];
   try {
     if (configured() && !isDemo()) {
@@ -2940,9 +2990,9 @@ function sendWhatsApp() {
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-act]"); if (!b) return; const act = b.dataset.act;
-  if (act === "whatsapp") sendWhatsApp();
-  if (act === "pdf") { rememberDoc(); exportPDF(S.profile, S.doc, studioOpts()); }
-  if (act === "image") { rememberDoc(); exportImage(S.profile, S.doc, studioOpts()); }
+  if (act === "whatsapp") freeGo(S.doc).then((ok) => ok && sendWhatsApp());
+  if (act === "pdf") freeGo(S.doc).then((ok) => { if (ok) { rememberDoc(); exportPDF(S.profile, S.doc, studioOpts()); } });
+  if (act === "image") freeGo(S.doc).then((ok) => { if (ok) { rememberDoc(); exportImage(S.profile, S.doc, studioOpts()); } });
   if (act === "new") newDoc();
 });
 $("#x-vat").addEventListener("change", () => { S.doc.vatOn = $("#x-vat").checked; persist(); render(); });
@@ -3005,7 +3055,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
         <div class="row2">${f("Signed by", "profile.business.signName")}${f("Title", "profile.business.signTitle")}</div>
       </section>
       <section><h3 class="sub">Your plan</h3>
-        <div class="prestige-card"><span class="eyebrow">${isDemo() ? "Free trial" : isPrestige() ? "Prestige" : "Signature"}</span>
+        <div class="prestige-card"><span class="eyebrow">${isDemo() ? "Free trial" : isFree() ? "Free plan" : isPrestige() ? "Prestige" : "Signature"}</span>
           ${isPrestige() ? `<b>Your own address, no Aurum branding</b><p>Your envelopes are delivered from your own web address and carry only your name.</p>`
             : `<b>Prestige</b><p>Send envelopes from your own web address (for example invoice.yourbrand.ng), with no Aurum branding anywhere your client looks.</p>${CONFIG.SELLER_WHATSAPP ? `<a class="btn sm primary" style="justify-self:start" href="https://wa.me/${esc(CONFIG.SELLER_WHATSAPP)}?text=${encodeURIComponent("Hello, I'd like to upgrade Aurum to Prestige.")}" target="_blank" rel="noopener">Ask about Prestige</a>` : ""}`}
           ${isDemo() && CONFIG.BUY_LINK ? `<a class="btn sm" style="justify-self:start" href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get your licence</a>` : ""}
@@ -3327,6 +3377,9 @@ function addBrandSheet() {
 }
 /* ---------- Prestige: upgrade prompt, phone alerts, monthly report ---------- */
 const upgradeHref = () => `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to upgrade my Aurum licence to Prestige.")}`;
+function freeSheet(title) {
+  sheet(title, `<div class="lock-card" style="margin:6px 4px 8px"><h3>Get Aurum for good</h3><ul><li>Unlimited invoices, receipts and quotations</li><li>No "Made with Aurum" line on your documents</li><li>All the envelope opening styles</li><li>Pay once, no monthly fees</li></ul><p class="hint" style="margin:8px 0">Your 3 free documents come back on the 1st of next month.</p><a class="btn primary" href="${esc(buyHref())}" target="_blank" rel="noopener">Get your licence</a></div>`);
+}
 function upgradeSheet(feature) {
   sheet(feature, `<div class="lock-card" style="margin:6px 4px 8px"><h3>This is a Prestige feature</h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts, monthly report and team view</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div>`);
 }
@@ -3615,7 +3668,7 @@ document.addEventListener("touchend", (e) => { const n = Date.now(); if (n - las
 const qs = new URLSearchParams(location.search);
 if (qs.get("i")) bootClient({ id: qs.get("i") });
 else if (location.hash.startsWith("#v=")) bootClient({ hash: location.hash.slice(3) });
-else { bootLicence(); const pre = (qs.get("key") || "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 40); if (pre) { const kf = document.querySelector("#lic-key"); if (kf) kf.value = pre; try { history.replaceState(null, "", location.pathname); } catch (e) {} } const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
+else { bootLicence(); if (qs.get("free")) claimFree(String(qs.get("free")).replace(/[^a-f0-9]/gi, "").slice(0, 48)); else if (qs.get("startfree")) setTimeout(() => { if (!$("#gate").hidden) { $("#free-form").hidden = false; $("#free-email").focus(); } }, 400); const pre = (qs.get("key") || "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 40); if (pre) { const kf = document.querySelector("#lic-key"); if (kf) kf.value = pre; try { window.history.replaceState(null, "", location.pathname); } catch (e) {} } const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
 })();
 </script>
 </body>

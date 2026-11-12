@@ -279,7 +279,7 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
       <h1>Invoices your clients <em>open like a gift.</em></h1>
       <p class="lead">Stop sending plain PDFs on WhatsApp. Send a private link sealed with your own wax seal. Your client breaks it, sees exactly what to pay, and pays you in one tap.</p>
       <div class="offer" data-promo-only hidden><span class="tag" data-phase-name>Black Friday</span><b data-price="signature">₦10,000</b><s data-n="signature">₦15,000</s><small>One payment, yours to keep. Offer ends in <time data-timer></time></small></div>
-      <div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span></a><a class="btn" data-app href="./">Try the free demo</a></div>
+      <div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span></a><a class="btn" data-app data-free href="./">Start free · 3 a month</a></div>
       <div class="trust"><span>One-time payment</span><span>Android &amp; iPhone</span><span>Made for Nigerian businesses</span></div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -412,6 +412,7 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
       <details><summary>Do my clients need to download anything?</summary><p>No. They open your link in their phone's browser, like any website. No app and no account.</p></details>
       <details><summary>How do my clients pay me?</summary><p>By transfer to your own bank account (they copy the number in one tap), or by card, transfer or USSD through your own Paystack. The money goes straight to you. Aurum never touches it.</p></details>
       <details><summary>Which phones does it work on?</summary><p>Any modern Android phone or iPhone, and computers too. Install it from Chrome on Android, or from Safari on iPhone.</p></details>
+      <details><summary>Is there a free plan?</summary><p>Yes. Confirm your email and you can send <b>3 documents every month</b> for free, using your own name, logo and clients. Free documents carry a small "Made with Aurum Invoice Studio" line and use the classic envelope. Your 3 come back on the 1st of each month. Want unlimited documents, no Aurum line and every opening style? Buy a licence once, no monthly fees.</p></details>
       <details><summary>Can I try it before I pay?</summary><p>Yes. The free demo shows exactly what your clients will see, using sample businesses and sample prices. Your own name, logo, clients and amounts unlock when you buy.</p></details>
       <details><summary>Can I share my licence with a friend?</summary><p>No. Each licence is for one business on its own devices. Your friend can use your referral code to get a discount on their own.</p></details>
       <details><summary>What happens if I lose my phone?</summary><p>Your documents, clients and settings are backed up. Enter your licence key on your new phone and everything comes back. Message us and we'll move your licence across.</p></details>
@@ -422,7 +423,7 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
   <section class="sec final"><div class="wrap">
     <span class="eyebrow" style="color:var(--gold-hi)">Aurum</span>
     <h2 style="margin-top:12px">Your next invoice could be <em>the one they talk about.</em></h2>
-    <div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span> <s data-n="signature" data-promo-only hidden></s></a><a class="btn" data-app href="./">Try the free demo</a></div>
+    <div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum · <span data-price="signature">₦10,000</span> <s data-n="signature" data-promo-only hidden></s></a><a class="btn" data-app data-free href="./">Start free · 3 a month</a></div>
   </div></section>
 </main>
 
@@ -534,7 +535,7 @@ const CONFIG = {
     $$("[data-prestige]").forEach((a) => { a.href = pre; if (/^https?:/.test(pre)) { a.target = "_blank"; a.rel = "noopener"; } });
   }
   paint(); setInterval(paint, 1000);
-  $$("[data-app]").forEach((a) => (a.href = CONFIG.APP_LINK));
+  $$("[data-app]").forEach((a) => (a.href = CONFIG.APP_LINK + (a.hasAttribute("data-free") ? "?startfree=1" : "")));
   $$("[data-app-install]").forEach((a) => (a.href = CONFIG.APP_LINK.replace(/\/?$/, "/") + "?install=" + a.dataset.appInstall));
   const c = document.querySelector("[data-contact]"); if (c && CONFIG.SELLER_WHATSAPP) c.innerHTML = `Questions? <a href="${wa("Hello, I have a question about Aurum.")}" target="_blank" rel="noopener">WhatsApp us</a>`;
   document.getElementById("yr").textContent = new Date().getFullYear();
