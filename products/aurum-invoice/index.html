@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script>document.documentElement.classList.add("lite");</script>
+<script>document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-4]$/.test(q))localStorage.setItem("aurum.fx",q);document.documentElement.setAttribute("data-fx",localStorage.getItem("aurum.fx")||"1")}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Aurum Invoice Studio</title>
@@ -1218,6 +1218,18 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
 </head>
 <body>
 <style>
+/* ---- safe levels for phones whose graphics chip flickers (Infinix, Tecno, itel...). Level 1 is the default; ?fx=0 turns everything back on. ---- */
+html:not([data-fx="0"]) *, html:not([data-fx="0"]) *::before, html:not([data-fx="0"]) *::after { transition-duration: .001s !important; transition-delay: 0s !important; animation-duration: .001s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; text-shadow: none !important; }
+html:not([data-fx="0"]) .appbar { position: static !important; background: var(--bg) !important; }
+html:not([data-fx="0"]) body::before { display: none !important; }
+html:not([data-fx="0"]) :is(.home-more, #dash-period, #dash-type, #dash-status) { contain: none !important; }
+html[data-fx="1"] *, html[data-fx="2"] *, html[data-fx="3"] *, html[data-fx="4"] * { box-shadow: none !important; }
+/* level 2: plain system fonts (no web fonts loading in, no text reflowing) */
+html[data-fx="2"] *, html[data-fx="3"] *, html[data-fx="4"] * { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important; }
+/* level 3: flat colours (no gradients) and square corners on the big cards */
+html[data-fx="3"] *, html[data-fx="4"] * { background-image: none !important; }
+/* level 4: nothing is lifted onto its own layer and nothing is clipped */
+html[data-fx="4"] * { border-radius: 0 !important; overflow: visible !important; transform: none !important; opacity: 1 !important; }
 .env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
 .env3d-v { position: absolute; left: -11.457%; top: -79.680%; width: 122.918%; height: 204.390%; z-index: 1; pointer-events: none; background: #080706; object-fit: fill;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 12%, #000 90%, transparent); -webkit-mask-composite: source-in;
@@ -2348,7 +2360,7 @@ async function bootLicence() {
   ["env", "letter", "pocket", "flap", "sealTop", "sealWrap", "sealLow", "crackPath", "sealBtn"].forEach((k) => $("#art-env #" + k)?.removeAttribute("id"));
   const tilt = $("#art-tilt");
   if (!reduceMotion && matchMedia("(hover: hover)").matches) $("#gate").addEventListener("pointermove", (e) => { const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5; tilt.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 8}deg)`; });
-  $("#gate-fine").innerHTML = "Your licence is personal to you and works on your own devices. <span style=\"opacity:.6\">Version 13 Nov b</span> " + (CONFIG.BUY_LINK ? ` <a href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get a licence</a>` : "");
+  $("#gate-fine").innerHTML = "Your licence is personal to you and works on your own devices. <span style=\"opacity:.6\">Version 13 Nov c · level " + (document.documentElement.getAttribute("data-fx") || "1") + "</span> " + (CONFIG.BUY_LINK ? ` <a href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get a licence</a>` : "");
   if (licence?.mode === "demo") return enter();
   if (licence?.mode === "full" && configured()) {
     try {
