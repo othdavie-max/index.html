@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <script>try{var n=navigator,m=n.deviceMemory,c=n.hardwareConcurrency;if((m&&m<=3)||(c&&c<=4)||/Android [4-8][.;) ]/.test(n.userAgent))document.documentElement.classList.add("lite")}catch(e){}</script>
 <meta name="robots" content="noindex, nofollow">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Aurum Invoice Studio</title>
 <meta name="description" content="Luxury invoices, receipts and quotations for Nigerian businesses.">
 <meta property="og:title" content="A private document for you">
@@ -1239,6 +1239,8 @@ html.lite .gate::before { display: none; }
 html.lite { --grain: none; --grain-dark: none; }
 html.lite .stamp { mix-blend-mode: normal !important; }
 html.lite svg *, html.lite .art-env .env, html.lite .seal-wrap, html.lite .seal-top-wrap { filter: none !important; }
+#ob svg *, #gate svg *, #layer svg *, .ob svg *, .gate svg * { filter: none !important; }
+#ob .wax, #gate .art-env .env, .seal-wrap, .seal-top-wrap { filter: none !important; }
 </style>
 
 <!-- ===== Licence gate ===== -->
@@ -1259,13 +1261,13 @@ html.lite svg *, html.lite .art-env .env, html.lite .seal-wrap, html.lite .seal-
         <div class="err" id="lic-err" role="alert"></div>
       </form>
       <div class="gate-install-wrap g-in" style="--d:.55s"><button class="btn gate-install js-install" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span>Install the app on your phone<small>Android &amp; iPhone</small></span></button></div>
-      <div class="gate-alt g-in" style="--d:.6s;display:flex;flex-wrap:wrap;gap:4px 18px"><button class="link-btn" type="button" id="lic-free">Start free: 3 documents a month <span aria-hidden="true">→</span></button> <button class="link-btn" type="button" id="lic-demo">Explore the demo</button></div>
+      <div class="gate-alt g-in" style="--d:.6s;display:flex;flex-wrap:wrap;gap:4px 18px"><button class="link-btn" type="button" id="lic-free">Try it free <span aria-hidden="true">→</span></button> <button class="link-btn" type="button" id="lic-demo">Explore the demo</button></div>
       <form id="free-form" class="g-in" style="--d:.62s;margin-top:10px" autocomplete="on" hidden>
         <label class="sr" for="free-email">Your email</label>
         <div class="key-row"><input id="free-email" style="min-width:0" name="email" type="email" placeholder="Your email address" maxlength="120" autocomplete="email" required><button class="btn primary" type="submit" id="free-submit">Send link</button></div>
         <input id="free-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
         <div class="err" id="free-msg" role="alert"></div>
-        <p class="fine" style="margin-top:6px">3 free documents every month. We email you a link to confirm. No card needed.</p>
+        <p class="fine" style="margin-top:6px">Free plan: make 3 invoices, receipts or quotations every month. We email you a link to confirm your email. No card needed.</p>
       </form>
       <p class="fine g-in" style="--d:.7s" id="gate-fine">Your licence is personal to you and works on your own devices.</p>
     </div>
@@ -2473,9 +2475,18 @@ let activity = {};
 let step = 1;
 let saveTimer;
 let lastProfileJSON = "";
-const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => {
-  const pj = JSON.stringify(S.profile); if (lastProfileJSON && pj !== lastProfileJSON) { S.profile.updatedAt = Date.now(); } lastProfileJSON = JSON.stringify(S.profile);
-  LS.set("aurum.profile", S.profile); LS.set("aurum.draft", S.doc); LS.set("aurum.clients", S.clients); LS.set("aurum.catalog", S.catalog); pushSoon(); }, 250); };
+const saveCache = {};
+function saveNow() {
+  clearTimeout(saveTimer);
+  const pj = JSON.stringify(S.profile); let pj2 = pj; if (lastProfileJSON && pj !== lastProfileJSON) { S.profile.updatedAt = Date.now(); pj2 = JSON.stringify(S.profile); } lastProfileJSON = pj2;
+  // only write what really changed (a big logo or signature is never re-written while you are just typing a name)
+  const put = (k, str) => { if (saveCache[k] === str) return; saveCache[k] = str; try { localStorage.setItem(k, str); } catch {} };
+  put("aurum.profile", pj2); put("aurum.draft", JSON.stringify(S.doc)); put("aurum.clients", JSON.stringify(S.clients)); put("aurum.catalog", JSON.stringify(S.catalog)); pushSoon();
+}
+const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 800); };
+// nothing is lost if the app is closed or you switch to WhatsApp in the middle of typing
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveNow(); });
+addEventListener("pagehide", saveNow);
 const studioOpts = (extra = {}) => ({ demo: isDemo(), free: isFree(), qr: S.doc.shareId ? qrFor(S.doc.link) : "", ...extra });
 
 async function enter() {
@@ -2664,8 +2675,18 @@ function askAmount(label, { percent = false, value = "" } = {}, done) {
    STUDIO
    ========================================================= */
 let lastTotal = null, lastStamp = null, rafId;
+let renderDirty = false, soonT = 0, soonSync = false, soonDrawer = false;
+// Typing: wait until the thumb pauses, then update the preview once (not once per letter).
+function renderSoon({ sync = false, drawer = false } = {}) {
+  soonSync = soonSync || sync; soonDrawer = soonDrawer || drawer; clearTimeout(soonT);
+  soonT = setTimeout(() => { const s = soonSync, d = soonDrawer; soonSync = soonDrawer = false; if (s) syncChrome(); render(); if (d) refreshDrawerBits(); }, 220);
+}
 function render({ enter = false, newIds = null } = {}) {
   if ($("#studio-root").hidden) return;
+  clearTimeout(soonT);
+  // On a phone the paper is hidden until "Preview" is tapped: do not build it, just keep the small totals right.
+  if ($("#paper").offsetParent === null) { renderDirty = true; const D0 = S.doc, t0 = calc(D0); lastTotal = t0.total; $("#mini-label").textContent = `${LABEL[D0.type]} ${D0.number}`; $("#mini-total").textContent = D0.type === "delivery" ? `${D0.items.filter((it) => it.desc).reduce((a, it) => a + num(it.qty), 0)} item(s)` : money(D0.type === "invoice" && D0.status === "part" ? t0.balance : t0.total, D0.currency); renderSumbox(); return; }
+  renderDirty = false;
   const D = S.doc; const stampNow = D.type === "receipt" ? "paid" : D.type === "invoice" ? D.status : "none";
   const stampIn = !reduceMotion && lastStamp !== null && stampNow !== lastStamp && (stampNow === "paid" || stampNow === "overdue");
   $("#paper").innerHTML = invoiceHTML(S.profile, D, studioOpts({ enter: enter && !reduceMotion, newIds, stampIn }));
@@ -2680,6 +2701,7 @@ function render({ enter = false, newIds = null } = {}) {
 function countUp(el, from, to, c, dur) { cancelAnimationFrame(rafId); const t0 = performance.now(); const f = (n) => { const p = Math.min(1, (n - t0) / dur); el.textContent = money(from + (to - from) * (1 - Math.pow(1 - p, 3)), c); if (p < 1) rafId = requestAnimationFrame(f); }; rafId = requestAnimationFrame(f); }
 function fitPaper() {
   const inner = $("#stage-inner"); if (!inner.clientWidth) return;
+  if (renderDirty && $("#paper").offsetParent !== null) { renderDirty = false; return render(); }
   const cs = getComputedStyle(inner); const avail = inner.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); const s = Math.min(1, avail / 794);
   $("#paper-scale").style.transform = `scale(${s})`; $("#paper-wrap").style.width = 794 * s + "px"; $("#paper-wrap").style.height = $("#paper").offsetHeight * s + "px";
 }
@@ -2868,7 +2890,7 @@ document.addEventListener("input", (e) => {
   if (el.dataset.bind.startsWith("profile.business")) delete S.profile.isSample;
   el.closest(".field.error")?.classList.remove("error");
   if (el.id === "ob-name") { /* live seal is drawn on the next screen */ }
-  persist(); if (!$("#studio-root").hidden) { if (!el.closest(".drawer")) syncChrome(); render(); if (el.closest(".drawer")) refreshDrawerBits(); }
+  persist(); if (!$("#studio-root").hidden) renderSoon({ sync: !el.closest(".drawer"), drawer: !!el.closest(".drawer") });
 });
 document.addEventListener("change", async (e) => {
   const up = e.target.dataset?.upload; if (!up) return; const f = e.target.files[0]; if (!f) return;
@@ -2885,7 +2907,7 @@ $$("[data-rmode]").forEach((b) => b.addEventListener("click", () => {
   if (m === "simple" && !num(S.doc.receivedAmount)) { const tt = calc({ ...S.doc, receiptMode: "items" }).total; if (tt) S.doc.receivedAmount = tt; if (!S.doc.paidFor) S.doc.paidFor = S.doc.items.filter((it) => it.desc).map((it) => it.desc).join(", "); }
   S.doc.receiptMode = m; persist(); syncChrome(); if (m === "items") renderItemsEditor(); render();
 }));
-$("#r-amt").addEventListener("input", (e) => { const raw = e.target.value.replace(/[^\d.]/g, ""); S.doc.receivedAmount = raw; if (num(S.doc.fromBalance) > 0) { const left = round2(num(S.doc.fromBalance) - num(raw)); S.doc.balanceLeft = left > 0 ? left : ""; } e.target.value = group(raw); e.target.closest(".field.error")?.classList.remove("error"); persist(); syncChrome(); render(); });
+$("#r-amt").addEventListener("input", (e) => { const raw = e.target.value.replace(/[^\d.]/g, ""); S.doc.receivedAmount = raw; if (num(S.doc.fromBalance) > 0) { const left = round2(num(S.doc.fromBalance) - num(raw)); S.doc.balanceLeft = left > 0 ? left : ""; } e.target.value = group(raw); e.target.closest(".field.error")?.classList.remove("error"); persist(); renderSoon({ sync: true }); });
 $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
   const t = b.dataset.doctype; if (t === S.doc.type) return;
   if (history.some((h) => h.id === S.doc.id)) { S.doc = { ...structuredClone(S.doc), id: uid(), receipts: [], settled: false, recurring: false, reminded: "" }; lastTotal = null; }
@@ -2951,7 +2973,7 @@ $("#items-ed").addEventListener("input", (e) => {
   if (key === "price") { const raw = e.target.value.replace(/[^\d.]/g, ""); it.price = raw; e.target.value = group(raw); }
   else if (key === "qty") { it.qty = e.target.value.replace(/[^\d.]/g, ""); }
   else it[key] = e.target.value;
-  $("[data-line]", card).textContent = money(num(it.qty) * num(it.price), S.doc.currency); persist(); render();
+  $("[data-line]", card).textContent = money(num(it.qty) * num(it.price), S.doc.currency); persist(); renderSoon();
   if (key === "desc") itemSuggest(card, it);
 });
 $("#items-ed").addEventListener("focusin", (e) => { if (e.target.dataset.item === "desc") { const card = e.target.closest(".item-card"); itemSuggest(card, S.doc.items.find((x) => x.id === card.dataset.id)); } });
