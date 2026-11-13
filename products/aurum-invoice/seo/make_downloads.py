@@ -13,7 +13,7 @@ os.makedirs(OUT, exist_ok=True)
 GOLD, INK, SAND = "8C6830", "1C1813", "EFE7D8"
 NAIRA = '"₦"#,##0.00'
 thin = Side(style="thin", color="CDBF9F"); box = Border(left=thin, right=thin, top=thin, bottom=thin)
-FOOT = "Made with Aurum Invoice Studio · auruminvoicestudio.netlify.app"
+FOOT = "Made with Aurum Invoice Studio · auruminvoice.com.ng"
 
 def sheet(title, doc_name, number_prefix, lines=12, has_deposit=True, valid_until=False, receipt=False):
     wb = Workbook(); ws = wb.active; ws.title = doc_name

@@ -11,8 +11,8 @@ Create a channel named **Aurum Invoice Studio**. Add the logo as the profile pic
 ```
 Your client is paying you good money… and you send them a typed price list? Aurum turns your invoice into a wax-sealed private link your client opens as an experience. You see the moment they open it.
 
-Try the free demo and see pricing: https://auruminvoicestudio.netlify.app/
-Free invoice, receipt and quotation templates: https://auruminvoicestudio.netlify.app/guides/
+Try the free demo and see pricing: https://auruminvoice.com.ng/
+Free invoice, receipt and quotation templates: https://auruminvoice.com.ng/guides/
 
 Aurum Invoice Studio: invoices, receipts and quotations for Nigerian businesses. Pay once, no monthly fees.
 Instagram: https://www.instagram.com/auruminvoice
@@ -25,9 +25,9 @@ Instagram: https://www.instagram.com/auruminvoice
 ```
 Everything Aurum does, in under 2 minutes: invoices, receipts, quotations, delivery notes, credit notes and purchase orders with your logo, signature and bank details. Your client opens a private wax-sealed link, you see when they open it, and one tap turns a paid invoice into a receipt. Installs on your phone, works without data, one-time payment.
 
-Free demo and pricing: https://auruminvoicestudio.netlify.app/
-Free templates and guides: https://auruminvoicestudio.netlify.app/guides/
-How buying works: https://auruminvoicestudio.netlify.app/about/
+Free demo and pricing: https://auruminvoice.com.ng/
+Free templates and guides: https://auruminvoice.com.ng/guides/
+How buying works: https://auruminvoice.com.ng/about/
 ```
 **Tags:** `invoice app, Nigeria, WhatsApp invoice, how to write an invoice, payment reminder, small business, invoice for freelancers`
 Set the audience to "Not made for kids". Add the video to a playlist called "How Aurum works". Add the videos to **Shorts** as well (the 20-second one fits).
@@ -41,7 +41,7 @@ Use this text for all of them.
 ```
 Aurum Invoice Studio makes invoices, receipts, quotations, delivery notes, credit notes and purchase orders with your logo, signature and bank details, then delivers them as a private wax-sealed link your clients open as an experience. You see when they open it, turn a paid invoice into a receipt in one tap, and send polite WhatsApp reminders. Installs on your phone, works without data. One-time payment.
 ```
-**Category:** Invoicing / Small business software. **Country:** Nigeria. **Pricing:** one-time payment (see the website for the current price). **Website:** https://auruminvoicestudio.netlify.app/
+**Category:** Invoicing / Small business software. **Country:** Nigeria. **Pricing:** one-time payment (see the website for the current price). **Website:** https://auruminvoice.com.ng/
 
 Where to list:
 1. **AlternativeTo** (alternativeto.net): add it as an alternative to other invoicing tools.
@@ -58,12 +58,12 @@ Join Nigerian small-business groups on Facebook, Reddit, Nairaland, WhatsApp com
 **A post that gives value (use the guide as the content):**
 ```
 Small business owners: this simple layout helps you get paid faster.
-Every invoice should have: your business details and logo, an invoice number, the date and a due date, each item with its price, the total, your bank details and your terms. I wrote the full list with a free Excel template here: https://auruminvoicestudio.netlify.app/guides/how-to-write-an-invoice-in-nigeria/
+Every invoice should have: your business details and logo, an invoice number, the date and a due date, each item with its price, the total, your bank details and your terms. I wrote the full list with a free Excel template here: https://auruminvoice.com.ng/guides/how-to-write-an-invoice-in-nigeria/
 Happy to answer questions in the comments.
 ```
 **When someone asks for an invoice tool:**
 ```
-I built Aurum for exactly this. It has a free demo you can try without paying, so you can see if it fits: https://auruminvoicestudio.netlify.app/
+I built Aurum for exactly this. It has a free demo you can try without paying, so you can see if it fits: https://auruminvoice.com.ng/
 ```
 Be honest that you made it. Don't post the same text in many places.
 
@@ -71,7 +71,7 @@ Be honest that you made it. Don't post the same text in many places.
 ```
 Most small businesses in Nigeria still invoice by typing prices into a chat.
 I built Aurum Invoice Studio to change that. Your invoice becomes a private link, sealed with your brand, that gives your client an experience. You see when they open it, and one tap turns a paid invoice into a receipt.
-Free demo and free templates: https://auruminvoicestudio.netlify.app/
+Free demo and free templates: https://auruminvoice.com.ng/
 What would make invoicing easier for your business?
 ```
 
@@ -80,16 +80,16 @@ What would make invoicing easier for your business?
 2. `1. Take a deposit before you start (30 to 50% for custom work).`
 3. `2. Agree the price in writing. A quotation prevents most arguments.`
 4. `3. Send the invoice immediately, with a due date.`
-5. `4. Remind politely before and after the due date. Free message scripts: https://auruminvoicestudio.netlify.app/guides/payment-reminder-messages-nigeria/`
-6. `5. Confirm payment in your own bank app. Fake alerts exist. 🙏 If you want your invoices to look premium too: https://auruminvoicestudio.netlify.app/`
+5. `4. Remind politely before and after the due date. Free message scripts: https://auruminvoice.com.ng/guides/payment-reminder-messages-nigeria/`
+6. `5. Confirm payment in your own bank app. Fake alerts exist. 🙏 If you want your invoices to look premium too: https://auruminvoice.com.ng/`
 
 ## 6. WhatsApp
 **Status (post the 20-second video weekly) with this caption:**
-`Invoices your clients open as an experience 🎁 Free demo: https://auruminvoicestudio.netlify.app/`
+`Invoices your clients open as an experience 🎁 Free demo: https://auruminvoice.com.ng/`
 
 **Broadcast to your contacts (people who know you only):**
 ```
-Hello [Name]! I've launched Aurum, an invoice app for Nigerian businesses. Your invoice becomes a private link your clients open as an experience, and you see when they open it. There's a free demo here: https://auruminvoicestudio.netlify.app/ . If you know a business owner who sends invoices, please share it with them 🙏
+Hello [Name]! I've launched Aurum, an invoice app for Nigerian businesses. Your invoice becomes a private link your clients open as an experience, and you see when they open it. There's a free demo here: https://auruminvoice.com.ng/ . If you know a business owner who sends invoices, please share it with them 🙏
 ```
 
 ## 7. Backlinks you can earn for free

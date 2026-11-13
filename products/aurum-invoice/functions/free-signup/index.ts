@@ -12,7 +12,7 @@ import nodemailer from "npm:nodemailer@6.9.13";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const SITE = (Deno.env.get("SITE_URL") || "https://auruminvoicestudio.netlify.app").replace(/\/$/, "");
+const SITE = (Deno.env.get("SITE_URL") || "https://auruminvoice.com.ng").replace(/\/$/, "");
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const out = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...CORS, "Content-Type": "application/json" } });
 

@@ -1,6 +1,6 @@
 # Captions and bios (copy and paste)
 
-Handle: @auruminvoice. Link in bio: https://auruminvoicestudio.netlify.app/
+Handle: @auruminvoice. Link in bio: https://auruminvoice.com.ng/
 
 ## BIOS
 

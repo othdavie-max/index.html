@@ -9,7 +9,7 @@
 <meta name="description" content="Luxury invoices, receipts and quotations for Nigerian businesses.">
 <meta property="og:title" content="A private document for you">
 <meta property="og:description" content="Tap to open it securely. No app or login needed.">
-<meta property="og:image" content="https://auruminvoicestudio.netlify.app/app/og/invoice.jpg">
+<meta property="og:image" content="https://auruminvoice.com.ng/app/og/invoice.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="theme-color" content="#F6F1E7">
@@ -2336,7 +2336,7 @@ function openClientView(payload, ctx = {}) {
       <div class="cv-card cv-doc"><h2>Your official ${docWord}</h2><p>Signed and sealed by ${esc(B.name)}.</p><div class="cv-paper" id="cv-paper"></div>
         <div class="actions"><button class="btn primary" type="button" data-cv="pdf">Download PDF</button><button class="btn" type="button" data-cv="image">Save image</button></div></div>
       ${verifyCard}
-      ${brandless ? "" : payload.free ? `<div class="cv-foot">Made with Aurum Invoice Studio · <a href="https://auruminvoicestudio.netlify.app/" style="color:inherit">Make yours free</a></div>` : `<div class="cv-foot">Delivered privately by Aurum</div>`}
+      ${brandless ? "" : payload.free ? `<div class="cv-foot">Made with Aurum Invoice Studio · <a href="https://auruminvoice.com.ng/" style="color:inherit">Make yours free</a></div>` : `<div class="cv-foot">Delivered privately by Aurum</div>`}
     </div>`;
     cv.scrollTop = 0;
     fitInto($("#cv-paper", cv), P, D, docOpts);

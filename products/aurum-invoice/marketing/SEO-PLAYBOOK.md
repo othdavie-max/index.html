@@ -8,10 +8,10 @@ Everything below is what only you can do. Start with Part 1 today. It takes abou
 
 ### Google Search Console (free)
 1. Go to search.google.com/search-console and sign in with your Google account.
-2. Click **Add property**, choose **URL prefix**, and enter `https://auruminvoicestudio.netlify.app/`.
+2. Click **Add property**, choose **URL prefix**, and enter `https://auruminvoice.com.ng/`.
 3. Verify ownership. Choose **HTML tag** and copy the `<meta name="google-site-verification" ...>` line it shows. Send it to me and I will put it in the site, then you deploy and click Verify. (Or choose the Google Analytics or Tag Manager methods if you use those.)
 4. Open **Sitemaps** in the left menu, type `sitemap.xml` and click **Submit**.
-5. Open **URL inspection**, paste `https://auruminvoicestudio.netlify.app/`, and click **Request indexing**. Do the same for `/guides/` and `/invoice-app-nigeria/`.
+5. Open **URL inspection**, paste `https://auruminvoice.com.ng/`, and click **Request indexing**. Do the same for `/guides/` and `/invoice-app-nigeria/`.
 
 ### Bing Webmaster Tools (free, 5 minutes)
 Go to bing.com/webmasters, sign in, and choose **Import from Google Search Console**. It copies everything across. Bing also powers other search engines and AI assistants.
@@ -25,7 +25,7 @@ Go to bing.com/webmasters, sign in, and choose **Import from Google Search Conso
 Google ranks a site higher when other trusted sites link to it. All of these are free:
 
 1. **YouTube.** Upload both ad videos to a YouTube channel called "Aurum Invoice Studio". Title the first one "Stop sending plain invoices | Aurum Invoice Studio" and the second "Invoice app for Nigerian businesses | How Aurum works". Put your website link in the first line of the description. YouTube videos often appear on Google's first page.
-2. **Instagram, TikTok and Facebook bios.** Put `https://auruminvoicestudio.netlify.app/` in every bio.
+2. **Instagram, TikTok and Facebook bios.** Put `https://auruminvoice.com.ng/` in every bio.
 3. **Turn each guide into a post.** A guide like "Payment reminder messages" is a ready-made carousel or short video. Post it and link to the guide.
 4. **Nairaland, Reddit (r/Nigeria, r/smallbusiness) and Facebook groups for Nigerian business owners.** Answer real questions about invoices and late payment. Link to a guide only when it truly answers the question. Do not spam. Posts that only advertise get removed.
 5. **LinkedIn and X.** Share a guide each week.

@@ -5,7 +5,7 @@ Content lives in content.py. Edit it there, then run this again and redeploy."""
 import os, re, html, json, shutil, datetime
 from content import GUIDES, PRODUCTS, HUB, SITE_NAME, ABOUT, REVIEWS
 
-BASE = "https://auruminvoicestudio.netlify.app"
+BASE = "https://auruminvoice.com.ng"
 FB_URL = "https://www.facebook.com/profile.php?id=1527108630475190"
 IG_URL = "https://www.instagram.com/auruminvoice"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "site-seo")

@@ -10,7 +10,7 @@ Invoices your clients open as an experience 🎁
 Wax-sealed private links · Pay once
 👇 Try the free demo
 ```
-**Link in bio:** `https://auruminvoicestudio.netlify.app/` (the sales page has the demo button).
+**Link in bio:** `https://auruminvoice.com.ng/` (the sales page has the demo button).
 **Name field:** `Aurum Invoice Studio` (the name is searchable, so keep the words "Invoice" in it).
 **Category:** Software / App. **Contact button:** WhatsApp 0703 297 8008.
 **Profile picture:** your Aurum "Au" seal logo on the dark background.
@@ -88,14 +88,14 @@ Repeat this weekly rhythm (every post links back to a guide, so use the guide as
 ## 6. Messages to copy
 
 **Reply when someone asks "how much?"**
-> Hello! Aurum is a one-time payment, no monthly fees. You can see the current price and try the free demo here: https://auruminvoicestudio.netlify.app/ 😊 Any questions, ask me.
+> Hello! Aurum is a one-time payment, no monthly fees. You can see the current price and try the free demo here: https://auruminvoice.com.ng/ 😊 Any questions, ask me.
 
 **After someone pays: thank you + ask for a review (WhatsApp)**
 > Thank you for choosing Aurum, [Name]! 🙏 Your licence is ready. If you need help setting it up, reply here.
-> When you have used it a few times, would you share a short review? It helps other business owners decide: https://auruminvoicestudio.netlify.app/reviews/
+> When you have used it a few times, would you share a short review? It helps other business owners decide: https://auruminvoice.com.ng/reviews/
 
 **Reply to "is it legit?"**
-> Fair question! You can try the free demo first, payment is through Paystack (we never see your card details), and there's a refund policy in writing. Details: https://auruminvoicestudio.netlify.app/about/
+> Fair question! You can try the free demo first, payment is through Paystack (we never see your card details), and there's a refund policy in writing. Details: https://auruminvoice.com.ng/about/
 
 ## 6b. Things to avoid
 - Don't post fake testimonials, or screenshots with sample names presented as customers.

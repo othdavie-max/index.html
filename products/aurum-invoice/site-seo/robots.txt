@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://auruminvoicestudio.netlify.app/sitemap.xml
+Sitemap: https://auruminvoice.com.ng/sitemap.xml
