@@ -1219,6 +1219,13 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
 </head>
 <body>
 <style>
+.env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
+.env3d-v { position: absolute; left: -18.287%; top: -84.668%; width: 136.575%; height: 219.337%; z-index: 1; pointer-events: none; background: transparent; object-fit: fill;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); mask-composite: intersect; }
+.env3d-seal { position: absolute; left: 50%; top: 58.197%; width: 29.629%; aspect-ratio: 1; transform: translate(-50%, -50%); z-index: 6; display: grid; place-items: center; }
+.env3d-mono { font-family: var(--f-display); font-weight: 600; letter-spacing: .04em; line-height: 1; pointer-events: none; text-shadow: 0 1px 0 rgba(255,255,255,.28), 0 -1px 0 rgba(0,0,0,.55); opacity: .92; }
+.env3d-letter { left: 6.780%; right: auto; width: 86.441%; top: -57.109%; height: 85.447%; opacity: 0; z-index: 3; }
 html.lite .foil, html.lite .gate-copy h1 em { animation: none !important; }
 html.lite .seal-btn::before, html.lite .art-float, html.lite .art-glow { animation: none !important; }
 html.lite .art-glow { display: none; }
@@ -1841,7 +1848,7 @@ async function decodePayload(s) {
    AMBIENT PARTICLES — gold dust (envelope) and gold leaf (thank-you)
    ========================================================= */
 function goldDust(canvas) {
-  if (reduceMotion) return () => {};
+  if (reduceMotion || document.documentElement.classList.contains("lite")) return () => {};
   const ctx = canvas.getContext("2d"); let w, h, raf, alive = true; const dpr = Math.min(2, devicePixelRatio || 1);
   const resize = () => { w = canvas.clientWidth; h = canvas.clientHeight; canvas.width = w * dpr; canvas.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
   resize(); addEventListener("resize", resize);
@@ -2077,11 +2084,54 @@ async function openCard(cv, wax, onDone) {
   finale(host, "", onDone);
 }
 
+
+/* ---------- I-b · the envelope filmed in 3D (made in Blender: real wax, paper and physics) ---------- */
+const ENV3D = { onyx: "#1a1817", bordeaux: "#5a1a24", midnight: "#141e3a", emerald: "#0f3d2e", aubergine: "#3b1f4a", cognac: "#6b4a1e" };
+const env3dFile = (brand) => { const b = String(brand || "").toLowerCase(); return Object.keys(ENV3D).find((k) => ENV3D[k] === b) || null; };
+function env3dHTML(B, D, wax, file) {
+  return `<div class="env3d" id="env3d">
+    <video class="env3d-v" id="env3dV" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback poster="env3d/${file}.jpg" src="env3d/${file}.mp4"></video>
+    <div class="env3d-seal"><span class="env3d-mono" style="color:${shade(wax, .55)}">${esc(initials(B.name))}</span><button class="seal-btn" type="button" id="sealBtn" aria-label="Break the seal to open"></button></div>
+    <div class="letter env3d-letter" id="letter">${letterInner(B, D)}</div>
+  </div>`;
+}
+function env3dAfter(cv, B, D, wax) {
+  const stage = $(".env-stage", cv), box = $("#env3d", cv); if (!box) return;
+  const mono = $(".env3d-mono", cv); if (mono) mono.style.fontSize = Math.round(box.clientWidth * .105) + "px";
+  const toCss = () => { if (!$("#env3d", cv)) return; stage.innerHTML = envelopeHTML(B, D, wax); stage.__css = true; };
+  const probe = new Image(); probe.onerror = toCss; probe.src = $("#env3dV", cv).getAttribute("poster");
+  $("#env3dV", cv).addEventListener("error", toCss);
+}
+async function open3d(cv, B, D, wax, onDone) {
+  const stage = $(".env-stage", cv);
+  if (stage.__css || !$("#env3d", cv)) return openEnvelope(cv, wax, onDone);
+  const v = $("#env3dV", cv), mono = $(".env3d-mono", cv), letter = $("#letter", cv);
+  buzz(12);
+  mono?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" });
+  $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }));
+  let ok = true; try { await v.play(); } catch { ok = false; }
+  if (!ok) { stage.innerHTML = envelopeHTML(B, D, wax); return openEnvelope(cv, wax, onDone); }
+  setTimeout(() => buzz([6, 40, 10]), 260);
+  const ended = await new Promise((res) => {
+    let done = false; const fin = (x) => { if (!done) { done = true; res(x); } };
+    v.addEventListener("ended", () => fin(true), { once: true });
+    setTimeout(() => { if (v.currentTime < .4) fin(false); }, 2600);   // never started: slow connection
+    setTimeout(() => fin(true), 6500);
+  });
+  if (!ended) { v.pause(); stage.innerHTML = envelopeHTML(B, D, wax); return openEnvelope(cv, wax, onDone); }
+  letter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 110, fill: "forwards" });
+  v.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 520, delay: 90, easing: "ease-out", fill: "forwards" });
+  await wait(60);
+  finale(letter, "translateY(0px)", onDone);
+}
+
 /* ---------- builds the opening scene for a style ---------- */
 function revealStage(style, B, D, P) {
   const wax = waxColorFor(P.design.brand || "#1A1817");
   if (style === "gift") return { html: giftHTML(B, D, lum(P.design.brand) < .012 ? "#1C1A18" : P.design.brand), play: (cv, done) => openGift(cv, wax, done) };
   if (style === "card") return { html: cardHTML(B, D, P.design.brand || "#1A1817"), play: (cv, done) => openCard(cv, wax, done), after: startSway };
+  const f3 = !window.__SEAL_LOGO && env3dFile(P.design.brand || "#1A1817");
+  if (f3 && !window.AURUM_NO_VIDEO) return { html: env3dHTML(B, D, wax, f3), play: (cv, done) => open3d(cv, B, D, wax, done), after: (cv) => env3dAfter(cv, B, D, wax) };
   return { html: envelopeHTML(B, D, wax), play: (cv, done) => openEnvelope(cv, wax, done) };
 }
 
@@ -2114,7 +2164,7 @@ function openClientView(payload, ctx = {}) {
     stopDust = goldDust($("#dust", cv)); R.after?.(cv);
     let opened = false;
     const open = () => { if (opened) return; opened = true; $(".env-stage", cv).classList.add("opened"); R.play(cv, () => { stopDust(); showMain(); }); };
-    $("#sealBtn", cv).addEventListener("click", open);
+    cv.addEventListener("click", (e) => { if (e.target.closest("#sealBtn")) open(); });
   }
 
   const thankYou = (kind) => {

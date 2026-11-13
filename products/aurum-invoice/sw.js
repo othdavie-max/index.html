@@ -16,6 +16,7 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   // Never cache the licence/link server or payment scripts.
+  if (/\.(mp4|webm)$/.test(url.pathname)) return;
   if (url.hostname.endsWith("supabase.co") || url.hostname.endsWith("paystack.co")) return;
 
   // The app itself: try the network first so updates arrive, fall back to the saved copy offline.
