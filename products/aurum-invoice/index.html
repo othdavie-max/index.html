@@ -2118,7 +2118,7 @@ function env3dAfter(cv, B, D, fallbackHTML, kind) {
   const k = ENV3D_KINDS[kind], stage = $(".env-stage", cv), box = $(k.box, cv); if (!box) return;
   $(".intro", cv)?.classList.add("has3d");
   const mono = k.mono && $(k.mono, cv); if (mono) mono.style.fontSize = Math.round(box.clientWidth * .105) + "px";
-  const tag = kind === "gift" && $(".gift3d-tag", cv); if (tag) tag.style.fontSize = Math.max(8, Math.round(box.clientWidth * .045)) + "px";
+  const tag = kind === "gift" && $(".gift3d-tag", cv); if (tag) tag.style.fontSize = Math.max(8, Math.round(box.clientWidth * .034)) + "px";
   const toCss = () => { if (!$(k.box, cv) || stage.__css) return; stage.innerHTML = fallbackHTML(); stage.__css = true; };
   const probe = new Image(); probe.onerror = toCss; probe.src = $("#env3dV", cv).getAttribute("poster");
   $("#env3dV", cv).addEventListener("error", toCss);
