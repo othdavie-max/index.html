@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script>document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-7]$/.test(q))localStorage.setItem("aurum.fx",q);document.documentElement.setAttribute("data-fx",localStorage.getItem("aurum.fx")||"1")}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
+<script>document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-9]$/.test(q))localStorage.setItem("aurum.fx",q);var f=localStorage.getItem("aurum.fx");if(!f){f="1";try{var c=document.createElement("canvas"),g=c.getContext("webgl")||c.getContext("experimental-webgl"),x=g&&g.getExtension("WEBGL_debug_renderer_info"),r=x?String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)):"";if(/Mali/i.test(r))f="5"}catch(e2){}}document.documentElement.setAttribute("data-fx",f)}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Aurum Invoice Studio</title>
@@ -1235,6 +1235,10 @@ html[data-fx="4"] * { border-radius: 0 !important; overflow: visible !important;
 html[data-fx="5"] *, html[data-fx="6"] *, html[data-fx="7"] * { box-shadow: none !important; }
 html[data-fx="5"] * { border-radius: 0 !important; }
 html[data-fx="6"] *:not(.sr):not(input[type="file"]) { overflow: visible !important; }
+/* 8 = keep the rounded corners but give every rounded piece its own layer; 9 = softly rounded (6px) instead of round */
+html[data-fx="8"] *, html[data-fx="9"] * { box-shadow: none !important; }
+html[data-fx="8"] :is(.hn, .kpi, .doc-row, .help-btn, .chip, .draft-card, .alert-card, .btn, .pill, .input, .install-bar, .home-empty, .field input, .field select, .field textarea, .item-card, .saved-item, .sheet, .swatch, .ind) { transform: translateZ(0); }
+html[data-fx="9"] * { border-radius: 6px !important; }
 html[data-fx="7"] *:not(#toast):not(.toast):not(.scrim):not(.sheet):not(.cv):not(#cv) { transform: none !important; opacity: 1 !important; }
 .env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
 .env3d-v { position: absolute; left: -11.457%; top: -79.680%; width: 122.918%; height: 204.390%; z-index: 1; pointer-events: none; background: #080706; object-fit: fill;
