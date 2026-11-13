@@ -485,7 +485,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .tap { font-size: 12px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); display: inline-flex; align-items: center; gap: 10px; }
 .tap::before, .tap::after { content: ""; width: 26px; height: 1px; background: currentColor; opacity: .5; }
 .intro > .fade { opacity: 0; animation: introIn 1.1s var(--ease) forwards; }
-@keyframes introIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes introIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
 .env-stage { position: relative; width: min(360px, 84vw); margin: 34px 0 26px; }
 .env { position: relative; width: 100%; aspect-ratio: 1.46; perspective: 1500px; perspective-origin: 50% 0%; }
@@ -611,7 +611,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .ob-body { flex: 1; display: grid; place-items: center; padding: 30px max(22px, env(safe-area-inset-right, 0px)) calc(30px + env(safe-area-inset-bottom, 0px)) max(22px, env(safe-area-inset-left, 0px)); }
 .ob-step { width: min(520px, 100%); display: grid; gap: 24px; animation: obIn .7s var(--ease); }
 .ob-step > * { min-width: 0; }
-@keyframes obIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes obIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .ob-step h2 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(34px, 9vw, 52px); line-height: 1.02; letter-spacing: -.015em; }
 .ob-step p.lead { margin: 0; color: var(--muted); font-size: 16px; max-width: 40ch; }
 .big-in { width: 100%; border: 0; border-bottom: 1px solid var(--line-2); background: transparent; color: var(--ink); font-family: var(--f-display); font-size: clamp(26px, 7vw, 36px); padding: 8px 0 12px; outline: none; border-radius: 0; transition: border-color .3s; }
@@ -1220,9 +1220,10 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
 <body>
 <style>
 .env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
-.env3d-v { position: absolute; left: -18.287%; top: -84.668%; width: 136.575%; height: 219.337%; z-index: 1; pointer-events: none; background: transparent; object-fit: fill;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent);
-  -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); mask-composite: intersect; }
+.env3d-v { position: absolute; left: -11.457%; top: -79.680%; width: 122.918%; height: 204.390%; z-index: 1; pointer-events: none; background: #080706; object-fit: fill;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); mask-composite: intersect; }
+.has3d > :not(.env-stage) { position: relative; z-index: 3; }
 .env3d-seal { position: absolute; left: 50%; top: 58.197%; width: 29.629%; aspect-ratio: 1; transform: translate(-50%, -50%); z-index: 6; display: grid; place-items: center; }
 .env3d-mono { font-family: var(--f-display); font-weight: 600; letter-spacing: .04em; line-height: 1; pointer-events: none; text-shadow: 0 1px 0 rgba(255,255,255,.28), 0 -1px 0 rgba(0,0,0,.55); opacity: .92; }
 .env3d-letter { left: 6.780%; right: auto; width: 86.441%; top: -57.109%; height: 85.447%; opacity: 0; z-index: 3; }
@@ -2097,6 +2098,7 @@ function env3dHTML(B, D, wax, file) {
 }
 function env3dAfter(cv, B, D, wax) {
   const stage = $(".env-stage", cv), box = $("#env3d", cv); if (!box) return;
+  $(".intro", cv)?.classList.add("has3d");
   const mono = $(".env3d-mono", cv); if (mono) mono.style.fontSize = Math.round(box.clientWidth * .105) + "px";
   const toCss = () => { if (!$("#env3d", cv)) return; stage.innerHTML = envelopeHTML(B, D, wax); stage.__css = true; };
   const probe = new Image(); probe.onerror = toCss; probe.src = $("#env3dV", cv).getAttribute("poster");
