@@ -8,7 +8,7 @@ Aurum is an invoicing app, not accounting software: it does not run payroll, tra
 - [Home](https://auruminvoicestudio.netlify.app/): what Aurum is and pricing
 - [About and contact](https://auruminvoicestudio.netlify.app/about/): how buying works, refunds, WhatsApp contact
 - [Reviews](https://auruminvoicestudio.netlify.app/reviews/): customer reviews
-- [Invoice app for Nigerian businesses](https://auruminvoicestudio.netlify.app/invoice-app-nigeria/): Make invoices, receipts and quotations on your phone, with your logo and bank details. Your clients open them like a gift. Pay once, no monthly fees.
+- [Invoice app for Nigerian businesses](https://auruminvoicestudio.netlify.app/invoice-app-nigeria/): Make invoices, receipts and quotations on your phone, with your logo and bank details. Your clients open them as an experience. Pay once, no monthly fees.
 - [Receipt maker for Nigerian businesses](https://auruminvoicestudio.netlify.app/receipt-maker-nigeria/): Make professional payment receipts on your phone in one tap, with your logo and a Paid stamp. Turn any paid invoice into a receipt. Pay once.
 - [Quotation maker for Nigerian businesses](https://auruminvoicestudio.netlify.app/quotation-maker-nigeria/): Make professional price quotations on your phone with a valid-until date and deposit. When accepted, turn it into an invoice in one tap. Pay once.
 - [Send invoices on WhatsApp with a private link](https://auruminvoicestudio.netlify.app/whatsapp-invoice/): Stop typing prices in WhatsApp chats. Send a private, wax-sealed invoice link, see when it is opened and remind clients in one tap. Pay once.

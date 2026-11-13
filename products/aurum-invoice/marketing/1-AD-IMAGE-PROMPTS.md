@@ -28,7 +28,7 @@ Fonts for your text in Canva: **Playfair Display** (headlines), **Manrope** (sma
 
 **Text to add in Canva**
 - Top: **Your invoice looks cheap. Your client can tell.** (Playfair Display, ivory, large)
-- Under it, smaller: *Send invoices that open like a gift.*
+- Under it, smaller: *Send invoices that open as an experience.*
 - Bottom button (gold, rounded): **Get Aurum · ₦10,000**
 - Small gold badge: **BLACK FRIDAY**, and tiny text: *Ends 30 November*
 

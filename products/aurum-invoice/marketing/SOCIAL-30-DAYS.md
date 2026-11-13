@@ -6,7 +6,7 @@ Your pages: Instagram `@auruminvoice` · Facebook "Aurum". Everything below is c
 
 **Instagram bio** (150 characters max):
 ```
-Invoices your clients open like a gift 🎁
+Invoices your clients open as an experience 🎁
 Wax-sealed private links · Pay once
 👇 Try the free demo
 ```
@@ -22,13 +22,13 @@ Wax-sealed private links · Pay once
 4. *Prestige* (the Prestige part of the explainer video)
 5. *Questions* (answer 5 common questions in text)
 
-**Facebook "Intro" text:** `Invoices, receipts and quotations your clients open like a gift. Made in Nigeria. Pay once, no monthly fees.` Add the website, WhatsApp button and the same logo. Pin the explainer video (Ad B) as your first post.
+**Facebook "Intro" text:** `Invoices, receipts and quotations sealed with your brand. Made in Nigeria. Pay once, no monthly fees.` Add the website, WhatsApp button and the same logo. Pin the explainer video (Ad B) as your first post.
 
 ## 2. Post these first (week 1). Post 1 per day, at 7 to 9 pm.
 
 **Day 1. Intro (use the 20-second video, Ad A)**
 > Your client is paying you good money… and you send them THIS? 😬
-> Aurum turns your invoice into a wax-sealed private link they open like a gift. You see the second they open it.
+> Aurum turns your invoice into a wax-sealed private link they open as an experience. You see the second they open it.
 > Try the free demo: link in bio 👆
 > #invoice #nigerianbusiness #smallbusinessnigeria #lagosbusiness #getpaid
 

@@ -9,7 +9,7 @@ Create a channel named **Aurum Invoice Studio**. Add the logo as the profile pic
 **Title:** `Stop sending plain invoices | Aurum Invoice Studio`
 **Description:**
 ```
-Your client is paying you good money… and you send them a typed price list? Aurum turns your invoice into a wax-sealed private link your client opens like a gift. You see the moment they open it.
+Your client is paying you good money… and you send them a typed price list? Aurum turns your invoice into a wax-sealed private link your client opens as an experience. You see the moment they open it.
 
 Try the free demo and see pricing: https://auruminvoicestudio.netlify.app/
 Free invoice, receipt and quotation templates: https://auruminvoicestudio.netlify.app/guides/
@@ -39,7 +39,7 @@ Use this text for all of them.
 
 **Short description (about 300 characters):**
 ```
-Aurum Invoice Studio makes invoices, receipts, quotations, delivery notes, credit notes and purchase orders with your logo, signature and bank details, then delivers them as a private wax-sealed link your clients open like a gift. You see when they open it, turn a paid invoice into a receipt in one tap, and send polite WhatsApp reminders. Installs on your phone, works without data. One-time payment.
+Aurum Invoice Studio makes invoices, receipts, quotations, delivery notes, credit notes and purchase orders with your logo, signature and bank details, then delivers them as a private wax-sealed link your clients open as an experience. You see when they open it, turn a paid invoice into a receipt in one tap, and send polite WhatsApp reminders. Installs on your phone, works without data. One-time payment.
 ```
 **Category:** Invoicing / Small business software. **Country:** Nigeria. **Pricing:** one-time payment (see the website for the current price). **Website:** https://auruminvoicestudio.netlify.app/
 
@@ -70,7 +70,7 @@ Be honest that you made it. Don't post the same text in many places.
 ## 4. LinkedIn post
 ```
 Most small businesses in Nigeria still invoice by typing prices into a chat.
-I built Aurum Invoice Studio to change that. Your invoice becomes a private, wax-sealed link your client opens like a gift. You see when they open it, and one tap turns a paid invoice into a receipt.
+I built Aurum Invoice Studio to change that. Your invoice becomes a private link, sealed with your brand, that gives your client an experience. You see when they open it, and one tap turns a paid invoice into a receipt.
 Free demo and free templates: https://auruminvoicestudio.netlify.app/
 What would make invoicing easier for your business?
 ```
@@ -85,11 +85,11 @@ What would make invoicing easier for your business?
 
 ## 6. WhatsApp
 **Status (post the 20-second video weekly) with this caption:**
-`Invoices your clients open like a gift 🎁 Free demo: https://auruminvoicestudio.netlify.app/`
+`Invoices your clients open as an experience 🎁 Free demo: https://auruminvoicestudio.netlify.app/`
 
 **Broadcast to your contacts (people who know you only):**
 ```
-Hello [Name]! I've launched Aurum, an invoice app for Nigerian businesses. Your invoice becomes a private link your clients open like a gift, and you see when they open it. There's a free demo here: https://auruminvoicestudio.netlify.app/ . If you know a business owner who sends invoices, please share it with them 🙏
+Hello [Name]! I've launched Aurum, an invoice app for Nigerian businesses. Your invoice becomes a private link your clients open as an experience, and you see when they open it. There's a free demo here: https://auruminvoicestudio.netlify.app/ . If you know a business owner who sends invoices, please share it with them 🙏
 ```
 
 ## 7. Backlinks you can earn for free

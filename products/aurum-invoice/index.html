@@ -1251,7 +1251,7 @@ html.lite svg *, html.lite .art-env .env, html.lite .seal-wrap, html.lite .seal-
   <div class="gate-grid">
     <div class="gate-copy">
       <span class="eyebrow g-in" style="--d:.1s">Sealed in wax · Delivered by link</span>
-      <h1 id="gate-title" class="g-in" style="--d:.2s">Invoices your clients <em>open like a gift.</em></h1>
+      <h1 id="gate-title" class="g-in" style="--d:.2s">Your business is premium. <em>Your invoice should be too.</em></h1>
       <p class="gate-lead g-in" style="--d:.35s">For businesses that care how they are remembered. Your clients break your seal, pay in a tap, and keep a signed original.</p>
       <form id="gate-form" class="g-in" style="--d:.5s" autocomplete="off">
         <label class="sr" for="lic-key">Licence key</label>
@@ -1452,7 +1452,7 @@ html.lite svg *, html.lite .art-env .env, html.lite .seal-wrap, html.lite .seal-
       <div class="field"><span class="label">How it opens for your client</span><div class="reveal-grid" id="reveal-grid"></div></div>
       <div class="send-hero">
         <span class="eyebrow">The Aurum private link</span>
-        <h3>Your invoice, delivered like a gift</h3>
+        <h3>Your invoice, delivered as an experience</h3>
         <p>Your client opens it in the style you chose above, sees a short guide, pays in a tap, and gets a thank-you card.</p>
         <div class="link-box" id="link-box" hidden><code id="link-text"></code><button class="btn sm primary" type="button" id="copy-link">Copy</button></div>
         <div style="display:grid; gap:10px">
@@ -3146,7 +3146,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
       </section>
       ${licence?.refCode ? `<section><h3 class="sub">Refer a friend</h3>
         <div class="prestige-card"><span class="eyebrow">Your code</span><b style="letter-spacing:.12em">${esc(licence.refCode)}</b><p>Friends who buy with your code get ${esc(CONFIG.REFERRAL_OFFER)}. Ask us about your reward.</p>
-        <a class="btn sm primary" style="justify-self:start" href="https://wa.me/?text=${encodeURIComponent(`I send my invoices with Aurum. Clients open them like a gift and pay in one tap. Use my code ${licence.refCode} for ${CONFIG.REFERRAL_OFFER}${CONFIG.BUY_LINK ? ": " + CONFIG.BUY_LINK : ""}`)}" target="_blank" rel="noopener">Share on WhatsApp</a></div>
+        <a class="btn sm primary" style="justify-self:start" href="https://wa.me/?text=${encodeURIComponent(`I send my invoices with Aurum. Clients open them as an experience and pay in one tap. Use my code ${licence.refCode} for ${CONFIG.REFERRAL_OFFER}${CONFIG.BUY_LINK ? ": " + CONFIG.BUY_LINK : ""}`)}" target="_blank" rel="noopener">Share on WhatsApp</a></div>
       </section>` : ""}
     </div></aside>`;
   const layer = $("#layer");

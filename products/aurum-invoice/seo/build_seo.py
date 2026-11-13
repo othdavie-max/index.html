@@ -72,7 +72,7 @@ def footer():
     p = "".join(f'<li><a href="/{x["slug"]}/">{esc(x["nav"])}</a></li>' for x in PRODUCTS)
     return f"""<footer class="foot"><div class="wrap cols">
   <div><div class="brand"><span class="mark">Au</span><span class="name">AURUM</span></div>
-  <p>Invoices, receipts and quotations your clients open like a gift. Made for Nigerian businesses.</p></div>
+  <p>Invoices, receipts and quotations sealed with your brand. Your business is premium, your invoice should be too.</p></div>
   <div><h4>Aurum</h4><ul>{p}<li><a href="/#pricing">Pricing</a></li><li><a href="/about/">About &amp; contact</a></li><li><a href="/reviews/">Customer reviews</a></li><li><a href="https://www.instagram.com/auruminvoice" rel="noopener me" target="_blank">Instagram</a></li><li><a href="https://www.facebook.com/profile.php?id=1527108630475190" rel="noopener me" target="_blank">Facebook</a></li><li><a href="/policies.html">Refunds &amp; terms</a></li></ul></div>
   <div><h4>Guides</h4><ul>{g}<li><a href="/guides/">All guides</a></li></ul></div>
 </div><div class="wrap fine">&copy; 2026 Aurum Invoice Studio. Lagos, Nigeria.</div></footer>"""
@@ -83,7 +83,7 @@ def cta(kind="guide"):
 <p>Pay once, use it on your phone, no monthly fees. Your client opens a wax-sealed private link, sees exactly what to pay, and you see the moment they open it.</p>
 <a class="btn primary" href="/#pricing" data-cta="buy" data-where="end">See plans and pricing</a> <a class="btn" href="/app/" data-cta="demo" data-where="end">Try the free demo</a></section>"""
     return """<section class="cta"><h2>Want this done for you in under a minute?</h2>
-<p><b>Aurum Invoice Studio</b> makes invoices, receipts and quotations with your logo, signature and bank details, then delivers them as a private wax-sealed link your client opens like a gift. Pay once, no monthly fees.</p>
+<p><b>Aurum Invoice Studio</b> makes invoices, receipts and quotations with your logo, signature and bank details, then delivers them as a private link, sealed with your brand, that gives your client an experience. Pay once, no monthly fees.</p>
 <a class="btn primary" href="/#pricing" data-cta="buy" data-where="end">See plans and pricing</a> <a class="btn" href="/app/" data-cta="demo" data-where="end">Try the free demo</a></section>"""
 
 MID = """<aside class="mid-cta"><div><b>See it before you pay.</b><span>Open a sample wax-sealed invoice in the free demo. Sample data, nothing to pay.</span></div><a class="btn primary" href="/app/" data-cta="demo" data-where="mid">Try the free demo</a></aside>"""
@@ -206,7 +206,7 @@ def page404():
     return head("Page not found | Aurum Invoice Studio", "That page does not exist. Try our guides, or the Aurum invoice app.", "/404.html", "website", "").replace('content="index, follow, max-image-preview:large, max-snippet:-1"', 'content="noindex, follow"') + f"""<body>
 {header()}
 <main class="wrap page"><h1>We could not find that page</h1><p class="lead">The link may be old or mistyped. These might help:</p>
-<div class="grid"><a class="card gold" href="/"><b>Aurum Invoice Studio</b><span>Invoices, receipts and quotations your clients open like a gift.</span></a><a class="card" href="/guides/"><b>Free guides and templates</b><span>How to write an invoice, payment reminders and more.</span></a><a class="card" href="/invoice-app-nigeria/"><b>Invoice app for Nigerian businesses</b><span>See what is inside.</span></a><a class="card" href="/about/"><b>About and contact</b><span>Questions? WhatsApp us.</span></a></div></main>
+<div class="grid"><a class="card gold" href="/"><b>Aurum Invoice Studio</b><span>Invoices, receipts and quotations sealed with your brand.</span></a><a class="card" href="/guides/"><b>Free guides and templates</b><span>How to write an invoice, payment reminders and more.</span></a><a class="card" href="/invoice-app-nigeria/"><b>Invoice app for Nigerian businesses</b><span>See what is inside.</span></a><a class="card" href="/about/"><b>About and contact</b><span>Questions? WhatsApp us.</span></a></div></main>
 {footer()}
 </body>
 </html>

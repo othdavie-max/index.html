@@ -19,7 +19,7 @@ The new logo should look like a **wax seal with an elegant "A"**. It's instantly
 
 ## MASTER PROMPT (copy everything in the box)
 
-> Design a professional **brand logo** for **"AURUM Invoice Studio"**, a premium invoicing app for Nigerian businesses. Its signature feature is that invoices are delivered to clients inside a **wax-sealed envelope** that opens like a gift. The brand feels luxurious, calm, trustworthy and ceremonial, in the spirit of Cartier, Hermès and Chanel: simple, timeless, expensive.
+> Design a professional **brand logo** for **"AURUM Invoice Studio"**, a premium invoicing app for Nigerian businesses. Its signature feature is that invoices are delivered to clients inside a **wax-sealed envelope** that opens as an experience. The brand feels luxurious, calm, trustworthy and ceremonial, in the spirit of Cartier, Hermès and Chanel: simple, timeless, expensive.
 >
 > **Concept: a refined wax-seal monogram.** A perfectly round seal with a softly **scalloped edge** (12 to 14 gentle, even lobes, like pressed wax). In the centre, a bold, elegant capital **"A"** in a high-contrast Didone / Playfair-Display-style serif. Make the A subtly connect to the envelope idea: the crossbar of the A can be formed by a thin **envelope-flap "V" line** or a slim horizontal bar, so that it quietly reads as an A and as a flap opening. Add one tiny gold spark or small star above the crossbar. A thin inner ring sits just inside the scalloped edge. Perfectly symmetrical and centred. It must stay **clear and recognisable when shrunk to 32 pixels**.
 >

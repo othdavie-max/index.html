@@ -13,7 +13,7 @@ def trade(slug, nav, title, desc, h1, intro, include, example, terms, problems, 
     return dict(slug=slug, nav=nav, title=title, desc=desc, h1=h1, intro=intro, sections=[
         ("What to put on the invoice", include), ("A sample invoice", example), ("Deposit and payment terms", terms),
         ("Problems a clear invoice prevents", problems),
-        ("Make it quick and look premium", f"<p>{tip} <a href=\"/invoice-app-nigeria/\">Aurum</a> keeps your logo, signature and bank details on every document, remembers your customers and prices, and sends the invoice as a private link your client opens like a gift. Pay once, no monthly fees.</p>")],
+        ("Make it quick and look premium", f"<p>{tip} <a href=\"/invoice-app-nigeria/\">Aurum</a> keeps your logo, signature and bank details on every document, remembers your customers and prices, and sends the invoice as a private link your client opens as an experience. Pay once, no monthly fees.</p>")],
         faq=faq, related=related)
 
 T1 = trade("invoice-for-photographers-nigeria", "Invoice for photographers in Nigeria",
