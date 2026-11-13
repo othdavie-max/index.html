@@ -1223,6 +1223,11 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
 .env3d-v { position: absolute; left: -11.457%; top: -79.680%; width: 122.918%; height: 204.390%; z-index: 1; pointer-events: none; background: #080706; object-fit: fill;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); -webkit-mask-composite: source-in;
   mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); mask-composite: intersect; }
+.gift3d-v { left: -17.277%; top: -46.766%; width: 134.555%; height: 145.581%; }
+.gift3d-card { left: 16.023%; right: auto; width: 67.956%; top: -29.255%; height: 54.742%; opacity: 0; z-index: 3; }
+.gift3d-tag { position: absolute; left: 80.519%; top: 28.298%; width: 26.451%; transform: translate(-50%, -50%) rotate(8deg); z-index: 5; display: grid; text-align: center; line-height: 1.15; color: #2A251C; pointer-events: none; }
+.gift3d-tag span { font-size: .62em; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #8C7F68; }
+.gift3d-tag b { font-family: var(--f-accent); font-style: italic; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .has3d > :not(.env-stage) { position: relative; z-index: 3; }
 .env3d-seal { position: absolute; left: 50%; top: 58.197%; width: 29.629%; aspect-ratio: 1; transform: translate(-50%, -50%); z-index: 6; display: grid; place-items: center; }
 .env3d-mono { font-family: var(--f-display); font-weight: 600; letter-spacing: .04em; line-height: 1; pointer-events: none; text-shadow: 0 1px 0 rgba(255,255,255,.28), 0 -1px 0 rgba(0,0,0,.55); opacity: .92; }
@@ -2086,33 +2091,47 @@ async function openCard(cv, wax, onDone) {
 }
 
 
-/* ---------- I-b · the envelope filmed in 3D (made in Blender: real wax, paper and physics) ---------- */
+/* ---------- I-b · the openings filmed in 3D (made in Blender: real paper, wax, ribbon and physics) ---------- */
 const ENV3D = { onyx: "#1a1817", bordeaux: "#5a1a24", midnight: "#141e3a", emerald: "#0f3d2e", aubergine: "#3b1f4a", cognac: "#6b4a1e" };
 const env3dFile = (brand) => { const b = String(brand || "").toLowerCase(); return Object.keys(ENV3D).find((k) => ENV3D[k] === b) || null; };
 function env3dHTML(B, D, wax, file) {
   return `<div class="env3d" id="env3d">
     <video class="env3d-v" id="env3dV" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback poster="env3d/${file}.jpg" src="env3d/${file}.mp4"></video>
-    <div class="env3d-seal"><span class="env3d-mono" style="color:${shade(wax, .55)}">${esc(initials(B.name))}</span><button class="seal-btn" type="button" id="sealBtn" aria-label="Break the seal to open"></button></div>
+    <div class="env3d-seal"><span class="env3d-mono" style="color:#E6CB8E">${esc(initials(B.name))}</span><button class="seal-btn" type="button" id="sealBtn" aria-label="Break the seal to open"></button></div>
     <div class="letter env3d-letter" id="letter">${letterInner(B, D)}</div>
   </div>`;
 }
-function env3dAfter(cv, B, D, wax) {
-  const stage = $(".env-stage", cv), box = $("#env3d", cv); if (!box) return;
+function gift3dHTML(B, D, file) {
+  return `<div class="gift gift3d" id="gift">
+    <video class="env3d-v gift3d-v" id="env3dV" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback poster="env3d/gift-${file}.jpg" src="env3d/gift-${file}.mp4"></video>
+    <div class="gift3d-tag"><span>For</span><b>${esc(D.client.name || "you")}</b></div>
+    <div class="gift-card gift3d-card" id="giftCard">${letterInner(B, D)}</div>
+    <button class="seal-btn gift-btn" type="button" id="sealBtn" aria-label="Untie the ribbon"></button>
+  </div>`;
+}
+const ENV3D_KINDS = {
+  envelope: { letter: "#letter", fade: ".env3d-mono", box: "#env3d", mono: ".env3d-mono" },
+  gift: { letter: "#giftCard", fade: ".gift3d-tag", box: "#gift" },
+};
+function env3dAfter(cv, B, D, fallbackHTML, kind) {
+  const k = ENV3D_KINDS[kind], stage = $(".env-stage", cv), box = $(k.box, cv); if (!box) return;
   $(".intro", cv)?.classList.add("has3d");
-  const mono = $(".env3d-mono", cv); if (mono) mono.style.fontSize = Math.round(box.clientWidth * .105) + "px";
-  const toCss = () => { if (!$("#env3d", cv)) return; stage.innerHTML = envelopeHTML(B, D, wax); stage.__css = true; };
+  const mono = k.mono && $(k.mono, cv); if (mono) mono.style.fontSize = Math.round(box.clientWidth * .105) + "px";
+  const tag = kind === "gift" && $(".gift3d-tag", cv); if (tag) tag.style.fontSize = Math.max(8, Math.round(box.clientWidth * .045)) + "px";
+  const toCss = () => { if (!$(k.box, cv) || stage.__css) return; stage.innerHTML = fallbackHTML(); stage.__css = true; };
   const probe = new Image(); probe.onerror = toCss; probe.src = $("#env3dV", cv).getAttribute("poster");
   $("#env3dV", cv).addEventListener("error", toCss);
 }
-async function open3d(cv, B, D, wax, onDone) {
-  const stage = $(".env-stage", cv);
-  if (stage.__css || !$("#env3d", cv)) return openEnvelope(cv, wax, onDone);
-  const v = $("#env3dV", cv), mono = $(".env3d-mono", cv), letter = $("#letter", cv);
+async function open3d(cv, B, D, kind, fallbackHTML, fallbackPlay, onDone) {
+  const k = ENV3D_KINDS[kind], stage = $(".env-stage", cv);
+  const toCss = () => { stage.innerHTML = fallbackHTML(); stage.__css = true; return fallbackPlay(); };
+  if (stage.__css || !$(k.box, cv)) return fallbackPlay();
+  const v = $("#env3dV", cv), letter = $(k.letter, cv);
   buzz(12);
-  mono?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" });
+  $$(k.fade, cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" }));
   $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }));
   let ok = true; try { await v.play(); } catch { ok = false; }
-  if (!ok) { stage.innerHTML = envelopeHTML(B, D, wax); return openEnvelope(cv, wax, onDone); }
+  if (!ok) return toCss();
   setTimeout(() => buzz([6, 40, 10]), 260);
   const ended = await new Promise((res) => {
     let done = false; const fin = (x) => { if (!done) { done = true; res(x); } };
@@ -2120,7 +2139,7 @@ async function open3d(cv, B, D, wax, onDone) {
     setTimeout(() => { if (v.currentTime < .4) fin(false); }, 2600);   // never started: slow connection
     setTimeout(() => fin(true), 6500);
   });
-  if (!ended) { v.pause(); stage.innerHTML = envelopeHTML(B, D, wax); return openEnvelope(cv, wax, onDone); }
+  if (!ended) { v.pause(); return toCss(); }
   letter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 110, fill: "forwards" });
   v.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 520, delay: 90, easing: "ease-out", fill: "forwards" });
   await wait(60);
@@ -2130,10 +2149,11 @@ async function open3d(cv, B, D, wax, onDone) {
 /* ---------- builds the opening scene for a style ---------- */
 function revealStage(style, B, D, P) {
   const wax = waxColorFor(P.design.brand || "#1A1817");
+  const f3 = !window.__SEAL_LOGO && !window.AURUM_NO_VIDEO && env3dFile(P.design.brand || "#1A1817");
+  if (f3 && style === "envelope") { const css = () => envelopeHTML(B, D, wax); return { html: env3dHTML(B, D, wax, f3), play: (cv, done) => open3d(cv, B, D, "envelope", css, () => openEnvelope(cv, wax, done), done), after: (cv) => env3dAfter(cv, B, D, css, "envelope") }; }
+  if (f3 && style === "gift") { const gc = lum(P.design.brand) < .012 ? "#1C1A18" : P.design.brand; const css = () => giftHTML(B, D, gc); return { html: gift3dHTML(B, D, f3), play: (cv, done) => open3d(cv, B, D, "gift", css, () => openGift(cv, wax, done), done), after: (cv) => env3dAfter(cv, B, D, css, "gift") }; }
   if (style === "gift") return { html: giftHTML(B, D, lum(P.design.brand) < .012 ? "#1C1A18" : P.design.brand), play: (cv, done) => openGift(cv, wax, done) };
   if (style === "card") return { html: cardHTML(B, D, P.design.brand || "#1A1817"), play: (cv, done) => openCard(cv, wax, done), after: startSway };
-  const f3 = !window.__SEAL_LOGO && env3dFile(P.design.brand || "#1A1817");
-  if (f3 && !window.AURUM_NO_VIDEO) return { html: env3dHTML(B, D, wax, f3), play: (cv, done) => open3d(cv, B, D, wax, done), after: (cv) => env3dAfter(cv, B, D, wax) };
   return { html: envelopeHTML(B, D, wax), play: (cv, done) => openEnvelope(cv, wax, done) };
 }
 
