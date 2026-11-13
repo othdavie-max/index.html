@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script>document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-4]$/.test(q))localStorage.setItem("aurum.fx",q);document.documentElement.setAttribute("data-fx",localStorage.getItem("aurum.fx")||"1")}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
+<script>document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-7]$/.test(q))localStorage.setItem("aurum.fx",q);document.documentElement.setAttribute("data-fx",localStorage.getItem("aurum.fx")||"1")}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Aurum Invoice Studio</title>
@@ -1220,6 +1220,7 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
 <style>
 /* ---- safe levels for phones whose graphics chip flickers (Infinix, Tecno, itel...). Level 1 is the default; ?fx=0 turns everything back on. ---- */
 html:not([data-fx="0"]) *, html:not([data-fx="0"]) *::before, html:not([data-fx="0"]) *::after { transition-duration: .001s !important; transition-delay: 0s !important; animation-duration: .001s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; text-shadow: none !important; }
+html[data-fx="4"] #toast:not(.show), html[data-fx="4"] .toast:not(.show) { opacity: 0 !important; }
 html:not([data-fx="0"]) .appbar { position: static !important; background: var(--bg) !important; }
 html:not([data-fx="0"]) body::before { display: none !important; }
 html:not([data-fx="0"]) :is(.home-more, #dash-period, #dash-type, #dash-status) { contain: none !important; }
@@ -1230,6 +1231,11 @@ html[data-fx="2"] *, html[data-fx="3"] *, html[data-fx="4"] * { font-family: sys
 html[data-fx="3"] *, html[data-fx="4"] * { background-image: none !important; }
 /* level 4: nothing is lifted onto its own layer and nothing is clipped */
 html[data-fx="4"] * { border-radius: 0 !important; overflow: visible !important; transform: none !important; opacity: 1 !important; }
+/* narrower tests (all include level 1): 5 = square corners only, 6 = no clipping only, 7 = no transforms/opacity only */
+html[data-fx="5"] *, html[data-fx="6"] *, html[data-fx="7"] * { box-shadow: none !important; }
+html[data-fx="5"] * { border-radius: 0 !important; }
+html[data-fx="6"] *:not(.sr):not(input[type="file"]) { overflow: visible !important; }
+html[data-fx="7"] *:not(#toast):not(.toast):not(.scrim):not(.sheet):not(.cv):not(#cv) { transform: none !important; opacity: 1 !important; }
 .env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
 .env3d-v { position: absolute; left: -11.457%; top: -79.680%; width: 122.918%; height: 204.390%; z-index: 1; pointer-events: none; background: #080706; object-fit: fill;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 12%, #000 90%, transparent); -webkit-mask-composite: source-in;
