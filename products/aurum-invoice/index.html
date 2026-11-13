@@ -1219,26 +1219,26 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
 <body>
 <style>
 /* ---- safe levels for phones whose graphics chip flickers (Infinix, Tecno, itel...). Level 1 is the default; ?fx=0 turns everything back on. ---- */
-html:not([data-fx="0"]) *, html:not([data-fx="0"]) *::before, html:not([data-fx="0"]) *::after { transition-duration: .001s !important; transition-delay: 0s !important; animation-duration: .001s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; text-shadow: none !important; }
+html:not([data-fx="0"]) :not(.cv):not(.cv *), html:not([data-fx="0"]) :not(.cv):not(.cv *)::before, html:not([data-fx="0"]) :not(.cv):not(.cv *)::after { transition-duration: .001s !important; transition-delay: 0s !important; animation-duration: .001s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; text-shadow: none !important; }
 html[data-fx="4"] #toast:not(.show), html[data-fx="4"] .toast:not(.show) { opacity: 0 !important; }
 html:not([data-fx="0"]) .appbar { position: static !important; background: var(--bg) !important; }
 html:not([data-fx="0"]) body::before { display: none !important; }
 html:not([data-fx="0"]) :is(.home-more, #dash-period, #dash-type, #dash-status) { contain: none !important; }
-html[data-fx="1"] *, html[data-fx="2"] *, html[data-fx="3"] *, html[data-fx="4"] * { box-shadow: none !important; }
+html[data-fx="1"] :not(.cv):not(.cv *), html[data-fx="2"] :not(.cv):not(.cv *), html[data-fx="3"] :not(.cv):not(.cv *), html[data-fx="4"] :not(.cv):not(.cv *) { box-shadow: none !important; }
 /* level 2: plain system fonts (no web fonts loading in, no text reflowing) */
 html[data-fx="2"] *, html[data-fx="3"] *, html[data-fx="4"] * { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important; }
 /* level 3: flat colours (no gradients) and square corners on the big cards */
-html[data-fx="3"] *, html[data-fx="4"] * { background-image: none !important; }
+html[data-fx="3"] :not(.cv):not(.cv *), html[data-fx="4"] :not(.cv):not(.cv *) { background-image: none !important; }
 /* level 4: nothing is lifted onto its own layer and nothing is clipped */
-html[data-fx="4"] * { border-radius: 0 !important; overflow: visible !important; transform: none !important; opacity: 1 !important; }
+html[data-fx="4"] :not(.cv):not(.cv *) { border-radius: 0 !important; overflow: visible !important; transform: none !important; opacity: 1 !important; }
 /* narrower tests (all include level 1): 5 = square corners only, 6 = no clipping only, 7 = no transforms/opacity only */
-html[data-fx="5"] *, html[data-fx="6"] *, html[data-fx="7"] * { box-shadow: none !important; }
-html[data-fx="5"] * { border-radius: 0 !important; }
+html[data-fx="5"] :not(.cv):not(.cv *), html[data-fx="6"] :not(.cv):not(.cv *), html[data-fx="7"] :not(.cv):not(.cv *) { box-shadow: none !important; }
+html[data-fx="5"] :not(.cv):not(.cv *) { border-radius: 0 !important; }
 html[data-fx="6"] *:not(.sr):not(input[type="file"]) { overflow: visible !important; }
 /* 8 = keep the rounded corners but give every rounded piece its own layer; 9 = softly rounded (6px) instead of round */
-html[data-fx="8"] *, html[data-fx="9"] * { box-shadow: none !important; }
+html[data-fx="8"] :not(.cv):not(.cv *), html[data-fx="9"] :not(.cv):not(.cv *) { box-shadow: none !important; }
 html[data-fx="8"] :is(.hn, .kpi, .doc-row, .help-btn, .chip, .draft-card, .alert-card, .btn, .pill, .input, .install-bar, .home-empty, .field input, .field select, .field textarea, .item-card, .saved-item, .sheet, .swatch, .ind) { transform: translateZ(0); }
-html[data-fx="9"] * { border-radius: 6px !important; }
+html[data-fx="9"] :not(.cv):not(.cv *) { border-radius: 6px !important; }
 html[data-fx="7"] *:not(#toast):not(.toast):not(.scrim):not(.sheet):not(.cv):not(#cv) { transform: none !important; opacity: 1 !important; }
 .env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
 .env3d-v { position: absolute; left: -11.457%; top: -79.680%; width: 122.918%; height: 204.390%; z-index: 1; pointer-events: none; background: #080706; object-fit: fill;
@@ -1249,6 +1249,14 @@ html[data-fx="7"] *:not(#toast):not(.toast):not(.scrim):not(.sheet):not(.cv):not
 .gift3d-tag { position: absolute; left: 80.519%; top: 28.298%; width: 26.451%; transform: translate(-50%, -50%) rotate(8deg); z-index: 5; display: grid; text-align: center; line-height: 1.15; color: #2A251C; pointer-events: none; }
 .gift3d-tag span { font-size: .62em; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #8C7F68; }
 .gift3d-tag b { font-family: var(--f-accent); font-style: italic; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* classic envelope: the paper reaches the top edge (no gap showing the inside of the envelope) and its first words sit in the opening of the pocket, so they are readable the moment the flap lifts */
+.env .letter { top: 0 !important; height: 92% !important; text-align: center; justify-items: center; padding-top: 6.5% !important; }
+.env .letter .l-rule { margin: 6px auto !important; width: 46%; background: linear-gradient(90deg, transparent, #B8935A, transparent) !important; }
+.env .letter .l-eye { letter-spacing: .2em; }
+.env .letter .l-name { font-size: clamp(15px, 4.6vw, 19px); text-align: center; }
+.env .letter .l-for { font-size: 12px; text-align: center; }
+.env .letter .l-line { width: 70% !important; }
+.env3d-letter.textonly, .gift3d-card.textonly { background: none !important; box-shadow: none !important; }
 .has3d > :not(.env-stage) { position: relative; z-index: 3; }
 .env3d-seal { position: absolute; left: 50%; top: 58.197%; width: 29.629%; aspect-ratio: 1; transform: translate(-50%, -50%); z-index: 6; display: grid; place-items: center; }
 .env3d-mono { font-family: var(--f-display); font-weight: 600; letter-spacing: .04em; line-height: 1; pointer-events: none; text-shadow: 0 1px 0 rgba(255,255,255,.28), 0 -1px 0 rgba(0,0,0,.55); opacity: .92; }
@@ -1261,9 +1269,9 @@ html.lite { --grain: none; --grain-dark: none; }
 html.lite .stamp { mix-blend-mode: normal !important; }
 html.lite .env3d-v { -webkit-mask-image: none !important; mask-image: none !important; }
 html.lite .scrim, html.lite .tyx { }
-html.lite svg *, html.lite .art-env .env, html.lite .seal-wrap, html.lite .seal-top-wrap { filter: none !important; }
+html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important; }
 #ob svg *, #gate svg *, #layer svg *, .ob svg *, .gate svg * { filter: none !important; }
-#ob .wax, #gate .art-env .env, .seal-wrap, .seal-top-wrap { filter: none !important; }
+#ob .wax, #gate .art-env .env { filter: none !important; }
 </style>
 
 <!-- ===== Licence gate ===== -->
@@ -1931,7 +1939,7 @@ async function finale(el, base, onDone) {
   el.style.zIndex = "8";
   const r = el.getBoundingClientRect(); const s = Math.min(2.6, (innerWidth * .94) / r.width);
   const dy = innerHeight / 2 - (r.top + r.height / 2);
-  el.animate([{ transform: `${base}`, opacity: 1, filter: "blur(0px)" }, { transform: `${base} translateY(${dy * .55}px) scale(${(1 + s) / 2})`, opacity: 1, offset: .55 }, { transform: `${base} translateY(${dy}px) scale(${s})`, opacity: 0, filter: "blur(3px)" }], { duration: 950, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
+  el.animate([{ transform: `${base}`, opacity: 1 }, { transform: `${base} translateY(${dy * .55}px) scale(${(1 + s) / 2})`, opacity: 1, offset: .55 }, { transform: `${base} translateY(${dy}px) scale(${s})`, opacity: 0 }], { duration: 950, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
   await wait(580); onDone();
 }
 function crumbs(host, color, n, spread = 1) {
@@ -2166,16 +2174,18 @@ async function open3d(cv, B, D, kind, fallbackHTML, fallbackPlay, onDone) {
     setTimeout(() => fin(true), 6500);
   });
   if (!ended) { v.pause(); return toCss(); }
-  letter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 110, fill: "forwards" });
-  v.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 520, delay: 90, easing: "ease-out", fill: "forwards" });
-  await wait(60);
-  finale(letter, "translateY(0px)", onDone);
+  // the paper is already in the film: only the printed words fade in on it (no pop), we let them read it, then everything melts into the invoice
+  letter.classList.add("textonly");
+  letter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 480, easing: "ease-out", fill: "forwards" });
+  await wait(1250);
+  [v, letter].forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: "ease-in", fill: "forwards" }));
+  await wait(260); onDone();
 }
 
 /* ---------- builds the opening scene for a style ---------- */
 function revealStage(style, B, D, P) {
   const wax = waxColorFor(P.design.brand || "#1A1817");
-  const f3 = !window.__SEAL_LOGO && !window.AURUM_NO_VIDEO && env3dFile(P.design.brand || "#1A1817");
+  const f3 = !window.__SEAL_LOGO && !window.AURUM_NO_VIDEO && (() => { try { return localStorage.getItem("aurum.v3d") === "1"; } catch (e) { return false; } })() && env3dFile(P.design.brand || "#1A1817");
   if (f3 && style === "envelope") { const css = () => envelopeHTML(B, D, wax); return { html: env3dHTML(B, D, wax, f3), play: (cv, done) => open3d(cv, B, D, "envelope", css, () => openEnvelope(cv, wax, done), done), after: (cv) => env3dAfter(cv, B, D, css, "envelope") }; }
   if (f3 && style === "gift") { const gc = lum(P.design.brand) < .012 ? "#1C1A18" : P.design.brand; const css = () => giftHTML(B, D, gc); return { html: gift3dHTML(B, D, f3), play: (cv, done) => open3d(cv, B, D, "gift", css, () => openGift(cv, wax, done), done), after: (cv) => env3dAfter(cv, B, D, css, "gift") }; }
   if (style === "gift") return { html: giftHTML(B, D, lum(P.design.brand) < .012 ? "#1C1A18" : P.design.brand), play: (cv, done) => openGift(cv, wax, done) };
