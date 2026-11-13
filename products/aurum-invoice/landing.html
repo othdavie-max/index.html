@@ -39,7 +39,8 @@
   --gut: max(18px, env(safe-area-inset-left, 0px));
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 90px; -webkit-text-size-adjust: 100%; }
+@media (hover: hover) { html { scroll-behavior: smooth; } }
+html {  scroll-padding-top: 90px; -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--ivory); color: var(--ink); font: 400 16px/1.6 var(--f-body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 img { max-width: 100%; display: block; height: auto; }
 a { color: inherit; }
@@ -68,7 +69,7 @@ h2 em, h1 em { font-family: var(--f-accent); font-style: italic; font-weight: 60
 @media (max-width: 480px) { .bf-save { display: none; } }
 
 /* ---------- Nav ---------- */
-.nav { position: sticky; top: 0; z-index: 30; background: rgba(246,241,231,.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }
+.nav { position: sticky; top: 0; z-index: 30; background: rgba(246,241,231,.98); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }
 .nav .wrap { display: flex; align-items: center; gap: 18px; height: 62px; }
 .mark { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
 .mark svg { width: 34px; height: 34px; }
@@ -196,7 +197,7 @@ footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 1
 footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:hover { color: var(--gold-hi); }
 
 /* ---------- Sticky buy bar on phones ---------- */
-.buybar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; display: flex; align-items: center; gap: 12px; padding: 10px max(14px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); background: rgba(14,12,10,.96); backdrop-filter: blur(12px); color: var(--cream); transform: translateY(110%); transition: transform .35s ease; border-top: 1px solid #3A2F1C; }
+.buybar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; display: flex; align-items: center; gap: 12px; padding: 10px max(14px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); background: #0E0C0A; color: var(--cream); transform: translateY(110%); transition: transform .35s ease; border-top: 1px solid #3A2F1C; }
 .buybar.on { transform: none; }
 .buybar div { flex: 1; min-width: 0; line-height: 1.2; }
 .buybar b { font-family: var(--f-display); font-size: 20px; font-weight: 600; color: #fff; }
@@ -208,7 +209,7 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
 .co { position: fixed; inset: 0; z-index: 60; display: grid; place-items: end center; }
 .co[hidden] { display: none; }
 .co [hidden] { display: none !important; }
-.co-scrim { position: absolute; inset: 0; background: rgba(20,15,8,.55); backdrop-filter: blur(4px); }
+.co-scrim { position: absolute; inset: 0; background: rgba(20,15,8,.7); }
 .co-card { position: relative; width: min(480px, 100%); max-height: calc(100dvh - 20px); overflow: auto; background: var(--paper); color: var(--ink); border-radius: 26px 26px 0 0; padding: 26px 22px calc(24px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -30px 80px rgba(20,15,8,.35); animation: up .35s ease; }
 @keyframes up { from { transform: translateY(40px); opacity: 0; } }
 .co-x { position: absolute; top: 10px; right: 12px; width: 42px; height: 42px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 28px; line-height: 1; cursor: pointer; }
@@ -283,20 +284,20 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
       <div class="trust"><span>One-time payment</span><span>Android &amp; iPhone</span><span>Made for Nigerian businesses</span></div>
     </div>
     <div class="hero-art" aria-hidden="true">
-      <img class="doc" src="landing/invoice.jpg" alt="" width="900" height="1381">
-      <div class="phone"><img src="landing/phone-envelope.jpg" alt="" width="600" height="1298"></div>
+      <img decoding="async" class="doc" src="landing/invoice.jpg" alt="" width="900" height="1381">
+      <div class="phone"><img decoding="async" src="landing/phone-envelope.jpg" alt="" width="600" height="1298"></div>
     </div>
   </div></section>
 
   <section class="sec show" id="see"><div class="wrap">
     <div class="sec-head center"><span class="eyebrow" style="color:var(--gold-hi)">What your client sees</span><h2>The moment they <em>remember you</em></h2><p class="lead">Six seconds that make your business look like a fashion house.</p></div>
     <div class="rail" tabindex="0" aria-label="What your client sees, swipe for more">
-      <figure class="slide" style="margin:0"><div class="phone"><img src="landing/phone-envelope.jpg" alt="A sealed black envelope with a wine-red wax seal" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">i</span>Sealed with your wax</h3><p>Your name in gold, your seal, your colour.</p></figcaption></figure>
-      <figure class="slide" style="margin:0"><div class="phone"><img src="landing/phone-opening.jpg" alt="The envelope flap open and the invoice rising out" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">ii</span>The letter rises</h3><p>They break the seal, the flap opens and your invoice slides out.</p></figcaption></figure>
-      <figure class="slide" style="margin:0"><div class="phone"><img src="landing/phone-client.jpg" alt="The client's page showing the balance to pay" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">iii</span>They pay in one tap</h3><p>Your account number to copy, or card and transfer with your Paystack.</p></figcaption></figure>
-      <figure class="slide" style="margin:0"><div class="phone"><img src="landing/phone-thanks.jpg" alt="A thank-you card with a wax seal" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">iv</span>A thank-you card</h3><p>Sealed gratitude when they pay. Worth a screenshot.</p></figcaption></figure>
-      <figure class="slide" style="margin:0"><div class="phone"><img src="landing/phone-gift.jpg" alt="A gift box with a gold ribbon" loading="lazy" width="600" height="1298"></div><figcaption><h3>Or a gift box</h3><p>The ribbon unties and the invoice comes out.</p></figcaption></figure>
-      <figure class="slide" style="margin:0"><div class="phone"><img src="landing/phone-card.jpg" alt="An invitation card" loading="lazy" width="600" height="1298"></div><figcaption><h3>Or an invitation card</h3><p>It turns over to reveal the amount.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><div class="phone"><img decoding="async" src="landing/phone-envelope.jpg" alt="A sealed black envelope with a wine-red wax seal" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">i</span>Sealed with your wax</h3><p>Your name in gold, your seal, your colour.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><div class="phone"><img decoding="async" src="landing/phone-opening.jpg" alt="The envelope flap open and the invoice rising out" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">ii</span>The letter rises</h3><p>They break the seal, the flap opens and your invoice slides out.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><div class="phone"><img decoding="async" src="landing/phone-client.jpg" alt="The client's page showing the balance to pay" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">iii</span>They pay in one tap</h3><p>Your account number to copy, or card and transfer with your Paystack.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><div class="phone"><img decoding="async" src="landing/phone-thanks.jpg" alt="A thank-you card with a wax seal" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">iv</span>A thank-you card</h3><p>Sealed gratitude when they pay. Worth a screenshot.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><div class="phone"><img decoding="async" src="landing/phone-gift.jpg" alt="A gift box with a gold ribbon" loading="lazy" width="600" height="1298"></div><figcaption><h3>Or a gift box</h3><p>The ribbon unties and the invoice comes out.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><div class="phone"><img decoding="async" src="landing/phone-card.jpg" alt="An invitation card" loading="lazy" width="600" height="1298"></div><figcaption><h3>Or an invitation card</h3><p>It turns over to reveal the amount.</p></figcaption></figure>
     </div>
     <p class="swipe">Swipe to see more →</p>
   </div></section>
@@ -304,15 +305,15 @@ footer a { color: #D9CFB8; text-decoration: none; font-weight: 600; } footer a:h
   <section class="sec"><div class="wrap">
     <div class="sec-head center"><span class="eyebrow">Signed, sealed, official</span><h2>Every document, <em>beautifully</em></h2><p class="lead">Your logo, seal and signature, your bank details, and the amount in words. Download as PDF or image, or send as a link.</p></div>
     <div class="rail docs-rail" tabindex="0" aria-label="Sample documents, swipe for more">
-      <figure class="slide" style="margin:0"><img class="doc-card" src="landing/invoice.jpg" alt="Sample invoice" loading="lazy" width="900" height="1381"><figcaption><h3>Invoice</h3><p>Deposit paid, balance due, optional pay-by date.</p></figcaption></figure>
-      <figure class="slide" style="margin:0"><img class="doc-card" src="landing/receipt.jpg" alt="Sample receipt with a PAID stamp" loading="lazy" width="900" height="1272"><figcaption><h3>Receipt</h3><p>"Received from … the sum of …", with a PAID stamp.</p></figcaption></figure>
-      <figure class="slide" style="margin:0"><img class="doc-card" src="landing/quotation.jpg" alt="Sample quotation" loading="lazy" width="900" height="1310"><figcaption><h3>Quotation</h3><p>Valid-until date, deposit to start and a space to accept.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><img decoding="async" class="doc-card" src="landing/invoice.jpg" alt="Sample invoice" loading="lazy" width="900" height="1381"><figcaption><h3>Invoice</h3><p>Deposit paid, balance due, optional pay-by date.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><img decoding="async" class="doc-card" src="landing/receipt.jpg" alt="Sample receipt with a PAID stamp" loading="lazy" width="900" height="1272"><figcaption><h3>Receipt</h3><p>"Received from … the sum of …", with a PAID stamp.</p></figcaption></figure>
+      <figure class="slide" style="margin:0"><img decoding="async" class="doc-card" src="landing/quotation.jpg" alt="Sample quotation" loading="lazy" width="900" height="1310"><figcaption><h3>Quotation</h3><p>Valid-until date, deposit to start and a space to accept.</p></figcaption></figure>
     </div>
     <div class="doc-types"><span>Invoices</span><span>Receipts</span><span>Quotations</span><span>Delivery notes</span><span>Credit notes</span><span>Purchase orders</span></div>
   </div></section>
 
   <section class="sec app" id="app"><div class="wrap">
-    <div class="phone"><img src="landing/phone-home.jpg" alt="The Aurum app home screen with New invoice, New receipt and New quotation buttons" loading="lazy" width="600" height="1298"></div>
+    <div class="phone"><img decoding="async" src="landing/phone-home.jpg" alt="The Aurum app home screen with New invoice, New receipt and New quotation buttons" loading="lazy" width="600" height="1298"></div>
     <div class="sec-head" style="margin:0">
       <span class="eyebrow">Made for busy hands</span>
       <h2>An invoice in <em>under a minute</em></h2>
