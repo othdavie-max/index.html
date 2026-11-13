@@ -1,11 +1,14 @@
 // Aurum: starts a FREE plan sign-up. Checks the email, saves a pending sign-up, and emails a confirmation link.
 // The link opens the app, which then collects the free key. Nothing is shown to the browser except ok / reason.
 //
-// Secrets (Supabase, Edge Functions, Secrets):
+// Secrets (Supabase, Edge Functions, Secrets). Use EITHER Gmail (recommended, free, no domain needed) OR Brevo:
+//   GMAIL_USER, GMAIL_APP_PASSWORD   your Gmail address and a Google "app password" (16 letters)
 //   BREVO_API_KEY      free Brevo account API key (https://app.brevo.com, SMTP & API, API keys)
 //   MAIL_FROM          a sender address you have verified in Brevo, e.g. hello@yourdomain.com or your Gmail
 //   IP_SALT            any long random text (so the stored network fingerprint cannot be reversed)
 //   SITE_URL           optional, defaults to the live site
+
+import nodemailer from "npm:nodemailer@6.9.13";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -25,8 +28,10 @@ Deno.serve(async (req) => {
   try { b = await req.json(); } catch (_) { return out({ ok: false, reason: "bad" }, 400); }
   if (b.website) return out({ ok: true }); // hidden field: bots fill it, people do not
 
+  const gUser = Deno.env.get("GMAIL_USER"), gPass = (Deno.env.get("GMAIL_APP_PASSWORD") || "").replace(/\s+/g, "");
   const brevo = Deno.env.get("BREVO_API_KEY"), from = Deno.env.get("MAIL_FROM");
-  if (!brevo || !from) return out({ ok: false, reason: "not_configured" });
+  const useGmail = !!(gUser && gPass);
+  if (!useGmail && !(brevo && from)) return out({ ok: false, reason: "not_configured" });
 
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
   const ipHash = await sha256(ip + "|" + (Deno.env.get("IP_SALT") || "aurum"));
@@ -46,9 +51,16 @@ Deno.serve(async (req) => {
 <p style="margin:24px 0"><a href="${link}" style="background:#8a6b2a;color:#fff;padding:14px 22px;border-radius:8px;text-decoration:none;font-family:Arial,sans-serif">Confirm and open Aurum</a></p>
 <p style="font-size:13px;color:#555">Free plan: 3 documents a month. The link works for 48 hours. If you did not ask for this, ignore this email.</p>
 <p style="font-size:12px;color:#888">${link}</p></div>`;
+  if (useGmail) {
+    try {
+      const tr = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user: gUser, pass: gPass } });
+      await tr.sendMail({ from: `"Aurum Invoice Studio" <${gUser}>`, to: j.email, subject: "Confirm your free Aurum", html });
+    } catch (_) { return out({ ok: false, reason: "mail_failed" }); }
+    return out({ ok: true });
+  }
   const m = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
-    headers: { "api-key": brevo, "Content-Type": "application/json", accept: "application/json" },
+    headers: { "api-key": brevo!, "Content-Type": "application/json", accept: "application/json" },
     body: JSON.stringify({ sender: { name: "Aurum Invoice Studio", email: from }, to: [{ email: j.email }], subject: "Confirm your free Aurum", htmlContent: html }),
   });
   if (!m.ok) return out({ ok: false, reason: "mail_failed" });
