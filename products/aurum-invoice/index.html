@@ -1221,8 +1221,8 @@ html[data-theme="dark"] .alert-card { background: rgba(240,133,122,.08); }
 <style>
 .env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
 .env3d-v { position: absolute; left: -11.457%; top: -79.680%; width: 122.918%; height: 204.390%; z-index: 1; pointer-events: none; background: #080706; object-fit: fill;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); mask-composite: intersect; }
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 12%, #000 90%, transparent); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 12%, #000 90%, transparent); mask-composite: intersect; }
 .gift3d-v { left: -17.277%; top: -46.766%; width: 134.555%; height: 145.581%; }
 .gift3d-card { left: 16.023%; right: auto; width: 67.956%; top: -29.255%; height: 54.742%; opacity: 0; z-index: 3; }
 .gift3d-tag { position: absolute; left: 80.519%; top: 28.298%; width: 26.451%; transform: translate(-50%, -50%) rotate(8deg); z-index: 5; display: grid; text-align: center; line-height: 1.15; color: #2A251C; pointer-events: none; }
@@ -1238,6 +1238,7 @@ html.lite .art-glow { display: none; }
 html.lite .gate::before { display: none; }
 html.lite { --grain: none; --grain-dark: none; }
 html.lite .stamp { mix-blend-mode: normal !important; }
+html.lite svg *, html.lite .art-env .env, html.lite .seal-wrap, html.lite .seal-top-wrap { filter: none !important; }
 </style>
 
 <!-- ===== Licence gate ===== -->
