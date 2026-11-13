@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script>document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-9]$/.test(q))localStorage.setItem("aurum.fx",q);var f=localStorage.getItem("aurum.fx");if(!f){f="1";try{var c=document.createElement("canvas"),g=c.getContext("webgl")||c.getContext("experimental-webgl"),x=g&&g.getExtension("WEBGL_debug_renderer_info"),r=x?String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)):"";if(/Mali/i.test(r))f="5"}catch(e2){}}document.documentElement.setAttribute("data-fx",f)}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
+<script>document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-9]$/.test(q))localStorage.setItem("aurum.fx",q);var f=localStorage.getItem("aurum.fx");if(!f){f="1";try{var c=document.createElement("canvas"),g=c.getContext("webgl")||c.getContext("experimental-webgl"),x=g&&g.getExtension("WEBGL_debug_renderer_info"),r=x?String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)):"";if(/Mali/i.test(r))f="8"}catch(e2){}}document.documentElement.setAttribute("data-fx",f)}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Aurum Invoice Studio</title>
@@ -1237,7 +1237,7 @@ html[data-fx="5"] :not(.cv):not(.cv *) { border-radius: 0 !important; }
 html[data-fx="6"] *:not(.sr):not(input[type="file"]) { overflow: visible !important; }
 /* 8 = keep the rounded corners but give every rounded piece its own layer; 9 = softly rounded (6px) instead of round */
 html[data-fx="8"] :not(.cv):not(.cv *), html[data-fx="9"] :not(.cv):not(.cv *) { box-shadow: none !important; }
-html[data-fx="8"] :is(.hn, .kpi, .doc-row, .help-btn, .chip, .draft-card, .alert-card, .btn, .pill, .input, .install-bar, .home-empty, .field input, .field select, .field textarea, .item-card, .saved-item, .sheet, .swatch, .ind) { transform: translateZ(0); }
+html[data-fx="8"] :is(.act, .alert-card, .ap-l, .art-glow, .art-paper, .bar i, .bar-x, .btn, .card-btn, .card-line, .chip, .client-row, .client-sum div, .cz-prev, .dash-search, .doc-row, .doc-row .pill, .draft-card, .due-chip, .due-chip i, .email-ask input, .field input, .field select, .field textarea, .gstep .dot, .help-btn, .hn, .hn-ic, .home-empty, .iback) .l-line, .icon-btn, .iface, .ind, .input, .inst-tab, .it-thumb, .item-card, .item-head .x, .key-row, .kpi, .late-tag, .letter, .link-box, .lock-card, .mark-preview, .opt, .opt .logo, .owe, .owe-row, .pbadge, .pick, .pick-row, .pill, .plan-chip, .plan-chip i, .prestige-card, .rcpt-peek, .rv, .saved-item, .seg, .seg button, .send-card, .send-hero, .sheet, .stepper, .suggest, .suggest button, .sumbox, .swatch, .swatch-custom, .switch i, .tab, .tabs, .tag i, .team-row, .toast, .tool .collar, .tool .die, .tool .handle, .tpl, .tpl i, .ty-card, .upload .thumb, .verify img, :is(.letter) { transform: translateZ(0); }
 html[data-fx="9"] :not(.cv):not(.cv *) { border-radius: 6px !important; }
 html[data-fx="7"] *:not(#toast):not(.toast):not(.scrim):not(.sheet):not(.cv):not(#cv) { transform: none !important; opacity: 1 !important; }
 .env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
