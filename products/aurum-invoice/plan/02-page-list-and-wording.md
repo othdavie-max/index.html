@@ -120,6 +120,15 @@ AI assistants and directories copy facts from boxes like this. Use a plain HTML 
 - **Sections (H2):** What goes on an LPO · Why order in writing · From LPO to invoice to receipt · Questions
 - **Links to:** `/guides/lpo-local-purchase-order-nigeria/`, `/guides/purchase-order-explained/`, `/invoice-app-nigeria/`
 
+### 4.2b `/proforma-invoice-maker/`
+- **Title:** Proforma Invoice Maker for Nigerian Businesses | Aurum
+- **Description:** Make a proforma invoice on your phone, with your logo and bank details. When the customer agrees, turn it into an invoice in one tap. Free to start.
+- **H1:** A proforma invoice maker for Nigerian businesses
+- **Opening paragraph:** A proforma invoice shows a customer exactly what the final invoice will say, before you supply anything. In Aurum you make a quotation, set its title to "Proforma Invoice", and send it as a private link or a PDF. When the customer agrees, one tap turns it into the invoice.
+- **Sections (H2):** What goes on a proforma invoice · How to make one in Aurum (numbered steps, checked against the app's Customise panel) · From proforma to invoice to receipt · Questions
+- **Build note:** before writing the steps, confirm in the app that a quotation's title can be typed as "Proforma Invoice". If it cannot, stop and ask.
+- **Links to:** `/guides/proforma-invoice-nigeria/`, `/quotation-maker-nigeria/`, `/invoice-app-nigeria/`
+
 ### 4.3 `/tools/` (hub)
 - **Title:** Free Business Tools for Nigeria | Aurum Invoice Studio
 - **Description:** Free tools for Nigerian businesses: a VAT calculator, a naira amount-in-words converter and a payment reminder message generator. No account needed.
@@ -220,7 +229,7 @@ Same layout as the live trade guides ("Invoice for photographers in Nigeria"). T
 
 ## 7. Menus and links between pages
 - **Top menu:** Guides · Tools · Pricing · Reviews · `Start free`
-- **Footer columns:** *Product:* Invoice app, Free invoice generator, Receipt maker, Quotation maker, Waybill maker, LPO maker, WhatsApp invoices, Pricing. *Learn:* Guides, Answers, Glossary, Tools, Templates. *Company:* About, Reviews, Policies, Contact.
+- **Footer columns:** *Product:* Invoice app, Free invoice generator, Receipt maker, Quotation maker, Proforma invoice maker, Waybill maker, LPO maker, WhatsApp invoices, Pricing. *Learn:* Guides, Answers, Glossary, Tools, Templates. *Company:* About, Reviews, Policies, Contact.
 - Each guide links to: its product page, 2 related guides, and 1 tool or answer page.
 - Each answer page links to: the fuller guide, and one product page.
 - Link text describes the target ("free invoice template"), never "click here".

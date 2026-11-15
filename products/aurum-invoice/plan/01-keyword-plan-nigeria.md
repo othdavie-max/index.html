@@ -22,6 +22,7 @@ Write for these words naturally. Use the main phrase once in the title, once in 
 | free invoice app, invoice app free | P1 | `/free-invoice-generator/` *(new)* |
 | receipt maker, receipt generator, online receipt maker Nigeria | P1 | `/receipt-maker-nigeria/` |
 | quotation maker, quotation generator, quote maker | P1 | `/quotation-maker-nigeria/` |
+| proforma invoice maker, proforma invoice generator | P1 | `/proforma-invoice-maker/` *(new)* |
 | invoice app that works offline, invoice app without internet | P2 | `/invoice-app-nigeria/` and answer page *(new)* |
 | send invoice on WhatsApp, WhatsApp invoice | P1 | `/whatsapp-invoice/` |
 | waybill maker, delivery note maker, waybill generator | P2 | `/delivery-note-maker/` *(new)* |

@@ -5,6 +5,7 @@ Written by Fable on 15 Nov 2026. This is the plan only. Nothing here has been bu
 ## The files
 | File | What it is | Who uses it |
 |---|---|---|
+| `00-master-plan.md` | The whole project: order of work, who builds what, what each later file must decide | Everyone |
 | `01-keyword-plan-nigeria.md` | What Nigerians search for, and which page answers each search | Builder |
 | `02-page-list-and-wording.md` | Every page: address, title, description, heading, opening words | Builder |
 | `03-faq-and-answer-pages.md` | FAQs, short answer pages, glossary, with the exact answers | Builder |
@@ -50,8 +51,7 @@ Every live page says "Pay once, no monthly fees". That stops being true when sub
 
 ## Suggestions for the master plan (product changes that would help search)
 These are not SEO tasks. They are small product ideas for the next Fable file to accept or reject.
-- Let a quotation be labelled **"Proforma invoice"**. Many Nigerians search for that term.
+- *(Already exists, found while writing the master plan: a document's title can be set to "Proforma Invoice", and amount in words is on receipts. A Proforma invoice maker page is therefore in file 02.)*
 - Show the word **"Waybill"** as an alternative name for the delivery note, and **"LPO"** for the purchase order.
 - A **rent receipt** preset (landlord, tenant, property address, period covered). Rent receipts are one of the most common receipt searches in Nigeria.
-- Keep **amount in words** on receipts ("the sum of ... naira only").
 - Count visits from AI assistants separately in the owner dashboard (file 05, section 6).
