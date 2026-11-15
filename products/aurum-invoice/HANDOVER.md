@@ -19,3 +19,6 @@ Read WORKFLOW.md first, then this file.
 
 ## What the owner wants (summary)
 Subscriptions (Free/Starter/Pro, Business coming soon), email + Google registration, five luxury invoice designs, six openings, tracking and reminders, saved items, later a public storefront, and very strong SEO (Google, plus being recommended by AI assistants). Backlinks are a to-do list for the owner (profiles, directories, answers, partnerships); never buy or fake links.
+
+## SEO and AI-visibility plan (done, 15 Nov 2026)
+The plan is in `products/aurum-invoice/plan/` (start with its README). It is a plan only; nothing in it is built. Next in the phase order: the master plan (Fable, high), then accounts and billing design. Items marked `[BILLING]` in the plan wait for the billing file; items marked `[VERIFY]` wait for an accountant's check. The builder must not switch the live "Pay once" wording until subscriptions launch.
