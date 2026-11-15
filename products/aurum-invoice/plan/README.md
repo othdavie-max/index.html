@@ -14,6 +14,7 @@ Written by Fable on 15 Nov 2026. This is the plan only. Nothing here has been bu
 | `06-backlink-todo.md` | Your to-do list for links and mentions | Owner |
 | `07-accounts-and-billing.md` | Accounts, plans, payment, the database design, and the answers to every `[BILLING]` mark (its part K) | Builder |
 | `08-designs-and-openings.md` | Brand sheet, the two new designs, the three new openings, the more detailed envelope | Builder |
+| `09-saved-items.md` | The saved-items catalogue: screen, price rule, limits, merging across devices | Builder |
 
 ## What already exists (do not rebuild)
 33 pages are live on auruminvoice.com.ng: the sales page, 4 product pages, a guides hub, 25 guides, About and Reviews. There is a sitemap, robots.txt, llms.txt, an IndexNow key, structured data and 4 free template downloads. The generator is `seo/build_seo.py` with content in `seo/content*.py`. This plan changes and adds to that. **No existing address may change.**
@@ -54,6 +55,6 @@ Every live page says "Pay once, no monthly fees". That stops being true when sub
 ## Suggestions for the master plan (product changes that would help search)
 These are not SEO tasks. They are small product ideas for the next Fable file to accept or reject.
 - *(Already exists, found while writing the master plan: a document's title can be set to "Proforma Invoice", and amount in words is on receipts. A Proforma invoice maker page is therefore in file 02.)*
-- Show the word **"Waybill"** as an alternative name for the delivery note, and **"LPO"** for the purchase order.
+- *(Checked while writing file 09: a delivery note can already be titled "Waybill". "LPO" is added as a purchase-order title in Build 4; see file 09, part 11.)*
 - A **rent receipt** preset (landlord, tenant, property address, period covered). Rent receipts are one of the most common receipt searches in Nigeria.
 - Count visits from AI assistants separately in the owner dashboard (file 05, section 6).

@@ -45,7 +45,7 @@ Prices are decided in `WORKFLOW.md`. The rest is decided here. The numbers live 
 | Aurum's name on the client page | A line: "Made with Aurum Invoice Studio. Make yours free." (links to the sales page) | The small Aurum mark, as on Signature today | None |
 | Devices | 1 | 2 | 5 |
 | Businesses | 1 | 1 | 2 |
-| Saved items in the catalogue (file 09) | 10 | 100 | Unlimited |
+| Saved items in the catalogue (file 09) | 10 | 100 | 500 |
 | Client links stay open for | 60 days | 12 months | As long as the plan is active |
 | Phone alerts (opened, paid, accepted), morning overdue alert | No | No | Yes |
 | Monthly report, Team tab, logo pressed into the seal | No | No | Yes |
@@ -59,7 +59,7 @@ Prices are decided in `WORKFLOW.md`. The rest is decided here. The numbers live 
 | They own | They keep, for good | New things they also get |
 |---|---|---|
 | **Signature** | Everything they have today: unlimited documents, 2 devices, 1 business, the three designs and three openings, links that never expire | The Starter column for anything new (catalogue: 100 items) |
-| **Prestige** | Everything they have today: unlimited documents, 5 devices, 2 businesses, own web address, no Aurum name, alerts, reports, Team, logo on the seal, links that never expire | The Pro column for anything new: the two new designs, the three new openings, unlimited catalogue, scheduled reminders |
+| **Prestige** | Everything they have today: unlimited documents, 5 devices, 2 businesses, own web address, no Aurum name, alerts, reports, Team, logo on the seal, links that never expire | The Pro column for anything new: the two new designs, the three new openings, 500 saved items, scheduled reminders |
 
 - Anyone who buys in the sale before launch day is treated the same way.
 - The storefront is not promised to either group here. File 10 decides.
@@ -513,7 +513,7 @@ No welcome series and no marketing emails in this design. Paystack sends its own
 |---|---|
 | File 02 section 1, "No card needed" | Confirmed. Keep the words. |
 | File 02 section 3.1, table row "Documents" | Free `5 a month` · Starter `50 a month` · Pro `Unlimited` |
-| File 02 section 3.1, table rows "Features" | Use these rows, in this order: Designs (`1` · `3` · `All 5`) · Openings (`1` · `3` · `All 6`) · Devices (`1` · `2` · `5`) · Businesses (`1` · `1` · `2`) · Saved items (`10` · `100` · `Unlimited`) · Client links stay open (`60 days` · `12 months` · `Always, while subscribed`) · Phone alerts when a client opens or pays (`No` · `No` · `Yes`) · Monthly report and team (`No` · `No` · `Yes`) · Aurum's name on your client page (`Shown` · `Small mark` · `Removed`). Above the table: `Every plan includes all six document types, your logo and bank details, the sealed private link, PDF, and seeing when your client opens it.` |
+| File 02 section 3.1, table rows "Features" | Use these rows, in this order: Designs (`1` · `3` · `All 5`) · Openings (`1` · `3` · `All 6`) · Devices (`1` · `2` · `5`) · Businesses (`1` · `1` · `2`) · Saved items (`10` · `100` · `500`) · Client links stay open (`60 days` · `12 months` · `Always, while subscribed`) · Phone alerts when a client opens or pays (`No` · `No` · `Yes`) · Monthly report and team (`No` · `No` · `Yes`) · Aurum's name on your client page (`Shown` · `Small mark` · `Removed`). Above the table: `Every plan includes all six document types, your logo and bank details, the sealed private link, PDF, and seeing when your client opens it.` |
 | File 02 section 3.1, "What counts as a document" | `A document is counted the first time you send it or save it for a client: as a link, on WhatsApp, as a PDF or as an image. Drafts are not counted. Sending the same document again, or correcting it, is not counted again. Invoices, receipts, quotations, delivery notes, credit notes and purchase orders each count as one. The count starts again on the 1st of every month.` |
 | File 02 section 3.2, "What the free plan includes" | `The free plan includes all six document types, your logo, colours, signature and bank details, the sealed private link, PDF and image, and it shows you when your client opens the document. Free documents use the Royal design and the wax-seal envelope, and carry a small "Made with Aurum Invoice Studio" line.` |
 | File 03 section 1, question 3 (extra sentence) | `It includes your logo and bank details, the sealed private link, and seeing when your client opens it.` |
