@@ -62,7 +62,7 @@ Prices are decided in `WORKFLOW.md`. The rest is decided here. The numbers live 
 | **Prestige** | Everything they have today: unlimited documents, 5 devices, 2 businesses, own web address, no Aurum name, alerts, reports, Team, logo on the seal, links that never expire | The Pro column for anything new: the two new designs, the three new openings, 500 saved items, scheduled reminders |
 
 - Anyone who buys in the sale before launch day is treated the same way.
-- The storefront is not promised to either group here. File 10 decides.
+- The storefront: file 10 gives it to Prestige owners, subject to the owner's yes there, and not to Signature owners.
 - A Signature owner can subscribe to Pro on top. While the subscription is active they have Pro. When it ends they are back on Signature, not Free.
 
 ### B3. How the app knows what is allowed
@@ -447,6 +447,7 @@ Signed-in functions use `auth.uid()` and are granted to `authenticated` only. Ke
 | `publish_invoice(...)` | as today | Same. Uses the level for the document limit. Refuses a design or opening not in the level's lists (`design_locked`). Stamps `branding`. Business lock: 1, or 2 when `businesses = 2`. |
 | `view_invoice(p_id)` | anyone | Same, and returns `branding` so the client page obeys the server. |
 | `rename_business(p_key, p_device, p_slot, p_name)` | signed in | Once every 60 days. |
+| `save_push(...)`, `send_overdue_alerts()` | as today | Both test `plan = 'prestige'` today. Change each to test the level's `pro_pack`, so Pro accounts get alerts too. Check the SQL files for any other test of `plan = 'prestige'` and change it the same way. |
 | `create_sub_order(p_tier, p_period, p_method)` | signed in | Makes the order with the amount from `prices`. When `subs_mode = 'test'` it refuses anyone who is not in `admins`. When `off` it refuses everyone. |
 | `sub_order_for_verify(p_reference)` | server only | For the billing function. |
 | `apply_payment(p_reference, p_paid_kobo, p_channel, ...)` | server only | **Runs once per reference** (the unique `reference`). Checks the amount, writes `payments`, sets `paid_tier`, `paid_until`, `paid_period`, `paid_method`, applies the half-days rule on an upgrade, clears `ended_at`. |

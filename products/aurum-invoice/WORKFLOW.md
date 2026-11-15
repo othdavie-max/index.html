@@ -27,3 +27,8 @@ Stop and ask for Fable when: a spec is missing or unclear, a build hits a proble
 ## Phase order
 0 Clean-up (Haiku, low) → SEO plan (Fable, high) → master plan (Fable, high) → accounts and billing design (Fable, high/xhigh) → brand, invoice designs, openings, saved items (Sonnet, medium/high) → reminders and storefront payments (Opus, high) → test and launch (Sonnet medium, Haiku low).
 Fable files go in `products/aurum-invoice/plan/`.
+
+## Updates (16 Nov 2026)
+- All Fable files are written: `plan/00-master-plan.md` to `plan/10-reminders-and-storefront.md`. The order of work, step by step, is in `plan/00-master-plan.md`, section 3. Follow that table.
+- Once Fable is no longer available, "stop and ask for Fable" means **Opus at high effort**.
+- Decisions the plan files are waiting on are listed at the end of each file ("Decisions I need from you"). A builder must not treat an unanswered decision as a yes; the files say what to do meanwhile.

@@ -52,7 +52,7 @@ One zip at the end of each build step. You test it before the next step starts. 
 | 12 | **Build 4: saved items catalogue** | Sonnet, medium | File 09 | Zip 4 |
 | 13 | **SEO Phase B**, then Phase C week by week | Sonnet, medium | Files 02 to 05 | Zip 5, then small zips |
 | 14 | **Build 5: reminders** | Opus, high | File 10 | Zip 6 |
-| 15 | **Build 6: storefront and its payments** | Opus, high | File 10 | Zip 7 |
+| 15 | **Build 6: storefront and its payments** | Opus, high | File 10 | Zip 7a (the store), then Zip 7b (confirmed online payment, only after Paystack has answered the questions in file 10) |
 | 16 | Final test and launch check | Sonnet medium, then Haiku low | Section 11 | A test report and the final zip |
 
 Steps 11, 12 and 13 do not depend on each other. If one is blocked, do another.
