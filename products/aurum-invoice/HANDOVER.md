@@ -4,7 +4,7 @@ Read WORKFLOW.md first, then this file.
 
 ## Where things stand
 - Product: Aurum Invoice Studio, a luxury invoice/receipt/quotation PWA for Nigerian businesses. Live at https://auruminvoice.com.ng (Netlify, drag-and-drop zip). Old address auruminvoicestudio.netlify.app still works.
-- Source: single-file app built from parts kept in the session scratchpad (build.py, package.sh, build_landing.py); the built outputs are in `products/aurum-invoice/` (`index.html` app, `landing.html` sales page, SEO pages in `seo/`). If the scratchpad is gone, edit the built files directly.
+- Source: single-file app built from parts kept in the session scratchpad (build.py, package.sh, build_landing.py); the built outputs are in `products/aurum-invoice/` (`index.html` app, `landing.html` sales page, SEO pages in `seo/`). If the scratchpad is gone, edit the built files directly. **Checked 16 Nov 2026: the app's build scripts (`build.py`, `package.sh`, `build_landing.py`) are not in the repository, not in its history and not on the owner's computer. The built files are the source.** Only the SEO pages still have a generator (`seo/build_seo.py`).
 - Backend: Supabase project ymmxhjfcfaawrebxoxbu (Edge Functions `paystack`, `notify`, `free-signup`; set verify_jwt false after each deploy). Reached through Composio.
 - Free plan today: email link for 3 documents/month (to be replaced by real accounts and 5/month).
 - Opening animation: the classic CSS envelope is the default. The Blender 3D videos exist but are switched off (user prefers the CSS one, wants a more detailed version later).
@@ -13,7 +13,7 @@ Read WORKFLOW.md first, then this file.
 ## Open items
 - Search Console: property https://auruminvoice.com.ng/ is added (unverified). Verification file google37356b1ccf2db02e.html is live on the new domain; the owner must click Verify, then the sitemap (33 URLs) can be submitted.
 - Netlify: auruminvoice.com.ng should be set as the Primary domain.
-- Backend still has the old netlify address in `paystack` and `free-signup`; redeploy or set Supabase secret SITE_URL=https://auruminvoice.com.ng.
+- Backend address (checked 16 Nov 2026): the Supabase secret `SITE_URL` is now set to https://auruminvoice.com.ng, so `free-signup` uses the new address. The deployed `paystack` function (version 9) still has the old netlify address written into its code as the return address after payment; it is not changed because it is the live payment function. Buyers who pay still return to the old address, which still works. The old one-time checkout is retired at launch (master plan, section 10), so this can be left.
 - Gmail app password was pasted in chat earlier; the owner should rotate it.
 - Existing buyers (one-time purchases) must keep access when subscriptions arrive.
 
