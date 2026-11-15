@@ -124,7 +124,7 @@ You asked for tracking and reminders. Being honest about the limits:
 ## 7. Designs and openings: what file 08 must contain
 - Names, the look, and exact colours and type for **two new designs** alongside Royal, Atelier and Noir.
 - **Three new openings**, each described frame by frame, alongside the wax-seal envelope, the gift box and the invitation card. Also the more detailed envelope you asked for.
-- Every opening must be made with CSS only (no video), must respect the phone-safety levels (`data-fx`; Mali phones such as the Infinix Note 30 default to level 8), and must stay smooth on a low-cost phone. **The phone-safety system must not be changed.**
+- Every opening must be made with CSS only (no video) and must stay smooth on a low-cost phone such as the Infinix Note 30. **The phone-safety system (`data-fx`) must not be changed.** (Corrected in file 08, part 0: those levels protect the app's own screens and deliberately leave the client's page alone, so openings are kept safe by the budget in file 08 instead.)
 - "Straight to invoice" stays as the choice with no animation.
 - Which designs and openings belong to which plan comes from file 07.
 - Any brand changes to the sales page. The headline stays: "Your business is premium. Your invoice should be too."

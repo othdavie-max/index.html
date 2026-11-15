@@ -13,6 +13,7 @@ Written by Fable on 15 Nov 2026. This is the plan only. Nothing here has been bu
 | `05-ai-crawlers-and-llms.md` | robots.txt, llms.txt, headers, and how we measure AI visibility | Builder |
 | `06-backlink-todo.md` | Your to-do list for links and mentions | Owner |
 | `07-accounts-and-billing.md` | Accounts, plans, payment, the database design, and the answers to every `[BILLING]` mark (its part K) | Builder |
+| `08-designs-and-openings.md` | Brand sheet, the two new designs, the three new openings, the more detailed envelope | Builder |
 
 ## What already exists (do not rebuild)
 33 pages are live on auruminvoice.com.ng: the sales page, 4 product pages, a guides hub, 25 guides, About and Reviews. There is a sitemap, robots.txt, llms.txt, an IndexNow key, structured data and 4 free template downloads. The generator is `seo/build_seo.py` with content in `seo/content*.py`. This plan changes and adds to that. **No existing address may change.**
