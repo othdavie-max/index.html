@@ -690,6 +690,67 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .plan-card { display: grid; gap: 10px; }
 .plan-card b { font-size: 24px; }
 .plan-points { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--muted); font-size: 14px; }
+
+/* ---- full-screen plans and checkout ---- */
+.pp { position: fixed; inset: 0; z-index: 140; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
+.pp-bar { flex: none; display: flex; align-items: center; gap: 8px; height: 56px; padding: 0 max(12px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); }
+.pp-bar b { font-family: var(--f-display); font-weight: 500; font-size: 19px; }
+.pp-back { width: 44px; height: 44px; border: 0; background: transparent; color: inherit; display: grid; place-items: center; border-radius: 12px; }
+.pp-back svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pp-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.pp-wrap { max-width: 1040px; margin: 0 auto; padding: 24px max(18px, env(safe-area-inset-left, 0px)) calc(48px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-right, 0px)); }
+.pp h2 { font-family: var(--f-display); font-weight: 500; font-size: clamp(28px, 7vw, 40px); line-height: 1.1; margin: 0 0 10px; }
+.pp-head { text-align: center; margin-bottom: 20px; }
+.pp-cur { margin: 0 auto; max-width: 52ch; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+.pp-cur b { color: inherit; }
+.pp-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: min(340px, 100%); margin: 0 auto 26px; padding: 4px; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); }
+.pp-toggle button { height: 42px; border: 0; border-radius: 99px; background: transparent; color: var(--muted); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.pp-toggle button[aria-pressed="true"] { background: var(--gold); color: #17120A; }
+.pp-toggle em { font-style: normal; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 99px; background: rgba(23,18,10,.14); }
+.pp-toggle.small { width: 100%; margin: 14px 0; }
+.pp-grid { display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr); max-width: 480px; margin: 0 auto; }
+@media (min-width: 900px) { .pp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: none; align-items: stretch; } }
+.pp-card { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 26px 22px 24px; border-radius: 22px; border: 1px solid var(--line-2, var(--line)); background: var(--surface); }
+.pp-card.pop { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 20px 50px rgba(217,190,132,.12); }
+.pp-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); padding: 4px 14px; border-radius: 99px; background: var(--gold); color: #17120A; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.pp-card h3 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 26px; }
+.pp-for { margin: 0; color: var(--muted); font-size: 14px; min-height: 20px; }
+.pp-price { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+.pp-price b { font-family: var(--f-display); font-weight: 500; font-size: 44px; line-height: 1; letter-spacing: -.01em; }
+.pp-price span { color: var(--muted); font-size: 14px; }
+.pp-bill { margin: 0 0 6px; min-height: 18px; color: var(--muted); font-size: 13px; }
+.pp-card .btn { height: 48px; }
+.pp-card .btn[disabled] { opacity: .55; cursor: default; }
+.pp-note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.pp-note.ok { color: var(--ok); }
+.pp-sep { height: 1px; background: var(--line); margin: 6px 0 2px; }
+.pp-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.4; }
+.pp-list li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start; }
+.pp-list li::before { content: ""; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%; background: rgba(217,190,132,.16) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D9BE84' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 12px no-repeat; }
+.pp-biz { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 26px auto 0; max-width: 480px; padding: 18px 20px; border: 1px dashed var(--line-2, var(--line)); border-radius: 18px; }
+@media (min-width: 900px) { .pp-biz { max-width: none; } }
+.pp-biz div { display: grid; gap: 2px; min-width: 0; flex: 1 1 200px; }
+.pp-biz span { color: var(--muted); font-size: 13.5px; }
+.pp-manage { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 22px auto 0; }
+.pp-foot { margin: 22px auto 0; max-width: 60ch; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.pp-foot.left { text-align: left; margin-top: 8px; }
+.pp-co { max-width: 480px; margin: 0 auto; display: grid; gap: 14px; }
+.pp-co h4 { margin: 8px 0 0; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.pp-sum { padding: 18px; border-radius: 18px; border: 1px solid var(--line-2, var(--line)); background: var(--surface); }
+.pp-sum-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.pp-sum-top div { display: grid; gap: 2px; }
+.pp-sum-top small { color: var(--muted); font-size: 13px; }
+.pp-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.pp-total b { font-family: var(--f-display); font-weight: 500; font-size: 28px; }
+.pp-opts { display: grid; gap: 10px; }
+.pp-opt { display: grid; grid-template-columns: 22px 1fr; gap: 14px; align-items: center; text-align: left; padding: 16px; border-radius: 16px; border: 1.5px solid var(--line); background: var(--surface); color: inherit; }
+.pp-opt small { display: block; margin-top: 3px; color: var(--muted); font-size: 13px; line-height: 1.4; font-weight: 400; }
+.pp-opt[aria-pressed="true"] { border-color: var(--gold); background: rgba(217,190,132,.07); }
+.pp-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-2, #6c6352); }
+.pp-opt[aria-pressed="true"] .pp-radio { border-color: var(--gold); background: radial-gradient(circle, var(--gold) 45%, transparent 50%); }
+.pp-pay { height: 54px; font-size: 16px; margin-top: 4px; }
+.pp-secure { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
+html.pp-open, html.pp-open body { overflow: hidden; }
 .home-left { margin: 0 0 10px; }
 html[data-theme="light"] .g-input, html[data-theme="light"] .g-devbtn { background: var(--surface); }
 html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
@@ -3015,60 +3076,87 @@ function planStatusLine(e) {
   return `Your plan does not renew by itself. It ends on ${esc(fmtLong(e.paid_until))} unless you renew.`;
 }
 
-/* ---------- the plan screen ---------- */
+/* ---------- the plan screen: a full page, like most subscription sites ---------- */
+const FREE_POINTS = ["5 documents a month", "All six document types", "Your logo, colours and bank details", "Private sealed link, PDF and image", "See when your client opens it"];
 const TIER_POINTS = {
-  starter: ["50 documents a month", "Three designs and three openings", "2 devices", "Client links stay open for 12 months"],
-  pro: ["Unlimited documents", "All designs and openings", "Phone alerts when a client opens or pays", "Monthly report and team", "2 businesses and 5 devices", "No Aurum name on your client page"],
+  starter: ["50 documents a month", "Three designs and three openings", "2 devices", "Client links stay open for 12 months", "Everything in Free"],
+  pro: ["Unlimited documents", "All designs and openings", "Phone alerts when a client opens or pays", "Monthly report and team", "2 businesses and 5 devices", "No Aurum name on your client page", "Everything in Starter"],
 };
+const TIER_FOR = { free: "To try Aurum and for light use.", starter: "For a business that sends often.", pro: "For established brands and teams." };
+let planPage = null;
+function closePlanPage() { if (planPage) { planPage.remove(); planPage = null; } window.__planRedraw = null; document.documentElement.classList.remove("pp-open"); }
+function planPageShell(title, backLabel, onBack) {
+  closeLayer();
+  if (!planPage) { planPage = document.createElement("div"); planPage.className = "pp"; planPage.setAttribute("role", "dialog"); document.body.appendChild(planPage); }
+  planPage.innerHTML = '<div class="pp-bar"><button class="pp-back" type="button" data-pp="back" aria-label="' + esc(backLabel) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b>' + esc(title) + '</b></div><div class="pp-scroll"><div class="pp-wrap" id="pp-body"></div></div>';
+  planPage.setAttribute("aria-label", title);
+  document.documentElement.classList.add("pp-open");
+  planPage.onclick = (ev) => { if (ev.target.closest("[data-pp=back]")) return onBack(); };
+  return $("#pp-body");
+}
+const perPrice = (tier, per) => { const p = priceOf(tier, per); return p ? naira(per === "year" ? Math.round(p / 12) : p) : "…"; };
 function openPlans(focus) {
   let per = "year";
+  const body = planPageShell("Plans", "Close", closePlanPage);
   const draw = () => {
     const e = entNow() || {}, owned = e.legacy ? e.legacy : null, proActive = e.paid_tier === "pro" && e.status !== "ended", starterActive = e.paid_tier === "starter" && e.status !== "ended";
-    const head = e.legacy && !e.paid_tier ? `You have ${esc(e.label)}.` : e.paid_tier && e.status !== "ended" ? `You are on ${esc(e.label)}.` : e.paid_tier ? `Your ${esc(paidName(e))} plan has ended.` : "You are on the Free plan.";
-    const status = e.legacy && !e.paid_tier ? "Paid once. Yours to keep. Nothing to renew." : e.paid_tier ? (e.status === "ended" ? "Your documents are safe. Renew any time." : planStatusLine(e)) : e.docs_limit != null ? `${e.docs_used ?? 0} of ${e.docs_limit} documents used this month. They come back on ${esc(e.resets_on ? fmtLong(e.resets_on + "T12:00:00") : "the 1st")}.` : "";
+    const onFree = !e.legacy && !(e.paid_tier && e.status !== "ended");
+    const head = e.legacy && !e.paid_tier ? "You have " + esc(e.label) + "." : e.paid_tier && e.status !== "ended" ? "You are on " + esc(e.label) + "." : e.paid_tier ? "Your " + esc(paidName(e)) + " plan has ended." : "You are on the Free plan.";
+    const status = e.legacy && !e.paid_tier ? "Paid once. Yours to keep. Nothing to renew." : e.paid_tier ? (e.status === "ended" ? "Your documents are safe. Renew any time." : planStatusLine(e)) : e.docs_limit != null ? (e.docs_used ?? 0) + " of " + e.docs_limit + " documents used this month. They come back on " + esc(e.resets_on ? fmtLong(e.resets_on + "T12:00:00") : "the 1st") + "." : "";
+    const list = (pts) => '<ul class="pp-list">' + pts.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>";
+    const priceBlock = (tier) => '<div class="pp-price"><b>' + perPrice(tier, per) + '</b><span>/ month</span></div><p class="pp-bill">' + (priceOf(tier, per) ? (per === "year" ? "Billed " + naira(priceOf(tier, per)) + " once a year" : "Billed monthly") : "") + "</p>";
     const card = (tier) => {
-      const price = priceOf(tier, per);
       let action;
-      if (tier === "starter" && owned) action = `<p class="hint">Included in your ${esc(e.label)} plan.</p>`;
-      else if (tier === "pro" && owned === "prestige") action = `<p class="hint">Included in your Prestige plan.</p>`;
-      else if (tier === "starter" && proActive) action = `<p class="hint">To move to Starter, stop renewal. You can choose Starter when Pro ends on ${esc(fmtLong(e.paid_until))}.</p>`;
-      else if (tier === "starter") action = `<button class="btn primary block" type="button" data-choose="starter">${starterActive ? "Renew Starter" : "Choose Starter"}</button>`;
-      else action = `<button class="btn primary block" type="button" data-choose="pro">${proActive ? "Renew Pro" : starterActive ? "Upgrade to Pro" : "Choose Pro"}</button>`;
-      return `<div class="prestige-card plan-card"><span class="eyebrow">${tierName(tier)}</span><b>${price ? naira(price) : "…"} <small style="font-weight:600;color:var(--muted)">${per === "year" ? "a year" : "a month"}</small></b><ul class="plan-points">${TIER_POINTS[tier].map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${action}</div>`;
+      if (tier === "starter" && owned) action = '<button class="btn block" type="button" disabled>Included in your plan</button>';
+      else if (tier === "pro" && owned === "prestige") action = '<button class="btn block" type="button" disabled>Included in your plan</button>';
+      else if (tier === "starter" && proActive) action = '<button class="btn block" type="button" disabled>Available when Pro ends</button><p class="pp-note">To move to Starter, stop renewal. Choose it on ' + esc(fmtLong(e.paid_until)) + ".</p>";
+      else if (tier === "starter") action = '<button class="btn block' + (starterActive ? "" : " primary") + '" type="button" data-choose="starter">' + (starterActive ? "Renew Starter" : "Get Starter") + "</button>";
+      else action = '<button class="btn primary block" type="button" data-choose="pro">' + (proActive ? "Renew Pro" : starterActive ? "Upgrade to Pro" : "Get Pro") + "</button>";
+      return '<div class="pp-card' + (tier === "pro" ? " pop" : "") + '">' + (tier === "pro" ? '<span class="pp-badge">Most popular</span>' : "") + "<h3>" + tierName(tier) + '</h3><p class="pp-for">' + TIER_FOR[tier] + "</p>" + priceBlock(tier) + action + '<div class="pp-sep"></div>' + list(TIER_POINTS[tier]) + "</div>";
     };
-    $("#sheet-body").innerHTML = `<div style="padding:0 4px"><b style="font-size:17px">${head}</b>${status ? `<p class="hint" style="margin:6px 0 0">${status}</p>` : ""}
-      <div class="chips" style="margin:14px 0"><button type="button" class="chip" data-per="year" aria-pressed="${per === "year"}">Yearly · 2 months free</button><button type="button" class="chip" data-per="month" aria-pressed="${per === "month"}">Monthly</button></div>
-      <div style="display:grid;gap:12px">${card("starter")}${card("pro")}
-        <div class="prestige-card plan-card"><span class="eyebrow">Business</span><b>Coming soon</b><p>For teams and larger businesses.</p><button class="btn block" type="button" data-plan="business">Request Business</button></div></div>
-      ${e.paid_tier && e.status !== "ended" ? `<div style="display:grid;gap:8px;margin-top:16px">${e.renews ? `<button class="btn block" type="button" data-plan="stop">Stop automatic renewal</button><button class="btn block" type="button" data-plan="card">Update card</button>` : ""}</div>` : ""}
-      ${session && licence.acct ? `<p class="hint" style="margin-top:14px"><button class="link-btn" type="button" data-plan="payments" style="font-size:13px">Payments</button></p>` : ""}</div>`;
+    const freeCard = '<div class="pp-card"><h3>Free</h3><p class="pp-for">' + TIER_FOR.free + '</p><div class="pp-price"><b>₦0</b><span>/ month</span></div><p class="pp-bill">Free for as long as you like</p><button class="btn block" type="button" disabled>' + (onFree ? "Your current plan" : "Free plan") + '</button><div class="pp-sep"></div>' + list(FREE_POINTS) + "</div>";
+    const manage = e.paid_tier && e.status !== "ended" && e.renews ? '<button class="btn" type="button" data-plan="stop">Stop automatic renewal</button><button class="btn" type="button" data-plan="card">Update card</button>' : "";
+    $("#pp-body").innerHTML = '<div class="pp-head"><h2>Choose your plan</h2><p class="pp-cur"><b>' + head + "</b>" + (status ? " " + status : "") + '</p></div>' +
+      '<div class="pp-toggle" role="group" aria-label="Billing period"><button type="button" data-per="month" aria-pressed="' + (per === "month") + '">Monthly</button><button type="button" data-per="year" aria-pressed="' + (per === "year") + '">Yearly <em>Save 17%</em></button></div>' +
+      '<div class="pp-grid">' + freeCard + card("starter") + card("pro") + "</div>" +
+      '<div class="pp-biz"><div><b>Business</b><span>For teams and larger businesses. Coming soon.</span></div><button class="btn" type="button" data-plan="business">Request Business</button></div>' +
+      (manage || (session && licence.acct) ? '<div class="pp-manage">' + manage + (session && licence.acct ? '<button class="btn ghost" type="button" data-plan="payments">Payment history</button>' : "") + "</div>" : "") +
+      '<p class="pp-foot">Prices are in naira. Pay by card, bank transfer or USSD on Paystack. Cancel any time.' + (CONFIG.REFUND_LINE ? " If Aurum is not right for you, tell us within 7 days of your first payment and we refund it in full." : "") + "</p>";
   };
-  sheet("Plans", `<p class="hint" style="padding:0 8px">Loading…</p>`, { onClick: (ev) => {
+  window.__planRedraw = draw;
+  planPage.onclick = (ev) => {
+    if (ev.target.closest("[data-pp=back]")) return closePlanPage();
     const p = ev.target.closest("[data-per]"); if (p) { per = p.dataset.per; return draw(); }
     const c = ev.target.closest("[data-choose]"); if (c) return openPay(c.dataset.choose, per);
-  } });
-  draw(); refreshBilling().then(draw);
-  if (focus === "starter" || focus === "pro") { /* the card is already on screen */ }
+  };
+  draw(); refreshBilling().then(() => { if (planPage && window.__planRedraw === draw) draw(); });
 }
 function openPay(tier, per0) {
-  let per = per0 || "year";
+  let per = per0 || "year", how = "card";
   const e = entNow() || {};
+  const body = planPageShell("Checkout", "Back to plans", () => openPlans());
   const draw = (quote) => {
-    const price = priceOf(tier, per);
-    const upgradeNote = quote?.ok && quote.bonus_days > 0 ? `<p class="hint" style="margin:10px 0 0">Your ${Math.ceil((new Date(quote.paid_until) - Date.now()) / 864e5)} unused Starter days become ${quote.bonus_days} extra Pro days.</p>` : "";
-    const stack = e.paid_tier === tier && e.status === "active" && e.paid_until ? `<p class="hint" style="margin:10px 0 0">${per === "year" ? "Your year" : "Your month"} starts when your current period ends.</p>` : "";
-    const needAccount = !(session && licence.acct);
-    $("#sheet-body").innerHTML = `<div style="padding:0 4px"><span class="eyebrow">${tierName(tier)}</span><div class="chips" style="margin:10px 0"><button type="button" class="chip" data-per="year" aria-pressed="${per === "year"}">Yearly · 2 months free</button><button type="button" class="chip" data-per="month" aria-pressed="${per === "month"}">Monthly</button></div>
-      <b style="font-size:26px">${price ? naira(price) : "…"}</b> <small style="color:var(--muted)">${per === "year" ? "a year" : "a month"}</small>${upgradeNote}${stack}
-      <div style="display:grid;gap:10px;margin:16px 0 8px">${needAccount ? `<button class="btn primary block" type="button" data-pay="account">Create your account to continue</button>` : `<button class="btn primary block" type="button" data-pay="card">Pay with card (renews by itself)</button><button class="btn block" type="button" data-pay="transfer">Pay by transfer or USSD</button>`}</div>
-      <p class="hint">You can cancel any time.${CONFIG.REFUND_LINE ? " Refund within 7 days of your first payment." : ""} Payments are made on Paystack's own page.</p>
-      <button class="link-btn" type="button" data-plan="open" style="font-size:13px">Back to plans</button></div>`;
+    const price = priceOf(tier, per), needAccount = !(session && licence.acct);
+    const upgradeNote = quote?.ok && quote.bonus_days > 0 ? '<p class="pp-note ok">Your ' + Math.ceil((new Date(quote.paid_until) - Date.now()) / 864e5) + " unused Starter days become " + quote.bonus_days + " extra Pro days.</p>" : "";
+    const stack = e.paid_tier === tier && e.status === "active" && e.paid_until ? '<p class="pp-note">' + (per === "year" ? "Your year" : "Your month") + " starts when your current period ends.</p>" : "";
+    const opt = (k, title, sub) => '<button type="button" class="pp-opt" data-how="' + k + '" aria-pressed="' + (how === k) + '"><span class="pp-radio"></span><span><b>' + title + "</b><small>" + sub + "</small></span></button>";
+    $("#pp-body").innerHTML = '<div class="pp-co">' +
+      '<h2>Complete your order</h2>' +
+      '<div class="pp-sum"><div class="pp-sum-top"><div><b>Aurum ' + tierName(tier) + "</b><small>" + (per === "year" ? "Yearly plan" : "Monthly plan") + "</small></div><b>" + (price ? naira(price) : "…") + "</b></div>" +
+      '<div class="pp-toggle small" role="group" aria-label="Billing period"><button type="button" data-per="month" aria-pressed="' + (per === "month") + '">Monthly</button><button type="button" data-per="year" aria-pressed="' + (per === "year") + '">Yearly <em>Save 17%</em></button></div>' + upgradeNote + stack +
+      '<div class="pp-total"><span>Total today</span><b>' + (price ? naira(price) : "…") + "</b></div></div>" +
+      (needAccount ? "" : '<h4>Pay with</h4><div class="pp-opts">' + opt("card", "Card", "Renews by itself every " + (per === "year" ? "year" : "month") + ". Visa, Mastercard or Verve.") + opt("transfer", "Bank transfer or USSD", "One payment for one " + (per === "year" ? "year" : "month") + ". It does not renew by itself.") + "</div>") +
+      '<button class="btn primary block pp-pay" type="button" data-pay="' + (needAccount ? "account" : "go") + '">' + (needAccount ? "Create your account to continue" : "Pay " + (price ? naira(price) : "")) + "</button>" +
+      '<p class="pp-secure">🔒 Secured by Paystack. We never see your card details.</p>' +
+      '<p class="pp-foot left">You can cancel any time.' + (CONFIG.REFUND_LINE ? " Refund within 7 days of your first payment." : "") + "</p></div>";
   };
-  const fetchQuote = async () => { if (!(session && licence.acct)) return null; try { const q = await rpcAuth("plan_quote", { p_tier: tier, p_period: per }); return q; } catch { return null; } };
-  sheet(`${tierName(tier)}`, `<p class="hint" style="padding:0 8px">Loading…</p>`, { onClick: async (ev) => {
+  const fetchQuote = async () => { if (!(session && licence.acct)) return null; try { return await rpcAuth("plan_quote", { p_tier: tier, p_period: per }); } catch { return null; } };
+  planPage.onclick = async (ev) => {
+    if (ev.target.closest("[data-pp=back]")) return openPlans();
     const p = ev.target.closest("[data-per]"); if (p) { per = p.dataset.per; draw(); draw(await fetchQuote()); return; }
-    const pay = ev.target.closest("[data-pay]"); if (pay) return startPay(tier, per, pay.dataset.pay, pay);
-  } });
+    const h = ev.target.closest("[data-how]"); if (h) { how = h.dataset.how; $$("#pp-body [data-how]").forEach((x) => x.setAttribute("aria-pressed", String(x === h))); return; }
+    const pay = ev.target.closest("[data-pay]"); if (pay) return startPay(tier, per, pay.dataset.pay === "go" ? how : pay.dataset.pay, pay);
+  };
   draw(); fetchQuote().then(draw);
 }
 const ORDER_ERR = { off: "Plans are not open yet.", admin_only: "Plans are not open yet.", downgrade: "To move to Starter, stop renewal and choose Starter when Pro ends.", not_needed: "Your plan already includes this.", no_workspace: "Please sign in again.", plan: "That plan is not available. Try another." };
@@ -3078,7 +3166,7 @@ async function callBilling(action, extra = {}) {
   return res.json().catch(() => ({}));
 }
 async function startPay(tier, per, how, btn) {
-  if (how === "account") { closeLayer(); return openAccountGate("create"); }
+  if (how === "account") { closeLayer(); closePlanPage(); return openAccountGate("create"); }
   const restore = busy(btn, "One moment…");
   try {
     const o = await rpcAuth("create_sub_order", { p_tier: tier, p_period: per, p_method: how });
@@ -3116,7 +3204,7 @@ function stopRenewalSheet() {
   sheet("Stop automatic renewal", `<p class="hint" style="padding:0 8px 12px">Stop automatic renewal? You keep ${esc(e.label || "your plan")} until ${esc(e.paid_until ? fmtLong(e.paid_until) : "the end of the period")}. After that your account moves to the free plan and your documents stay.</p><div style="display:grid;gap:10px;padding:0 8px 8px"><button class="btn primary" type="button" id="sr-go">Stop renewal</button><button class="btn ghost" type="button" data-close>Keep it</button></div>`);
   $("#sr-go").onclick = async () => {
     const b = $("#sr-go"); b.disabled = true; b.textContent = "One moment…";
-    try { const j = await callBilling("stop_renewal"); if (j.ok) { await refreshBilling(); closeLayer(); toast("Automatic renewal is off"); return; } toast("Couldn't stop it. Message us on WhatsApp."); }
+    try { const j = await callBilling("stop_renewal"); if (j.ok) { await refreshBilling(); closeLayer(); try { window.__planRedraw?.(); } catch {} toast("Automatic renewal is off"); return; } toast("Couldn't stop it. Message us on WhatsApp."); }
     catch { toast("Connect to the internet to do that."); }
     b.disabled = false; b.textContent = "Stop renewal";
   };
