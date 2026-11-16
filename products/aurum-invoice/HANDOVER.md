@@ -93,3 +93,5 @@ Known limits and notes
 - Rules apply to accounts made with the new sign-in; old free keys keep old behaviour until `accounts_required` is on.
 - The launch zip's `/app/policies.html` is the same text as `/policies.html`.
 - The "Refer a friend" card hides itself when `subs_mode` is live (referrals are paused at launch).
+
+- Mail (16 Nov 2026): sign-up and reset emails and the plan emails send through Gmail SMTP (sender othdavie@gmail.com, a Google app password; Brevo not used). Supabase auth SMTP is set with 6-digit-code templates. `billing-mail` uses nodemailer with secrets GMAIL_USER, GMAIL_APP_PASSWORD, BILLING_MAIL_SECRET. The nightly job `aurum-nightly` is scheduled. Paystack TEST secret and the four test plan codes are saved. The app password was pasted in chat: delete it in Google and make a new one, then update the two secrets and the Supabase SMTP password.

@@ -1,13 +1,14 @@
 // Aurum: sends the emails waiting in the mail_queue table (plan ending, could not renew, plan ended; plan/07, part J).
-// The database's daily job calls this. It needs a mail service (set-up job 1 in plan/07, part L).
+// The database's daily job calls this. It sends through a Gmail account (an app password), over SMTP.
 //
 // Secrets (Supabase, Edge Functions, Secrets):
-//   BREVO_API_KEY         the API key of your free Brevo account (or change the one fetch below for another mail service)
-//   MAIL_FROM_EMAIL       the sending address on your domain, for example hello@auruminvoice.com.ng
+//   GMAIL_USER            the Gmail address that owns the app password
+//   GMAIL_APP_PASSWORD    the 16-letter Google app password
 //   MAIL_FROM_NAME        optional, defaults to "Aurum Invoice Studio"
 //   BILLING_MAIL_SECRET   a long random text, the same one the database holds (app_config key billing_mail_secret)
 //
 // verify_jwt must be OFF (the database calls it with the shared secret in the x-mail-secret header, not a sign-in).
+import nodemailer from "npm:nodemailer@6.9.16";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -27,19 +28,15 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ ok: false, reason: "method" }, 405);
   const secret = Deno.env.get("BILLING_MAIL_SECRET");
   if (!secret || req.headers.get("x-mail-secret") !== secret) return json({ ok: false, reason: "forbidden" }, 403);
-  const key = Deno.env.get("BREVO_API_KEY"), from = Deno.env.get("MAIL_FROM_EMAIL");
-  if (!key || !from) return json({ ok: false, reason: "not_configured" });       // nothing is taken from the queue until mail is set up
+  const user = Deno.env.get("GMAIL_USER"), pass = Deno.env.get("GMAIL_APP_PASSWORD");
+  if (!user || !pass) return json({ ok: false, reason: "not_configured" });       // nothing is taken from the queue until mail is set up
+  const transport = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } });
   const rows: { id: number; to_email: string; subject: string; body: string }[] = (await rpc("mail_take", { p_limit: 20 })) || [];
   let sent = 0, failed = 0;
   for (const m of rows) {
     try {
-      const r = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: { "api-key": key, "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ sender: { name: Deno.env.get("MAIL_FROM_NAME") || "Aurum Invoice Studio", email: from }, to: [{ email: m.to_email }], subject: m.subject, textContent: m.body }),
-      });
-      if (r.ok) { await rpc("mail_done", { p_id: m.id }); sent++; }
-      else { await rpc("mail_done", { p_id: m.id, p_error: `mail service answered ${r.status}` }); failed++; }
+      await transport.sendMail({ from: `"${Deno.env.get("MAIL_FROM_NAME") || "Aurum Invoice Studio"}" <${user}>`, to: m.to_email, subject: m.subject, text: m.body });
+      await rpc("mail_done", { p_id: m.id }); sent++;
     } catch (e) { await rpc("mail_done", { p_id: m.id, p_error: String((e as Error).message || e).slice(0, 200) }); failed++; }
   }
   return json({ ok: true, sent, failed });
