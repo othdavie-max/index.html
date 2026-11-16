@@ -28,14 +28,14 @@ Built from `plan/07-accounts-and-billing.md` parts A to D. **Nothing about plans
 
 What changed
 - `index.html` (the app): new sign-in screens in the gate (Google, email + 6-digit code, password sign-in, forgot password, licence key, choose-a-device), account card in My house (devices, sign out, delete my account), "Protect your purchase" card on Home for Signature and Prestige buyers, business-name change when the account's name differs, free limit shown as 5 a month. Code is in the "ACCOUNTS" block just after the licence code.
-- `accounts.sql`: the server side. **Has been tested (47 checks, all pass, inside a transaction that rolls back) but is NOT yet applied to the live database.** The permission system blocked applying it. It must be run once, before the new app is deployed (see below).
+- `accounts.sql`: the server side. **Applied to the live database on 16 Nov 2026** (through the Supabase plugin, as migration `accounts_build1`; the owner asked for this). Tested before and after: 47 checks, all pass, inside a transaction that rolls back. Right after applying: 5 plan rows, 15 functions, switch `accounts_required` = off, all 203 licences untouched and none joined, no auth users.
 - `tests/accounts-test.sql`: the test. Run it together with `accounts.sql` in ONE query; it ends with a deliberate error that undoes everything, and prints its results inside the error message.
 - `tests/serve.js` and `tests/mock.js`: a local test server and a stand-in for Supabase (add `?mock=1`).
 - `package.sh`: builds the folder/zip for Netlify (`bash package.sh <folder>`). The layout was checked against the live site: all 160 files sit at addresses that already exist.
 - `sw.js`: cache name changed to `aurum-v4` so installed copies update.
 
 Order to switch on (the app works with the old database too, but the account screens need the new functions)
-1. Owner runs `accounts.sql` in the Supabase SQL editor (Project > SQL Editor > paste > Run). It is safe to run twice.
+1. ~~Run `accounts.sql`~~ done on 16 Nov 2026 (see above).
 2. Owner deploys the zip.
 3. Launch day only: `update app_config set value = 'on' where key = 'accounts_required';` (until then, old free keys can still send without an account).
 
