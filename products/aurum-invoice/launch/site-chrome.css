@@ -1,0 +1,47 @@
+/* Shared website chrome: new logo, the three-line menu, iPhone-style phones, the design gallery and the "why Aurum" grid. */
+.mark img, .mark-img { width: 34px; height: 34px; display: block; object-fit: contain; }
+.mark-img { flex: none; }
+.brand .mark-img { width: 32px; height: 32px; }
+
+/* top bar stays clean: logo, Start free, and a three-line menu */
+header.nav .nav-links, header.top nav[aria-label="Main"] > a:not(.btn) { display: none !important; }
+header.top nav[aria-label="Main"] { gap: 8px; }
+.mn-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(244,234,210,.28); background: rgba(255,255,255,.04); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; flex: none; margin-left: 10px; padding: 0; }
+.mn-btn span { display: block; width: 18px; height: 1.8px; border-radius: 2px; background: #f4ead2; transition: transform .25s ease, opacity .2s; }
+.mn-btn[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.8px) rotate(45deg); }
+.mn-btn[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.mn-btn[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6.8px) rotate(-45deg); }
+.mn { position: fixed; inset: 0; z-index: 2147482000; display: none; font-family: Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.mn.open { display: block; }
+.mn-scrim { position: absolute; inset: 0; background: rgba(0,0,0,.62); }
+.mn-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(360px, 88vw); background: #110e0a; border-left: 1px solid rgba(217,190,132,.25); padding: 78px 22px 28px; overflow: auto; display: flex; flex-direction: column; gap: 2px; animation: mnIn .28s cubic-bezier(.2,.8,.2,1); }
+@keyframes mnIn { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.mn-panel a, .mn-panel button.mn-link { display: block; padding: 14px 6px; color: #f4ead2; text-decoration: none; font-size: 17px; font-weight: 600; border: 0; border-bottom: 1px solid rgba(244,234,210,.1); background: none; text-align: left; font-family: inherit; cursor: pointer; }
+.mn-panel small { display: block; color: rgba(244,234,210,.55); font-weight: 500; font-size: 13px; margin-top: 2px; }
+.mn-cta { margin-top: 18px; display: block; text-align: center; padding: 15px; border-radius: 99px; background: linear-gradient(135deg, #8a6a35, #e9d39e 40%, #b8935a 60%, #f2e1b2); color: #17120a !important; font-weight: 700; text-decoration: none; border: 0 !important; }
+.mn-x { position: absolute; top: 14px; right: 14px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(244,234,210,.28); background: transparent; color: #f4ead2; font-size: 24px; cursor: pointer; }
+
+/* phones look like a modern iPhone: thin bezel, titanium edge, Dynamic Island */
+.phone { border-radius: 46px !important; padding: 6px !important; background: linear-gradient(155deg, #9a958d, #2b2927 38%, #6a665f 70%, #26241f) !important; }
+.phone img { border-radius: 40px !important; }
+.phone::before { content: ""; position: absolute; z-index: 3; top: 15px; left: 50%; width: 29%; height: 2.7%; transform: translateX(-50%); background: #000; border-radius: 99px; pointer-events: none; }
+
+/* design gallery */
+.dz { display: grid; grid-template-columns: minmax(0, 230px) minmax(0, 1fr); gap: 34px; align-items: start; max-width: 980px; margin: 0 auto; }
+.dz-chips { display: flex; flex-direction: column; gap: 8px; max-height: 640px; overflow: auto; padding-right: 4px; }
+.dz-chips button { text-align: left; border: 1px solid rgba(60,44,20,.22); background: transparent; color: inherit; border-radius: 14px; padding: 12px 14px; font: 600 15px Manrope, system-ui, sans-serif; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.dz-chips button small { font-weight: 500; opacity: .6; font-size: 12px; }
+.dz-chips button[aria-selected="true"] { border-color: #b8935a; background: rgba(184,147,90,.16); }
+.dz-stage { display: grid; justify-items: center; }
+.dz-stage img { width: min(100%, 520px); height: auto; border-radius: 6px; box-shadow: 0 40px 70px -30px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.08); background: #fff; }
+.dz-name { margin: 14px 0 0; font-weight: 700; letter-spacing: .02em; }
+@media (max-width: 760px) { .dz { grid-template-columns: minmax(0, 1fr); gap: 18px; } .dz-chips { flex-direction: row; overflow-x: auto; max-height: none; padding: 0 0 6px; scroll-snap-type: x proximity; } .dz-chips button { flex: none; scroll-snap-align: start; } .dz-stage img { width: min(100%, 420px); } }
+
+/* why Aurum */
+.why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; max-width: 1020px; margin: 0 auto; }
+.why-card { border-radius: 20px; padding: 22px 20px; background: linear-gradient(170deg, rgba(255,255,255,.06), rgba(255,255,255,.015)); border: 1px solid rgba(217,190,132,.22); }
+.why-card i { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; font-style: normal; font-weight: 700; color: #17120a; background: linear-gradient(135deg, #b8935a, #f2e1b2); margin-bottom: 12px; }
+.why-card h3 { margin: 0 0 6px; font-size: 18px; }
+.why-card p { margin: 0; opacity: .78; font-size: 14.5px; line-height: 1.55; }
+.see-all { text-align: center; margin: 22px 0 0; }
+.see-all a { color: inherit; font-weight: 700; text-underline-offset: 4px; }

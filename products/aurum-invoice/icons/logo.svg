@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Aurum Invoice Studio">
+  <defs>
+    <linearGradient id="aFrame" gradientUnits="userSpaceOnUse" x1="6" y1="0" x2="113" y2="0"><stop offset="0" stop-color="#C98F4C"/><stop offset=".28" stop-color="#F4DBA8"/><stop offset=".55" stop-color="#E4BC7E"/><stop offset="1" stop-color="#C08A48"/></linearGradient>
+    <linearGradient id="aFrameV" gradientUnits="userSpaceOnUse" x1="0" y1="6" x2="0" y2="104"><stop offset="0" stop-color="#F1D3A0"/><stop offset=".35" stop-color="#D9AB6C"/><stop offset=".75" stop-color="#6B4A26"/><stop offset="1" stop-color="#3A2815"/></linearGradient>
+    <linearGradient id="aFold" gradientUnits="userSpaceOnUse" x1="77" y1="8" x2="113" y2="42"><stop offset="0" stop-color="#F2D29B"/><stop offset=".5" stop-color="#E2B979"/><stop offset="1" stop-color="#D4A565"/></linearGradient>
+    <linearGradient id="aFlap" gradientUnits="userSpaceOnUse" x1="14" y1="108" x2="104" y2="48"><stop offset="0" stop-color="#D9A868"/><stop offset=".45" stop-color="#E8C28A"/><stop offset="1" stop-color="#F0CF9C"/></linearGradient>
+    <linearGradient id="aShade" gradientUnits="userSpaceOnUse" x1="20" y1="112" x2="112" y2="52"><stop offset="0" stop-color="#9B6B33"/><stop offset=".5" stop-color="#B98749"/><stop offset="1" stop-color="#C99759"/></linearGradient>
+  </defs>
+  <!-- the sheet outline: a rounded frame, open on the right, with the top-right corner folded over -->
+  <path d="M10.6 6H76L112.5 41.8H81Q77.3 41.8 77.3 38V13.6Q77.3 12 75.7 12H13.2Q11.8 12 11.8 13.4V106H6V10.6Q6 6 10.6 6Z" fill="url(#aFrame)"/>
+  <path d="M10.6 6H11.8V106H6V10.6Q6 6 10.6 6Z" fill="url(#aFrameV)"/>
+  <!-- the folded corner -->
+  <path d="M76 6L112.5 41.8H81Q77.3 41.8 77.3 38V12Z" fill="url(#aFold)"/>
+  <!-- the folder flap that sweeps across the front -->
+  <path d="M48.6 47.6H111.4Q113.2 47.6 113.2 49.4V111.2Q113.2 114 110.4 114H18Q6.8 114 6.8 105.5Q6.8 101.5 9.5 98.2Z" fill="url(#aFlap)"/>
+  <!-- its darker lower half, split by one clean diagonal -->
+  <path d="M17.4 113.9L113.2 48.8V111.2Q113.2 114 110.4 114H17.4Z" fill="url(#aShade)"/>
+  <path d="M17.4 113.9L113 49" stroke="#F6DEB0" stroke-width=".7" stroke-linecap="round" opacity=".75" fill="none"/>
+</svg>

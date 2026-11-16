@@ -180,7 +180,7 @@ const CONFIG = { SELLER_WHATSAPP: "${grab("SELLER_WHATSAPP")}", APP_LINK: "./", 
   // final call to action and footer
   t = swapRe(t, /<div class="ctas"><a class="btn primary" data-buy href="#pricing">Get Aurum ·[\s\S]*?<\/div>/, '<div class="ctas"><a class="btn primary" data-app data-free href="./">Start free</a><a class="btn" href="pricing/">See plans</a></div>', "final buttons");
   t = swap(t, '<nav aria-label="Aurum for Nigerian businesses">', '<nav aria-label="Aurum for Nigerian businesses"><a href="pricing/">Pricing</a><a href="free-invoice-generator/">Free invoice generator</a>', "footer links");
-  t = swapRe(t, /<div class="buybar" id="buybar">[^\n]*<\/div>/, '<div class="buybar" id="buybar"><div><b>Free for 5 documents a month</b></div><a class="btn primary" data-app data-free href="./">Start free</a></div>', "buy bar");
+  t = swapRe(t, /<div class="buybar" id="buybar">[^\n]*<\/div>/, '<div class="buybar" id="buybar" hidden style="display:none!important"></div>', "buy bar");
   // meta and structured data (plan/04 section 2)
   const D1 = "Invoices, receipts and quotations your clients open like a gift: a private, wax-sealed link with your logo and bank details. Free for 5 documents a month.";
   t = swapRe(t, /(<meta name="description" content=")[^"]*(">)/, '<meta name="description" content="' + esc(D1) + '">', "meta description");
@@ -456,9 +456,30 @@ for (const [p, ti, de, h1, lead, body, faq, cn, opts] of newPages) { must(ti.len
   must(!!sb && !!ak, "supabase settings for the website checkout");
   wr("checkout.js", fs.readFileSync(path.join(__dirname, "checkout.template.js"), "utf8").replace("__SB__", sb).replace("__AK__", ak));
   wr("live-demo.js", fs.readFileSync(path.join(__dirname, "live-demo.js"), "utf8"));
+  wr("site-chrome.css", fs.readFileSync(path.join(__dirname, "site-chrome.css"), "utf8"));
+  wr("menu.js", fs.readFileSync(path.join(__dirname, "menu.js"), "utf8"));
+  // pictures captured from the real app (designs, envelope, client pages, home)
+  for (const sub of ["designs", "phones"]) { const from = path.join(__dirname, "assets", sub); if (fs.existsSync(from)) fs.cpSync(from, path.join(OUT, "landing", sub), { recursive: true }); }
+  const DESIGNS = [["royal", "Royal", "Classic gold"], ["atelier", "Atelier", "Clean and modern"], ["noir", "Noir", "Black and gold"], ["silk", "Silk", "Soft and friendly"], ["heritage", "Heritage", "Traditional"], ["ledger", "Ledger", "Like an account book"], ["midnight", "Midnight", "Dark and sharp"], ["aurora", "Aurora", "Glowing dark"], ["copper", "Copper", "Warm and rich"], ["verdant", "Verdant", "Fresh green"], ["pop", "Pop", "Playful and bold"], ["neon", "Neon", "Electric"], ["sunset", "Sunset", "Warm and lively"], ["gilt", "Gilt", "Gold on charcoal"], ["margin", "Margin", "Editorial"]];
+  const STYLES = [["classic", "Midnight Story", "A cinematic scroll. Your steps light up one by one."], ["wallet", "Wallet", "Like a banking app: your colour as a card, with Pay and Document tabs."], ["slip", "Till Slip", "A receipt that prints out line by line."], ["chat", "Conversation", "Your business messages them, one bubble at a time."]];
+  const WHY = [["1", "A private sealed link", "Your client opens a wax-sealed envelope, not a flat PDF. It looks like you are a bigger business."], ["2", "Know when they open it", "You see the moment your client opens the link, so you can follow up at the right time."], ["3", "Paid in one tap", "Your account number to copy, or card, transfer and USSD with Paystack. The balance updates by itself."], ["4", "Every document you need", "Invoices, receipts, quotations, delivery notes, credit notes and purchase orders."], ["5", "Fifteen designs, your colour", "Your logo, seal, signature and bank details on every document. Switch the look in a tap."], ["6", "Genuine, and easy to check", "A QR code lets your client confirm the document really came from you."], ["7", "Reminders that get you paid", "See who owes you and send a polite WhatsApp reminder in one tap."], ["8", "Works on any phone", "Install it like an app. It keeps working without data and backs itself up."]];
+  const designsHTML = '<section class="sec light-sec" id="designs"><div class="wrap">\n    <div class="sec-head center"><span class="eyebrow">Fifteen designs</span><h2>Pick the look. <em>Make it yours.</em></h2><p class="lead">Every invoice, receipt and quotation comes in every design, in your colour, with your logo, seal and signature.</p></div>\n    <div class="dz"><div class="dz-chips" role="tablist" aria-label="Invoice designs">' +
+    DESIGNS.map(([id, n, d], i) => '<button type="button" role="tab" aria-selected="' + (i === 0) + '" data-dz="' + id + '" data-name="' + n + '">' + n + "<small>" + d + "</small></button>").join("") +
+    '</div><div class="dz-stage"><img id="dz-img" src="landing/designs/royal.webp" alt="Aurum invoice in the Royal design" width="794" height="1123" decoding="async" loading="lazy"><p class="dz-name" id="dz-name">Royal</p></div></div>\n  </div></section>\n  ' +
+    '<script>(function(){var c=document.querySelector(".dz-chips"),i=document.getElementById("dz-img"),n=document.getElementById("dz-name");if(!c)return;c.addEventListener("click",function(e){var b=e.target.closest("[data-dz]");if(!b)return;c.querySelectorAll("[data-dz]").forEach(function(x){x.setAttribute("aria-selected",x===b)});i.src="landing/designs/"+b.dataset.dz+".webp";i.alt="Aurum invoice in the "+b.dataset.name+" design";n.textContent=b.dataset.name;});})();</script>';
+  const stylesHTML = '<section class="sec show" id="styles"><div class="wrap">\n    <div class="sec-head center"><span class="eyebrow">Your client\'s page</span><h2>Four ways to <em>present your invoice.</em></h2><p class="lead">After the envelope opens, your client lands on a page made for paying. Choose the feeling that suits your brand.</p></div>\n    <div class="rail" tabindex="0" aria-label="Client page styles, swipe for more">' +
+    STYLES.map(([id, n, d], i) => '<figure class="glass step"><div class="phone"><img decoding="async" src="landing/phones/client-' + id + '.webp" alt="The ' + n + ' client page" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">' + ["i", "ii", "iii", "iv"][i] + "</span>" + n + "</h3><p>" + d + "</p></figcaption></figure>").join("") +
+    "</div>\n  </div></section>";
+  const whyHTML = '<section class="sec" id="why"><div class="wrap">\n    <div class="sec-head center"><span class="eyebrow">Why Aurum</span><h2>Look expensive. <em>Get paid faster.</em></h2></div>\n    <div class="why-grid">' + WHY.map(([n, h, p]) => '<div class="why-card"><i>' + n + "</i><h3>" + h + "</h3><p>" + p + "</p></div>").join("") + "</div>\n  </div></section>";
   const pages = [...new Set(walk(OUT).concat(["index.html"]))].filter((f) => /\.html$/.test(f) && f !== "admin.html" && !/^app[\\/]/.test(f));
   for (const f of pages) {
     let t = rd(f);
+    // the new Aurum logo everywhere
+    t = t.replace(/<svg viewBox="0 0 40 40"[^>]*>(?:(?!<\/svg>)[\s\S])*?>Au<\/text><\/svg>/g, '<img src="/icons/logo.svg" alt="" width="34" height="34">');
+    t = t.replace(/<span class="mark">Au<\/span>/g, '<img class="mark-img" src="/icons/logo.svg" alt="" width="32" height="32">');
+    t = t.replace(/<link rel="icon"[^>]*>/g, '<link rel="icon" type="image/png" href="/icons/favicon-64.png">');
+    if (!t.includes("site-chrome.css")) t = t.replace("</head>", '<link rel="stylesheet" href="/site-chrome.css">\n</head>');
+    if (!t.includes("/menu.js")) t = t.replace("</body>", '<script src="/menu.js" defer></script>\n</body>');
     // any old "Get Aurum" button that still points at WhatsApp goes to the plans page instead
     t = t.replace(/<a\b[^>]*\bdata-buy\b[^>]*>/g, (tag) => tag.replace(/\sdata-buy(?=[\s>])/, "").replace(/href="[^"]*"/, 'href="/pricing/"').replace(/\starget="_blank"/, ""));
     t = t.replace(/<a\b[^>]*\bdata-prestige\b[^>]*>/g, (tag) => tag.replace(/\sdata-prestige(?=[\s>])/, "").replace(/href="[^"]*"/, 'href="/pricing/"'));
@@ -469,6 +490,10 @@ for (const [p, ti, de, h1, lead, body, faq, cn, opts] of newPages) { must(ti.len
       t = t.replace(/(<div class="chip"><i><\/i>Opened[^<]*<\/div>)/, '$1\n      <button class="demo-cta" type="button" data-demo>▶ Tap to try the live demo</button>');
       t = t.replace('<a class="btn ghost" href="pricing/">See plans</a></div>', '<a class="btn ghost" href="pricing/">See plans</a><button class="btn" type="button" data-demo>Try the live demo</button></div>');
       t = t.replace("</body>", '<script src="/live-demo.js" defer></script>\n</body>');
+      // pictures taken from the real app, new sections, the old colour-only invoice picker is hidden
+      t = t.split("landing/phone-envelope.jpg").join("landing/phones/env-closed.webp").split("landing/phone-opening.jpg").join("landing/phones/env-open.webp").split("landing/phone-client.jpg").join("landing/phones/client-classic.webp").split("landing/phone-home.jpg").join("landing/phones/home.webp");
+      t = t.replace('<section class="sec light-sec docs" id="docs">', stylesHTML + "\n\n  " + designsHTML + "\n\n  " + whyHTML + '\n\n  <section class="sec light-sec docs" id="docs" hidden style="display:none">');
+      t = t.replace('<div class="after-price">', '<p class="see-all"><a href="pricing/">See the full plan comparison →</a></p>\n    <div class="after-price">');
     }
     wr(f, t);
   }
