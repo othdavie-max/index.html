@@ -1336,8 +1336,12 @@ html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important;
       </div>
 
       <form class="g-panel" data-panel="create" id="g-create" autocomplete="on" hidden novalidate>
+        <label class="sr" for="gc-name">Your name</label>
+        <input class="g-input" id="gc-name" type="text" autocomplete="name" maxlength="80" placeholder="Your name" required>
         <label class="sr" for="gc-email">Your email</label>
         <input class="g-input" id="gc-email" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="Your email address" required>
+        <label class="sr" for="gc-phone">Your phone number</label>
+        <input class="g-input" id="gc-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="Your phone or WhatsApp number" required>
         <label class="sr" for="gc-pw">Choose a password</label>
         <div class="g-pw"><input class="g-input" id="gc-pw" type="password" autocomplete="new-password" maxlength="72" placeholder="Choose a password" required><button class="g-eye" type="button" data-eye="gc-pw">Show</button></div>
         <p class="fine" style="margin:0">At least 8 characters.</p>
@@ -1644,7 +1648,7 @@ const CONFIG = {
   BUY_LINK: "",            // your Selar product page
   SELLER_WHATSAPP: "2347032978008",     // e.g. 2348031234567 — buyers contact you here (Prestige upgrades, device moves)
   OFFLINE_GRACE_DAYS: 7,
-  REFUND_LINE: false,   // set true only after the owner has agreed to the 7-day refund rule (plan/07, decision 2)
+  REFUND_LINE: true,   // the owner agreed to the 7-day refund rule on 16 Nov 2026 (plan/07, decision 2)
   GOOGLE_IN_IOS_APP: false,   // Google sign-in inside the installed app on iPhone: switch on after testing on a real iPhone
   REFERRAL_OFFER: "₦2,000 off", // what a friend gets with a buyer's referral code (honour it on Selar)
 };
@@ -2594,6 +2598,8 @@ const AUTH_MSG = {
   disposable: "Please use your regular email address.",
   weak: "That password is too easy to guess. Use at least 8 characters.",
   short: "Use at least 8 characters for your password.",
+  name: "Please type your name.",
+  phone: "Please type a phone number we can reach you on, for example 0803 123 4567.",
   email: "That email doesn't look right. Check it and try again.",
   unconfirmed: "Please confirm your email first. We sent you a new code.",
   other: "Something went wrong. Please try again in a moment.",
@@ -2606,7 +2612,7 @@ function gateGo(panel, msg, bad) {
   $$(".g-panel").forEach((p) => (p.hidden = p.dataset.panel !== panel));
   $$(".js-back").forEach((b) => (b.textContent = gateCtx.inApp ? "Cancel" : "Back"));
   gMsg(msg || "", bad); $("#g-help").hidden = true;
-  const first = { create: "#gc-email", signin: "#gs-email", forgot: "#gf-email", code: "#gk-code", newpass: "#gn-pw", key: "#lic-key" }[panel];
+  const first = { create: "#gc-name", signin: "#gs-email", forgot: "#gf-email", code: "#gk-code", newpass: "#gn-pw", key: "#lic-key" }[panel];
   if (first) setTimeout(() => { const el = $(first); if (el && !el.value) el.focus(); }, 120);
 }
 async function setupGateUI() {
@@ -2650,11 +2656,14 @@ function googleStart() {
   location.href = sbUrl() + "/auth/v1/authorize?provider=google&redirect_to=" + encodeURIComponent(dest);
 }
 $("#g-create").addEventListener("submit", async (e) => {
-  e.preventDefault(); const email = $("#gc-email").value.trim().toLowerCase(), pw = $("#gc-pw").value;
+  e.preventDefault(); const name = $("#gc-name").value.trim().replace(/\s+/g, " "), email = $("#gc-email").value.trim().toLowerCase(), phone = $("#gc-phone").value.trim(), pw = $("#gc-pw").value;
+  if (name.length < 2) return gMsg(AUTH_MSG.name, true);
   if (!/^\S+@\S+\.\S+$/.test(email)) return gMsg(AUTH_MSG.email, true);
+  const phoneDigits = (phone.match(/[0-9]/g) || []).length;
+  if (phoneDigits < 8 || phoneDigits > 15) return gMsg(AUTH_MSG.phone, true);
   if (pw.length < 8) return gMsg(AUTH_MSG.short, true);
   const done = busy($("#gc-go"), "Creating…"); gMsg("");
-  const r = await authCall("signup", { body: { email, password: pw } });
+  const r = await authCall("signup", { body: { email, password: pw, data: { full_name: name, phone } } });
   done();
   if (r.ok) {
     if (r.data.access_token) { setSession(r.data); return afterSignIn(); }

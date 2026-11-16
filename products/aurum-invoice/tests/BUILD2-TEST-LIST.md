@@ -17,11 +17,11 @@ Upload the test zip. Nothing should look different to anyone.
 
 You and Claude do these together. None is done yet.
 
-1. Apply `billing.sql`, then `admin.sql` to the database. (The tests inside them pass: billing 64 of 64, admin 27 of 27.)
+1. ~~Apply `billing.sql`, `admin.sql` and `signup-details.sql`~~ Done on 16 Nov 2026 (the tests inside them pass: billing 64 of 64, admin 27 of 27, sign-up details 8 of 8).
 2. Deploy the three functions: `billing` (verify_jwt ON), `billing-webhook` (verify_jwt OFF), `billing-mail` (verify_jwt OFF). Check the verify_jwt setting after every deploy.
 3. In Supabase, Edge Functions, Secrets: `PAYSTACK_TEST_SECRET_KEY` and later `PAYSTACK_LIVE_SECRET_KEY`.
 4. In Paystack (test mode), set the webhook address to `https://ymmxhjfcfaawrebxoxbu.supabase.co/functions/v1/billing-webhook`.
-5. Add yourself to the owner list (the commented line at the bottom of `admin.sql`). Sign in once with your own account first so it exists.
+5. Create your own account in the app first. Then Claude adds you to the owner list (`insert into admins select id from auth.users where lower(email) = lower('your email') on conflict do nothing;`).
 6. Create the four Paystack test plans from the owner dashboard (card "Paystack plans", button "Create plans (test)").
 7. Switch on test mode: `update app_config set value = 'test' where key = 'subs_mode';` In test mode only the accounts in the owner list can pay, so real users see nothing new.
 
@@ -31,6 +31,7 @@ Use Paystack's published test card: 4084 0840 8408 4081, any future expiry, CVV 
 
 | # | Do this | You should see |
 |---|---------|----------------|
+| 0 | Open the app on a phone with no key and tap Continue with email | A form with Your name, Your email address, Your phone or WhatsApp number, and a password. Leaving one out, or a phone number with fewer than 8 digits, shows a message and sends nothing. After the code is entered, the owner dashboard (Find an account) finds the person by name or by part of the phone number |
 | 1 | Sign in with your owner account, open My house, then Plans | Cards for Free, Starter and Pro, with Monthly / Yearly switch and correct prices |
 | 2 | A normal (non-owner) account opens Plans | No pay buttons yet (test mode is for the owner only) |
 | 3 | Pick Starter, Monthly, "Pay with card", pay with the test card | Paystack page, then back in the app: "We are confirming your payment. This can take a minute.", then "You are on Starter. Thank you." with an end date |
@@ -61,7 +62,8 @@ The rules apply to accounts made with the new sign-in. Use a fresh free account.
 2. Cards show: plans and money, needs attention, business requests.
 3. "Find an account": search an email, then add 7 days, sign a device out, let a business change its name.
 4. "Paystack plans": creates only the plans that are missing.
-5. Reviews card still works (approve or hide a review).
+5. Searching by a name, a phone number or an email finds the account and shows the name and phone.
+6. Reviews card still works (approve or hide a review).
 
 ## Part 6. Emails (needs the mail service, set-up job 1)
 
@@ -75,7 +77,7 @@ The rules apply to accounts made with the new sign-in. Use a fresh free account.
 2. /pricing/: the plan table, monthly and yearly prices, the document count rules, "Request Business" opens WhatsApp.
 3. /free-invoice-generator/: how to make a first invoice, the free plan includes, FAQ.
 4. /about/: "How plans and payment work" and the "Aurum in brief" table.
-5. /policies.html: read the refunds, terms and privacy text. **This text is a draft. You must say yes to the refund rule (full refund within 7 days of the first payment, none for renewals), and a lawyer should read it.**
+5. /policies.html: read the refunds, terms and privacy text. The refund rule is applied as you agreed (full refund within 7 days of the first payment, none for renewals) and appears on Pricing, About and in the app's pay sheet. **A lawyer should read the policies.**
 6. Page source of the home page contains one `SoftwareApplication` with offers and one `FAQPage`; /pricing/ and /free-invoice-generator/ contain `FAQPage`.
 7. /sitemap.xml lists /pricing/ and /free-invoice-generator/; /robots.txt names the AI crawlers; /llms.txt opens with the key facts.
 8. Check on a phone: nothing runs off the screen sideways; the plan table scrolls.

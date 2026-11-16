@@ -118,7 +118,7 @@ select { height: 38px; border: 1.5px solid var(--line-2); border-radius: 12px; b
     <div class="card"><h2>Business requests</h2><p class="hint">People who asked for the Business plan.</p><div class="tbl" id="bizreq">Loading…</div></div>
   </div>
   <div class="card" id="tools"><h2>Find an account</h2><p class="hint">Search by email or by key. Add time for someone who paid you directly, sign a device out, or let a business change its name.</p>
-    <div style="display:flex;gap:8px"><input id="q" placeholder="Email or licence key" autocomplete="off"><button class="btn primary" type="button" id="qgo" style="flex:none">Find</button></div>
+    <div style="display:flex;gap:8px"><input id="q" placeholder="Name, email, phone or key" autocomplete="off"><button class="btn primary" type="button" id="qgo" style="flex:none">Find</button></div>
     <div class="err" id="found-msg" style="color:var(--ok)" role="status"></div><div id="found"></div></div>
   <div class="card" id="setup"><h2>Paystack plans</h2><p class="hint">Makes the four Paystack plans (Starter and Pro, monthly and yearly) the card payments need. It only makes the ones that are missing. Do test first, then live on launch day.</p>
     <div class="chips"><button class="btn" type="button" data-setup="test">Create plans (test)</button><button class="btn" type="button" data-setup="live">Create plans (live)</button></div><div class="empty" id="setup-out"></div></div>
@@ -283,11 +283,12 @@ select { height: 38px; border: 1.5px solid var(--line-2); border-radius: 12px; b
 
   /* ---- find one account and help it ---- */
   async function find() {
-    const q = $("#q").value.trim(); if (q.length < 3) { $("#found").innerHTML = `<div class="empty">Type at least 3 letters of an email, or a whole key.</div>`; return; }
+    const q = $("#q").value.trim(); if (q.length < 3) { $("#found").innerHTML = `<div class="empty">Type at least 3 letters of a name or email, part of a phone number, or a whole key.</div>`; return; }
     let r; try { r = await adminRpc("admin_find", { p_q: q }); } catch (e) { return; }
     const it = (r && r.items) || [];
     $("#found").innerHTML = it.length ? it.map((x) => `<div class="rvrow" data-key="${esc(x.key)}">
       <div><b>${esc(x.email || "No email")}</b> <span class="tag approved">${esc(x.level)}</span> ${x.has_account ? "" : `<span class="tag pending">no account yet</span>`}</div>
+      ${x.name || x.phone ? `<p class="meta"><b>${esc(x.name || "")}</b>${x.name && x.phone ? " · " : ""}${esc(x.phone || "")}</p>` : ""}
       <p class="meta">Key ${esc(x.key)} · ${x.paid_until ? `${tierName(x.paid_tier)} until ${day(x.paid_until)} (${x.paid_method === "card" ? "card" : "transfer"})` : "no paid plan"} · businesses: ${esc([x.business_name, x.business_name_2].filter(Boolean).join(", ") || "none yet")}</p>
       <div class="rvbtns"><select data-tier><option value="starter">Starter</option><option value="pro">Pro</option></select><select data-per><option value="month">1 month</option><option value="year">1 year</option></select><button class="btn" data-act="time">Add time</button><button class="btn" data-act="unlock">Unlock business names</button></div>
       ${(x.devices || []).map((d) => `<div class="rvbtns" style="align-items:center"><span class="meta">${esc(d.label)} · last used ${day(d.last_seen)}</span><button class="btn" data-act="device" data-device="${esc(d.device_id)}">Sign it out</button></div>`).join("")}
