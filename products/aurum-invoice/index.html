@@ -1079,6 +1079,47 @@ html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
 .gate-install span { display: grid; gap: 1px; font-weight: 700; font-size: 16px; }
 .gate-install small { font-weight: 500; font-size: 12.5px; color: var(--muted); }
 .gate-install:hover { background: rgba(217,190,132,.22); }
+
+/* ---- sign-in: a clean centred card ---- */
+.gate .gate-frame, .gate .gate-art, .gate .gate-est, .gate .gate-foot { display: none !important; }
+.gate .gate-top { justify-content: center; padding: 28px 22px 0; }
+.gate .gate-grid { display: flex; justify-content: center; align-items: flex-start; max-width: 460px; width: 100%; margin: 0 auto; padding: 22px 18px 48px; gap: 0; }
+.gate .gate-copy { width: 100%; max-width: none; gap: 14px; padding: 30px 26px 26px; border-radius: 24px; border: 1px solid var(--line-2); background: var(--surface); box-shadow: 0 30px 80px rgba(0,0,0,.35); }
+.gate .gate-copy .eyebrow { display: none; }
+.gate .gate-copy h1 { font-size: 30px; line-height: 1.15; letter-spacing: -.01em; text-align: center; }
+.gate .gate-copy h1 em { display: inline; font-size: 1em; }
+.gate .gate-lead { max-width: none; text-align: center; font-size: 15px; margin: -4px 0 4px; }
+.gate .g-panel { max-width: none; gap: 14px; }
+.gate .g-msg { max-width: none; text-align: center; }
+.gate .g-in { opacity: 1; animation: none; }
+.gate .g-panel label.sr { position: static; width: auto; height: auto; margin: 0 0 -8px; padding: 0; overflow: visible; clip: auto; clip-path: none; white-space: normal; font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .01em; }
+.gate .g-input { height: 50px; border-radius: 12px; background: var(--field, rgba(15,14,12,.8)); padding: 0 16px; font-size: 16px; }
+.gate .g-input::placeholder { color: var(--faint); font-size: 15px; }
+.gate .g-input.code { letter-spacing: .5em; font-size: 26px; }
+.gate .g-pw .g-input { padding-right: 78px; }
+.gate .btn.block { height: 50px; border-radius: 12px; font-size: 15.5px; }
+.gate .g-google { display: flex; align-items: center; justify-content: center; gap: 10px; background: transparent; border: 1px solid var(--line-2); color: var(--ink); }
+.gate .g-google svg { width: 20px; height: 20px; }
+.gate .g-or { display: flex; align-items: center; gap: 12px; color: var(--faint); font-size: 12.5px; text-transform: uppercase; letter-spacing: .14em; }
+.gate .g-or::before, .gate .g-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.gate .g-switch { margin: 0; text-align: center; color: var(--muted); font-size: 14.5px; }
+.gate .g-switch .link-btn { font-size: 14.5px; margin-left: 4px; }
+.gate .g-forgot-row { display: flex; justify-content: flex-end; margin: -6px 0 -4px; }
+.gate .g-forgot-row .link-btn { font-size: 13.5px; border-bottom-color: transparent; }
+.gate .gate-alt { margin: 4px 0 0; justify-content: center; }
+.gate .gate-alt .link-btn, .gate .g-two .link-btn { font-size: 13.5px; border-bottom-color: transparent; color: var(--muted); }
+.gate .g-panel > .link-btn.js-back, .gate .g-panel > .link-btn[data-go="signin"] { justify-self: center; font-size: 13.5px; border-bottom-color: transparent; color: var(--muted); }
+.gate .g-two { justify-content: center; }
+.gate .gate-install-wrap { margin: 6px 0 0; }
+.gate .gate-install { padding: 10px 14px; gap: 12px; border: 1px solid var(--line); background: transparent; border-radius: 12px; }
+.gate .gate-install svg { width: 22px; height: 22px; }
+.gate .gate-install span { font-size: 14px; }
+.gate .gate-install small { font-size: 12px; }
+.gate .fine { text-align: center; }
+.gate #gate-fine { margin-top: 18px; max-width: 460px; text-align: center; }
+html[data-theme="light"] .gate .gate-copy { box-shadow: 0 24px 60px rgba(60,45,20,.12); }
+@media (max-width: 520px) { .gate .gate-grid { padding: 14px 14px 40px; } .gate .gate-copy { padding: 26px 20px 22px; border-radius: 22px; } .gate .gate-top { padding-top: 22px; } }
+
 /* ---------- Free demo ---------- */
 .trial-bar { display: flex; align-items: center; gap: 12px; padding: 9px max(16px, env(safe-area-inset-left, 0px)); background: #1A1610; border-bottom: 1px solid var(--line-2); }
 .trial-bar[hidden] { display: none; }
@@ -1387,12 +1428,13 @@ html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important;
 
       <div class="g-panel g-in" style="--d:.5s" data-panel="welcome">
         <div class="g-btns">
-          <button class="btn primary block js-google" type="button" hidden>Continue with Google</button>
-          <button class="btn block" type="button" data-go="create">Continue with email</button>
+          <button class="btn block js-google g-google" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9a6 6 0 010-12c1.9 0 3.1.8 3.8 1.5l2.6-2.5A9.6 9.6 0 0012 2.5a9.5 9.5 0 100 19c5.5 0 9.1-3.9 9.1-9.3 0-.6-.1-1.1-.2-1.6z"/></svg>Continue with Google</button>
+          <div class="g-or js-google-or" hidden><span>or</span></div>
+          <button class="btn primary block" type="button" data-go="create">Continue with email</button>
         </div>
         <div class="g-note" id="g-note" hidden></div>
-        <div class="gate-alt" style="display:flex;flex-wrap:wrap;gap:4px 18px"><button class="link-btn" type="button" data-go="signin">I already have an account</button><button class="link-btn" type="button" data-go="key">I have a licence key</button><button class="link-btn" type="button" id="lic-demo">See a sample invoice</button></div>
-        <div class="gate-install-wrap"><button class="btn gate-install js-install" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span>Install the app on your phone<small>Android &amp; iPhone</small></span></button></div>
+        <p class="g-switch">Already have an account? <button class="link-btn" type="button" data-go="signin">Sign in</button></p><div class="gate-alt" style="display:flex;flex-wrap:wrap;gap:4px 18px;justify-content:center"><button class="link-btn" type="button" data-go="key">I have a licence key</button><button class="link-btn" type="button" id="lic-demo">See a sample invoice</button></div>
+        <div class="gate-install-wrap"><button class="btn gate-install js-install ghost" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span>Install the app on your phone<small>Android &amp; iPhone</small></span></button></div>
         <p class="fine">By continuing you agree to our <a href="policies.html" target="_blank" rel="noopener">terms</a> and <a href="policies.html#privacy" target="_blank" rel="noopener">privacy notice</a>.</p>
       </div>
 
@@ -1407,7 +1449,7 @@ html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important;
         <div class="g-pw"><input class="g-input" id="gc-pw" type="password" autocomplete="new-password" maxlength="72" placeholder="Choose a password" required><button class="g-eye" type="button" data-eye="gc-pw">Show</button></div>
         <p class="fine" style="margin:0">At least 8 characters.</p>
         <button class="btn primary block" type="submit" id="gc-go">Create account</button>
-        <button class="js-google link-btn" type="button" hidden>Or continue with Google</button>
+        <p class="g-switch">Already have an account? <button class="link-btn" type="button" data-go="signin">Sign in</button></p>
         <button class="link-btn js-back" type="button">Back</button>
       </form>
 
@@ -1424,9 +1466,10 @@ html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important;
         <input class="g-input" id="gs-email" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="Your email address" required>
         <label class="sr" for="gs-pw">Password</label>
         <div class="g-pw"><input class="g-input" id="gs-pw" type="password" autocomplete="current-password" maxlength="72" placeholder="Password" required><button class="g-eye" type="button" data-eye="gs-pw">Show</button></div>
+        <div class="g-forgot-row"><button class="link-btn" type="button" data-go="forgot">Forgot password?</button></div>
         <button class="btn primary block" type="submit" id="gs-go">Sign in</button>
-        <button class="js-google link-btn" type="button" hidden>Or continue with Google</button>
-        <div class="g-two"><button class="link-btn" type="button" data-go="forgot">Forgot password?</button><button class="link-btn js-back" type="button">Back</button></div>
+        <p class="g-switch">New to Aurum? <button class="link-btn" type="button" data-go="create">Create an account</button></p>
+        <button class="link-btn js-back" type="button">Back</button>
       </form>
 
       <form class="g-panel" data-panel="forgot" id="g-forgot" autocomplete="on" hidden novalidate>
@@ -2671,6 +2714,8 @@ const waHelp = (text) => { const a = $("#g-help"); a.href = `https://wa.me/${CON
 function gateGo(panel, msg, bad) {
   gateCtx.panel = panel;
   $$(".g-panel").forEach((p) => (p.hidden = p.dataset.panel !== panel));
+  { const T = { welcome: ["Welcome to <em>Aurum</em>", "Create your free account. 5 documents a month, no card needed."], create: ["Create your account", "Free for 5 documents a month. No card needed."], signin: ["Welcome back", "Sign in to your Aurum account."], code: ["Check your email", ""], forgot: ["Reset your password", ""], newpass: ["Choose a new password", ""], key: ["Enter your licence key", ""], devices: ["Choose a device", ""], wait: ["Opening your account", ""] }[panel] || ["Welcome to <em>Aurum</em>", ""];
+    $("#gate-title").innerHTML = T[0]; $(".gate-lead").textContent = T[1]; $(".gate-lead").hidden = !T[1]; }
   $$(".js-back").forEach((b) => (b.textContent = gateCtx.inApp ? "Cancel" : "Back"));
   gMsg(msg || "", bad); $("#g-help").hidden = true;
   const first = { create: "#gc-name", signin: "#gs-email", forgot: "#gf-email", code: "#gk-code", newpass: "#gn-pw", key: "#lic-key" }[panel];
@@ -2682,7 +2727,7 @@ async function setupGateUI() {
   if (inAppBrowser()) { note.hidden = false; note.textContent = "To continue with Google, open this page in Chrome or Safari. Tap the three dots at the top, then \"Open in browser\". Or use your email below."; }
   else if (iosInstalled() && !CONFIG.GOOGLE_IN_IOS_APP) { note.hidden = false; note.textContent = "Use your email here. If you joined with Google, tap \"Forgot password\" to set one."; }
   const show = !noGoogle && (await checkGoogle());
-  $$(".js-google").forEach((b) => (b.hidden = !show));
+  $$(".js-google, .js-google-or").forEach((b) => (b.hidden = !show));
 }
 function showGate(msg, bad = true, panel = "welcome") { $("#gate").hidden = false; gateCtx.inApp = false; setupGateUI(); gateGo(panel, msg, bad && !!msg); }
 function openAccountGate(panel = "create") {

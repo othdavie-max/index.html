@@ -95,3 +95,5 @@ Known limits and notes
 - The "Refer a friend" card hides itself when `subs_mode` is live (referrals are paused at launch).
 
 - Mail (16 Nov 2026): sign-up and reset emails and the plan emails send through Gmail SMTP (sender othdavie@gmail.com, a Google app password; Brevo not used). Supabase auth SMTP is set with 6-digit-code templates. `billing-mail` uses nodemailer with secrets GMAIL_USER, GMAIL_APP_PASSWORD, BILLING_MAIL_SECRET. The nightly job `aurum-nightly` is scheduled. Paystack TEST secret and the four test plan codes are saved. The app password was pasted in chat: delete it in Google and make a new one, then update the two secrets and the Supabase SMTP password.
+
+- Went live 16 Nov 2026 (database side): live Paystack plans created (codes saved in prices.plan_code_live), subs_mode=live, plans_enforced=on, accounts_required=on. To undo: set subs_mode=off, plans_enforced=off, accounts_required=off in app_config. The launch zip (sales page, pricing, policies) is uploaded by the owner. Sign-in screens restyled as a centred card; plans and checkout are full-screen pages.
