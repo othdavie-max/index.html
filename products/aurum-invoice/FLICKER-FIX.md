@@ -32,3 +32,6 @@ On the owner's Infinix Note 30 (Mali GPU, Chrome), the app flickers: the Home sc
 3. Keep the client view (`.cv`, the opening animation and the invoice the client sees) exempt from these rules.
 4. Never add `backdrop-filter`, big blurs, `mix-blend-mode`, `will-change`, or endless animations.
 5. The code lives in `scratchpad/v3-a.html` (head script, Mali detection, `data-fx`), and `scratchpad/v3-d.html` (the safe-level CSS). If the scratchpad is gone, edit `products/aurum-invoice/index.html` directly (search for `data-fx`).
+
+## Update from a later build (Builds 8-9, 16 Nov 2026; see HANDOVER.md line "Phone safety")
+Detection now also covers PowerVR, older Adreno, Unisoc, software renderers and low-memory Android phones, and My house has a switch: Auto / Smooth mode / Full effects (stored as `aurum.fx`). None of this has been confirmed on the Infinix Note 30 by the owner. Before trusting it, ask the owner to test: Auto, then Smooth mode, then `?fx=5`. If Smooth mode flickers, the owner's results table above still stands: only square corners (`?fx=5`) is proven stable.
