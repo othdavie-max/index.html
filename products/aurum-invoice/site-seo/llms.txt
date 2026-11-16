@@ -1,0 +1,82 @@
+# Aurum Invoice Studio
+
+> Invoice, receipt and quotation app for Nigerian businesses. Pay once, no monthly fees. Works on a phone, even without data. Clients receive a private, wax-sealed link and the owner sees when it is opened.
+
+Aurum is an invoicing app, not accounting software: it does not run payroll, track stock or file taxes.
+
+## Main pages
+- [Home](https://auruminvoice.com.ng/): what Aurum is and pricing
+- [About and contact](https://auruminvoice.com.ng/about/): how buying works, refunds, WhatsApp contact
+- [Reviews](https://auruminvoice.com.ng/reviews/): customer reviews
+- [Invoice app for Nigerian businesses](https://auruminvoice.com.ng/invoice-app-nigeria/): Make invoices, receipts and quotations on your phone, with your logo and bank details. Your clients open them as an experience. Pay once, no monthly fees.
+- [Receipt maker for Nigerian businesses](https://auruminvoice.com.ng/receipt-maker-nigeria/): Make professional payment receipts on your phone in one tap, with your logo and a Paid stamp. Turn any paid invoice into a receipt. Pay once.
+- [Quotation maker for Nigerian businesses](https://auruminvoice.com.ng/quotation-maker-nigeria/): Make professional price quotations on your phone with a valid-until date and deposit. When accepted, turn it into an invoice in one tap. Pay once.
+- [Send invoices on WhatsApp with a private link](https://auruminvoice.com.ng/whatsapp-invoice/): Stop typing prices in WhatsApp chats. Send a private, wax-sealed invoice link, see when it is opened and remind clients in one tap. Pay once.
+
+## Guides and templates (free)
+- [All guides](https://auruminvoice.com.ng/guides/)
+- [How to write an invoice in Nigeria](https://auruminvoice.com.ng/guides/how-to-write-an-invoice-in-nigeria/): What to put on an invoice in Nigeria: the 10 details every invoice needs, a worked example, and mistakes that make customers pay late.
+- [Invoice template for Nigeria](https://auruminvoice.com.ng/guides/invoice-template-nigeria/): A simple invoice template you can copy for your Nigerian business, with every field explained, plus tips to make it look professional.
+- [Receipt template for Nigeria](https://auruminvoice.com.ng/guides/receipt-template-nigeria/): A simple payment receipt template for Nigerian businesses, what a receipt must show, and how it differs from an invoice.
+- [Quotation template for Nigeria](https://auruminvoice.com.ng/guides/quotation-template-nigeria/): How to write a price quotation in Nigeria, a copyable template, and how to turn an accepted quote into an invoice.
+- [Invoice vs receipt vs quotation](https://auruminvoice.com.ng/guides/invoice-vs-receipt-vs-quotation/): Invoice, receipt, quotation, proforma and delivery note explained in plain language, with when to use each one in your business.
+- [Proforma invoice in Nigeria](https://auruminvoice.com.ng/guides/proforma-invoice-nigeria/): What a proforma invoice is, when to use one in Nigeria, how it differs from a normal invoice, and a template you can copy.
+- [Payment reminder messages](https://auruminvoice.com.ng/guides/payment-reminder-messages-nigeria/): Polite, ready-to-send payment reminder messages for WhatsApp in Nigeria: first reminder, due-today, overdue, and final notice.
+- [How to get paid on time](https://auruminvoice.com.ng/guides/how-to-get-paid-on-time-nigeria/): Practical ways Nigerian small businesses can stop chasing money: deposits, clear invoices, due dates, easy payment and polite follow-up.
+- [Invoicing for Instagram and WhatsApp sellers](https://auruminvoice.com.ng/guides/invoicing-for-instagram-whatsapp-vendors/): How online sellers in Nigeria can look professional, avoid payment disputes and build trust: invoices, receipts and order confirmations.
+- [VAT on invoices in Nigeria](https://auruminvoice.com.ng/guides/vat-on-invoices-nigeria/): How to show VAT on an invoice in Nigeria: the basics, a worked example at 7.5%, and when to ask an accountant.
+- [Deposits and part payments on invoices](https://auruminvoice.com.ng/guides/deposit-and-part-payment-invoice/): How to take a deposit, invoice the balance and issue receipts for part payments, with a clear example for Nigerian businesses.
+- [Delivery note vs invoice](https://auruminvoice.com.ng/guides/delivery-note-vs-invoice/): What a delivery note is, how it differs from an invoice, when to use each one, and what to include. Simple guide for Nigerian businesses.
+- [How to send an invoice on WhatsApp](https://auruminvoice.com.ng/guides/how-to-send-an-invoice-on-whatsapp/): The best ways to send an invoice on WhatsApp in Nigeria: PDF, image or private link, with a message template and mistakes to avoid.
+- [Credit note explained](https://auruminvoice.com.ng/guides/credit-note-nigeria/): A credit note reduces what a customer owes, for returns, mistakes or discounts. How it works, what to include and an example.
+- [Purchase order explained](https://auruminvoice.com.ng/guides/purchase-order-explained/): What a purchase order is, who sends it, how it differs from an invoice, and what to include. Plain guide for Nigerian small businesses.
+- [Best invoice app for small businesses in Nigeria](https://auruminvoice.com.ng/guides/best-invoice-app-for-small-business-nigeria/): How to choose an invoice app in Nigeria: 8 things to check, the main types compared, and where each one fits a small business.
+- [Invoice for photographers in Nigeria](https://auruminvoice.com.ng/guides/invoice-for-photographers-nigeria/): How a photographer in Nigeria should invoice: coverage, extra hours, editing, prints, usage rights and deposits, with a sample invoice.
+- [Invoice for caterers and event planners](https://auruminvoice.com.ng/guides/invoice-for-caterers-and-event-planners-nigeria/): How caterers and event planners in Nigeria should invoice: per-head pricing, deposits, extras, cancellation terms and a sample invoice.
+- [Invoice for fashion designers and tailors](https://auruminvoice.com.ng/guides/invoice-for-fashion-designers-and-tailors-nigeria/): How fashion designers and tailors in Nigeria should invoice: bespoke pricing, fabric, deposits, fittings, aso-ebi orders and a sample invoice.
+- [Invoice for makeup artists and beauty businesses](https://auruminvoice.com.ng/guides/invoice-for-makeup-artists-and-beauty-businesses-nigeria/): How makeup artists, hair stylists and beauty businesses in Nigeria should invoice: bridal packages, trials, travel fees, deposits and a sample invoice.
+- [Invoice for freelancers and consultants](https://auruminvoice.com.ng/guides/invoice-for-freelancers-and-consultants-nigeria/): How freelancers and consultants in Nigeria should invoice: hourly or project pricing, milestones, retainers and late payment, with a sample invoice.
+- [Invoice for graphic designers and creatives](https://auruminvoice.com.ng/guides/invoice-for-graphic-designers-and-creatives-nigeria/): How graphic designers, video editors and creatives in Nigeria should invoice: scope, revisions, file ownership and deposits, with a sample invoice.
+- [Invoice for contractors and artisans](https://auruminvoice.com.ng/guides/invoice-for-contractors-and-artisans-nigeria/): How contractors, builders, electricians and other artisans in Nigeria should invoice: labour, materials, stage payments and a sample invoice.
+- [How to number your invoices](https://auruminvoice.com.ng/guides/invoice-number-format-nigeria/): How to number invoices so they stay organised: simple formats, year-based numbers, what not to do, and examples for small businesses.
+- [Payment terms and late fees](https://auruminvoice.com.ng/guides/late-payment-fee-and-payment-terms/): How to set payment terms, due dates and a late fee on your invoice, with wording you can copy, so customers pay on time.
+
+## Free downloads
+- [Invoice template, Excel](https://auruminvoice.com.ng/downloads/Aurum-Invoice-Template.xlsx)
+- [Invoice template, Word](https://auruminvoice.com.ng/downloads/Aurum-Invoice-Template.docx)
+- [Receipt template, Excel](https://auruminvoice.com.ng/downloads/Aurum-Receipt-Template.xlsx)
+- [Quotation template, Excel](https://auruminvoice.com.ng/downloads/Aurum-Quotation-Template.xlsx)
+
+Instagram: https://www.instagram.com/auruminvoice
+Facebook: https://www.facebook.com/profile.php?id=1527108630475190
+
+## More pages
+- [A waybill and delivery note maker for businesses that deliver](https://auruminvoice.com.ng/delivery-note-maker/): Make a waybill or delivery note on your phone: items and quantities, rider or driver details, and a "received in good condition" line. Free to start.
+- [An LPO and purchase order maker for small businesses](https://auruminvoice.com.ng/purchase-order-maker/): Make an LPO or purchase order on your phone: supplier, items, agreed prices, deliver-by date and a supplier acknowledgement line. Free to start.
+- [A proforma invoice maker for Nigerian businesses](https://auruminvoice.com.ng/proforma-invoice-maker/): Make a proforma invoice on your phone, with your logo and bank details. When the customer agrees, turn it into an invoice in one tap. Free to start.
+- [Free tools for Nigerian businesses](https://auruminvoice.com.ng/tools/): Free tools for Nigerian businesses: a VAT calculator, a naira amount-in-words converter and a payment reminder message generator. No account needed.
+- [Nigeria VAT calculator](https://auruminvoice.com.ng/tools/vat-calculator-nigeria/): Add 7.5% VAT to a price, or find the VAT inside a price that already includes it. Free Nigeria VAT calculator in naira, with the formula shown.
+- [Write a naira amount in words](https://auruminvoice.com.ng/tools/amount-in-words-naira/): Type a naira amount and get it in words, ready to copy onto a receipt, invoice or cheque. Handles millions, billions and kobo. Free.
+- [Write a polite payment reminder in seconds](https://auruminvoice.com.ng/tools/payment-reminder-message-generator/): Fill in the client's name, the amount and the due date, choose a tone, and copy a polite payment reminder to send on WhatsApp. Free, no account.
+- [Waybill in Nigeria: meaning, sample and free template](https://auruminvoice.com.ng/guides/waybill-template-nigeria/): What a waybill is in Nigeria, what to write on it, a sample you can copy, and how it differs from an invoice and a receipt.
+- [LPO in Nigeria: meaning, sample and how to respond](https://auruminvoice.com.ng/guides/lpo-local-purchase-order-nigeria/): What an LPO (local purchase order) is, what it should contain, a sample, and what a supplier should do after receiving one.
+- [House rent receipt sample for Nigeria](https://auruminvoice.com.ng/guides/rent-receipt-nigeria/): A rent receipt sample for Nigerian landlords and agents: what it must show, the period covered, and a template you can copy.
+- [How to invoice a company in Nigeria and get paid](https://auruminvoice.com.ng/guides/how-to-invoice-a-company-in-nigeria/): What companies need on your invoice before they pay: LPO number, TIN, bank details, the right contact, and how to follow up.
+- [Invoice app or Excel template: which should you use?](https://auruminvoice.com.ng/guides/invoice-app-vs-excel-template/): An honest comparison of invoice apps and Excel or Word templates for a small Nigerian business, with when each one makes sense.
+- [Receipt book or digital receipts: which is better?](https://auruminvoice.com.ng/guides/receipt-book-vs-digital-receipts/): Paper receipt booklets compared with digital receipts for Nigerian businesses: cost, trust, record keeping and what customers prefer.
+- [School fees receipt sample for Nigerian schools](https://auruminvoice.com.ng/guides/school-fees-receipt-sample/): A school fees receipt sample: pupil, class, term, fees paid, balance, and how schools can issue receipts quickly on a phone.
+- [How to price your services in Nigeria](https://auruminvoice.com.ng/guides/how-to-price-your-services-nigeria/): A simple way for Nigerian freelancers and service businesses to set prices: costs, time, deposit, and how to present the price.
+- [How logistics and dispatch riders in Nigeria should write an invoice](https://auruminvoice.com.ng/guides/invoice-for-logistics-and-dispatch-riders-nigeria/): How logistics and dispatch riders in Nigeria should invoice: per-delivery, bulk pricing, waybills, pay-on-delivery remittance, weekly statements, with a sample invoice.
+- [How real estate agents in Nigeria should write an invoice](https://auruminvoice.com.ng/guides/invoice-for-real-estate-agents-nigeria/): How real estate agents in Nigeria should invoice: agency, legal fees, caution deposit, rent receipts, payment by instalment, with a sample invoice.
+- [How bakers and food vendors in Nigeria should write an invoice](https://auruminvoice.com.ng/guides/invoice-for-bakers-and-food-vendors-nigeria/): How bakers and food vendors in Nigeria should invoice: deposits before baking, delivery fee, bulk, event orders, order confirmation, with a sample invoice.
+- [How printing and branding businesses in Nigeria should write an invoice](https://auruminvoice.com.ng/guides/invoice-for-printing-and-branding-businesses-nigeria/): How printing and branding businesses in Nigeria should invoice: quotation first, design fee, print fee apart, quantity breaks, deposit before production, with a sample invoice.
+- [How interior designers in Nigeria should write an invoice](https://auruminvoice.com.ng/guides/invoice-for-interior-designers-nigeria/): How interior designers in Nigeria should invoice: design fee, materials, labour apart, stage payments, variations, with a sample invoice.
+- [How auto mechanics and workshops in Nigeria should write an invoice](https://auruminvoice.com.ng/guides/invoice-for-auto-mechanics-nigeria/): How auto mechanics and workshops in Nigeria should invoice: parts, labour apart, estimate before work, deposit for parts, a warranty note, with a sample invoice.
+- [How event rental businesses in Nigeria should write an invoice](https://auruminvoice.com.ng/guides/invoice-for-event-rental-businesses-nigeria/): How event rental businesses in Nigeria should invoice: hire period, refundable deposit, damage terms, delivery, pickup, with a sample invoice.
+- [How cleaning and fumigation services in Nigeria should write an invoice](https://auruminvoice.com.ng/guides/invoice-for-cleaning-and-fumigation-services-nigeria/): How cleaning and fumigation services in Nigeria should invoice: one-off, monthly contracts, repeat invoices, site visits, materials, with a sample invoice.
+
+## More pages
+- [Withholding tax on invoices in Nigeria, explained simply](https://auruminvoice.com.ng/guides/withholding-tax-on-invoices-nigeria/): Why a company may pay less than your invoice, what withholding tax is, what proof to ask for, and how to show it in your records.
+- [What to do when a client will not pay](https://auruminvoice.com.ng/guides/client-refuses-to-pay-nigeria/): Calm, practical steps when a customer will not pay: reminders, a final notice, a payment plan, and when to consider the small claims court.
+- [Car sales receipt in Nigeria: sample and what to include](https://auruminvoice.com.ng/guides/car-sales-receipt-nigeria/): A car sales receipt sample for Nigeria: buyer, seller, vehicle details, amount in words, and why a receipt alone is not proof of ownership.
+- [E-invoicing in Nigeria: what small businesses should know](https://auruminvoice.com.ng/guides/e-invoicing-nigeria-small-business/): What e-invoicing means in Nigeria, who it applies to today, and what a small business needs to do now. Plain language.

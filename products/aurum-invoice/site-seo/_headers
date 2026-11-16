@@ -1,0 +1,15 @@
+/seo.css
+  Cache-Control: public, max-age=86400
+/seo.js
+  Cache-Control: public, max-age=3600
+/reviews.js
+  Cache-Control: public, max-age=3600
+/og/*
+  Cache-Control: public, max-age=604800
+/downloads/*
+  Cache-Control: public, max-age=86400
+/store.html
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: public, max-age=300
+/s/*
+  X-Robots-Tag: noindex, nofollow

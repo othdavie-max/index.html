@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Store</title>
+<link rel="icon" type="image/png" href="/icons/favicon-64.png">
+<style>
+:root { --brand: #1A1817; --ink: #1d1a16; --muted: #6f675b; --line: #e6dfd0; --paper: #fbf8f1; --on: #fff; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.45; padding-bottom: 96px; }
+header.top { padding: 28px 18px 20px; text-align: center; border-bottom: 1px solid var(--line); background: #fff; }
+.logo { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; margin: 0 auto 10px; display: block; background: var(--brand); color: var(--on); font: 600 26px Georgia, serif; line-height: 72px; }
+h1 { font: 600 28px/1.15 Georgia, "Times New Roman", serif; margin: 0 0 4px; }
+.tag { color: var(--muted); margin: 0 0 8px; font-size: 15px; }
+.about { max-width: 520px; margin: 0 auto 14px; color: #3b352c; font-size: 15px; }
+.wa { display: inline-block; padding: 10px 18px; border-radius: 99px; border: 1.5px solid var(--brand); color: var(--brand); text-decoration: none; font-weight: 700; font-size: 14.5px; }
+main { max-width: 760px; margin: 0 auto; padding: 18px 14px 10px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 14px; scrollbar-width: none; }
+.chips button { flex: none; border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 9px 16px; font: 600 14px system-ui, sans-serif; cursor: pointer; color: var(--ink); }
+.chips button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 640px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.item { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.tile { aspect-ratio: 4 / 3; display: grid; place-items: center; font: 600 40px Georgia, serif; color: var(--brand); background: color-mix(in srgb, var(--brand) 9%, #fff); }
+.item .b { padding: 11px 12px 12px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.item h3 { margin: 0; font-size: 15px; line-height: 1.25; }
+.item .n { color: var(--muted); font-size: 12.5px; }
+.price { font-weight: 800; font-size: 16px; margin-top: auto; padding-top: 6px; }
+.price small { font-weight: 500; color: var(--muted); }
+.add, .step button { border: 0; border-radius: 10px; cursor: pointer; font: 700 14px system-ui, sans-serif; }
+.add { margin-top: 8px; padding: 10px; background: var(--brand); color: var(--on); }
+.step { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; gap: 8px; }
+.step button { width: 40px; height: 38px; background: var(--brand); color: var(--on); font-size: 18px; }
+.step b { min-width: 24px; text-align: center; }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.96); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.bar[hidden] { display: none; }
+.bar .sum b { display: block; font-size: 17px; } .bar .sum small { color: var(--muted); }
+.go { border: 0; border-radius: 99px; padding: 14px 24px; background: var(--brand); color: var(--on); font: 700 15px system-ui, sans-serif; cursor: pointer; }
+.go[disabled] { opacity: .6; }
+.sheet { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; justify-content: center; }
+.sheet[hidden] { display: none; }
+.card { width: min(560px, 100%); max-height: 94vh; overflow: auto; background: #fff; border-radius: 22px 22px 0 0; padding: 20px 18px calc(24px + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 640px) { .sheet { align-items: center; } .card { border-radius: 22px; } }
+.card h2 { margin: 0 0 12px; font: 600 24px Georgia, serif; }
+.line { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+.tot { display: flex; justify-content: space-between; padding: 12px 0; font-size: 17px; font-weight: 800; }
+label { display: block; font-weight: 600; font-size: 13.5px; margin: 12px 0 5px; }
+input, textarea, select { width: 100%; padding: 13px; border: 1px solid #d9d1bf; border-radius: 12px; font: 16px system-ui, sans-serif; background: #fff; color: var(--ink); }
+.opts { display: grid; gap: 8px; }
+.opt { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border: 1px solid #d9d1bf; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14.5px; background: #fff; text-align: left; width: 100%; }
+.opt[aria-pressed="true"] { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 8%, #fff); }
+.err { color: #b3382c; min-height: 20px; font-size: 14px; margin: 8px 0 2px; }
+.fine { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+.trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+footer { max-width: 760px; margin: 18px auto 0; padding: 0 16px 20px; color: var(--muted); font-size: 12.5px; text-align: center; }
+footer button { background: none; border: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
+.msg { text-align: center; padding: 70px 22px; }
+.x { float: right; border: 0; background: #f1ece0; width: 38px; height: 38px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="app"><div class="msg"><p>Loading the store…</p></div></div>
+<div class="bar" id="bar" hidden><div class="sum"><b id="bar-total"></b><small id="bar-count"></small></div><button class="go" id="bar-go" type="button">View order</button></div>
+<div class="sheet" id="sheet" hidden><div class="card" id="card"></div></div>
+<footer id="foot" hidden><p id="foot-line"></p><button type="button" id="report">Report this store</button></footer>
+<script>
+(() => {
+  "use strict";
+  const SB = "__SB__", AK = "__AK__";
+  const $ = (q) => document.querySelector(q);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const naira = (n) => "₦" + new Intl.NumberFormat("en-NG").format(Math.round(Number(n) || 0));
+  const handle = (location.pathname.split("/")[2] || new URLSearchParams(location.search).get("s") || "").toLowerCase();
+  const rpc = async (fn, body) => { const r = await fetch(SB + "/rest/v1/rpc/" + fn, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK }, body: JSON.stringify(body) }); if (!r.ok) throw new Error("server"); return r.json(); };
+  let S = null; const cart = new Map(); let cat = "All"; let how = null;
+  const ERR = { name: "Please type your name.", phone: "Please type a WhatsApp number we can reach, for example 0803 123 4567.", email: "That email does not look right.", address: "Please type the delivery address.", delivery: "Please choose delivery or pickup.", empty: "Your order is empty.", slow_down: "Too many orders from this number. Please try again later.", busy: "This store is busy right now. Please try again later.", item_gone: "An item in your order is no longer available. Please refresh the page.", qty: "Check the quantities.", break: "This store is taking a short break." };
+  const total = () => { let t = 0; cart.forEach((q, id) => { const it = S.items.find((x) => x.id === id); if (it) t += it.price * q; }); return t; };
+  const count = () => { let n = 0; cart.forEach((q) => (n += q)); return n; };
+  function setBrand() { const c = /^#[0-9a-f]{6}$/i.test(S.colour || "") ? S.colour : "#1A1817"; const r = parseInt(c.slice(1, 3), 16), g = parseInt(c.slice(3, 5), 16), b = parseInt(c.slice(5, 7), 16); document.documentElement.style.setProperty("--brand", c); document.documentElement.style.setProperty("--on", (r * 299 + g * 587 + b * 114) / 1000 > 150 ? "#17120a" : "#fff"); }
+  function head() {
+    const ini = (S.name || "S").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+    const wa = S.whatsapp ? '<a class="wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(S.whatsapp.replace(/^0/, "234").replace(/\D/g, "")) + '">Chat on WhatsApp</a>' : "";
+    return '<header class="top">' + (S.logo ? '<img class="logo" alt="" src="' + esc(S.logo) + '">' : '<div class="logo" aria-hidden="true">' + esc(ini) + "</div>") + "<h1>" + esc(S.name) + "</h1>" + (S.tagline ? '<p class="tag">' + esc(S.tagline) + "</p>" : "") + (S.about ? '<p class="about">' + esc(S.about) + "</p>" : "") + wa + "</header>";
+  }
+  function render() {
+    const cats = ["All", ...new Set(S.items.map((i) => i.category).filter(Boolean))];
+    const list = S.items.filter((i) => cat === "All" || i.category === cat);
+    $("#app").innerHTML = head() + "<main>" + (cats.length > 1 ? '<div class="chips">' + cats.map((c) => '<button type="button" data-cat="' + esc(c) + '" aria-pressed="' + (c === cat) + '">' + esc(c) + "</button>").join("") + "</div>" : "") +
+      '<div class="grid">' + list.map((i) => { const q = cart.get(i.id) || 0; return '<div class="item"><div class="tile" aria-hidden="true">' + esc((i.name || "?")[0].toUpperCase()) + '</div><div class="b"><h3>' + esc(i.name) + "</h3>" + (i.storeNote ? '<span class="n">' + esc(i.storeNote) + "</span>" : "") + '<div class="price">' + naira(i.price) + (i.unit ? " <small>/ " + esc(i.unit) + "</small>" : "") + "</div>" +
+        (q ? '<div class="step"><button type="button" data-dec="' + esc(i.id) + '" aria-label="One less">−</button><b>' + q + '</b><button type="button" data-inc="' + esc(i.id) + '" aria-label="One more">+</button></div>' : '<button class="add" type="button" data-inc="' + esc(i.id) + '">Add to order</button>') + "</div></div>"; }).join("") + "</div></main>";
+    const n = count(); $("#bar").hidden = !n; $("#bar-total").textContent = naira(total()); $("#bar-count").textContent = n + " item" + (n === 1 ? "" : "s");
+    $("#foot").hidden = false; $("#foot-line").textContent = "Sold by " + S.name + ". Aurum Invoice Studio provides this page and does not sell these items.";
+  }
+  function sheet(html) { $("#card").innerHTML = html; $("#sheet").hidden = false; document.documentElement.style.overflow = "hidden"; }
+  function closeSheet() { $("#sheet").hidden = true; document.documentElement.style.overflow = ""; }
+  function orderSheet(msg) {
+    const lines = []; cart.forEach((q, id) => { const it = S.items.find((x) => x.id === id); if (it) lines.push(it, q); });
+    const fee = how && how !== "pickup" ? (S.delivery.find((d) => d.name === how) || {}).fee || 0 : 0;
+    const opts = S.delivery.map((d) => '<button type="button" class="opt" data-how="' + esc(d.name) + '" aria-pressed="' + (how === d.name) + '"><span>' + esc(d.name) + "</span><span>" + naira(d.fee) + "</span></button>").join("") + (S.pickup ? '<button type="button" class="opt" data-how="pickup" aria-pressed="' + (how === "pickup") + '"><span>Pickup</span><span>Free</span></button>' : "");
+    let rows = ""; for (let i = 0; i < lines.length; i += 2) rows += '<div class="line"><span>' + esc(lines[i].name) + " × " + lines[i + 1] + "</span><b>" + naira(lines[i].price * lines[i + 1]) + "</b></div>";
+    const keep = { n: ($("#o-name") || {}).value || "", p: ($("#o-phone") || {}).value || "", e: ($("#o-email") || {}).value || "", a: ($("#o-addr") || {}).value || "", t: ($("#o-note") || {}).value || "" };
+    sheet('<button class="x" type="button" data-close aria-label="Close">×</button><h2>Your order</h2>' + rows + (fee ? '<div class="line"><span>Delivery</span><b>' + naira(fee) + "</b></div>" : "") + '<div class="tot"><span>Total</span><span>' + naira(total() + fee) + "</span></div>" +
+      '<label>Delivery or pickup</label><div class="opts">' + (opts || '<p class="fine">Ask the seller how to receive your order.</p>') + "</div>" +
+      '<label for="o-name">Your name</label><input id="o-name" autocomplete="name" value="' + esc(keep.n) + '"><label for="o-phone">WhatsApp number</label><input id="o-phone" type="tel" inputmode="tel" autocomplete="tel" value="' + esc(keep.p) + '">' +
+      '<label for="o-email">Email <span style="font-weight:400;color:#6f675b">(optional)</span></label><input id="o-email" type="email" inputmode="email" autocomplete="email" value="' + esc(keep.e) + '">' +
+      (how && how !== "pickup" ? '<label for="o-addr">Delivery address</label><input id="o-addr" autocomplete="street-address" value="' + esc(keep.a) + '">' : "") + '<label for="o-note">Anything we should know?</label><textarea id="o-note" rows="2">' + esc(keep.t) + '</textarea><div class="trap"><label>Website<input id="o-web" tabindex="-1" autocomplete="off"></label></div>' +
+      '<div class="err" id="o-err" role="alert">' + esc(msg || "") + '</div><button class="go" id="o-go" type="button" style="width:100%">Place order</button><p class="fine">You will receive an invoice from ' + esc(S.name) + ". Nothing is charged until you choose to pay.</p>");
+  }
+  async function place() {
+    const err = (m) => { $("#o-err").textContent = m; };
+    if (!how && (S.delivery.length || S.pickup)) return err(ERR.delivery);
+    const b = $("#o-go"); b.disabled = true; b.textContent = "Placing your order…";
+    try {
+      const lines = []; cart.forEach((q, id) => lines.push({ id, qty: q }));
+      const r = await rpc("store_order", { p_handle: handle, p_name: $("#o-name").value, p_phone: $("#o-phone").value, p_email: $("#o-email").value, p_delivery: how || "pickup", p_address: ($("#o-addr") || {}).value || "", p_note: $("#o-note").value, p_lines: lines, p_trap: $("#o-web").value });
+      if (r.ok) { location.href = "/app/invoice.html?i=" + encodeURIComponent(r.id); return; }
+      b.disabled = false; b.textContent = "Place order"; err(ERR[r.reason] || "Something went wrong. Please try again.");
+    } catch (e) { b.disabled = false; b.textContent = "Place order"; err("Connect to the internet and try again."); }
+  }
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    const c = t.closest("[data-cat]"); if (c) { cat = c.dataset.cat; return render(); }
+    const inc = t.closest("[data-inc]"); if (inc) { const id = inc.dataset.inc; cart.set(id, Math.min(99, (cart.get(id) || 0) + 1)); return render(); }
+    const dec = t.closest("[data-dec]"); if (dec) { const id = dec.dataset.dec, q = (cart.get(id) || 0) - 1; q > 0 ? cart.set(id, q) : cart.delete(id); return render(); }
+    if (t.closest("#bar-go")) return orderSheet();
+    if (t.closest("[data-close]") || t.id === "sheet") return closeSheet();
+    const h = t.closest("[data-how]"); if (h) { how = h.dataset.how; return orderSheet(); }
+    if (t.closest("#o-go")) return place();
+    if (t.closest("#report")) { const note = prompt("What is wrong with this store?"); if (note) rpc("store_report", { p_handle: handle, p_note: note }).then(() => alert("Thank you. We will look at it.")).catch(() => {}); }
+  });
+  (async () => {
+    if (!handle) { $("#app").innerHTML = '<div class="msg"><h1>Store not found</h1></div>'; return; }
+    try {
+      const r = await rpc("store_view", { p_handle: handle });
+      if (!r.ok) {
+        document.title = r.name || "Store";
+        const wa = r.whatsapp ? '<p><a class="wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(r.whatsapp.replace(/^0/, "234").replace(/\D/g, "")) + '">Chat on WhatsApp</a></p>' : "";
+        $("#app").innerHTML = '<div class="msg"><h1>' + (r.reason === "missing" ? "Store not found" : "This store is taking a short break") + "</h1>" + (r.reason === "break" ? "<p>You can still reach " + esc(r.name || "the seller") + " on WhatsApp.</p>" + wa : "<p>Check the address and try again.</p>") + "</div>"; return;
+      }
+      S = r; S.items = r.items || []; S.delivery = r.delivery || []; document.title = S.name + " · Store"; setBrand();
+      if (S.delivery.length === 1 && !S.pickup) how = S.delivery[0].name;
+      render();
+    } catch (e) { $("#app").innerHTML = '<div class="msg"><h1>Could not open the store</h1><p>Please check your internet connection and refresh.</p></div>'; }
+  })();
+})();
+</script>
+</body>
+</html>
