@@ -234,7 +234,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 
 /* ---------- Bottom sheet (pickers, settings) ---------- */
 .scrim { position: fixed; inset: 0; z-index: 97; background: rgba(0,0,0,.72); animation: fadeIn .25s; }
-.sheet { position: fixed; z-index: 98; left: 50%; bottom: 0; transform: translateX(-50%); width: min(560px, 100%); max-height: min(86vh, 760px); display: flex; flex-direction: column;
+.sheet { position: fixed; z-index: 98; left: 0; right: 0; margin: 0 auto; bottom: 0; width: min(560px, 100%); max-height: min(86vh, 760px); display: flex; flex-direction: column;
   background: var(--surface); border: 1px solid var(--line-2); border-bottom: 0; border-radius: 26px 26px 0 0; box-shadow: 0 -30px 80px rgba(0,0,0,.7); animation: sheetUp .38s var(--ease); }
 .sheet-head { padding: 12px 22px 12px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
 .sheet-head::before { content: ""; justify-self: center; width: 40px; height: 4px; border-radius: 4px; background: var(--line-2); }
@@ -246,7 +246,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .opt small { display: block; color: var(--muted); font-size: 12.5px; }
 .opt.on { color: var(--gold); }
 .opt.on::after { content: "✓"; margin-left: auto; color: var(--gold); }
-@keyframes sheetUp { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } }
 
 /* Settings ("My house") */
@@ -798,6 +798,22 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .pp-pay { height: 54px; font-size: 16px; margin-top: 4px; }
 .pp-secure { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
 html.pp-open, html.pp-open body { overflow: hidden; }
+
+/* ---- saved items ---- */
+.si-tools { display: flex; gap: 8px; } .si-tools .input { flex: 1; min-width: 0; }
+.si-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 12px; margin-bottom: 8px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: inherit; }
+.si-row[aria-pressed="true"] { border-color: var(--gold); background: rgba(217,190,132,.07); }
+.si-img { flex: none; width: 46px; height: 46px; border-radius: 12px; background: var(--surface-2, #1E1C18) center / cover no-repeat; display: grid; place-items: center; font-family: var(--f-display); font-size: 20px; color: var(--gold); }
+.si-img.big { width: 72px; height: 72px; }
+.si-main { display: grid; gap: 2px; min-width: 0; flex: 1; } .si-main b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; } .si-main small { color: var(--muted); font-size: 13px; }
+.si-lock { flex: none; width: 16px; height: 16px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D9BE84' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='9' rx='2'/%3E%3Cpath d='M8 11V8a4 4 0 018 0v3'/%3E%3C/svg%3E") center / contain no-repeat; }
+.si-check { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--line-2, #6c6352); }
+.si-row.br[aria-pressed="true"] .si-check { background: var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317120A' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 14px no-repeat; border-color: var(--gold); }
+.si-row.br { cursor: pointer; }
+.si-form { display: grid; gap: 14px; padding: 0 6px; }
+.si-photo { display: flex; align-items: center; gap: 10px; }
+.sg-row { display: grid; grid-template-columns: 22px 1fr 120px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+
 .home-left { margin: 0 0 10px; }
 html[data-theme="light"] .g-input, html[data-theme="light"] .g-devbtn { background: var(--surface); }
 html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
@@ -1100,8 +1116,8 @@ html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
 @media (max-width: 600px) { .sync-state { display: none !important; } }
 
 /* ---------- Toast ---------- */
-.toast { position: fixed; left: 50%; bottom: calc(104px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; z-index: 200; background: #F3ECDD; color: #0B0A09; padding: 12px 20px; border-radius: 99px; font-weight: 600; font-size: 13.5px; transition: .35s var(--ease); pointer-events: none; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: calc(104px + env(safe-area-inset-bottom, 0px)); transform: translateY(16px); opacity: 0; z-index: 200; background: #F3ECDD; color: #0B0A09; padding: 12px 20px; border-radius: 99px; font-weight: 600; font-size: 13.5px; transition: .35s var(--ease); pointer-events: none; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+.toast.show { opacity: 1; transform: translateY(0); }
 
 /* ---------- Mobile ---------- */
 .mobile-preview-btn { display: none; }
@@ -1360,8 +1376,8 @@ html[data-theme="dark"] .theme-btn .i-moon { display: block; }
   .appbar .mark span { display: none; }
 }
 /* messages appear at the top, so they never cover a button */
-.toast { top: auto; bottom: calc(138px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); width: max-content; max-width: calc(100vw - 40px); text-align: center; border-radius: 18px; line-height: 1.35; }
-.toast.show { transform: translate(-50%, 0); }
+.toast { top: auto; bottom: calc(138px + env(safe-area-inset-bottom, 0px)); transform: translateY(16px); width: max-content; max-width: calc(100vw - 40px); text-align: center; border-radius: 18px; line-height: 1.35; }
+.toast.show { transform: translateY(0); }
 
 /* fixes from the phone review */
 .card-line > span:first-child { min-width: 0; flex: 1; }
@@ -1403,6 +1419,24 @@ html[data-theme="light"] :is(.appbar .mark, .gate-mark, .ob-bar .mark) svg text 
 .dash-head > div:last-child { display: flex; gap: 8px; max-width: 100%; }
 .dash-head h1 { margin: 2px 0 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(30px, 8vw, 42px); line-height: 1.05; }
 .dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* phone first: nothing may be wider than the screen */
+.home-wrap { grid-template-columns: minmax(0, 1fr); }
+.home-wrap > *, .dash > *, .dash-head > *, .home-wrap .tabs > * { min-width: 0; max-width: 100%; }
+.dash .tabs { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.dash .tabs .tab { padding-left: 6px; padding-right: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-head > div:last-child { flex-wrap: wrap; }
+html, body { max-width: 100%; overflow-x: clip; }
+html:not([data-x]) :is(#dash-period, #dash-type, #dash-status) { flex-wrap: wrap; overflow: visible; gap: 8px; }
+.dash .chip { height: 36px; padding: 0 13px; font-size: 13px; }
+.dash .kpi b { font-size: clamp(20px, 6vw, 26px); }
+.sheet { max-height: min(86vh, 760px); max-height: min(88dvh, 760px); }
+@media (max-width: 560px) {
+  .sheet { width: 100%; max-height: 92dvh; max-height: 92vh; max-height: 92dvh; border-radius: 22px 22px 0 0; }
+  .sheet-body { padding-left: 14px; padding-right: 14px; }
+  .drawer, .drawer.wide { width: 100%; }
+  .drawer-body { padding: 18px 16px calc(40px + env(safe-area-inset-bottom, 0px)); }
+  .drawer-head { padding-left: 16px; padding-right: 16px; }
+}
 .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
 .tab { height: 42px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: 700 13.5px var(--f-ui, inherit); cursor: pointer; }
 .tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
@@ -2107,7 +2141,7 @@ function invoiceHTML(P, D, opts = {}) {
 
 
 /* ---------- per-document customisation (invoice / receipt / quotation each have their own) ---------- */
-const TITLES = { invoice: ["Invoice", "Proforma Invoice", "Sales Invoice", "Bill"], receipt: ["Receipt", "Payment Receipt", "Sales Receipt", "Acknowledgement"], quotation: ["Quotation", "Estimate", "Price Quote", "Proposal"], delivery: ["Delivery Note", "Waybill", "Dispatch Note"], credit: ["Credit Note", "Refund Note"], purchase: ["Purchase Order", "Order Form"] };
+const TITLES = { invoice: ["Invoice", "Proforma Invoice", "Sales Invoice", "Bill"], receipt: ["Receipt", "Payment Receipt", "Sales Receipt", "Acknowledgement"], quotation: ["Quotation", "Estimate", "Price Quote", "Proposal"], delivery: ["Delivery Note", "Waybill", "Dispatch Note"], credit: ["Credit Note", "Refund Note"], purchase: ["Purchase Order", "LPO", "Local Purchase Order", "Order Form"] };
 const SHOW_LABELS = [["logo", "Logo"], ["tagline", "Tagline"], ["sn", "Item numbers (S/N)"], ["words", "Amount in words"], ["bank", "Bank / payment box"], ["seal", "Company seal"], ["sign", "Signature"], ["notes", "Note to client"], ["footer", "Thank-you line"], ["qr", "QR verification code"]];
 const TERMS = ["Goods once sold are not returnable.", "Prices are subject to change without notice.", "A 50% deposit is required to begin work.", "Delivery is within 3–5 working days."];
 function docStyle(P, type) {
@@ -2836,6 +2870,8 @@ function trackEvt(type, meta) {
    by email link) keep working exactly as before and can be joined to an account once. Everything the app
    sends to the server after sign-in still uses the key and this device, as it always has.
    ========================================================= */
+const BUY_INTENT = (() => { try { const q = new URLSearchParams(location.search), b = q.get("buy"); return b === "starter" || b === "pro" ? { tier: b, per: q.get("per") === "year" ? "year" : "month" } : null; } catch { return null; } })();
+let buyIntent = BUY_INTENT;   // set by the pricing buttons on the website (app/?buy=pro): after sign-in the checkout opens straight away
 const SESSION_KEY = "aurum.session";
 let session = LS.get(SESSION_KEY, null);   // { access_token, refresh_token, expires_at (seconds), email, uid }
 let authLost = false;                      // true when the saved sign-in can no longer be renewed
@@ -2921,7 +2957,7 @@ const waHelp = (text) => { const a = $("#g-help"); a.href = `https://wa.me/${CON
 function gateGo(panel, msg, bad) {
   gateCtx.panel = panel;
   $$(".g-panel").forEach((p) => (p.hidden = p.dataset.panel !== panel));
-  { const T = { welcome: ["Welcome to <em>Aurum</em>", "Create your free account. 5 documents a month, no card needed."], create: ["Create your account", "Free for 5 documents a month. No card needed."], signin: ["Welcome back", "Sign in to your Aurum account."], code: ["Check your email", ""], forgot: ["Reset your password", ""], newpass: ["Choose a new password", ""], key: ["Enter your licence key", ""], devices: ["Choose a device", ""], wait: ["Opening your account", ""] }[panel] || ["Welcome to <em>Aurum</em>", ""];
+  { const T = { welcome: ["Welcome to <em>Aurum</em>", buyIntent ? "Create your account or sign in, then finish your " + (buyIntent.tier === "pro" ? "Pro" : "Starter") + " order." : "Create your free account. 5 documents a month, no card needed."], create: ["Create your account", "Free for 5 documents a month. No card needed."], signin: ["Welcome back", "Sign in to your Aurum account."], code: ["Check your email", ""], forgot: ["Reset your password", ""], newpass: ["Choose a new password", ""], key: ["Enter your licence key", ""], devices: ["Choose a device", ""], wait: ["Opening your account", ""] }[panel] || ["Welcome to <em>Aurum</em>", ""];
     $("#gate-title").innerHTML = T[0]; $(".gate-lead").textContent = T[1]; $(".gate-lead").hidden = !T[1]; }
   $$(".js-back").forEach((b) => (b.textContent = gateCtx.inApp ? "Cancel" : "Back"));
   gMsg(msg || "", bad); $("#g-help").hidden = true;
@@ -3560,7 +3596,75 @@ function applyDemoHouse(i = 0) {
 }
 const resetForRealBusiness = () => { const b = blankProfile(); S.profile = b; S.doc = newDocFor(b); S.clients = []; S.catalog = []; history = []; LS.set("aurum.history", []); persist(); };
 
+/* =========================================================
+   SAVED ITEMS (plan/09): the data rules
+   ========================================================= */
+const CAT_DEFAULTS = { unit: "", note: "", img: "", category: "", lock: false, uses: 0, lastUsed: 0, archived: false, inStore: false, storeNote: "" };
+function tidyCatalog(list) {
+  const now = Date.now(), out = [];
+  for (const x of Array.isArray(list) ? list : []) {
+    if (!x || typeof x.desc !== "string" || !x.desc.trim()) continue;
+    const it = { ...x };
+    if (!it.id) { it.id = "c" + hashStr(it.desc.toLowerCase()); if (!it.updatedAt) it.updatedAt = 1; }
+    if (it.deleted) { if ((it.updatedAt || 0) > 1 && now - it.updatedAt > 90 * 864e5) continue; out.push({ id: it.id, desc: it.desc, deleted: true, updatedAt: it.updatedAt || 1 }); continue; }
+    for (const [k, v] of Object.entries(CAT_DEFAULTS)) if (it[k] === undefined || it[k] === null) it[k] = v;
+    it.updatedAt = it.updatedAt || 1; it.uses = Number(it.uses) || 0; it.lock = !!it.lock; it.archived = !!it.archived;
+    out.push(it);
+  }
+  return out;
+}
+function mergeCatalog(L, R) {
+  const map = new Map();
+  for (const x of tidyCatalog(L)) map.set(x.id, x);
+  for (const r of tidyCatalog(R)) {
+    const l = map.get(r.id); if (!l) { map.set(r.id, r); continue; }
+    const win = (r.updatedAt || 0) > (l.updatedAt || 0) ? r : l;
+    map.set(r.id, { ...win, uses: Math.max(l.uses || 0, r.uses || 0), lastUsed: Math.max(l.lastUsed || 0, r.lastUsed || 0) });
+  }
+  const live = new Map(), keep = [];
+  for (const x of map.values()) {
+    if (x.deleted) { keep.push(x); continue; }
+    const k = x.desc.toLowerCase(), o = live.get(k);
+    if (!o) live.set(k, x); else { const w = (x.updatedAt || 0) > (o.updatedAt || 0) ? x : o; live.set(k, { ...w, uses: Math.max(o.uses || 0, x.uses || 0), lastUsed: Math.max(o.lastUsed || 0, x.lastUsed || 0) }); }
+  }
+  return tidyCatalog([...keep, ...live.values()]);
+}
+function shrinkDataUrl(url, max) {
+  return new Promise((res) => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)); if (s >= 1) return res(url); const c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL("image/jpeg", .75)); }; img.onerror = () => res(url); img.src = url; });
+}
+let shrinking = false;
+async function shrinkCatalogPhotos() {
+  if (shrinking) return; shrinking = true;
+  try { let changed = false; for (const x of S.catalog) { if (x.img && x.img.length > 14000) { const s = await shrinkDataUrl(x.img, 160); if (s !== x.img) { x.img = s; changed = true; } } } if (changed) saveCatalogChecked(null); } catch {}
+  shrinking = false;
+}
+// a checked save: if the phone has no room, the change is undone and the person is told
+function saveCatalogChecked(prev) {
+  try { const s = JSON.stringify(S.catalog); localStorage.setItem("aurum.catalog", s); saveCache["aurum.catalog"] = s; pushSoon(); return true; }
+  catch { if (prev) S.catalog = prev; try { sheet("No more room", '<p class="hint" style="padding:0 8px 12px">This phone has no more room for Aurum\'s saved items. Your last change was not saved. Remove a photo or an item you no longer need.</p><div style="padding:0 8px 8px"><button class="btn primary block" type="button" data-close>Close</button></div>'); } catch {} return false; }
+}
+const catLive = () => S.catalog.filter((x) => !x.deleted && !x.archived);
+const catAll = () => S.catalog.filter((x) => !x.deleted);
+const catMax = () => { try { return !isDemo() && enforced() ? (entNow()?.catalogue_max ?? null) : null; } catch { return null; } };
+const catFull = () => { const m = catMax(); return m != null && catLive().length >= m; };
+const catUnitNote = (x) => (x.note ? x.note : x.unit ? x.unit.charAt(0).toUpperCase() + x.unit.slice(1) : "");
+// what happens to the saved items when a document is sent (plan/09, part 4.4)
+function rememberItems(items) {
+  const now = Date.now();
+  for (const it of items) {
+    if (!String(it.desc || "").trim() || !(num(it.price) > 0)) continue;
+    const name = it.desc.trim().slice(0, 80), k = name.toLowerCase();
+    const ex = (it.catId && S.catalog.find((x) => x.id === it.catId && !x.deleted)) || S.catalog.find((x) => !x.deleted && x.desc.toLowerCase() === k);
+    if (!ex) { if (catFull()) continue; S.catalog.push({ ...CAT_DEFAULTS, id: uid(), desc: name, price: it.price, note: String(it.note || "").slice(0, 120), img: it.img || "", uses: 1, lastUsed: now, updatedAt: now }); continue; }
+    if (ex.archived) { if (!catFull()) ex.archived = false; else { ex.uses++; ex.lastUsed = now; continue; } }
+    if (!ex.lock) { ex.price = it.price; if (it.note) ex.note = it.note; if (it.img) ex.img = it.img; ex.updatedAt = now; }
+    ex.uses++; ex.lastUsed = now;
+  }
+  shrinkCatalogPhotos();
+}
+
 const S = { profile: LS.get("aurum.profile", null) || blankProfile(), doc: LS.get("aurum.draft", null), clients: LS.get("aurum.clients", []), catalog: LS.get("aurum.catalog", []) };
+S.catalog = tidyCatalog(S.catalog);
 S.profile.bank.paystackKey ??= ""; S.profile.design ??= { template: "royal", brand: "#1A1817", seal: true };
 if (!S.doc) S.doc = newDocFor(S.profile);
 let history = LS.get("aurum.history", []);
@@ -3597,7 +3701,7 @@ async function enter() {
    ========================================================= */
 const SYNC = { version: LS.get("aurum.syncVersion", 0), timer: null, busy: false, again: false };
 const canSync = () => configured() && licence?.mode === "full";
-function setSync(state) { const el = $("#sync-state"); if (!el) return; el.hidden = !canSync(); el.dataset.state = state; el.textContent = { saving: "Saving…", saved: "Backed up", offline: "Offline · will retry", error: "Backup paused" }[state] || ""; }
+function setSync(state) { const el = $("#sync-state"); if (!el) return; el.hidden = !canSync(); el.dataset.state = state; el.textContent = { saving: "Saving…", saved: "Backed up", offline: "Offline · will retry", error: "Backup paused", full: "Backup is full" }[state] || ""; }
 function pushSoon() { if (!canSync()) return; setSync("saving"); clearTimeout(SYNC.timer); SYNC.timer = setTimeout(push, 3500); }
 /* ---- Two businesses (Prestige). The live data always belongs to the active business; the other one is parked in storage. ---- */
 const brandId = () => LS.get("aurum.brandActive", "a");
@@ -3626,13 +3730,12 @@ function mergeBundle(L, R) {
   (R.history || []).forEach((h) => { const mine = byId.get(h.id); if (!mine || (h.savedAt || 0) > (mine.savedAt || 0)) byId.set(h.id, h); });
   const hist = [...byId.values()].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0)).slice(0, 300);
   const cl = new Map((L.clients || []).map((c) => [c.name.toLowerCase(), c])); (R.clients || []).forEach((c) => { const k = c.name.toLowerCase(); if (!cl.has(k) || (c.last || 0) > (cl.get(k).last || 0)) cl.set(k, c); });
-  const ct = new Map((L.catalog || []).map((x) => [x.desc.toLowerCase(), x])); (R.catalog || []).forEach((x) => { const k = x.desc.toLowerCase(); if (!ct.has(k) || (x.uses || 0) > (ct.get(k).uses || 0)) ct.set(k, x); });
   let profile = L.profile;
   if (R.profile && ((R.profile.updatedAt || 0) > (L.profile.updatedAt || 0) || !L.profile.setupDone)) {
     const counters = { ...(R.profile.counters || {}) }; Object.entries(L.profile.counters || {}).forEach(([k, v]) => (counters[k] = Math.max(counters[k] || 0, v)));
     profile = { ...R.profile, counters };
   }
-  return { profile, history: hist, clients: [...cl.values()], catalog: [...ct.values()] };
+  return { profile, history: hist, clients: [...cl.values()], catalog: mergeCatalog(L.catalog, R.catalog) };
 }
 function mergeWorkspace(remote) {
   if (!remote) return;
@@ -3661,6 +3764,7 @@ async function push(retry = true) {
     const r = await rpc("save_workspace", { p_key: licence.key, p_device: deviceId, p_data: workspace(), p_version: SYNC.version });
     if (r.ok) { SYNC.version = r.version; LS.set("aurum.syncVersion", SYNC.version); setSync("saved"); }
     else if (r.reason === "conflict" && retry) { await pull(); SYNC.busy = false; return push(false); }
+    else if (r.reason === "too_large") setSync("full");
     else setSync("error");
   } catch { setSync("offline"); }
   SYNC.busy = false; if (SYNC.again) { SYNC.again = false; pushSoon(); }
@@ -4038,25 +4142,26 @@ function renderItemsEditor() {
         <div class="stepper"><button type="button" data-qty="-1" aria-label="Less">−</button><input id="it-q-${it.id}" data-item="qty" value="${esc(it.qty)}" inputmode="numeric" aria-label="Quantity"><button type="button" data-qty="1" aria-label="More">+</button></div>
         <div class="money-in field"><i>${sym}</i><input id="it-p-${it.id}" data-item="price" value="${esc(it.price !== "" ? group(it.price) : "")}" inputmode="decimal" placeholder="Price each" aria-label="Price each"></div>
       </div>
+      ${(() => { const sv = it.catId && S.catalog.find((x) => x.id === it.catId && !x.deleted); return sv && sv.lock && num(sv.price) > 0 && num(sv.price) !== num(it.price) ? `<p class="hint" style="margin:-2px 0 0">Your saved price is ${short(num(sv.price))}. <button type="button" class="link-btn" data-updsaved="${it.id}" style="font-size:13px">Update saved price</button></p>` : ""; })()}
       <div class="it-photo-row">${it.img ? `<span class="it-thumb" style="background-image:url(${it.img})"></span><button type="button" class="btn ghost sm" data-nophoto="${it.id}" style="padding:0">Remove photo</button>` : `<label class="btn ghost sm it-photo-btn" style="padding:0">+ Add a photo<input type="file" accept="image/*" data-itemphoto="${it.id}"></label>`}</div>
       ${it.note || it.showNote ? `<div class="field"><input id="it-n-${it.id}" data-item="note" value="${esc(it.note)}" placeholder="Detail: size, colour, date…" aria-label="Detail"></div>` : `<button type="button" class="btn ghost sm" data-note="${it.id}" style="justify-self:start; padding:0">+ Add a detail</button>`}
     </div>`).join("");
   const used = new Set(S.doc.items.map((x) => x.desc.toLowerCase()));
-  const quick = [...S.catalog].sort((a, b) => b.uses - a.uses).filter((x) => !used.has(x.desc.toLowerCase())).slice(0, 4);
+  const quick = catLive().sort((a, b) => (b.uses || 0) - (a.uses || 0)).filter((x) => !used.has(x.desc.toLowerCase())).slice(0, 4);
   $("#add-item").textContent = "+ Add another item";
-  $("#add-item").insertAdjacentHTML?.("beforebegin", "");
-  let q = $("#quick-items"); if (!q) { $("#add-item").insertAdjacentHTML("afterend", `<div class="chips" id="quick-items"></div>`); q = $("#quick-items"); }
-  chipRow(q, quick.map((x) => ({ label: `+ ${x.desc} · ${short(num(x.price))}`, x })), () => false, (o) => { const it = { ...blankItem(), desc: o.x.desc, price: o.x.price, note: o.x.note || "" }; const empty = S.doc.items.find((y) => !y.desc && !num(y.price)); if (empty) Object.assign(empty, { desc: it.desc, price: it.price, note: it.note }); else S.doc.items.push(it); persist(); renderItemsEditor(); render({ newIds: new Set([it.id]) }); });
+  let q = $("#quick-items"); if (!q) { $("#add-item").insertAdjacentHTML("afterend", '<div class="chips" id="quick-items"></div><button type="button" class="link-btn" id="browse-items" style="justify-self:start;margin-top:6px">Browse saved items</button>'); q = $("#quick-items"); }
+  chipRow(q, quick.map((x) => ({ label: "+ " + x.desc + " · " + (num(x.price) > 0 ? short(num(x.price)) + (x.unit ? " " + x.unit : "") : "price on request"), x })), () => false, (o) => addCatalogToDoc([{ x: o.x, qty: 1 }]));
+  const bi = $("#browse-items"); if (bi) bi.hidden = !catLive().length;
 }
 function itemSuggest(card, it) {
   const q = it.desc.trim().toLowerCase(); const field = $("[data-descfield]", card);
-  const cat = S.catalog.filter((x) => !q || x.desc.toLowerCase().includes(q)).filter((x) => x.desc.toLowerCase() !== q).slice(0, 5);
+  const cat = catLive().filter((x) => !q || x.desc.toLowerCase().includes(q)).filter((x) => x.desc.toLowerCase() !== q).sort((a, b) => (b.uses || 0) - (a.uses || 0)).slice(0, 5);
   const ind = industryItems().filter((x) => (!q || x.toLowerCase().includes(q)) && !cat.some((c) => c.desc.toLowerCase() === x.toLowerCase()) && x.toLowerCase() !== q).slice(0, 5);
   if (!cat.length && !ind.length) return closeSuggest();
-  showSuggest(field, (cat.length ? `<div class="sec">Your items</div>` + cat.map((x, i) => `<button type="button" data-cat="${i}"><span>${esc(x.desc)}</span><small>${short(num(x.price))}</small></button>`).join("") : "") + (ind.length ? `<div class="sec">Suggestions</div>` + ind.map((x, i) => `<button type="button" data-ind-item="${i}"><span>${esc(x)}</span></button>`).join("") : ""));
+  showSuggest(field, (cat.length ? `<div class="sec">Your items</div>` + cat.map((x, i) => `<button type="button" data-cat="${i}"><span>${esc(x.desc)}</span><small>${num(x.price) > 0 ? short(num(x.price)) + (x.unit ? " " + esc(x.unit) : "") : "Price on request"}</small></button>`).join("") : "") + (ind.length ? `<div class="sec">Suggestions</div>` + ind.map((x, i) => `<button type="button" data-ind-item="${i}"><span>${esc(x)}</span></button>`).join("") : ""));
   field.onclick = (ev) => {
     const a = ev.target.closest("[data-cat]"), b = ev.target.closest("[data-ind-item]"); if (!a && !b) return;
-    if (a) { const x = cat[Number(a.dataset.cat)]; it.desc = x.desc; it.price = x.price; if (x.note) it.note = x.note; if (x.img) it.img = x.img; } else it.desc = ind[Number(b.dataset.indItem)];
+    if (a) { const x = cat[Number(a.dataset.cat)]; it.desc = x.desc; it.price = x.price; it.catId = x.id; const nt = catUnitNote(x); if (nt) it.note = nt; if (x.img) it.img = x.img; } else it.desc = ind[Number(b.dataset.indItem)];
     persist(); closeSuggest(); renderItemsEditor(); render(); if (!num(it.price)) $(`#it-p-${it.id}`)?.focus();
   };
 }
@@ -4085,7 +4190,7 @@ function rememberDoc() {
   const D = S.doc; const me = LS.get("aurum.me", ""); if (me && !D.preparedBy) D.preparedBy = me; const n = parseInt(String(D.number).replace(/\D/g, ""), 10);
   if (Number.isFinite(n)) S.profile.counters[D.type] = Math.max(S.profile.counters[D.type] || 0, n);
   if (D.client.name.trim()) { const k = D.client.name.trim().toLowerCase(); S.clients = [{ ...D.client, last: Date.now() }, ...S.clients.filter((c) => c.name.toLowerCase() !== k)].slice(0, 200); }
-  D.items.filter((it) => it.desc.trim() && num(it.price) > 0).forEach((it) => { const k = it.desc.trim().toLowerCase(); const ex = S.catalog.find((x) => x.desc.toLowerCase() === k); if (ex) { ex.price = it.price; ex.note = it.note || ex.note; if (it.img) ex.img = it.img; ex.uses++; } else S.catalog.push({ desc: it.desc.trim(), price: it.price, note: it.note || "", img: it.img || "", uses: 1 }); });
+  rememberItems(D.items);
   history = [{ id: D.id, savedAt: Date.now(), doc: structuredClone(D) }, ...history.filter((h) => h.id !== D.id)].slice(0, 100);
   if (D.type === "receipt" && D.fromId && !D.settled) {
     const src = history.find((h) => h.id === D.fromId);
@@ -4130,6 +4235,183 @@ function newDoc() {
   const t = S.doc.type || "invoice"; S.doc = newDocFor(S.profile, t); lastTotal = null; persist();
   showStep(1); swapAnim(); render({ enter: true }); toast(`New ${LABEL[t].toLowerCase()} ${S.doc.number}`); $("#c-name").focus();
 }
+
+/* =========================================================
+   SAVED ITEMS (plan/09): screens
+   ========================================================= */
+function addCatalogToDoc(entries) {
+  const newIds = new Set();
+  for (const { x, qty } of entries) {
+    const it = { ...blankItem(), desc: x.desc, price: x.price, note: catUnitNote(x), img: x.img || "", qty: qty || 1, catId: x.id };
+    const empty = S.doc.items.find((y) => !y.desc && !num(y.price));
+    if (empty) Object.assign(empty, { desc: it.desc, price: it.price, note: it.note, img: it.img, qty: it.qty, catId: it.catId }); else S.doc.items.push(it);
+    newIds.add(it.id);
+  }
+  persist(); renderItemsEditor(); render({ newIds });
+}
+const catPriceLine = (x) => (num(x.price) > 0 ? short(num(x.price)) + (x.unit ? " " + x.unit : "") : "Price on request");
+const catTile = (x) => (x.img ? '<span class="si-img" style="background-image:url(' + x.img + ')"></span>' : '<span class="si-img">' + esc((x.desc[0] || "?").toUpperCase()) + "</span>");
+function catLimitSheet() {
+  const m = catMax(), tier = entNow()?.tier;
+  if (tier === "pro" || tier === "business") return sheet("Saved items", '<div class="lock-card" style="margin:6px 4px 8px"><h3>You have reached ' + m + ' saved items</h3><p class="hint" style="margin:6px 0 12px">Archive items you no longer sell to make room.</p><button class="btn primary" type="button" data-close>Close</button></div>');
+  const next = tier === "starter" ? "pro" : "starter", nm = next === "pro" ? 500 : 100;
+  if (!billingOn()) return sheet("Saved items", '<div class="lock-card" style="margin:6px 4px 8px"><h3>You have reached ' + m + ' saved items</h3><p class="hint" style="margin:6px 0 12px">Your items all stay. Ask us about moving to a bigger plan.</p><button class="btn primary" type="button" data-close>Close</button></div>');
+  sheet("Saved items", '<div class="lock-card" style="margin:6px 4px 8px"><h3>You have reached ' + m + ' saved items</h3><p class="hint" style="margin:6px 0 12px">Your items all stay. To add more, move to ' + tierName(next) + ", which keeps " + nm + '.</p><div style="display:grid;gap:8px"><button class="btn primary" type="button" data-plan="' + next + '">See plans</button><button class="btn ghost" type="button" data-close>Not now</button></div></div>');
+}
+const SI_UNITS = ["each", "per pack", "per yard", "per hour", "per day", "per guest"];
+function itemSheet(id, afterSave) {
+  const item = id ? S.catalog.find((x) => x.id === id && !x.deleted) : null;
+  if (!item && catFull()) return catLimitSheet();
+  const f = item ? { desc: item.desc, price: item.price === "" ? "" : String(item.price), unit: item.unit || "", category: item.category || "", note: item.note || "", img: item.img || "", lock: !!item.lock } : { desc: "", price: "", unit: "", category: "", note: "", img: "", lock: false };
+  let otherUnit = f.unit && !SI_UNITS.includes(f.unit), newCat = false;
+  const cats = () => [...new Set(catAll().map((x) => x.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const body = () => {
+    const unitChips = SI_UNITS.map((u) => '<button type="button" class="chip" data-unit="' + u + '" aria-pressed="' + (f.unit === u && !otherUnit) + '">' + u + "</button>").join("") + '<button type="button" class="chip" data-unit="__other" aria-pressed="' + otherUnit + '">Other</button>';
+    const catChips = cats().map((c) => '<button type="button" class="chip" data-cat="' + esc(c) + '" aria-pressed="' + (f.category === c && !newCat) + '">' + esc(c) + "</button>").join("") + '<button type="button" class="chip add" data-cat="__new" aria-pressed="' + newCat + '">New category</button>';
+    return '<div class="si-form">' +
+      '<label class="field"><span>Name</span><input id="si-name" maxlength="80" placeholder="For example: Bridal makeup" value="' + esc(f.desc) + '"></label>' +
+      '<label class="field"><span>Price</span><div class="money-in field"><i>₦</i><input id="si-price" inputmode="decimal" value="' + esc(f.price !== "" ? group(f.price) : "") + '" placeholder="0"></div><small class="hint">Leave empty if the price changes each time.</small></label>' +
+      '<div class="field"><span>Sold</span><div class="chips">' + unitChips + "</div>" + (otherUnit ? '<input id="si-unit" maxlength="16" placeholder="For example: per set" value="' + esc(f.unit) + '" style="margin-top:8px">' : "") + "</div>" +
+      '<div class="field"><span>Category</span><div class="chips">' + catChips + "</div>" + (newCat ? '<input id="si-newcat" maxlength="24" placeholder="Category name" value="' + esc(f.category) + '" style="margin-top:8px">' : "") + "</div>" +
+      '<label class="field"><span>Detail</span><input id="si-note" maxlength="120" placeholder="Size, colour, what is included…" value="' + esc(f.note) + '"></label>' +
+      '<div class="field"><span>Photo</span>' + (f.img ? '<div class="si-photo"><span class="si-img big" style="background-image:url(' + f.img + ')"></span><label class="btn sm">Change<input type="file" accept="image/*" id="si-file" hidden></label><button type="button" class="btn sm ghost" data-si="nophoto">Remove</button></div>' : '<label class="btn sm">Add a photo<input type="file" accept="image/*" id="si-file" hidden></label>') + "</div>" +
+      '<label class="card-line" style="cursor:pointer"><span><b>Keep this price fixed</b><small>When this is off, Aurum remembers the last price you charged. When it is on, the saved price only changes when you change it here.</small></span><input type="checkbox" id="si-lock" ' + (f.lock ? "checked" : "") + "></label>" +
+      '<div class="err" id="si-err" role="alert"></div>' +
+      '<div style="display:grid;gap:8px"><button class="btn primary" type="button" data-si="save">Save</button>' +
+      (item ? '<button class="btn" type="button" data-si="invoice">Add to a new invoice</button><button class="btn" type="button" data-si="archive">' + (item.archived ? "Bring back" : "Archive") + '</button><button class="btn ghost" type="button" data-si="delete" style="color:var(--danger)">Delete</button>' : '<button class="btn ghost" type="button" data-close>Cancel</button>') + "</div></div>";
+  };
+  const read = () => { f.desc = $("#si-name")?.value ?? f.desc; f.price = ($("#si-price")?.value ?? f.price).replace(/[^\d.]/g, ""); f.note = $("#si-note")?.value ?? f.note; f.lock = !!$("#si-lock")?.checked; if (otherUnit) f.unit = $("#si-unit")?.value.trim() ?? f.unit; if (newCat) f.category = $("#si-newcat")?.value.trim() ?? f.category; };
+  const redraw = () => { read(); $("#sheet-body").innerHTML = body(); wire(); };
+  const err = (m, html) => { const e = $("#si-err"); if (e) { if (html) e.innerHTML = m; else e.textContent = m; } };
+  const wire = () => {
+    const pr = $("#si-price"); if (pr) pr.oninput = () => { const raw = pr.value.replace(/[^\d.]/g, ""); pr.value = group(raw); };
+    const fl = $("#si-file"); if (fl) fl.onchange = async () => {
+      const file = fl.files[0]; if (!file) return; read();
+      if (JSON.stringify(S.catalog).length > 2000000) return err("Your saved items have used their photo space on this phone. Remove a photo you no longer need.");
+      try { f.img = await readImage(file, 160, "image/jpeg", .75); } catch { return err("That photo could not be read."); } redraw();
+    };
+  };
+  sheet(item ? "Edit item" : "Add item", body(), { onClick: async (ev) => {
+    const u = ev.target.closest("[data-unit]"), c = ev.target.closest("[data-cat]"), s = ev.target.closest("[data-si]");
+    if (u) { read(); if (u.dataset.unit === "__other") { otherUnit = true; f.unit = ""; } else { otherUnit = false; f.unit = f.unit === u.dataset.unit ? "" : u.dataset.unit; } return redraw(); }
+    if (c) { read(); if (c.dataset.cat === "__new") { newCat = true; f.category = ""; } else { newCat = false; f.category = f.category === c.dataset.cat ? "" : c.dataset.cat; } return redraw(); }
+    if (!s) return;
+    const act = s.dataset.si; read();
+    if (act === "nophoto") { f.img = ""; return redraw(); }
+    if (act === "open") { closeLayer(); return itemSheet(s.dataset.id, afterSave); }
+    if (act === "invoice") { const x = item; closeLayer(); closePlanPage(); newOfType("invoice"); addCatalogToDoc([{ x, qty: 1 }]); return; }
+    if (act === "archive") {
+      const prev = structuredClone(S.catalog);
+      if (item.archived) { if (catFull()) return catLimitSheet(); item.archived = false; item.updatedAt = Date.now(); if (saveCatalogChecked(prev)) { closeLayer(); toast("Back in your saved items"); afterSave?.(); } return; }
+      item.archived = true; item.updatedAt = Date.now(); if (saveCatalogChecked(prev)) { closeLayer(); toast("Archived. You can find it under Archived."); afterSave?.(); } return;
+    }
+    if (act === "delete") {
+      return sheet("Delete item", '<p class="hint" style="padding:0 8px 12px">Delete "' + esc(item.desc) + '"? Documents you already sent are not affected.</p><div style="display:grid;gap:8px;padding:0 8px 8px"><button class="btn primary" type="button" id="si-del" style="background:var(--danger);color:#fff">Delete</button><button class="btn ghost" type="button" data-close>Keep</button></div>', { onClick: (e2) => {
+        if (!e2.target.closest("#si-del")) return;
+        const prev2 = structuredClone(S.catalog), i = S.catalog.findIndex((x) => x.id === item.id); if (i < 0) return;
+        S.catalog[i] = { id: item.id, desc: item.desc, deleted: true, updatedAt: Date.now() };
+        if (saveCatalogChecked(prev2)) { closeLayer(); toast("Deleted"); afterSave?.(); try { renderItemsEditor(); } catch {} }
+      } });
+    }
+    if (act === "save") {
+      const name = f.desc.trim().replace(/\s+/g, " "); if (!name) return err("Give the item a name.");
+      const dup = S.catalog.find((x) => !x.deleted && x.id !== item?.id && x.desc.toLowerCase() === name.toLowerCase());
+      if (dup) return err('You already have an item called "' + esc(name) + '". <button type="button" class="link-btn" data-si="open" data-id="' + dup.id + '">Open it</button>', true);
+      const catName = f.category.trim().slice(0, 24); const catSet = new Set(cats()); if (catName && !catSet.has(catName) && catSet.size >= 12) return err("You can have up to 12 categories. Use one you already have.");
+      const prev = structuredClone(S.catalog), now = Date.now();
+      const data = { desc: name, price: f.price, unit: f.unit.trim().slice(0, 16), note: f.note.trim().slice(0, 120), img: f.img, category: catName, lock: f.lock, updatedAt: now };
+      if (item) Object.assign(item, data); else S.catalog.push({ ...CAT_DEFAULTS, id: uid(), ...data, lastUsed: 0 });
+      if (!saveCatalogChecked(prev)) return;
+      closeLayer(); toast("Saved"); afterSave?.(); try { renderItemsEditor(); } catch {}
+    }
+  } });
+  wire();
+}
+function openSavedItems() {
+  const st = { q: "", cat: "All", sort: "uses", shown: 50 };
+  const body = planPageShell("Saved items", "Close", closePlanPage);
+  const cats = () => [...new Set(catAll().map((x) => x.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const full = () => {
+    const live = catAll();
+    if (!live.length) {
+      const ind = INDUSTRIES[S.profile.business.industry] || INDUSTRIES.other, can = S.profile.business.industry && S.profile.business.industry !== "other" && ind.items.length;
+      return '<div class="pp-co"><h2>Saved items</h2><p class="pp-cur" style="text-align:left">Your saved items will appear here. Aurum saves each item the first time you send it. You can also add your price list now.</p><div style="display:grid;gap:10px"><button class="btn primary block" type="button" data-si-go="add">Add item</button>' + (can ? '<button class="btn block" type="button" data-si-go="suggest">Start with suggestions</button>' : "") + "</div></div>";
+    }
+    const limit = catMax(), n = catLive().length;
+    const line = limit != null ? n + " of " + limit + " items" + (catFull() ? " · new items are not being saved" : "") : n + " item" + (n === 1 ? "" : "s");
+    const hasArch = live.some((x) => x.archived);
+    const chips = ["All", ...cats(), ...(hasArch ? ["Archived"] : [])].map((c) => '<button type="button" class="chip" data-sc="' + esc(c) + '" aria-pressed="' + (st.cat === c) + '">' + esc(c) + "</button>").join("");
+    return '<div class="pp-co" style="max-width:640px"><h2>Saved items</h2><p class="pp-cur" style="text-align:left;margin:0 0 6px">' + line + '</p><div class="si-tools"><input class="input" id="si-search" placeholder="Search items" autocomplete="off" value="' + esc(st.q) + '"><button class="btn primary" type="button" data-si-go="add">Add item</button></div><div class="chips" style="margin:10px 0">' + chips + '</div><div class="pp-toggle small" style="margin:0 0 6px"><button type="button" data-ss="uses" aria-pressed="' + (st.sort === "uses") + '">Most used</button><button type="button" data-ss="az" aria-pressed="' + (st.sort === "az") + '">A to Z</button></div><div id="si-list"></div></div>';
+  };
+  const list = () => {
+    const q = st.q.trim().toLowerCase();
+    let rows = catAll().filter((x) => (st.cat === "Archived" ? x.archived : !x.archived)).filter((x) => st.cat === "All" || st.cat === "Archived" || x.category === st.cat).filter((x) => !q || (x.desc + " " + x.note + " " + x.category).toLowerCase().includes(q));
+    rows.sort(st.sort === "az" ? (a, b) => a.desc.localeCompare(b.desc) : (a, b) => (b.uses || 0) - (a.uses || 0) || a.desc.localeCompare(b.desc));
+    const shown = rows.slice(0, st.shown);
+    $("#si-list").innerHTML = shown.length ? shown.map((x) => '<button type="button" class="si-row" data-si-open="' + x.id + '">' + catTile(x) + '<span class="si-main"><b>' + esc(x.desc) + '</b><small>' + esc(catPriceLine(x)) + '</small>' + (x.uses ? '<small>Used ' + x.uses + " time" + (x.uses === 1 ? "" : "s") + "</small>" : "") + "</span>" + (x.lock ? '<span class="si-lock" title="Price is fixed" aria-label="Price is fixed"></span>' : "") + "</button>").join("") + (rows.length > shown.length ? '<button type="button" class="btn block" data-si-more="1" style="margin-top:10px">Show more</button>' : "") : '<p class="hint">No items here.</p>';
+  };
+  const draw = () => { $("#pp-body").innerHTML = full(); if ($("#si-list")) list(); };
+  window.__planRedraw = draw;
+  planPage.onclick = (ev) => {
+    if (ev.target.closest("[data-pp=back]")) return closePlanPage();
+    const g = ev.target.closest("[data-si-go]");
+    if (g) { if (g.dataset.siGo === "add") return itemSheet(null, draw); return suggestSheet(draw); }
+    const o = ev.target.closest("[data-si-open]"); if (o) return itemSheet(o.dataset.siOpen, draw);
+    const c = ev.target.closest("[data-sc]"); if (c) { st.cat = c.dataset.sc; st.shown = 50; return draw(); }
+    const s = ev.target.closest("[data-ss]"); if (s) { st.sort = s.dataset.ss; return draw(); }
+    if (ev.target.closest("[data-si-more]")) { st.shown += 50; return list(); }
+  };
+  planPage.oninput = (ev) => { if (ev.target.id === "si-search") { st.q = ev.target.value; st.shown = 50; list(); } };
+  draw();
+}
+function suggestSheet(after) {
+  const ind = INDUSTRIES[S.profile.business.industry] || INDUSTRIES.other;
+  if (catFull()) return catLimitSheet();
+  sheet("Suggestions", '<div style="padding:0 8px"><h3 style="margin:0 0 4px">Suggestions for ' + esc(ind.name) + '</h3><p class="hint" style="margin:0 0 12px">Tick the ones you sell and add your prices. You can leave a price empty.</p><div id="sg-list">' + ind.items.map((n, i) => '<label class="sg-row"><input type="checkbox" data-sg="' + i + '"><span>' + esc(n) + '</span><div class="money-in field"><i>₦</i><input inputmode="decimal" data-sgp="' + i + '" placeholder="Price"></div></label>').join("") + '</div><button class="btn primary block" type="button" id="sg-add" style="margin-top:12px" disabled>Add 0 items</button></div>', { onClick: (ev) => {
+    const cb = ev.target.closest("[data-sg]"); if (cb) { const n = $$("[data-sg]:checked").length; $("#sg-add").disabled = !n; $("#sg-add").textContent = "Add " + n + " item" + (n === 1 ? "" : "s"); }
+  } });
+  $("#sg-list").addEventListener("input", (e) => { if (e.target.dataset.sgp !== undefined) { const raw = e.target.value.replace(/[^\d.]/g, ""); e.target.value = group(raw); } });
+  $("#sg-add").onclick = () => {
+    const prev = structuredClone(S.catalog), now = Date.now(); let n = 0;
+    $$("[data-sg]:checked").forEach((cb) => { if (catFull()) return; const i = Number(cb.dataset.sg), name = ind.items[i]; if (S.catalog.some((x) => !x.deleted && x.desc.toLowerCase() === name.toLowerCase())) return; S.catalog.push({ ...CAT_DEFAULTS, id: uid(), desc: name, price: $('[data-sgp="' + i + '"]').value.replace(/[^\d.]/g, ""), updatedAt: now }); n++; });
+    if (saveCatalogChecked(prev)) { closeLayer(); toast(n + " item" + (n === 1 ? "" : "s") + " added"); after?.(); }
+  };
+}
+// browse saved items while making a document
+function browseItems() {
+  const picked = new Map(), st = { q: "", cat: "All" };
+  const cats = () => [...new Set(catLive().map((x) => x.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const body = () => {
+    const q = st.q.trim().toLowerCase();
+    const rows = catLive().filter((x) => st.cat === "All" || x.category === st.cat).filter((x) => !q || (x.desc + " " + x.note + " " + x.category).toLowerCase().includes(q)).sort((a, b) => (b.uses || 0) - (a.uses || 0)).slice(0, 80);
+    const n = picked.size;
+    return '<div style="padding:0 4px"><input class="input" id="br-search" placeholder="Search items" value="' + esc(st.q) + '" autocomplete="off">' + (cats().length ? '<div class="chips" style="margin:10px 0">' + ["All", ...cats()].map((c) => '<button type="button" class="chip" data-bc="' + esc(c) + '" aria-pressed="' + (st.cat === c) + '">' + esc(c) + "</button>").join("") + "</div>" : "") +
+      '<div id="br-list">' + (rows.length ? rows.map((x) => { const on = picked.has(x.id); return '<div class="si-row br" data-br="' + x.id + '" aria-pressed="' + on + '"><span class="si-check"></span>' + catTile(x) + '<span class="si-main"><b>' + esc(x.desc) + "</b><small>" + esc(catPriceLine(x)) + "</small></span>" + (on ? '<span class="stepper" data-stop><button type="button" data-bq="-1:' + x.id + '">−</button><input value="' + picked.get(x.id) + '" readonly aria-label="Quantity"><button type="button" data-bq="1:' + x.id + '">+</button></span>' : "") + "</div>"; }).join("") : '<p class="hint">No items here.</p>') + "</div>" +
+      '<button class="btn primary block" type="button" id="br-add" style="margin-top:12px"' + (n ? "" : " disabled") + ">Add " + n + " item" + (n === 1 ? "" : "s") + "</button></div>";
+  };
+  const redraw = (keepFocus) => { const pos = $("#br-search")?.selectionStart; $("#sheet-body").innerHTML = body(); wire(); if (keepFocus) { const s = $("#br-search"); s.focus(); s.setSelectionRange(pos, pos); } };
+  const wire = () => { const s = $("#br-search"); if (s) s.oninput = () => { st.q = s.value; redraw(true); }; const a = $("#br-add"); if (a) a.onclick = () => { const entries = [...picked].map(([id, qty]) => ({ x: S.catalog.find((c) => c.id === id), qty })).filter((e) => e.x); closeLayer(); addCatalogToDoc(entries); }; };
+  sheet("Saved items", body(), { onClick: (ev) => {
+    const bq = ev.target.closest("[data-bq]"); if (bq) { const [d, id] = bq.dataset.bq.split(":"); picked.set(id, Math.max(1, (picked.get(id) || 1) + Number(d))); return redraw(); }
+    if (ev.target.closest("[data-stop]")) return;
+    const bc = ev.target.closest("[data-bc]"); if (bc) { st.cat = bc.dataset.bc; return redraw(); }
+    const row = ev.target.closest("[data-br]"); if (row) { const id = row.dataset.br; if (picked.has(id)) picked.delete(id); else picked.set(id, 1); redraw(); }
+  } });
+  wire();
+}
+function savedItemsBlock() {
+  if (isDemo()) return "";
+  const live = catLive().sort((a, b) => (b.uses || 0) - (a.uses || 0)), n = live.length;
+  return '<h3 class="sub" style="margin:22px 0 8px">Saved items</h3>' + (n ? '<div class="doc-list">' + live.slice(0, 5).map((x) => '<button type="button" class="si-row" data-si-dash="' + x.id + '">' + catTile(x) + '<span class="si-main"><b>' + esc(x.desc) + "</b><small>" + esc(catPriceLine(x)) + "</small></span></button>").join("") + '</div><button class="link-btn" type="button" data-si-all="1" style="margin-top:8px">See all ' + n + " items</button>" : '<div class="home-empty">Saved items appear here after you send your first invoice.</div><button class="link-btn" type="button" data-si-all="1">Add your price list</button>');
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#browse-items")) return browseItems();
+  if (e.target.closest("[data-si-all]")) return openSavedItems();
+  const d = e.target.closest("[data-si-dash]"); if (d) return itemSheet(d.dataset.siDash, () => { try { renderDash(); } catch {} });
+  const u = e.target.closest("[data-updsaved]");
+  if (u) { const it = S.doc.items.find((x) => x.id === u.dataset.updsaved), sv = it && S.catalog.find((x) => x.id === it.catId); if (sv) { const prev = structuredClone(S.catalog); sv.price = it.price; sv.updatedAt = Date.now(); if (saveCatalogChecked(prev)) { toast("Saved price updated"); renderItemsEditor(); } } }
+  if (e.target.closest("#sync-state[data-state=full]")) sheet("Backup is full", '<p class="hint" style="padding:0 8px 12px">Your backup has reached its size limit. Remove photos from saved items you no longer need, then try again.</p><div style="padding:0 8px 8px"><button class="btn primary block" type="button" data-close>Close</button></div>');
+});
 function renderHistory() {
   $("#saved-list").innerHTML = history.length ? history.slice(0, 30).map((h) => {
     const a = activity[h.id];
@@ -4197,6 +4479,13 @@ $("#x-vat").addEventListener("change", () => { S.doc.vatOn = $("#x-vat").checked
 /* =========================================================
    MY HOUSE — settings drawer
    ========================================================= */
+// redraw My house after a change (a colour, a design...) without jumping back to the top or replaying the slide-in
+function reopenHouse() {
+  const b = $(".drawer-body", $("#layer")), sc = b ? b.scrollTop : 0;
+  openHouse();
+  const d = $(".drawer", $("#layer")); if (d) d.style.animation = "none";
+  const nb = $(".drawer-body", $("#layer")); if (nb) nb.scrollTop = sc;
+}
 function openHouse(focus) {
   if (isDemo()) return openDemoHouse();
   const P = S.profile, B = P.business, K = P.bank, G = P.design;
@@ -4239,7 +4528,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
       <section><h3 class="sub">This device</h3>
         <label class="field"><span>Your name on this phone/laptop <em>(shows as "Prepared by")</em></span><input id="h-me" value="${esc(LS.get("aurum.me", ""))}" placeholder="e.g. Tolu (sales)" autocomplete="off"></label>
         <p class="hint">Staff using your licence on another device can put their own name here.</p></section>
-      <section><h3 class="sub">Documents</h3><button class="btn block" type="button" data-h="customise">Customise invoice, receipt &amp; quotation</button></section>
+      <section><h3 class="sub">Documents</h3><button class="btn block" type="button" data-h="customise">Customise invoice, receipt &amp; quotation</button><button class="btn block" type="button" data-h="saved" style="display:flex;justify-content:space-between;margin-top:8px"><span>Saved items</span><span>${catLive().length}</span></button></section>
       <section><h3 class="sub">Look</h3>
         <div class="tpl-grid" style="--tb:${esc(G.brand)}">${DESIGNS.map(([k, n]) => `<button type="button" class="tpl${allowedDesign(k) ? "" : " locked"}" data-template="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
         <div class="swatches">${SWATCHES.map(([h, n]) => `<button type="button" class="swatch" data-color="${h}" style="background:${h}" aria-label="${n}" aria-pressed="${G.brand.toLowerCase() === h.toLowerCase()}"></button>`).join("")}<span class="swatch-custom"><input type="color" class="brand-custom" value="${esc(G.brand)}" aria-label="Any colour"></span></div>
@@ -4270,15 +4559,16 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
   layer.onclick = (e) => {
     if (e.target.closest("[data-close]")) { closeLayer(); syncChrome(); render(); return; }
     const t = e.target.closest("[data-template]"), sw = e.target.closest(".swatch"), sg = e.target.closest("[data-sign]"), h = e.target.closest("[data-h]");
-    if (t) { if (!allowedDesign(t.dataset.template)) return lockSheet(DESIGN_NAME[t.dataset.template] || "This design", tierFor("design", t.dataset.template)); G.template = t.dataset.template; persist(); openHouse(); swapAnim(); render({ enter: true }); }
-    if (sw) { G.brand = sw.dataset.color; persist(); openHouse(); render(); }
-    if (sg) { B.signMode = sg.dataset.sign; persist(); openHouse(); render(); }
+    if (t) { if (!allowedDesign(t.dataset.template)) return lockSheet(DESIGN_NAME[t.dataset.template] || "This design", tierFor("design", t.dataset.template)); G.template = t.dataset.template; persist(); reopenHouse(); swapAnim(); render({ enter: true }); }
+    if (sw) { G.brand = sw.dataset.color; persist(); reopenHouse(); render(); }
+    if (sg) { B.signMode = sg.dataset.sign; persist(); reopenHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
-    const gr = e.target.closest("[data-greet]"); if (gr) { G.greeting = gr.dataset.greet; persist(); return openHouse(); }
+    const gr = e.target.closest("[data-greet]"); if (gr) { G.greeting = gr.dataset.greet; persist(); return reopenHouse(); }
     if (h?.dataset.h === "push") return togglePush();
     if (h?.dataset.h === "brand") return hasSecondBrand() ? doSwitchBrand() : addBrandSheet();
     if (h?.dataset.h === "customise") return openCustomise();
-    if (h?.dataset.h === "nologo") { B.logo = ""; persist(); openHouse(); render(); }
+    if (h?.dataset.h === "saved") { closeLayer(); return openSavedItems(); }
+    if (h?.dataset.h === "nologo") { B.logo = ""; persist(); reopenHouse(); render(); }
   };
   layer.oninput = (e) => { if (e.target.id === "h-me") LS.set("aurum.me", e.target.value.trim()); if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); } };
   if (focus === "bank") setTimeout(() => $("#h-bank")?.scrollIntoView({ block: "start" }), 50);
@@ -4320,7 +4610,7 @@ function openCustomise(type = S.doc.type) {
     if (b.dataset.term !== undefined) { const t = TERMS[Number(b.dataset.term)]; const cur = docStyle(P, type).terms || ""; st.terms = cur.includes(t) ? cur.replace(t, "").replace(/\s{2,}/g, " ").trim() : (cur ? cur.trim() + " " : "") + t; }
     if (b.dataset.czTpl) { if (!allowedDesign(b.dataset.czTpl)) return lockSheet(DESIGN_NAME[b.dataset.czTpl] || "This design", tierFor("design", b.dataset.czTpl)); G.template = b.dataset.czTpl; }
     if (b.dataset.czColor) G.brand = b.dataset.czColor;
-    persist(); render(); const sc = $(".drawer-body", layer).scrollTop; openCustomise(type); $(".drawer-body", $("#layer")).scrollTop = sc;
+    persist(); render(); const sc = $(".drawer-body", layer).scrollTop; openCustomise(type); { const d2 = $(".drawer", $("#layer")); if (d2) d2.style.animation = "none"; } $(".drawer-body", $("#layer")).scrollTop = sc;
   };
   layer.oninput = (e) => { if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); refreshCustomPreview(type); } };
 }
@@ -4441,6 +4731,7 @@ $("#close-preview").addEventListener("click", () => document.body.classList.remo
 let started = false;
 function startStudio() {
   setSync(canSync() ? "saved" : "");
+  if (buyIntent && session && licence?.acct) { const b = buyIntent; buyIntent = null; setTimeout(() => { refreshBilling().then(() => { if (billingOn()) openPay(b.tier, b.per); }); }, 900); }
   $("#gate").hidden = true; $("#ob").hidden = true; $("#studio-root").hidden = false;
   if (!started) { started = true; showStep(1); fontsReady().then(() => render({ enter: true })); syncChrome(); render(); showHome(); return; }
   syncChrome(); render();
@@ -4711,6 +5002,7 @@ function renderDash() {
   if (dashState.tab === "clients") {
     const book = clientBook();
     $("#dash-clients").innerHTML = book.length ? `<div class="doc-list">${book.map((c, i) => `<button class="client-row" type="button" data-client="${i}"><div><b>${esc(c.name)}</b><small>${c.docs.length} document${c.docs.length === 1 ? "" : "s"} · last ${fmtDate(c.last)}</small></div><div class="amt">${money(c.invoiced || c.received)}<small class="${c.owing ? "due" : "ok"}">${c.owing ? money(c.owing) + " owed" : "All paid"}</small></div></button>`).join("")}</div>` : `<div class="home-empty">Clients appear here after your first invoice or receipt.</div>`;
+    $("#dash-clients").insertAdjacentHTML("beforeend", savedItemsBlock());
   }
   if (dashState.tab === "team") {
     if (!isPrestige() && !isDemo()) $("#dash-team").innerHTML = `<div class="lock-card"><h3>Team view <span class="pbadge">Prestige</span></h3><ul><li>See who on your team made each document</li><li>Each person's invoices and money received</li><li>Works on up to 5 phones and laptops</li></ul>${upgradeBtn()}</div>`;
