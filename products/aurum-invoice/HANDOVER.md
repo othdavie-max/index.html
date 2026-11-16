@@ -106,3 +106,11 @@ Saved items (plan/09): screen, add/edit/archive/delete, browse while making a do
 
 ## Build 5: ten more document designs (16 Nov 2026)
 Ledger, Midnight, Aurora, Copper, Verdant, Pop, Neon, Sunset, Gilt and Margin (CSS only), built from the owner reference pictures. Every design follows the brand colour and a second colour (design.accent, automatic unless picked in My house). Design pickers are grouped. My house has a Second colour row and a one-tap business-name watermark switch for all six document types. Pro and Prestige get all 15 designs (plan_rules applied); Starter keeps three. Not checked: the real PDF download of each design, and receipts or delivery notes in every design.
+
+## Build 6 (16 Nov 2026)
+- Template pickers (My house, Customise) show real, lazily-painted previews of each design using the owner's own details (`fillTplThumbs`).
+- Watermark: name splits over 2-3 lines and is sized to fit; centred on the page (Margin: centred in its content area).
+- Paper height now follows its content (ResizeObserver in `fitInto`/`fitPaper`), fixing cut-off signature/footer when fonts load late.
+- Client page styles (`profile.design.page`): classic (Midnight Story), wallet (card + Pay/Document tabs), slip (till receipt prints), chat (bubbles). They differ in layout and motion, not colour. Wallet and classic are Starter; slip and chat need Pro (`allowedPage`). Style CSS lives under `.cv[data-page=...]`; the page attribute is applied only after the envelope opens.
+- Client page fix: the "Pay by transfer" step no longer overflows (account number and Copy button always visible); big amounts shrink to fit.
+- App locked like a native app (no pinch/double-tap zoom, no text selection except documents/account numbers). html2canvas is loaded on demand. sw.js (cache aurum-v5) opens the saved copy at once and refreshes in the background, reloading once if a new version arrived in the first 8 seconds.
