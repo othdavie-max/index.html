@@ -316,6 +316,237 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
   repeating-linear-gradient(90deg, var(--tb, #1A1817) 0 6px, #C9A86A 6px 7px, var(--tb, #1A1817) 7px 12px, #FFFDF9 12px 13px) bottom / 100% 4% no-repeat,
   #FFFDF9; }
 /* a small lock on anything the plan does not include */
+
+/* =========================================================
+   TEN MORE DOCUMENT DESIGNS (Build 5). All follow the brand colour; --accent, --hi and --on-brand come with the document.
+   ========================================================= */
+.inv:is(.t-ledger, .t-midnight, .t-aurora, .t-copper, .t-verdant, .t-pop, .t-neon, .t-sunset, .t-gilt, .t-margin) .foil,
+.inv.static:is(.t-ledger, .t-midnight, .t-aurora, .t-copper, .t-verdant, .t-pop, .t-neon, .t-sunset, .t-gilt, .t-margin) .foil { background: none; -webkit-text-fill-color: currentColor; color: inherit; animation: none; }
+.inv.paper-white:is(.t-ledger, .t-copper, .t-verdant, .t-pop, .t-sunset, .t-margin) { --paper: #FFFFFF; }
+:is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .wmk { color: #FFFFFF; }
+:is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .stamp.paid { color: #6FD3A2; } :is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .stamp.overdue { color: #FF8A80; }
+:is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .pill.unpaid { color: #E1B866; } :is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .pill.paid { color: #6FD3A2; } :is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .pill.overdue { color: #FF8A80; } :is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .pill.part { color: #8EC1F0; }
+:is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .sign-line { border-color: var(--p-muted); }
+:is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .paylink b { color: var(--hi); }
+:is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .free-mark { color: #CFC8B6; }
+:is(.t-midnight, .t-aurora, .t-neon, .t-gilt) .it-img { filter: none; }
+
+/* --- LEDGER: warm paper, heavy serif title, solid blocks --- */
+.inv.t-ledger { --paper: #EEE2CA; --p-ink: #16130E; --p-muted: #5B5243; --p-rule: rgba(22,19,14,.5); --p-rule-soft: rgba(22,19,14,.22); }
+.t-ledger .inv-head { flex-direction: column; align-items: flex-start; gap: 18px; padding-top: 46px; padding-bottom: 24px; }
+.t-ledger .doc-title { text-align: left; }
+.t-ledger .biz-name { font-family: var(--f-display); font-weight: 800; font-size: 26px; color: var(--p-ink); }
+.t-ledger .tagline { letter-spacing: .14em; color: var(--p-muted); }
+.t-ledger .doc-type { font-style: normal; font-weight: 900; font-size: 78px; letter-spacing: .01em; text-transform: uppercase; line-height: .95; color: var(--p-ink); padding: 0; }
+.t-ledger .doc-no { color: var(--p-muted); }
+.t-ledger .inv-meta { border-top: 1px solid var(--p-ink); padding-top: 22px; }
+.t-ledger .items thead th { background: var(--brand); color: var(--on-brand); padding: 12px 10px; border: 0; }
+.t-ledger .items td { padding: 14px 10px; border-bottom: 1px solid var(--p-rule); border-left: 1px solid var(--p-rule-soft); }
+.t-ledger .items td.desc { background: var(--brand); color: var(--on-brand); border-left: 0; }
+.t-ledger .items td.desc small { color: inherit; opacity: .72; }
+.t-ledger .grand { background: var(--brand); color: var(--on-brand); padding: 14px 18px; margin-top: 10px; }
+.t-ledger .bank { border: 0; border-top: 1px solid var(--p-ink); padding: 14px 0 0; }
+.t-ledger .bank::before, .t-ledger .bank::after { display: none; }
+.t-ledger .inv-foot { border-top: 1px solid var(--p-ink); margin: auto 56px 0; padding-left: 0; padding-right: 0; }
+.t-ledger .inv-foot .ty { color: var(--p-ink); font-weight: 700; }
+
+/* --- MIDNIGHT: quiet, dark, precise --- */
+.inv.t-midnight { --paper: #101011; --p-ink: #ECE9E2; --p-muted: #8F8B84; --p-rule: rgba(255,255,255,.14); --p-rule-soft: rgba(255,255,255,.08); }
+.t-midnight .inv-head { padding-top: 58px; padding-bottom: 30px; align-items: flex-start; }
+.t-midnight .biz-name { font-family: var(--f-body); font-weight: 700; font-size: 17px; letter-spacing: .04em; color: var(--p-ink); }
+.t-midnight .tagline { color: var(--p-muted); letter-spacing: .1em; }
+.t-midnight .doc-type { font-family: var(--f-body); font-style: normal; font-weight: 800; font-size: 46px; letter-spacing: .04em; text-transform: uppercase; color: #E9E6E0; }
+.t-midnight .doc-no { color: var(--p-muted); letter-spacing: .14em; }
+.t-midnight .inv-meta { border-top: 1px solid var(--p-rule); border-bottom: 1px solid var(--p-rule); padding-top: 26px; padding-bottom: 26px; }
+.t-midnight .party .who { font-family: var(--f-body); font-weight: 700; }
+.t-midnight .items { margin-top: 24px; }
+.t-midnight .items thead th { background: rgba(255,255,255,.05); padding: 12px; color: var(--p-muted); border: 0; }
+.t-midnight .items td { padding: 16px 12px; }
+.t-midnight .items .desc small { color: var(--p-muted); }
+.t-midnight .grand { border-top: 1px solid var(--p-rule); padding: 18px 0 0; }
+.t-midnight .grand .amt { font-family: var(--f-body); font-weight: 800; font-size: 30px; color: #fff; }
+.t-midnight .grand span:first-child { color: var(--hi); }
+.t-midnight .words p { font-family: var(--f-body); font-style: normal; font-size: 13px; color: var(--p-muted); }
+.t-midnight .bank { border: 1px solid var(--p-rule); border-radius: 10px; }
+.t-midnight .bank::before, .t-midnight .bank::after { display: none; }
+.t-midnight .inv-foot { border-top: 1px solid var(--p-rule); margin: auto 56px 0; padding: 18px 0 40px; }
+
+/* --- AURORA: black, a glow of colour across the top, big plain title --- */
+.inv.t-aurora { --paper: #050506; --p-ink: #F3F1EE; --p-muted: #8C8A88; --p-rule: rgba(255,255,255,.16); --p-rule-soft: rgba(255,255,255,.08); }
+.t-aurora::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 300px; pointer-events: none; z-index: 0; background: radial-gradient(90% 120% at 10% 0%, var(--hi) 0%, transparent 62%), radial-gradient(80% 130% at 92% 0%, var(--accent) 0%, transparent 64%), radial-gradient(55% 60% at 52% 0%, rgba(255,255,255,.5) 0%, transparent 55%); }
+.t-aurora > :not(.wmk):not(.ribbon):not(.free-mark):not(.stamp) { position: relative; z-index: 1; }
+.t-aurora .inv-head { flex-direction: column; align-items: flex-start; gap: 16px; padding-top: 236px; padding-bottom: 22px; }
+.t-aurora .doc-title { text-align: left; }
+.t-aurora .biz-name { font-family: var(--f-body); font-weight: 700; font-size: 17px; color: #fff; }
+.t-aurora .tagline { color: var(--p-muted); }
+.t-aurora .doc-type { font-family: var(--f-body); font-style: normal; font-weight: 800; font-size: 86px; letter-spacing: -.03em; text-transform: uppercase; line-height: .95; color: #fff; padding: 0; }
+.t-aurora .doc-no { color: var(--p-muted); letter-spacing: .14em; }
+.t-aurora .party .who { font-family: var(--f-body); font-weight: 700; }
+.t-aurora .items thead th { color: var(--p-muted); }
+.t-aurora .items td { padding: 15px 0; }
+.t-aurora .items .desc small { color: var(--p-muted); }
+.t-aurora .grand { border-top: 1px solid var(--p-rule); padding: 16px 0 0; }
+.t-aurora .grand .amt { font-family: var(--f-body); font-weight: 800; color: #fff; }
+.t-aurora .words p { font-family: var(--f-body); font-style: normal; font-size: 13px; color: var(--p-muted); }
+.t-aurora .bank { border: 0; padding: 0; }
+.t-aurora .bank::before, .t-aurora .bank::after { display: none; }
+.t-aurora .inv-foot { border-top: 1px solid var(--p-rule); margin: auto 56px 0; padding: 18px 0 40px; }
+
+/* --- COPPER: soft grey head, striped rows, a deep block at the foot --- */
+.inv.t-copper { --paper: #FBF6EE; --p-ink: #2A1D12; --p-muted: #7B6650; --p-rule: rgba(42,29,18,.28); --p-rule-soft: rgba(42,29,18,.12); }
+.t-copper .inv-head { background: linear-gradient(180deg, #CDC8C2, #E7E1D8); align-items: center; padding-top: 44px; padding-bottom: 34px; }
+.t-copper .biz-name { font-family: var(--f-body); font-weight: 800; font-size: 22px; color: var(--brand); }
+.t-copper .tagline { color: var(--p-muted); }
+.t-copper .doc-type { font-family: var(--f-body); font-style: normal; font-weight: 800; font-size: 44px; letter-spacing: .16em; text-transform: uppercase; color: var(--brand); padding: 0; }
+.t-copper .doc-no { color: var(--brand); }
+.t-copper .inv-meta { background: linear-gradient(180deg, #E7E1D8, #FBF6EE); padding-top: 22px; }
+.t-copper .items thead th { color: var(--brand); border-bottom: 2px solid var(--brand); padding: 14px 10px 10px; }
+.t-copper .items td { padding: 14px 10px; border-bottom: 0; }
+.t-copper .items tbody tr:nth-child(odd) td { background: var(--brand-tint); }
+.t-copper .grand { background: var(--brand); color: var(--on-brand); padding: 14px 18px; }
+.t-copper .foot { background: var(--brand); color: var(--on-brand); margin-top: 28px; padding-top: 30px; padding-bottom: 30px; }
+.t-copper .foot .bank { border: 0; padding: 0; }
+.t-copper .foot .bank::before, .t-copper .foot .bank::after { display: none; }
+.t-copper .foot :is(.bank dt, .sign-title, label, .lbl) { color: inherit; opacity: .75; }
+.t-copper .foot :is(.sign-mark, .sign-line) { color: inherit; border-color: currentColor; }
+.t-copper .foot .paylink b { color: inherit; }
+.t-copper .inv-foot { background: var(--brand-deep); color: var(--on-brand); padding-top: 16px; padding-bottom: 20px; margin-top: auto; }
+.t-copper .inv-foot .ty { color: inherit; }
+
+/* --- VERDANT: plain paper, bold title, a colour block for the items --- */
+.inv.t-verdant { --paper: #F4F4EE; --p-ink: #141414; --p-muted: #56564F; --p-rule: rgba(0,0,0,.22); --p-rule-soft: rgba(0,0,0,.1); }
+.t-verdant .inv-head { flex-direction: column; align-items: flex-start; gap: 26px; padding-top: 50px; padding-bottom: 20px; }
+.t-verdant .brand { order: 0; } .t-verdant .doc-title { order: 1; text-align: left; }
+.t-verdant .biz-name { font-family: var(--f-body); font-weight: 800; font-size: 17px; color: var(--p-ink); }
+.t-verdant .doc-type { font-family: var(--f-body); font-style: normal; font-weight: 900; font-size: 76px; letter-spacing: -.04em; color: var(--p-ink); line-height: .9; padding: 0; }
+.t-verdant .doc-type::after { content: "."; }
+.t-verdant .doc-no { color: var(--p-muted); }
+.t-verdant .items { border-collapse: separate; border-spacing: 0; }
+.t-verdant .items thead th { background: var(--accent); color: var(--on-accent); padding: 12px; border: 0; }
+.t-verdant .items tbody td { background: var(--brand); color: var(--on-brand); padding: 13px 12px; border-bottom: 1px solid rgba(255,255,255,.14); }
+.t-verdant .items td.n, .t-verdant .items .desc small { color: inherit; opacity: .72; }
+.t-verdant .grand { border-top: 2px solid var(--p-ink); padding: 12px 0 0; }
+.t-verdant .bank { background: var(--accent); color: var(--on-accent); border: 0; border-radius: 14px; padding: 20px; }
+.t-verdant .bank::before, .t-verdant .bank::after { display: none; }
+.t-verdant .bank dt { color: inherit; opacity: .75; } .t-verdant .bank .lbl { color: inherit; }
+.t-verdant .inv-foot { border-top: 1px solid var(--p-ink); margin: auto 56px 0; padding-left: 0; padding-right: 0; }
+
+/* --- POP: playful pills, a dark bar at the foot, a checker edge --- */
+.inv.t-pop { --paper: #F2EDE6; --p-ink: #161212; --p-muted: #5E5550; --p-rule: rgba(0,0,0,.25); --p-rule-soft: rgba(0,0,0,.1); }
+.t-pop::after { content: ""; position: absolute; right: 0; top: 290px; width: 34px; height: 238px; background-image: linear-gradient(45deg, var(--accent) 25%, transparent 25%, transparent 75%, var(--accent) 75%), linear-gradient(45deg, var(--accent) 25%, transparent 25%, transparent 75%, var(--accent) 75%); background-size: 34px 34px; background-position: 0 0, 17px 17px; pointer-events: none; }
+.t-pop .inv-head { padding-top: 50px; padding-bottom: 18px; align-items: flex-start; }
+.t-pop .biz-name { font-family: var(--f-body); font-weight: 900; font-size: 24px; color: var(--p-ink); }
+.t-pop .doc-type { font-family: var(--f-body); font-style: normal; font-weight: 900; font-size: 70px; letter-spacing: -.03em; text-transform: uppercase; color: var(--p-ink); line-height: .88; padding: 0; }
+.t-pop .doc-no { color: var(--brand); font-size: 13px; }
+.t-pop .party .who { font-family: var(--f-body); font-weight: 900; color: var(--brand); font-size: 22px; }
+.t-pop .items { border-collapse: separate; border-spacing: 0 7px; }
+.t-pop .items thead th { background: var(--p-ink); color: #fff; padding: 12px 14px; border: 0; }
+.t-pop .items thead th:first-child, .t-pop .items tbody td:first-child { border-radius: 99px 0 0 99px; }
+.t-pop .items thead th:last-child, .t-pop .items tbody td:last-child { border-radius: 0 99px 99px 0; }
+.t-pop .items tbody td { background: var(--brand); color: var(--on-brand); padding: 12px 14px; border: 0; }
+.t-pop .items td.n, .t-pop .items .desc small { color: inherit; opacity: .8; }
+.t-pop .grand { background: var(--p-ink); color: #fff; border-radius: 99px; padding: 14px 24px; }
+.t-pop .foot { background: var(--p-ink); color: #fff; margin-top: 28px; padding-top: 26px; padding-bottom: 26px; }
+.t-pop .foot .bank { border: 0; padding: 0; }
+.t-pop .foot .bank::before, .t-pop .foot .bank::after { display: none; }
+.t-pop .foot :is(.bank dt, .sign-title, label, .lbl) { color: inherit; opacity: .7; }
+.t-pop .foot :is(.sign-mark, .sign-line) { color: #fff; border-color: #fff; }
+.t-pop .foot .paylink b { color: var(--accent); }
+.t-pop .inv-foot { background: var(--accent); color: var(--on-accent); padding-top: 14px; padding-bottom: 18px; margin-top: auto; }
+.t-pop .inv-foot .ty { color: inherit; }
+
+/* --- NEON: charcoal, outlined boxes, one loud colour --- */
+.inv.t-neon { --paper: #18181A; --p-ink: #F5F3F8; --p-muted: #A4A1AC; --p-rule: rgba(255,255,255,.28); --p-rule-soft: rgba(255,255,255,.12); }
+.t-neon .inv-head { padding-top: 62px; padding-bottom: 24px; align-items: flex-start; }
+.t-neon .inv-head::before { content: "\2715 \2715 \2715"; position: absolute; left: 56px; top: 24px; color: var(--accent); letter-spacing: .24em; font-weight: 800; font-size: 17px; }
+.t-neon .biz-name { font-family: var(--f-body); font-weight: 800; font-size: 20px; color: var(--p-ink); }
+.t-neon .tagline { color: var(--p-muted); }
+.t-neon .doc-type { font-family: var(--f-body); font-style: normal; font-weight: 800; font-size: 54px; letter-spacing: .02em; text-transform: uppercase; color: var(--hi); padding: 0; }
+.t-neon .doc-no { color: var(--p-muted); }
+.t-neon .party .who { font-family: var(--f-body); font-weight: 700; }
+.t-neon .items { border-collapse: separate; border-spacing: 0; border: 1px solid var(--p-rule); border-radius: 18px; overflow: hidden; }
+.t-neon .items thead th { background: var(--hi); color: var(--on-hi); padding: 13px 14px; border: 0; }
+.t-neon .items td { padding: 14px; }
+.t-neon .items .desc small { color: var(--p-muted); }
+.t-neon .totals { border: 1px solid var(--p-rule); border-radius: 16px; padding: 16px 18px 0; overflow: hidden; }
+.t-neon .grand { background: var(--hi); color: var(--on-hi); margin: 6px -18px 0; padding: 14px 18px; border-radius: 0 0 14px 14px; }
+.t-neon .words p { font-family: var(--f-body); font-style: normal; font-size: 13px; color: var(--p-muted); }
+.t-neon .bank { border: 1px solid var(--p-rule); border-radius: 16px; }
+.t-neon .bank::before, .t-neon .bank::after { display: none; }
+.t-neon .inv-foot { border-top: 1px solid var(--p-rule); margin: auto 56px 0; padding: 18px 0 40px; }
+
+/* --- SUNSET: a dark head, a rounded colour card, soft cards at the foot --- */
+.inv.t-sunset { --paper: #EFE8D3; --p-ink: #1A1512; --p-muted: #5E5547; --p-rule: rgba(26,21,18,.3); --p-rule-soft: rgba(26,21,18,.12); }
+.t-sunset .inv-head { background: #16120F; color: #F5EEDD; padding-top: 46px; padding-bottom: 70px; align-items: flex-start; }
+.t-sunset .biz-name { font-family: var(--f-body); font-weight: 700; font-size: 16px; color: #F5EEDD; }
+.t-sunset .tagline, .t-sunset .doc-no { color: #D8C9A6; }
+.t-sunset .doc-type { font-family: var(--f-display); font-style: normal; font-weight: 600; font-size: 64px; color: #F5EEDD; letter-spacing: -.02em; padding: 0; }
+.t-sunset .inv-meta { background: var(--brand); color: var(--on-brand); border-radius: 26px; margin: -44px 40px 0; padding: 24px 28px; position: relative; }
+.t-sunset .inv-meta :is(label, dt) { color: inherit; opacity: .72; }
+.t-sunset .inv-meta .party p, .t-sunset .inv-meta dd { color: inherit; }
+.t-sunset .inv-meta .who { color: inherit; font-family: var(--f-body); font-weight: 800; font-size: 21px; }
+.t-sunset .items { margin-top: 6px; }
+.t-sunset .items thead th { background: #16120F; color: #F5EEDD; padding: 11px 12px; border: 0; }
+.t-sunset .items td { padding: 13px 12px; border: 0; }
+.t-sunset .items tbody tr:nth-child(even) td { background: rgba(26,21,18,.07); }
+.t-sunset .foot { align-items: stretch; }
+.t-sunset .bank { background: var(--brand); color: var(--on-brand); border: 0; border-radius: 24px; padding: 22px; }
+.t-sunset .bank::before, .t-sunset .bank::after { display: none; }
+.t-sunset .bank dt { color: inherit; opacity: .75; } .t-sunset .bank .lbl { color: inherit; }
+.t-sunset .notes { background: var(--accent); color: var(--on-accent); border-radius: 24px; margin: 18px 56px 0; padding: 20px 24px; }
+.t-sunset .notes label, .t-sunset .notes p { color: inherit; }
+.t-sunset .inv-foot { border-top: 1px solid var(--p-rule); margin: auto 56px 0; padding-left: 0; padding-right: 0; }
+
+/* --- GILT: charcoal and fine lines of colour --- */
+.inv.t-gilt { --paper: #2D2D2E; --p-ink: #F1E9D6; --p-muted: #B9AE95; --p-rule: var(--hi); --p-rule-soft: rgba(255,255,255,.14); }
+.t-gilt .inv-head { padding-top: 56px; padding-bottom: 30px; align-items: flex-start; }
+.t-gilt .biz-name { font-family: var(--f-display); font-weight: 500; font-size: 24px; color: var(--p-ink); }
+.t-gilt .tagline { color: var(--p-muted); }
+.t-gilt .doc-title { border-left: 2px solid var(--hi); padding-left: 24px; text-align: left; }
+.t-gilt .doc-type { font-family: var(--f-display); font-style: normal; font-weight: 500; font-size: 46px; letter-spacing: .08em; text-transform: uppercase; color: var(--hi); padding: 0; }
+.t-gilt .doc-no { color: var(--p-muted); }
+.t-gilt .inv-meta { border-top: 2px solid var(--hi); padding-top: 26px; }
+.t-gilt .items thead th { color: var(--hi); border-bottom: 1px solid var(--hi); }
+.t-gilt .items td.desc b { font-family: var(--f-display); font-style: italic; font-weight: 500; font-size: 15px; }
+.t-gilt .items .desc small { color: var(--p-muted); }
+.t-gilt .grand { border-top: 2px solid var(--hi); border-bottom: 2px solid var(--hi); padding: 14px 0; color: var(--hi); }
+.t-gilt .bank { border: 0; border-left: 2px solid var(--hi); padding: 4px 0 4px 18px; }
+.t-gilt .bank::before, .t-gilt .bank::after { display: none; }
+.t-gilt .inv-foot { border-top: 1px solid var(--hi); margin: auto 56px 0; padding: 18px 0 40px; }
+
+/* --- MARGIN: a wide side column with the title set upright along it --- */
+.inv.t-margin { --paper: #F3F0E8; --p-ink: #2A0E0C; --p-muted: #6B5754; --p-rule: var(--brand); --p-rule-soft: rgba(0,0,0,.1); background: linear-gradient(90deg, #D8D4CD 0 130px, var(--brand) 130px 131px, var(--paper) 131px); }
+.t-margin .px { margin-left: 130px; padding-left: 34px; padding-right: 40px; }
+.t-margin .inv-head { position: static; padding-top: 50px; padding-bottom: 20px; align-items: flex-start; }
+.t-margin .doc-title { position: absolute; left: 118px; bottom: 64px; transform-origin: 0 100%; transform: rotate(-90deg); text-align: left; }
+.t-margin .doc-type { font-family: var(--f-body); font-style: normal; font-weight: 900; font-size: 84px; letter-spacing: .01em; text-transform: uppercase; color: var(--brand); line-height: .9; padding: 0; }
+.t-margin .doc-no { color: var(--brand); margin-top: 6px; font-size: 12px; }
+.t-margin .biz-name { font-family: var(--f-display); font-weight: 600; font-size: 24px; color: var(--p-ink); }
+.t-margin .tagline { color: var(--p-muted); }
+.t-margin .inv-meta { grid-template-columns: 1fr 1fr; border-top: 1px solid var(--brand); }
+.t-margin .dates { grid-column: 1 / -1; grid-template-columns: repeat(3, 1fr); }
+.t-margin .items thead th { color: var(--brand); border-bottom: 1px solid var(--brand); }
+.t-margin .grand { border-top: 1px solid var(--brand); padding: 12px 0 0; color: var(--brand); }
+.t-margin .sum { grid-template-columns: 1fr; gap: 16px; }
+.t-margin .foot { grid-template-columns: 1fr; gap: 24px; }
+.t-margin .bank { border: 0; border-left: 3px solid var(--brand); padding: 4px 0 4px 16px; }
+.t-margin .bank::before, .t-margin .bank::after { display: none; }
+.t-margin .inv-foot { border-top: 1px solid var(--brand); }
+
+/* --- thumbnails for the design pickers --- */
+.tpl[data-template="ledger"] i { background: linear-gradient(90deg, transparent 18%, var(--tb, #15130F) 18% 46%, transparent 46%) 0 52% / 100% 34% no-repeat, linear-gradient(var(--tb, #15130F) 0 4%, transparent 4%) 8% 14% / 84% 100% no-repeat, #EEE2CA; }
+.tpl[data-template="midnight"] i { background: linear-gradient(rgba(255,255,255,.35) 0 2px, transparent 2px) 10% 22% / 80% 100% no-repeat, linear-gradient(rgba(255,255,255,.12) 0 8%, transparent 8%) 10% 46% / 80% 100% no-repeat, #101011; }
+.tpl[data-template="aurora"] i { background: radial-gradient(90% 60% at 15% 0%, var(--tb, #3a5) 0%, transparent 70%), radial-gradient(80% 60% at 90% 0%, #e8743a 0%, transparent 70%), #050506; }
+.tpl[data-template="copper"] i { background: linear-gradient(#D5D0C9 0 26%, transparent 26%), linear-gradient(var(--tb, #B56F2F), var(--tb, #B56F2F)) bottom / 100% 34% no-repeat, #FBF6EE; }
+.tpl[data-template="verdant"] i { background: linear-gradient(#C8D83B 0 10%, transparent 10%) 0 40% / 100% 100% no-repeat, linear-gradient(var(--tb, #2C4A22), var(--tb, #2C4A22)) 0 50% / 100% 28% no-repeat, #F4F4EE; }
+.tpl[data-template="pop"] i { background: linear-gradient(90deg, transparent 90%, #e8743a 90%) 0 30% / 100% 26% no-repeat, linear-gradient(var(--tb, #D0432B), var(--tb, #D0432B)) 10% 46% / 80% 8% no-repeat, linear-gradient(var(--tb, #D0432B), var(--tb, #D0432B)) 10% 60% / 80% 8% no-repeat, linear-gradient(#161212 0 14%, transparent 14%) 0 100% / 100% 100% no-repeat, #F2EDE6; }
+.tpl[data-template="neon"] i { background: linear-gradient(var(--tb, #E8338E), var(--tb, #E8338E)) 12% 32% / 76% 12% no-repeat, linear-gradient(transparent, transparent) 12% 46% / 76% 30% no-repeat, #18181A; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+.tpl[data-template="sunset"] i { background: linear-gradient(var(--tb, #E0663A), var(--tb, #E0663A)) 10% 22% / 80% 20% no-repeat, linear-gradient(#16120F 0 24%, transparent 24%), #EFE8D3; }
+.tpl[data-template="gilt"] i { background: linear-gradient(var(--tb, #C9A86A) 0 2px, transparent 2px) 10% 30% / 80% 100% no-repeat, linear-gradient(90deg, var(--tb, #C9A86A) 0 2px, transparent 2px) 10% 10% / 100% 16% no-repeat, #2D2D2E; }
+.tpl[data-template="margin"] i { background: linear-gradient(90deg, #D8D4CD 0 30%, var(--tb, #5A1A24) 30% 32%, #F3F0E8 32%); }
+.tpl-sec { margin: 16px 0 8px; font: 700 11px/1 var(--f-body); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.accent-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.accent-row small { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; }
 .tpl.locked, .rv.locked { position: relative; }
 .tpl.locked::after, .rv.locked::after { content: ""; position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background: rgba(10,9,8,.78) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D9BE84' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='9' rx='2'/%3E%3Cpath d='M8 11V8a4 4 0 018 0v3'/%3E%3C/svg%3E") center / 12px no-repeat; }
 
@@ -1984,6 +2215,10 @@ function calc(d) {
 function hexRGB(hex) { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim()); const n = m ? parseInt(m[1], 16) : 0x1A1817; return [n >> 16, (n >> 8) & 255, n & 255]; }
 function rgba(hex, a) { const [r, g, b] = hexRGB(hex); return `rgba(${r},${g},${b},${a})`; }
 function shade(hex, amt) { const [r, g, b] = hexRGB(hex); const t = amt < 0 ? 0 : 255, p = Math.abs(amt); const f = (c) => Math.round((t - c) * p + c); return `rgb(${f(r)},${f(g)},${f(b)})`; }
+function hexHSL(hex) { let [r, g, b] = hexRGB(hex).map((x) => x / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); let h = 0, s = 0; const l = (mx + mn) / 2; if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; } return [h, s, l]; }
+function hslHex(h, s, l) { h = ((h % 360) + 360) % 360; const a = s * Math.min(l, 1 - l), f = (n) => { const k = (n + h / 30) % 12; return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))).toString(16).padStart(2, "0"); }; return "#" + f(0) + f(8) + f(4); }
+// a second colour that sits well beside the brand colour, used by the livelier designs unless the owner picks their own
+const autoAccent = (hex) => { const [h, s, l] = hexHSL(hex); return hslHex(h + 38, Math.max(.55, Math.min(.88, s + .25)), l < .35 ? .62 : l > .72 ? .46 : .58); };
 function lum(hex) { const [r, g, b] = hexRGB(hex).map((c) => { c /= 255; return c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); }); return .2126 * r + .7152 * g + .0722 * b; }
 function initials(name) { return (name || "A").trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "A"; }
 function waNumber(p) { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("0") && d.length === 11) d = "234" + d.slice(1); return d; }
@@ -2064,9 +2299,11 @@ function sealSVG(name, color) {
 /* ---------- the invoice document ---------- */
 function invoiceHTML(P, D, opts = {}) {
   const B = P.business, K = P.bank, G = opts.own ? effDesign(P.design) : P.design; const t = calc(D); const c = D.currency; const type = D.type; const X = docStyle(P, type);
-  const lineCol = G.template === "atelier" || G.template === "silk" ? G.brand : "#C9A86A";
+  const ACC = /^#[0-9a-f]{6}$/i.test(G.accent || "") ? G.accent : autoAccent(G.brand), HI = lum(G.brand) > .12 ? G.brand : ACC;
+  const LIGHT_T = ["atelier", "silk", "ledger", "copper", "verdant", "pop", "sunset", "margin"], DARK_T = ["noir", "midnight", "aurora", "neon", "gilt"];
+  const lineCol = LIGHT_T.includes(G.template) ? G.brand : DARK_T.includes(G.template) && G.template !== "noir" ? HI : "#C9A86A";
   const headLogo = B.logo ? `<img src="${B.logo}" alt="">`
-    : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${lineCol}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${lineCol}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${G.template === "atelier" ? G.brand : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
+    : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${lineCol}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${lineCol}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${LIGHT_T.includes(G.template) ? G.brand : DARK_T.includes(G.template) && G.template !== "noir" ? HI : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
   const expired = isExpired(D);
   const stampKind = type === "receipt" || (type === "invoice" && D.status === "paid") ? "paid" : expired ? "overdue" : "";
   const stampHTML = stampKind ? `<div class="stamp ${stampKind}${opts.stampIn ? " stamp-in" : ""}">${stampKind === "paid" ? "PAID" : "EXPIRED"}<small>${esc(stampKind === "paid" ? fmtDate(D.issueDate).toUpperCase() : fmtDate(D.dueDate).toUpperCase())}</small></div>` : "";
@@ -2112,13 +2349,13 @@ function invoiceHTML(P, D, opts = {}) {
     ? `<div class="bank"><span class="lbl">Payment received</span><dl><div><dt>Amount</dt><dd>${money(t.total, c)}</dd></div><div><dt>Method</dt><dd>${esc(D.method || "Bank transfer")}</dd></div><div><dt>Date</dt><dd>${fmtDate(D.issueDate)}</dd></div>${D.reference ? `<div><dt>Transaction ref.</dt><dd>${esc(D.reference)}</dd></div>` : ""}${num(D.balanceLeft) > 0 ? `<div><dt>Balance outstanding</dt><dd>${money(num(D.balanceLeft), c)}</dd></div>` : ""}</dl></div>`
     : (bankRows || K.payLink) ? `<div class="bank"><span class="lbl">${type === "quotation" ? (num(D.depositPct) > 0 ? "To accept, pay the deposit to" : "Payment details") : "Payment details"}</span><dl>${bankRows}</dl>${K.payLink ? `<div class="paylink">Pay online: <b>${esc(K.payLink)}</b></div>` : ""}</div>` : `<div></div>`;
   const signMark = B.signMode === "image" && B.signImg ? `<img src="${B.signImg}" alt="">` : B.signMode === "type" ? esc(B.signText || B.signName) : "";
-  const sign = B.signMode === "none" && !G.seal ? "<div></div>" : `<div class="sign">${G.seal ? sealSVG(B.name, G.template === "noir" ? "#D2B47C" : G.brand) : ""}
+  const sign = B.signMode === "none" && !G.seal ? "<div></div>" : `<div class="sign">${G.seal ? sealSVG(B.name, G.template === "noir" ? "#D2B47C" : DARK_T.includes(G.template) ? HI : G.brand) : ""}
       ${B.signMode !== "none" ? `<div class="sign-block">${{ receipt: "Received by", delivery: "Dispatched by", purchase: "Authorised by", credit: "Approved by" }[type] ? `<div class="sign-cap">${{ receipt: "Received by", delivery: "Dispatched by", purchase: "Authorised by", credit: "Approved by" }[type]}</div>` : ""}<div class="sign-mark">${signMark}</div><div class="sign-line">${esc(B.signName)}</div><div class="sign-title">${esc(B.signTitle)}</div></div>` : ""}</div>`;
   const fromLines = [B.address, B.phone, B.email, [B.rc, B.tin && "TIN " + B.tin].filter(Boolean).join(" · ")].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const clientLines = [D.client.company, D.client.address, D.client.phone, D.client.email].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const thanks = { quotation: "We look forward to working with you", receipt: "Thank you for your payment", delivery: "Thank you for your order", credit: "We value your business", purchase: "Thank you for your prompt delivery" }[type] || "Thank you for your patronage";
   const verify = opts.qr ? `<div class="verify"><img src="${opts.qr}" alt=""><span>Scan to view online and confirm this ${LABEL[type].toLowerCase()} is genuine</span></div>` : "";
-  return `<article class="inv k-${esc(type)} t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}${X.paper === "white" ? " paper-white" : ""} ${Object.entries(X.show).filter(([, v]) => !v).map(([k]) => "no-" + k).join(" ")}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)};--brand-wash:${rgba(G.brand, .07)};--brand-tint:${rgba(G.brand, .16)};--brand-deep:${shade(G.brand, -.35)}">
+  return `<article class="inv k-${esc(type)} t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}${X.paper === "white" ? " paper-white" : ""} ${Object.entries(X.show).filter(([, v]) => !v).map(([k]) => "no-" + k).join(" ")}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)};--brand-wash:${rgba(G.brand, .07)};--brand-tint:${rgba(G.brand, .16)};--brand-deep:${shade(G.brand, -.35)};--brand-light:${shade(G.brand, .55)};--accent:${ACC};--accent-wash:${rgba(ACC, .16)};--on-brand:${lum(G.brand) > .42 ? "#1C1B18" : "#FFFFFF"};--on-accent:${lum(ACC) > .42 ? "#1C1B18" : "#FFFFFF"};--hi:${HI};--on-hi:${lum(HI) > .42 ? "#1C1B18" : "#FFFFFF"}">
     <header class="inv-head px"><div class="brand"><div class="logo-box">${headLogo}</div><div style="min-width:0"><h1 class="biz-name foil">${esc(B.name) || "Your Business"}</h1>${B.tagline ? `<p class="tagline">${esc(B.tagline)}</p>` : ""}</div></div>
       <div class="doc-title"><span class="doc-type foil${(X.title || "").length > 10 ? " long" : ""}">${esc(X.title || LABEL[type])}</span><span class="doc-no">No. ${esc(D.number)}</span></div></header>
     <section class="inv-meta px"><div class="party"><label>${partyLabel}</label><div class="who">${esc(D.client.name) || "Client name"}</div>${clientLines}</div>
@@ -3257,7 +3494,12 @@ const limited = () => licence?.mode === "full" && (licence.ent ? entNow().docs_l
 const proPack = () => licence?.mode === "full" && (licence.ent ? !!entNow().pro_pack : licence.plan === "prestige");
 const noBranding = () => licence?.mode === "full" && (licence.ent ? entNow().branding === "none" : licence.plan === "prestige");
 const enforced = () => !!entNow()?.enforced;
-const DESIGNS = [["royal", "Royal"], ["atelier", "Atelier"], ["noir", "Noir"], ["silk", "Silk"], ["heritage", "Heritage"]], DESIGN_NAME = Object.fromEntries(DESIGNS);
+const DESIGNS = [["royal", "Royal"], ["atelier", "Atelier"], ["noir", "Noir"], ["silk", "Silk"], ["heritage", "Heritage"], ["ledger", "Ledger"], ["midnight", "Midnight"], ["aurora", "Aurora"], ["copper", "Copper"], ["verdant", "Verdant"], ["pop", "Pop"], ["neon", "Neon"], ["sunset", "Sunset"], ["gilt", "Gilt"], ["margin", "Margin"]], DESIGN_NAME = Object.fromEntries(DESIGNS);
+const WM_TYPES = ["invoice", "receipt", "quotation", "delivery", "credit", "purchase"];
+const DESIGN_GROUPS = [["Classic and serious", ["royal", "atelier", "noir", "heritage", "ledger", "midnight", "gilt", "margin", "copper"]], ["Soft, bold and playful", ["silk", "verdant", "pop", "neon", "sunset", "aurora"]]];
+function tplGroups(attr, G) {
+  return DESIGN_GROUPS.map(([title, ids]) => '<h4 class="tpl-sec">' + title + '</h4><div class="tpl-grid" style="--tb:' + esc(G.brand) + '">' + ids.map((k) => '<button type="button" class="tpl' + (allowedDesign(k) ? "" : " locked") + '" ' + attr + '="' + k + '" aria-pressed="' + (G.template === k) + '"><i></i><b>' + DESIGN_NAME[k] + "</b></button>").join("") + "</div>").join("");
+}
 const STARTER_DESIGNS = ["royal", "atelier", "noir"], STARTER_OPENINGS = ["envelope", "gift", "card", "none"];
 const allowedDesign = (id) => isDemo() || !enforced() || entNow().designs.includes(id);
 const allowedOpening = (id) => isDemo() || (enforced() ? entNow().openings.includes(id) : isFree() ? id === "envelope" : true);
@@ -4530,8 +4772,10 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
         <p class="hint">Staff using your licence on another device can put their own name here.</p></section>
       <section><h3 class="sub">Documents</h3><button class="btn block" type="button" data-h="customise">Customise invoice, receipt &amp; quotation</button><button class="btn block" type="button" data-h="saved" style="display:flex;justify-content:space-between;margin-top:8px"><span>Saved items</span><span>${catLive().length}</span></button></section>
       <section><h3 class="sub">Look</h3>
-        <div class="tpl-grid" style="--tb:${esc(G.brand)}">${DESIGNS.map(([k, n]) => `<button type="button" class="tpl${allowedDesign(k) ? "" : " locked"}" data-template="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
+        ${tplGroups("data-template", G)}
         <div class="swatches">${SWATCHES.map(([h, n]) => `<button type="button" class="swatch" data-color="${h}" style="background:${h}" aria-label="${n}" aria-pressed="${G.brand.toLowerCase() === h.toLowerCase()}"></button>`).join("")}<span class="swatch-custom"><input type="color" class="brand-custom" value="${esc(G.brand)}" aria-label="Any colour"></span></div>
+        <div class="accent-row"><span><b>Second colour</b><small>Used by the livelier designs. Leave on Auto to match your colour.</small></span><span style="display:flex;align-items:center;gap:8px"><span class="swatch-custom" style="background:${esc(/^#[0-9a-f]{6}$/i.test(G.accent || "") ? G.accent : autoAccent(G.brand))}"><input type="color" id="h-accent" value="${esc(/^#[0-9a-f]{6}$/i.test(G.accent || "") ? G.accent : autoAccent(G.brand))}" aria-label="Second colour"></span>${G.accent ? '<button type="button" class="btn sm ghost" data-h="accentauto">Auto</button>' : ""}</span></div>
+        <label class="toggle"><span>My business name as a watermark<small style="display:block;font-weight:400">Shows faintly across every document, so it is harder to copy</small></span><span class="switch"><input type="checkbox" id="h-wm" ${WM_TYPES.every((k) => docStyle(S.profile, k).watermark === "name") ? "checked" : ""}><i></i></span></label>
         <label class="toggle"><span>Company seal on documents</span><span class="switch"><input type="checkbox" data-bind="profile.design.seal" ${G.seal ? "checked" : ""}><i></i></span></label>
       </section>
       <section><h3 class="sub">Signature</h3>
@@ -4568,9 +4812,13 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
     if (h?.dataset.h === "brand") return hasSecondBrand() ? doSwitchBrand() : addBrandSheet();
     if (h?.dataset.h === "customise") return openCustomise();
     if (h?.dataset.h === "saved") { closeLayer(); return openSavedItems(); }
+    if (h?.dataset.h === "accentauto") { delete G.accent; persist(); reopenHouse(); render(); return; }
     if (h?.dataset.h === "nologo") { B.logo = ""; persist(); reopenHouse(); render(); }
   };
-  layer.oninput = (e) => { if (e.target.id === "h-me") LS.set("aurum.me", e.target.value.trim()); if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); } };
+  layer.oninput = (e) => {
+    if (e.target.id === "h-wm") { S.profile.docStyle = S.profile.docStyle || {}; WM_TYPES.forEach((k) => { S.profile.docStyle[k] = { ...(S.profile.docStyle[k] || {}), watermark: e.target.checked ? "name" : "off", wmStrength: (S.profile.docStyle[k] || {}).wmStrength || "subtle" }; }); persist(); render(); return; }
+    if (e.target.id === "h-accent") { G.accent = e.target.value; persist(); render(); return; }
+    if (e.target.id === "h-me") LS.set("aurum.me", e.target.value.trim()); if (e.target.classList.contains("brand-custom")) { G.brand = e.target.value; persist(); render(); } };
   if (focus === "bank") setTimeout(() => $("#h-bank")?.scrollIntoView({ block: "start" }), 50);
 }
 function openCustomise(type = S.doc.type) {
@@ -4597,7 +4845,7 @@ function openCustomise(type = S.doc.type) {
         <div class="field"><span class="label">Terms &amp; conditions <em>(tap to add)</em></span>${`<div class="chips">${TERMS.map((t, i) => `<button type="button" class="chip" data-term="${i}" aria-pressed="${(X.terms || "").includes(t)}">${esc(t)}</button>`).join("")}</div>`}
         <textarea class="input" data-bind="${base}.terms" style="height:auto;min-height:90px;padding:14px 16px" placeholder="Optional">${esc(X.terms)}</textarea></div></section>
       <section><h3 class="sub">Design</h3>
-        <div class="tpl-grid" style="--tb:${esc(G.brand)}">${DESIGNS.map(([k, n]) => `<button type="button" class="tpl${allowedDesign(k) ? "" : " locked"}" data-cz-tpl="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
+        ${tplGroups("data-cz-tpl", G)}
         <div class="swatches">${SWATCHES.map(([h, n]) => `<button type="button" class="swatch" data-cz-color="${h}" style="background:${h}" aria-label="${n}" aria-pressed="${G.brand.toLowerCase() === h.toLowerCase()}"></button>`).join("")}<span class="swatch-custom"><input type="color" class="brand-custom" value="${esc(G.brand)}" aria-label="Any colour"></span></div>
         <div class="field"><span class="label">Paper</span>${chips("paper", [["ivory", "Ivory"], ["white", "Bright white"]], X.paper)}</div></section>
     </div></aside>`;
