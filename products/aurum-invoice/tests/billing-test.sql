@@ -126,6 +126,16 @@ begin
   r := public.apply_refund(ref2);
   res := pg_temp.t_add(res, '25 refunding an upgrade puts the earlier Starter plan back', (r->>'ok')::boolean and (select paid_tier from public.licences where key = kB) = 'starter', r::text);
 
+  -- 6b. documents made on a phone without data are recorded even over the limit
+  set local role anon;
+  for n in 1..5 loop r := public.free_use(kC, 'device-cccc0001', 'off-doc-' || n, 'sig'); end loop;
+  r := public.free_use(kC, 'device-cccc0001', 'off-doc-6', 'sig');
+  res := pg_temp.t_add(res, '25b the 6th document is refused online', r->>'reason' = 'free_limit', r::text);
+  r := public.free_use(kC, 'device-cccc0001', 'off-doc-6', 'sig', true);
+  reset role;
+  select count(*) into n from public.free_use where licence_key = kC and month = public._free_month();
+  res := pg_temp.t_add(res, '25c a document made without data is recorded even over the limit', (r->>'ok')::boolean and n = 6, r::text);
+
   -- 7. who may buy what
   perform set_config('request.jwt.claims', json_build_object('sub', ud::text, 'role', 'authenticated')::text, true);
   update public.licences set user_id = null where key = kD;   -- D joins a bought key instead

@@ -409,6 +409,32 @@ grant execute on function public.licence_of_user(uuid), public.is_admin_user(uui
   public.save_subscription(text, text, text, text, text, text, text, timestamptz), public.mark_subscription(text, text, timestamptz), public.subscription_of(text),
   public.log_billing(text, text, jsonb), public.queue_mail(text, text, text, text, text), public.mail_take(int), public.mail_done(bigint, text) to service_role;
 
+-- ---------------------------------------------------------------- free_use: documents made without data (plan/07, E3)
+-- A phone with no connection counts a PDF or image itself and tells the server later. The server records it even when that
+-- takes the month over the limit (nothing is taken back; the person simply has none left until the 1st).
+drop function if exists public.free_use(text, text, text, text);
+create or replace function public.free_use(p_key text, p_device text, p_doc_id text, p_sig text, p_force boolean default false)
+returns json language plpgsql security definer set search_path = public as $$
+declare k text := upper(trim(coalesce(p_key, ''))); lic public.licences; lim int; n int; sg text := left(coalesce(p_sig, ''), 80);
+begin
+  if not public._licence_ok(k, p_device) then return json_build_object('ok', false, 'reason', 'licence'); end if;
+  select * into lic from public.licences where key = k;
+  select docs_per_month into lim from public.plan_rules where level = public._level(k);
+  if lim is null then return json_build_object('ok', true, 'plan', lic.plan, 'ent', public._ent(k)); end if;
+  if p_doc_id is null or length(p_doc_id) < 3 or length(p_doc_id) > 80 then return json_build_object('ok', false, 'reason', 'doc'); end if;
+  if lic.user_id is null and lic.plan = 'free' and public._accounts_required() then return json_build_object('ok', false, 'reason', 'account_needed'); end if;
+  perform pg_advisory_xact_lock(hashtext(k));
+  select count(*) into n from public.free_use where licence_key = k and month = public._free_month();
+  if exists (select 1 from public.free_use where licence_key = k and doc_id = p_doc_id and sig = sg) then
+    return json_build_object('ok', true, 'plan', lic.plan, 'used', n, 'limit', lim, 'left', greatest(0, lim - n));
+  end if;
+  if n >= lim and not coalesce(p_force, false) then return json_build_object('ok', false, 'reason', 'free_limit', 'used', n, 'limit', lim, 'left', 0); end if;
+  insert into public.free_use (licence_key, doc_id, sig, month) values (k, p_doc_id, sg, public._free_month()) on conflict do nothing;
+  return json_build_object('ok', true, 'plan', lic.plan, 'used', n + 1, 'limit', lim, 'left', greatest(0, lim - n - 1));
+end; $$;
+revoke all on function public.free_use(text, text, text, text, boolean) from public;
+grant execute on function public.free_use(text, text, text, text, boolean) to anon, authenticated;
+
 -- ---------------------------------------------------------------- publish_invoice and view_invoice follow the plan rules
 create or replace function public.publish_invoice(p_key text, p_device text, p_doc_id text, p_payload jsonb)
 returns json language plpgsql security definer set search_path = public, extensions as $$

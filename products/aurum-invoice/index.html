@@ -686,6 +686,11 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .dev-row div { display: grid; gap: 2px; min-width: 0; }
 .dev-row small { color: var(--muted); font-size: 13px; }
 .protect-card { align-items: center; }
+/* ---- plans and payment ---- */
+.plan-card { display: grid; gap: 10px; }
+.plan-card b { font-size: 24px; }
+.plan-points { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--muted); font-size: 14px; }
+.home-left { margin: 0 0 10px; }
 html[data-theme="light"] .g-input, html[data-theme="light"] .g-devbtn { background: var(--surface); }
 html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
 
@@ -1639,6 +1644,7 @@ const CONFIG = {
   BUY_LINK: "",            // your Selar product page
   SELLER_WHATSAPP: "2347032978008",     // e.g. 2348031234567 — buyers contact you here (Prestige upgrades, device moves)
   OFFLINE_GRACE_DAYS: 7,
+  REFUND_LINE: false,   // set true only after the owner has agreed to the 7-day refund rule (plan/07, decision 2)
   GOOGLE_IN_IOS_APP: false,   // Google sign-in inside the installed app on iPhone: switch on after testing on a real iPhone
   REFERRAL_OFFER: "₦2,000 off", // what a friend gets with a buyer's referral code (honour it on Selar)
 };
@@ -1812,7 +1818,7 @@ function sealSVG(name, color) {
 
 /* ---------- the invoice document ---------- */
 function invoiceHTML(P, D, opts = {}) {
-  const B = P.business, K = P.bank, G = P.design; const t = calc(D); const c = D.currency; const type = D.type; const X = docStyle(P, type);
+  const B = P.business, K = P.bank, G = opts.own ? effDesign(P.design) : P.design; const t = calc(D); const c = D.currency; const type = D.type; const X = docStyle(P, type);
   const lineCol = G.template === "atelier" ? G.brand : "#C9A86A";
   const headLogo = B.logo ? `<img src="${B.logo}" alt="">`
     : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${lineCol}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${lineCol}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${G.template === "atelier" ? G.brand : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
@@ -2446,7 +2452,7 @@ async function bootClient(src) {
   try {
     if (src.id) {
       if (!configured()) throw new Error("not configured");
-      const r = await rpc("view_invoice", { p_id: src.id }); if (!r.ok) throw new Error(r.reason || "missing");
+      const r = await rpc("view_invoice", { p_id: src.id }); if (!r.ok) { if (r.reason === "closed") return closedLink(cv, r.stub); throw new Error(r.reason || "missing"); }
       openClientView(r.payload, { verified: true, id: src.id });
     } else openClientView(await decodePayload(src.hash), { verified: false });
   } catch (e) {
@@ -2462,8 +2468,8 @@ const DEVICE_KEY = "aurum.device";
 const deviceId = LS.get(DEVICE_KEY, null) || (() => { const d = uid(); LS.set(DEVICE_KEY, d); return d; })();
 let licence = LS.get("aurum.licence", null);
 const isDemo = () => licence?.mode !== "full";
-const isPrestige = () => licence?.mode === "full" && licence.plan === "prestige";
-const isFree = () => licence?.mode === "full" && licence.plan === "free";
+const isPrestige = () => proPack();   // "has the Pro pack": Pro and Prestige
+const isFree = () => licence?.mode === "full" && (licence.ent ? entNow().tier === "free" : licence.plan === "free");
 let freeLeft = null;
 const FREE_REASONS = { email: "That email doesn't look right. Check it and try again.", disposable: "Please use your real email address, not a temporary one.", email_limit: "Too many tries for that email. Check your inbox and spam folder, or try again tomorrow.", ip_limit: "Too many sign-ups from this network today. Try again tomorrow.", device_limit: "Too many tries from this phone today. Try again tomorrow.", device: "Please reload the page and try again.", not_configured: "Free sign-up is not switched on yet. Try the demo for now.", mail_failed: "We couldn't send the email. Check the address and try again.", expired: "That link has expired. Ask for a new one below.", invalid: "That link isn't valid. Ask for a new one below.", device_used: "A free account already exists on this phone. Use that email, or buy a licence." };
 const REASONS = { use_account: "This licence is joined to an account. Sign in with your email or Google.", invalid: "That licence key isn't valid. Check it and try again.", revoked: "This licence has been switched off. Contact the seller.", device_limit: "This key is already in use on its devices. Contact the seller to move it to this one." };
@@ -2573,7 +2579,7 @@ function wipeLocalData() { try { const keep = new Set(["aurum.device", "aurum.th
 function applyEnt(e) {
   if (!e || !licence) return;
   licence.ent = e; LS.set("aurum.licence", licence);
-  if (e.tier === "free" && e.docs_left != null) freeLeft = e.docs_left;
+  freeLeft = e.docs_left ?? null;
   try { if (typeof syncChrome === "function") syncChrome(); } catch {}
 }
 const freeLimit = () => licence?.ent?.docs_limit ?? 5;
@@ -2871,17 +2877,289 @@ async function claimFree(tok) {
   } catch { showGate("We couldn't reach the server. Check your internet and open the link again."); }
 }
 // Free plan: each new document (link, PDF, image or WhatsApp) is counted on the server before it is sent.
-async function refreshFree() { if (!isFree() || !configured()) return; try { const r = await rpc("free_status", { p_key: licence.key, p_device: deviceId }); if (r.ent) applyEnt(r.ent); if (r.ok && r.plan === "free") { freeLeft = r.left; if (typeof syncChrome === "function") syncChrome(); } } catch {} }
-async function freeGo(D) {
-  if (!isFree()) return true;
-  try {
-    const r = await rpc("free_use", { p_key: licence.key, p_device: deviceId, p_doc_id: D.id, p_sig: [D.client.name || "", Math.round(calc(D).total), D.number].join("|") });
-    if (r.ok) { freeLeft = r.left; syncChrome(); return true; }
-    if (r.reason === "free_limit") { freeLeft = 0; syncChrome(); freeSheet(`Your ${r.limit || freeLimit()} free documents are used`); return false; }
-    if (r.reason === "account_needed") { accountNeededSheet(); return false; }
-    toast(REASONS[r.reason] || "Couldn't confirm your free plan. Try again."); return false;
-  } catch { toast("Connect to the internet to send on the free plan."); return false; }
+async function refreshFree() { if (!limited() || !configured()) return; try { const r = await rpc("free_status", { p_key: licence.key, p_device: deviceId }); if (r.ent) applyEnt(r.ent); if (r.ok && r.left != null) { freeLeft = r.left; if (typeof syncChrome === "function") syncChrome(); } } catch {} }
+/* =========================================================
+   PLANS AND PAYMENT (plan/07, parts B, E, F and G)
+   The server says what a workspace may do ("ent", see accounts above). This block shows it, enforces what the phone can,
+   and lets people pay. Card and transfer payments both go through Paystack's own page; the server confirms every payment.
+   ========================================================= */
+const SUBS = { mode: "off", admin: false, prices: [], sub: null };
+// what the plan table says, kept here only for a phone with no connection whose paid plan has run out
+const FREE_BASE = { tier: "free", label: "Free", docs_limit: 5, designs: ["royal"], openings: ["envelope", "none"], branding: "line", pro_pack: false, own_domain: false, devices_max: 1, businesses_max: 1 };
+const SIG_BASE = { tier: "starter", label: "Signature", docs_limit: null, designs: ["royal", "atelier", "noir"], openings: ["envelope", "gift", "card", "none"], branding: "mark", pro_pack: false, own_domain: false, devices_max: 2, businesses_max: 1 };
+function entNow() {
+  const e = licence?.ent; if (!e) return null;
+  const now = Date.now();
+  if (e.paid_tier && e.paid_until && now > new Date(e.paid_until).getTime() + 7 * 864e5) return { ...e, ...(e.legacy === "signature" ? SIG_BASE : FREE_BASE), status: "ended" };   // ran out while offline
+  if (e.paid_tier && e.checked_at && now - new Date(e.checked_at).getTime() > CONFIG.OFFLINE_GRACE_DAYS * 864e5) return { ...e, pro_pack: false, designs: FREE_BASE.designs, openings: FREE_BASE.openings, paused: true };   // not checked for 7 days
+  return e;
 }
+const planLabel = () => entNow()?.label || (licence?.plan === "prestige" ? "Prestige" : licence?.plan === "signature" ? "Signature" : "Free");
+const limited = () => licence?.mode === "full" && (licence.ent ? entNow().docs_limit != null : licence.plan === "free");
+const proPack = () => licence?.mode === "full" && (licence.ent ? !!entNow().pro_pack : licence.plan === "prestige");
+const noBranding = () => licence?.mode === "full" && (licence.ent ? entNow().branding === "none" : licence.plan === "prestige");
+const enforced = () => !!entNow()?.enforced;
+const STARTER_DESIGNS = ["royal", "atelier", "noir"], STARTER_OPENINGS = ["envelope", "gift", "card", "none"];
+const allowedDesign = (id) => isDemo() || !enforced() || entNow().designs.includes(id);
+const allowedOpening = (id) => isDemo() || (enforced() ? entNow().openings.includes(id) : isFree() ? id === "envelope" : true);
+const effTemplate = (id) => (allowedDesign(id) ? id : (entNow()?.designs?.[0] || "royal"));
+const effReveal = (id) => (allowedOpening(id) ? id : "envelope");
+const effDesign = (d) => (d && effTemplate(d.template) !== d.template ? { ...d, template: effTemplate(d.template) } : d);
+const tierFor = (kind, id) => (kind === "design" ? STARTER_DESIGNS : STARTER_OPENINGS).includes(id) ? "starter" : "pro";
+const planText = () => { if (isDemo()) return "Trial"; const e = entNow(), lab = planLabel(); return e && e.docs_limit != null ? (freeLeft == null ? lab : `${lab} · ${freeLeft} left`) : lab; };
+
+/* ---------- prices, mode, and what the screens show ---------- */
+const naira = (kobo) => "₦" + new Intl.NumberFormat("en-NG").format(Math.round((kobo || 0) / 100));
+const priceOf = (tier, per) => SUBS.prices.find((x) => x.tier === tier && x.period === per)?.amount_kobo;
+const fmtLong = (d) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" });
+const billingOn = () => SUBS.mode === "live" || (SUBS.mode === "test" && SUBS.admin);
+const tierName = (t) => (t === "pro" ? "Pro" : "Starter");
+const paidName = (e) => (e.paid_tier ? tierName(e.paid_tier) : e.label || "");   // an ended plan is still "your Pro plan", even though the account now behaves as Free
+async function refreshBilling() {
+  if (!licence || licence.mode !== "full" || !configured()) return;
+  try {
+    if (session && licence.acct) { const r = await rpcAuth("my_billing", {}); if (r.ok) { SUBS.mode = r.mode; SUBS.admin = !!r.admin; SUBS.prices = r.prices || []; SUBS.sub = r.sub || null; applyEnt(r.ent); return; } }
+  } catch {}
+  try { const p = await rpc("plan_prices", {}); SUBS.mode = p.mode || "off"; SUBS.prices = p.prices || []; SUBS.admin = false; } catch {}
+}
+async function refreshEnt() { if (!licence || licence.mode !== "full" || !configured()) return; try { const r = await rpc("my_plan", { p_key: licence.key, p_device: deviceId }); if (r.ok && r.ent) applyEnt(r.ent); } catch {} }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { refreshEnt(); flushPendingDocs(); } });
+setTimeout(() => { refreshBilling(); flushPendingDocs(); }, 2500);
+
+/* ---------- counting documents, also without data (plan/07, E1 to E3) ---------- */
+const docSig = (D) => [D.type || "", D.number || "", D.client.name || ""].join("|");   // the same document stays the same document when items or prices change
+async function freeGo(D) {
+  if (!limited()) return true;
+  try {
+    const r = await rpc("free_use", { p_key: licence.key, p_device: deviceId, p_doc_id: D.id, p_sig: docSig(D) });
+    if (r.ok) { if (r.ent) applyEnt(r.ent); else if (r.left != null) { freeLeft = r.left; if (licence.ent) { licence.ent.docs_left = r.left; licence.ent.docs_used = r.used ?? licence.ent.docs_used; LS.set("aurum.licence", licence); } } syncChrome(); return true; }
+    if (r.reason === "free_limit") { freeLeft = 0; if (licence.ent) { licence.ent.docs_left = 0; LS.set("aurum.licence", licence); } syncChrome(); limitSheet(r.limit); return false; }
+    if (r.reason === "account_needed") { accountNeededSheet(); return false; }
+    toast(REASONS[r.reason] || "Couldn't confirm your plan. Try again."); return false;
+  } catch {
+    // no connection: a PDF or image can still be made while this month's documents are not used up; the server is told later
+    const q = LS.get("aurum.pendingDocs", []);
+    if (q.some((x) => x.doc_id === D.id)) return true;
+    if ((licence.ent?.docs_left ?? 0) > 0) { q.push({ doc_id: D.id, sig: docSig(D) }); LS.set("aurum.pendingDocs", q); licence.ent.docs_left -= 1; licence.ent.docs_used = (licence.ent.docs_used || 0) + 1; freeLeft = licence.ent.docs_left; LS.set("aurum.licence", licence); syncChrome(); return true; }
+    toast("Connect to the internet to send on this plan."); return false;
+  }
+}
+async function flushPendingDocs() {
+  const q = LS.get("aurum.pendingDocs", []); if (!q.length || !licence?.key || !configured()) return;
+  const left = [];
+  for (const it of q) { try { const r = await rpc("free_use", { p_key: licence.key, p_device: deviceId, p_doc_id: it.doc_id, p_sig: it.sig, p_force: true }); if (!r.ok) left.push(it); } catch { left.push(it); } }
+  LS.set("aurum.pendingDocs", left); if (!left.length) refreshEnt();
+}
+addEventListener("online", flushPendingDocs);
+
+/* ---------- limits and locks ---------- */
+function limitSheet(limit) {
+  const e = entNow() || {}, day = e.resets_on ? fmtLong(e.resets_on + "T12:00:00") : "the 1st of next month", n = limit || e.docs_limit || 5;
+  if (!e.enforced) return freeSheet(`Your ${n} free documents are used`);   // an old free key keeps its old message until the new rules start for everyone
+  if (e.tier === "starter") sheet(`You have used your ${n} documents this month`, `<div class="lock-card" style="margin:6px 4px 8px"><p class="hint" style="margin:0 0 12px">This one is saved as a draft. Your documents come back on ${esc(day)}. Pro has no monthly limit.</p><div style="display:grid;gap:8px"><button class="btn primary" type="button" data-plan="pro">See Pro</button><button class="btn ghost" type="button" data-close>Not now</button></div></div>`);
+  else sheet(`You have used your ${n} free documents this month`, `<div class="lock-card" style="margin:6px 4px 8px"><p class="hint" style="margin:0 0 12px">This one is saved as a draft, and everything you already sent keeps working. Your free documents come back on ${esc(day)}. To send it now, choose a plan.</p><div style="display:grid;gap:8px"><button class="btn primary" type="button" data-plan="open">See plans</button><button class="btn ghost" type="button" data-close>Not now</button></div></div>`);
+}
+function lockSheet(feature, tier = "starter") {
+  if (!billingOn()) return upgradeSheet(feature);          // before plans open: the old "ask us" sheet
+  const per = priceOf(tier, "month"), yr = priceOf(tier, "year");
+  sheet(feature, `<div class="lock-card" style="margin:6px 4px 8px"><h3>${esc(feature)} is part of ${tierName(tier)}.</h3><p class="hint" style="margin:6px 0 12px">${tierName(tier)} is ${per ? naira(per) : "…"} a month${yr ? ` or ${naira(yr)} a year` : ""}.</p><div style="display:grid;gap:8px"><button class="btn primary" type="button" data-plan="${tier}">See plans</button><button class="btn ghost" type="button" data-close>Not now</button></div></div>`);
+}
+const upgradeBtn = () => (billingOn() ? `<button class="btn primary" type="button" data-plan="pro">See plans</button>` : `<a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a>`);
+
+/* ---------- Home: the one line and the one banner ---------- */
+function planBanner() {
+  if (isDemo() || !licence?.ent) return "";
+  const e = entNow(), lab = paidName(e);
+  let out = "";
+  if (e.docs_limit != null && e.docs_left === 1) out += `<p class="hint home-left">1 document left this month.</p>`;
+  if (!e.paid_tier || !e.paid_until) return out;
+  const until = new Date(e.paid_until), left = Math.ceil((until - Date.now()) / 864e5), graceEnd = new Date(until.getTime() + 7 * 864e5);
+  let text = "", dismissible = false;
+  if (e.sub_status === "attention" && e.status !== "ended") text = `We could not renew your ${lab} plan. Pay by ${fmtLong(graceEnd)} to keep it.`;
+  else if (e.status === "active" && e.method === "transfer" && left <= 7) text = `Your ${lab} plan ends on ${fmtLong(until)}. Renew to keep it.`;
+  else if (e.status === "grace") text = `Your ${lab} plan ended on ${fmtLong(until)}. Pay by ${fmtLong(graceEnd)} to keep it.`;
+  else if (e.status === "ended") {
+    const d = LS.get("aurum.endedDismissed", { n: 0, at: 0 });
+    if (d.n === 0 || (d.n === 1 && Date.now() - d.at > 14 * 864e5)) { text = `Your ${lab} plan has ended. Your documents are safe. Renew any time.`; dismissible = true; }
+  }
+  if (!text) return out;
+  return out + `<div class="alert-card"><div><b>Your plan</b><small>${esc(text)}</small></div><div style="display:grid;gap:6px"><button class="btn sm primary" type="button" data-plan="open">Pay now</button>${dismissible ? `<button class="btn sm ghost" type="button" data-plan="dismiss">Not now</button>` : ""}</div></div>`;
+}
+
+/* ---------- My house: the plan card ---------- */
+function planSectionNew() {
+  if (isDemo()) return "";
+  const e = entNow() || {}, lab = planLabel();
+  let head = "", line = "", btn = `<button class="btn sm primary" type="button" data-plan="open">See plans</button>`;
+  if (e.legacy) { head = `${lab}. Paid once. Yours to keep. Nothing to renew.`; line = e.paid_tier ? planStatusLine(e) : ""; if (e.legacy === "signature") btn = `<button class="btn sm primary" type="button" data-plan="pro">Upgrade to Pro</button>`; else btn = ""; }
+  else if (e.paid_tier && e.status !== "ended") { head = `${lab} plan`; line = planStatusLine(e); btn = `<button class="btn sm primary" type="button" data-plan="open">Change plan</button>`; }
+  else if (e.paid_tier) { head = `${paidName(e)} plan has ended`; line = "Your documents are safe. Renew any time."; btn = `<button class="btn sm primary" type="button" data-plan="open">Renew</button>`; }
+  else { head = "Free plan"; line = e.docs_limit != null ? `${e.docs_used ?? 0} of ${e.docs_limit} documents used · resets ${e.resets_on ? esc(fmtDate(e.resets_on)) : "on the 1st"}` : ""; }
+  return `<section><h3 class="sub">Your plan</h3><div class="prestige-card"><span class="eyebrow">${esc(lab)}</span><b>${esc(head)}</b>${line ? `<p>${line}</p>` : ""}<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${btn}${session && licence.acct ? `<button class="btn sm" type="button" data-plan="payments">Payments</button>` : ""}</div></div></section>`;
+}
+function planStatusLine(e) {
+  if (!e.paid_until) return "";
+  if (e.sub_status === "attention" && e.status !== "ended") return `We could not renew your plan. Pay by ${esc(fmtLong(new Date(e.paid_until).getTime() + 7 * 864e5))} to keep it.`;
+  if (e.status === "grace") return `Your plan ended on ${esc(fmtLong(e.paid_until))}. Pay by ${esc(fmtLong(new Date(e.paid_until).getTime() + 7 * 864e5))} to keep it.`;
+  if (e.renews) return `Active until ${esc(fmtLong(e.paid_until))}. Renews by itself.`;
+  if (e.method === "card") return `You stopped automatic renewal. Your plan ends on ${esc(fmtLong(e.paid_until))}.`;
+  return `Your plan does not renew by itself. It ends on ${esc(fmtLong(e.paid_until))} unless you renew.`;
+}
+
+/* ---------- the plan screen ---------- */
+const TIER_POINTS = {
+  starter: ["50 documents a month", "Three designs and three openings", "2 devices", "Client links stay open for 12 months"],
+  pro: ["Unlimited documents", "All designs and openings", "Phone alerts when a client opens or pays", "Monthly report and team", "2 businesses and 5 devices", "No Aurum name on your client page"],
+};
+function openPlans(focus) {
+  let per = "year";
+  const draw = () => {
+    const e = entNow() || {}, owned = e.legacy ? e.legacy : null, proActive = e.paid_tier === "pro" && e.status !== "ended", starterActive = e.paid_tier === "starter" && e.status !== "ended";
+    const head = e.legacy && !e.paid_tier ? `You have ${esc(e.label)}.` : e.paid_tier && e.status !== "ended" ? `You are on ${esc(e.label)}.` : e.paid_tier ? `Your ${esc(paidName(e))} plan has ended.` : "You are on the Free plan.";
+    const status = e.legacy && !e.paid_tier ? "Paid once. Yours to keep. Nothing to renew." : e.paid_tier ? (e.status === "ended" ? "Your documents are safe. Renew any time." : planStatusLine(e)) : e.docs_limit != null ? `${e.docs_used ?? 0} of ${e.docs_limit} documents used this month. They come back on ${esc(e.resets_on ? fmtLong(e.resets_on + "T12:00:00") : "the 1st")}.` : "";
+    const card = (tier) => {
+      const price = priceOf(tier, per);
+      let action;
+      if (tier === "starter" && owned) action = `<p class="hint">Included in your ${esc(e.label)} plan.</p>`;
+      else if (tier === "pro" && owned === "prestige") action = `<p class="hint">Included in your Prestige plan.</p>`;
+      else if (tier === "starter" && proActive) action = `<p class="hint">To move to Starter, stop renewal. You can choose Starter when Pro ends on ${esc(fmtLong(e.paid_until))}.</p>`;
+      else if (tier === "starter") action = `<button class="btn primary block" type="button" data-choose="starter">${starterActive ? "Renew Starter" : "Choose Starter"}</button>`;
+      else action = `<button class="btn primary block" type="button" data-choose="pro">${proActive ? "Renew Pro" : starterActive ? "Upgrade to Pro" : "Choose Pro"}</button>`;
+      return `<div class="prestige-card plan-card"><span class="eyebrow">${tierName(tier)}</span><b>${price ? naira(price) : "…"} <small style="font-weight:600;color:var(--muted)">${per === "year" ? "a year" : "a month"}</small></b><ul class="plan-points">${TIER_POINTS[tier].map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${action}</div>`;
+    };
+    $("#sheet-body").innerHTML = `<div style="padding:0 4px"><b style="font-size:17px">${head}</b>${status ? `<p class="hint" style="margin:6px 0 0">${status}</p>` : ""}
+      <div class="chips" style="margin:14px 0"><button type="button" class="chip" data-per="year" aria-pressed="${per === "year"}">Yearly · 2 months free</button><button type="button" class="chip" data-per="month" aria-pressed="${per === "month"}">Monthly</button></div>
+      <div style="display:grid;gap:12px">${card("starter")}${card("pro")}
+        <div class="prestige-card plan-card"><span class="eyebrow">Business</span><b>Coming soon</b><p>For teams and larger businesses.</p><button class="btn block" type="button" data-plan="business">Request Business</button></div></div>
+      ${e.paid_tier && e.status !== "ended" ? `<div style="display:grid;gap:8px;margin-top:16px">${e.renews ? `<button class="btn block" type="button" data-plan="stop">Stop automatic renewal</button><button class="btn block" type="button" data-plan="card">Update card</button>` : ""}</div>` : ""}
+      ${session && licence.acct ? `<p class="hint" style="margin-top:14px"><button class="link-btn" type="button" data-plan="payments" style="font-size:13px">Payments</button></p>` : ""}</div>`;
+  };
+  sheet("Plans", `<p class="hint" style="padding:0 8px">Loading…</p>`, { onClick: (ev) => {
+    const p = ev.target.closest("[data-per]"); if (p) { per = p.dataset.per; return draw(); }
+    const c = ev.target.closest("[data-choose]"); if (c) return openPay(c.dataset.choose, per);
+  } });
+  draw(); refreshBilling().then(draw);
+  if (focus === "starter" || focus === "pro") { /* the card is already on screen */ }
+}
+function openPay(tier, per0) {
+  let per = per0 || "year";
+  const e = entNow() || {};
+  const draw = (quote) => {
+    const price = priceOf(tier, per);
+    const upgradeNote = quote?.ok && quote.bonus_days > 0 ? `<p class="hint" style="margin:10px 0 0">Your ${Math.ceil((new Date(quote.paid_until) - Date.now()) / 864e5)} unused Starter days become ${quote.bonus_days} extra Pro days.</p>` : "";
+    const stack = e.paid_tier === tier && e.status === "active" && e.paid_until ? `<p class="hint" style="margin:10px 0 0">${per === "year" ? "Your year" : "Your month"} starts when your current period ends.</p>` : "";
+    const needAccount = !(session && licence.acct);
+    $("#sheet-body").innerHTML = `<div style="padding:0 4px"><span class="eyebrow">${tierName(tier)}</span><div class="chips" style="margin:10px 0"><button type="button" class="chip" data-per="year" aria-pressed="${per === "year"}">Yearly · 2 months free</button><button type="button" class="chip" data-per="month" aria-pressed="${per === "month"}">Monthly</button></div>
+      <b style="font-size:26px">${price ? naira(price) : "…"}</b> <small style="color:var(--muted)">${per === "year" ? "a year" : "a month"}</small>${upgradeNote}${stack}
+      <div style="display:grid;gap:10px;margin:16px 0 8px">${needAccount ? `<button class="btn primary block" type="button" data-pay="account">Create your account to continue</button>` : `<button class="btn primary block" type="button" data-pay="card">Pay with card (renews by itself)</button><button class="btn block" type="button" data-pay="transfer">Pay by transfer or USSD</button>`}</div>
+      <p class="hint">You can cancel any time.${CONFIG.REFUND_LINE ? " Refund within 7 days of your first payment." : ""} Payments are made on Paystack's own page.</p>
+      <button class="link-btn" type="button" data-plan="open" style="font-size:13px">Back to plans</button></div>`;
+  };
+  const fetchQuote = async () => { if (!(session && licence.acct)) return null; try { const q = await rpcAuth("plan_quote", { p_tier: tier, p_period: per }); return q; } catch { return null; } };
+  sheet(`${tierName(tier)}`, `<p class="hint" style="padding:0 8px">Loading…</p>`, { onClick: async (ev) => {
+    const p = ev.target.closest("[data-per]"); if (p) { per = p.dataset.per; draw(); draw(await fetchQuote()); return; }
+    const pay = ev.target.closest("[data-pay]"); if (pay) return startPay(tier, per, pay.dataset.pay, pay);
+  } });
+  draw(); fetchQuote().then(draw);
+}
+const ORDER_ERR = { off: "Plans are not open yet.", admin_only: "Plans are not open yet.", downgrade: "To move to Starter, stop renewal and choose Starter when Pro ends.", not_needed: "Your plan already includes this.", no_workspace: "Please sign in again.", plan: "That plan is not available. Try another." };
+async function callBilling(action, extra = {}) {
+  const t = await freshToken(); if (!t) throw new Error("auth");
+  const res = await fetch(sbUrl() + "/functions/v1/billing", { method: "POST", headers: { "Content-Type": "application/json", apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: "Bearer " + t }, body: JSON.stringify({ action, ...extra }) });
+  return res.json().catch(() => ({}));
+}
+async function startPay(tier, per, how, btn) {
+  if (how === "account") { closeLayer(); return openAccountGate("create"); }
+  const restore = busy(btn, "One moment…");
+  try {
+    const o = await rpcAuth("create_sub_order", { p_tier: tier, p_period: per, p_method: how });
+    if (!o.ok) { restore(); return toast(ORDER_ERR[o.reason] || "Couldn't start that payment. Try again."); }
+    const j = await callBilling("init", { reference: o.reference });
+    if (j.ok && j.authorization_url) { LS.set("aurum.paying", { ref: o.reference, at: Date.now() }); location.href = j.authorization_url; return; }
+    restore(); toast(j.reason === "plan_not_ready" ? "Card payments are not ready yet. Try transfer or USSD." : "Couldn't open the payment page. Try again.");
+  } catch (err) { restore(); toast(err.message === "auth" ? "Please sign in again." : "Connect to the internet to pay."); }
+}
+// coming back from Paystack's page (the address has ?paid=REFERENCE)
+async function returnFromPayment(ref) {
+  try { window.history.replaceState(null, "", location.pathname); } catch {}
+  for (let i = 0; i < 60 && ($("#gate").hidden === false || !session); i++) await wait(250);   // wait until the app has opened
+  let tries = 0;
+  sheet("Your payment", `<p class="hint" style="padding:0 8px">We are confirming your payment. This can take a minute.</p>`);
+  const check = async () => {
+    tries++;
+    try {
+      const j = await callBilling("verify", { reference: ref });
+      if (j.ok && j.status === "paid") {
+        await refreshBilling(); const e = entNow() || {};
+        LS.del("aurum.paying");
+        $("#sheet-body").innerHTML = `<div style="padding:0 8px"><h3 style="margin:0 0 6px">You are on ${esc(e.label || tierName(j.tier))}. Thank you.</h3><p class="hint">Active until ${esc(fmtLong(j.paid_until || e.paid_until))}.</p>${j.bonus_days ? `<p class="hint">Your extra ${j.bonus_days} days are included.</p>` : ""}<button class="btn primary block" type="button" data-close style="margin-top:12px">Done</button></div>`;
+        syncChrome(); try { if (!$("#home").hidden) renderHome(); } catch {}
+        return;
+      }
+    } catch {}
+    $("#sheet-body").innerHTML = `<div style="padding:0 8px"><p class="hint">${tries >= 3 ? "Still waiting. If you were charged, your plan will switch on by itself. Message us on WhatsApp if it has not within an hour." : "We are confirming your payment. This can take a minute."}</p><div style="display:grid;gap:8px;margin-top:10px"><button class="btn primary" type="button" id="pay-again">Check again</button>${tries >= 3 ? `<a class="btn" href="${esc(supportHref())}" target="_blank" rel="noopener">Message us on WhatsApp</a>` : ""}</div></div>`;
+    $("#pay-again").onclick = () => { $("#pay-again").disabled = true; $("#pay-again").textContent = "Checking…"; check(); };
+  };
+  check();
+}
+function stopRenewalSheet() {
+  const e = entNow() || {};
+  sheet("Stop automatic renewal", `<p class="hint" style="padding:0 8px 12px">Stop automatic renewal? You keep ${esc(e.label || "your plan")} until ${esc(e.paid_until ? fmtLong(e.paid_until) : "the end of the period")}. After that your account moves to the free plan and your documents stay.</p><div style="display:grid;gap:10px;padding:0 8px 8px"><button class="btn primary" type="button" id="sr-go">Stop renewal</button><button class="btn ghost" type="button" data-close>Keep it</button></div>`);
+  $("#sr-go").onclick = async () => {
+    const b = $("#sr-go"); b.disabled = true; b.textContent = "One moment…";
+    try { const j = await callBilling("stop_renewal"); if (j.ok) { await refreshBilling(); closeLayer(); toast("Automatic renewal is off"); return; } toast("Couldn't stop it. Message us on WhatsApp."); }
+    catch { toast("Connect to the internet to do that."); }
+    b.disabled = false; b.textContent = "Stop renewal";
+  };
+}
+async function updateCard() { try { const j = await callBilling("manage_link"); if (j.ok && j.link) return openLink(j.link); toast("Couldn't open that. Message us on WhatsApp."); } catch { toast("Connect to the internet to do that."); } }
+async function paymentsSheet() {
+  sheet("Payments", `<p class="hint" style="padding:0 8px">Loading…</p>`);
+  try {
+    const r = await rpcAuth("my_payments", {}); if (!r.ok) throw new Error("x");
+    const rows = (r.payments || []).map((p) => `<div class="dev-row"><div><b>${tierName(p.tier)} · ${p.period === "year" ? "yearly" : "monthly"}</b><small>${esc(fmtLong(p.paid_at))} · ${esc(p.reference)}${p.refunded ? " · Refunded" : ""}</small></div><b>${naira(p.amount_kobo)}</b></div>`).join("");
+    $("#sheet-body").innerHTML = rows || `<p class="hint" style="padding:0 8px">No payments yet.</p>`;
+  } catch { $("#sheet-body").innerHTML = `<p class="hint" style="padding:0 8px">You are offline. Connect to the internet to see your payments.</p>`; }
+}
+function businessSheet() {
+  const trap = `<input id="bz-trap" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">`;
+  sheet("Request Business", `<div style="padding:0 8px"><p class="hint" style="margin:0 0 12px">Business is coming soon. Tell us what you need and we will message you on WhatsApp when it is ready.</p>
+    <label class="field"><span>Your name</span><input id="bz-name" maxlength="80" autocomplete="name"></label>
+    <label class="field"><span>Business name</span><input id="bz-biz" maxlength="100" autocomplete="organization"></label>
+    <label class="field"><span>WhatsApp number</span><input id="bz-wa" inputmode="tel" maxlength="20" autocomplete="tel"></label>
+    <div class="field"><span>Team size</span><div class="chips">${["2 to 5", "6 to 20", "More than 20"].map((t, i) => `<button type="button" class="chip" data-team="${t}" aria-pressed="${i === 0}">${t}</button>`).join("")}</div></div>
+    <label class="field"><span>What do you need? <em>(optional)</em></span><textarea id="bz-note" rows="3" maxlength="500"></textarea></label>${trap}
+    <div class="err" id="bz-err" role="alert"></div><button class="btn primary block" type="button" id="bz-go" style="margin-top:8px">Send request</button></div>`, { onClick: (ev) => { const t = ev.target.closest("[data-team]"); if (t) $$("[data-team]").forEach((x) => x.setAttribute("aria-pressed", String(x === t))); } });
+  $("#bz-go").onclick = async () => {
+    const team = $('[data-team][aria-pressed="true"]')?.dataset.team || "2 to 5", err = $("#bz-err"); err.textContent = "";
+    let sid = ""; try { sid = sessionStorage.getItem("aurumSid") || ""; if (!sid) { sid = uid().replace(/-/g, ""); sessionStorage.setItem("aurumSid", sid); } } catch { sid = uid().replace(/-/g, ""); }
+    if ($("#bz-name").value.trim().length < 2 || $("#bz-biz").value.trim().length < 2) { err.textContent = "Please add your name and your business name."; return; }
+    if (($("#bz-wa").value.match(/[0-9]/g) || []).length < 8) { err.textContent = "Please check your WhatsApp number."; return; }
+    const restore = busy($("#bz-go"), "Sending…");
+    try {
+      const r = await rpc("request_business", { p_session: sid, p_name: $("#bz-name").value, p_business: $("#bz-biz").value, p_whatsapp: $("#bz-wa").value, p_team: team, p_note: $("#bz-note").value, p_trap: $("#bz-trap").value });
+      if (r.ok) { $("#sheet-body").innerHTML = `<p class="hint" style="padding:0 8px 12px">Thank you. We will message you on WhatsApp when Business is ready.</p>`; return; }
+      restore(); err.textContent = { name: "Please add your name and your business name.", whatsapp: "Please check your WhatsApp number.", limit: "You have sent a few requests today. We will be in touch.", session: "Please reload the page and try again." }[r.reason] || "Something went wrong. Please try again.";
+    } catch { restore(); err.textContent = "You are offline. Connect to the internet to send this."; }
+  };
+}
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("[data-plan]"); if (!a) return;
+  const k = a.dataset.plan;
+  if (k === "open" || k === "starter" || k === "pro") { closeLayer(); return openPlans(k); }
+  if (k === "dismiss") { const d = LS.get("aurum.endedDismissed", { n: 0, at: 0 }); LS.set("aurum.endedDismissed", { n: d.n + 1, at: Date.now() }); try { renderHome(); } catch {} return; }
+  if (k === "stop") return stopRenewalSheet();
+  if (k === "card") return updateCard();
+  if (k === "payments") return paymentsSheet();
+  if (k === "business") return businessSheet();
+});
+
+// a client opening a link whose period is over: only the business name and number are kept
+function closedLink(cv, stub) {
+  const B = stub?.profile?.business || {}, wa = B.phone ? `https://wa.me/${waNumber(B.phone)}` : "";
+  cv.innerHTML = `<div class="scene"><div class="intro"><span class="eyebrow">Document unavailable</span><h1>This link has closed</h1><p class="for">This document is no longer available here. Ask ${esc(B.name || "the business")} to send it again.</p>${wa ? `<a class="btn primary" href="${esc(wa)}" target="_blank" rel="noopener">Message ${esc(B.name || "them")} on WhatsApp</a>` : ""}</div></div>`;
+}
+
 $("#lic-demo").addEventListener("click", () => { trackEvt("demo_start"); licence = { mode: "demo" }; LS.set("aurum.licence", licence); enter(); });
 
 /* =========================================================
@@ -2952,7 +3230,7 @@ const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(saveNow,
 // nothing is lost if the app is closed or you switch to WhatsApp in the middle of typing
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveNow(); });
 addEventListener("pagehide", saveNow);
-const studioOpts = (extra = {}) => ({ demo: isDemo(), free: isFree(), qr: S.doc.shareId ? qrFor(S.doc.link) : "", ...extra });
+const studioOpts = (extra = {}) => ({ own: true, demo: isDemo(), free: isFree(), qr: S.doc.shareId ? qrFor(S.doc.link) : "", ...extra });
 
 async function enter() {
   $("#gate").hidden = true;
@@ -3346,7 +3624,7 @@ function syncChrome() {
   $("#next-doc-btn").textContent = D.type === "quotation" ? "Make invoice" : "Issue receipt";
   $("#link-box").hidden = !D.link; $("#link-text").textContent = D.link || "";
   // plan chip
-  const chip = $("#plan-chip"); chip.classList.toggle("trial", isDemo()); $("#plan-text").textContent = isDemo() ? "Trial" : isFree() ? (freeLeft == null ? "Free" : `Free · ${freeLeft} left`) : isPrestige() ? "Prestige" : "Signature";
+  const chip = $("#plan-chip"); chip.classList.toggle("trial", isDemo()); $("#plan-text").textContent = planText();
   updateTrialBar();
 }
 document.addEventListener("input", (e) => {
@@ -3384,7 +3662,7 @@ $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
 $("#bank-line").addEventListener("click", () => openHouse("bank"));
 $("#payby-on").addEventListener("change", (e) => { S.doc.payBy = e.target.checked ? iso(addDays(7)) : ""; persist(); syncChrome(); render(); });
 $("#exp-on").addEventListener("change", (e) => { S.doc.dueDate = e.target.checked ? iso(addDays(14)) : ""; persist(); syncChrome(); render(); });
-$("#reveal-grid").addEventListener("click", (e) => { const b = e.target.closest("[data-reveal]"); if (!b) return; if (isFree() && b.dataset.reveal !== "envelope") return freeSheet("More opening styles"); S.doc.reveal = b.dataset.reveal; S.profile.design.reveal = b.dataset.reveal; persist(); syncChrome(); toast(`Your client will see: ${REVEALS[b.dataset.reveal].name}`); });
+$("#reveal-grid").addEventListener("click", (e) => { const b = e.target.closest("[data-reveal]"); if (!b) return; if (!allowedOpening(b.dataset.reveal)) return lockSheet("This opening", tierFor("opening", b.dataset.reveal)); S.doc.reveal = b.dataset.reveal; S.profile.design.reveal = b.dataset.reveal; persist(); syncChrome(); toast(`Your client will see: ${REVEALS[b.dataset.reveal].name}`); });
 function swapAnim() { const w = $("#paper-wrap"); w.classList.remove("swap"); void w.offsetWidth; if (!reduceMotion) w.classList.add("swap"); }
 
 /* client autocomplete */
@@ -3521,10 +3799,10 @@ function handleSaved(e) {
     lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(h.doc.type === "quotation" ? `Invoice ${S.doc.number} created from ${h.doc.number}` : `Copied into ${S.doc.number}. Check the details and send.`); return; }
   const o = e.target.closest("[data-open]"); if (!o) return; const h = history.find((x) => x.id === o.dataset.open); if (!h) return; S.doc = structuredClone(h.doc); lastTotal = null; persist(); showStep(1); swapAnim(); render({ enter: true }); toast(`Opened ${h.doc.number}`); }
 $("#saved-list").addEventListener("click", handleSaved);
-async function fetchActivity() { if (isFree()) refreshFree(); if (!configured() || isDemo()) return; try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {} }
+async function fetchActivity() { if (limited()) refreshFree(); if (!configured() || isDemo()) return; try { const rows = await rpc("invoice_activity", { p_key: licence.key, p_device: deviceId }); activity = {}; (rows || []).forEach((r) => (activity[r.doc_id] = r)); renderHistory(); } catch {} }
 
 /* send */
-const payload = () => ({ v: 2, demo: isDemo(), free: isFree(), brandless: isPrestige(), profile: { business: S.profile.business, bank: S.profile.bank, design: { ...S.profile.design, sealLogo: isPrestige() && !!S.profile.design.sealLogo }, docStyle: S.profile.docStyle || {} }, doc: { ...S.doc, reveal: isFree() ? "envelope" : S.doc.reveal, link: "", shareId: "", items: S.doc.items.filter((it) => it.desc || num(it.price)) } });
+const payload = () => ({ v: 2, demo: isDemo(), free: isFree(), brandless: noBranding(), profile: { business: S.profile.business, bank: S.profile.bank, design: { ...S.profile.design, template: effTemplate(S.profile.design.template), sealLogo: isPrestige() && !!S.profile.design.sealLogo }, docStyle: S.profile.docStyle || {} }, doc: { ...S.doc, reveal: effReveal(S.doc.reveal), link: "", shareId: "", items: S.doc.items.filter((it) => it.desc || num(it.price)) } });
 $("#make-link").addEventListener("click", async () => {
   if (!(await freeGo(S.doc))) return;
   const btn = $("#make-link"); btn.disabled = true; btn.textContent = "Sealing your envelope…"; const base = location.href.split(/[?#]/)[0];
@@ -3539,7 +3817,7 @@ $("#make-link").addEventListener("click", async () => {
     }
     rememberDoc(); syncChrome(); render(); renderHistory();
     const ok = await copyText(S.doc.link); toast(ok ? "Private link created and copied" : "Private link created");
-  } catch (err) { console.error(err); if (err.message?.startsWith("This licence") && licence?.acct) businessNameSheet(S.profile.business.name); else toast(err.message?.startsWith("This licence") ? err.message : "Couldn't create the link. Check your internet and try again."); }
+  } catch (err) { console.error(err); if (err.message?.startsWith("This licence") && licence?.acct) businessNameSheet(S.profile.business.name); else if (err.message === "design_locked") lockSheet("This design", tierFor("design", S.profile.design.template)); else if (err.message === "opening_locked") lockSheet("This opening", tierFor("opening", S.doc.reveal)); else toast(err.message?.startsWith("This licence") ? err.message : "Couldn't create the link. Check your internet and try again."); }
   btn.disabled = false; syncChrome();
 });
 $("#copy-link").addEventListener("click", () => copyText(S.doc.link).then((ok) => toast(ok ? "Link copied" : "Press and hold the link to copy it")));
@@ -3593,7 +3871,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
         <div class="card-line"><span><b>Phone alerts</b><small id="push-sub">Know the moment a client opens or pays.</small></span><button class="btn sm primary" type="button" data-h="push" id="push-btn">Turn on</button></div>
         <label class="toggle card-line" style="margin-top:10px"><span><b style="display:block">Your logo in the wax seal</b><small style="color:var(--muted);font-size:13px">${B.logo ? "On the envelope and thank-you card." : "Upload your logo above first."}</small></span><span class="switch"><input type="checkbox" data-bind="profile.design.sealLogo" ${G.sealLogo ? "checked" : ""} ${B.logo ? "" : "disabled"}><i></i></span></label>
         <div class="card-line" style="margin-top:10px"><span><b>Your businesses</b><small>${hasSecondBrand() ? esc(B.name || "This business") + " · " + esc(otherBrandName()) : "Run a second business from the same licence, with its own clients and documents."}</small></span><button class="btn sm ${hasSecondBrand() ? "" : "primary"}" type="button" data-h="brand">${hasSecondBrand() ? "Switch" : "Add second"}</button></div>
-        <p class="hint" style="margin-top:10px">Each team member sets their own name below, so you can see who sent what in the Team tab.</p></section>` : `<section><div class="lock-card"><h3>Prestige <span class="pbadge">₦35,000</span></h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts when a client opens or pays</li><li>Monthly business report PDF</li><li>Team view: who sent what</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div></section>`}
+        <p class="hint" style="margin-top:10px">Each team member sets their own name below, so you can see who sent what in the Team tab.</p></section>` : `<section><div class="lock-card"><h3>Prestige <span class="pbadge">₦35,000</span></h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts when a client opens or pays</li><li>Monthly business report PDF</li><li>Team view: who sent what</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul>${upgradeBtn()}</div></section>`}
       <section><h3 class="sub">Your thank-you message</h3>
         <p class="hint">Shown on the thank-you card your client receives when they pay. Keep it short and warm.</p>
         <label class="field"><textarea class="input tymsg" data-bind="profile.design.thanksMsg" maxlength="160" rows="3" placeholder="e.g. It was a joy dressing you. See you at the next celebration!" style="height:auto;min-height:84px;padding:14px 16px">${esc(G.thanksMsg || "")}</textarea></label></section>
@@ -3624,15 +3902,16 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
         <div class="row2">${f("Signed by", "profile.business.signName")}${f("Title", "profile.business.signTitle")}</div>
       </section>
       ${accountSection()}
-      <section><h3 class="sub">Your plan</h3>
+      ${planSectionNew()}
+      ${billingOn() ? "" : `<section><h3 class="sub">Your plan</h3>
         <div class="prestige-card"><span class="eyebrow">${isDemo() ? "Free trial" : isFree() ? "Free plan" : isPrestige() ? "Prestige" : "Signature"}</span>
           ${isPrestige() ? `<b>Your own address, no Aurum branding</b><p>Your envelopes are delivered from your own web address and carry only your name.</p>`
             : `<b>Prestige</b><p>Send envelopes from your own web address (for example invoice.yourbrand.ng), with no Aurum branding anywhere your client looks.</p>${CONFIG.SELLER_WHATSAPP ? `<a class="btn sm primary" style="justify-self:start" href="https://wa.me/${esc(CONFIG.SELLER_WHATSAPP)}?text=${encodeURIComponent("Hello, I'd like to upgrade Aurum to Prestige.")}" target="_blank" rel="noopener">Ask about Prestige</a>` : ""}`}
           ${isDemo() && CONFIG.BUY_LINK ? `<a class="btn sm" style="justify-self:start" href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get your licence</a>` : ""}
         </div>
         ${licence?.key && !licence.acct ? `<p class="hint">Licence ${esc(licence.key.slice(0, 8))}•••• · this device is registered to you.${canSync() ? " Your documents are backed up and shared with your other devices." : ""}</p>` : ""}
-      </section>
-      ${licence?.refCode ? `<section><h3 class="sub">Refer a friend</h3>
+      </section>`}
+      ${licence?.refCode && SUBS.mode !== "live" ? `<section><h3 class="sub">Refer a friend</h3>
         <div class="prestige-card"><span class="eyebrow">Your code</span><b style="letter-spacing:.12em">${esc(licence.refCode)}</b><p>Friends who buy with your code get ${esc(CONFIG.REFERRAL_OFFER)}. Ask us about your reward.</p>
         <a class="btn sm primary" style="justify-self:start" href="https://wa.me/?text=${encodeURIComponent(`I send my invoices with Aurum. Clients open them as an experience and pay in one tap. Use my code ${licence.refCode} for ${CONFIG.REFERRAL_OFFER}${CONFIG.BUY_LINK ? ": " + CONFIG.BUY_LINK : ""}`)}" target="_blank" rel="noopener">Share on WhatsApp</a></div>
       </section>` : ""}
@@ -3641,7 +3920,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
   layer.onclick = (e) => {
     if (e.target.closest("[data-close]")) { closeLayer(); syncChrome(); render(); return; }
     const t = e.target.closest("[data-template]"), sw = e.target.closest(".swatch"), sg = e.target.closest("[data-sign]"), h = e.target.closest("[data-h]");
-    if (t) { G.template = t.dataset.template; persist(); openHouse(); swapAnim(); render({ enter: true }); }
+    if (t) { if (!allowedDesign(t.dataset.template)) return lockSheet("This design", tierFor("design", t.dataset.template)); G.template = t.dataset.template; persist(); openHouse(); swapAnim(); render({ enter: true }); }
     if (sw) { G.brand = sw.dataset.color; persist(); openHouse(); render(); }
     if (sg) { B.signMode = sg.dataset.sign; persist(); openHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
@@ -3689,7 +3968,7 @@ function openCustomise(type = S.doc.type) {
     if (b.dataset.czType) return openCustomise(b.dataset.czType);
     if (b.dataset.cz) st[b.dataset.cz] = b.dataset.v;
     if (b.dataset.term !== undefined) { const t = TERMS[Number(b.dataset.term)]; const cur = docStyle(P, type).terms || ""; st.terms = cur.includes(t) ? cur.replace(t, "").replace(/\s{2,}/g, " ").trim() : (cur ? cur.trim() + " " : "") + t; }
-    if (b.dataset.czTpl) G.template = b.dataset.czTpl;
+    if (b.dataset.czTpl) { if (!allowedDesign(b.dataset.czTpl)) return lockSheet("This design", tierFor("design", b.dataset.czTpl)); G.template = b.dataset.czTpl; }
     if (b.dataset.czColor) G.brand = b.dataset.czColor;
     persist(); render(); const sc = $(".drawer-body", layer).scrollTop; openCustomise(type); $(".drawer-body", $("#layer")).scrollTop = sc;
   };
@@ -3896,7 +4175,7 @@ function renderHome() {
   $("#home-brand").hidden = !(isPrestige() && hasSecondBrand()); $("#home-brand").textContent = "Switch to " + otherBrandName() + " ⇄";
   $("#home-owed").querySelector("span").textContent = late.length ? `${late.length} overdue · see who` : L.owing.length ? L.owing.length + " unpaid · see who" : "Nobody owes you";
   const lateCard = late.length ? `<div class="alert-card"><div><b>${plural(late.length, "invoice")} overdue</b><small>${esc(late.slice(0, 2).map((d) => d.client.name || d.number).join(", "))}${late.length > 2 ? " and more" : ""}</small></div><button class="btn sm primary" type="button" data-late>Remind</button></div>` : "";
-  $("#home-draft").innerHTML = protectCard() + lateCard + (started && !history.some((x) => x.id === D.id) ? `<div class="draft-card"><div><b>Continue your ${LABEL[D.type].toLowerCase()}</b><small>${esc(D.number)}${D.client.name ? " for " + esc(D.client.name) : ""} · not sent yet</small></div><button class="btn sm primary" type="button" id="draft-go">Continue</button></div>` : "");
+  $("#home-draft").innerHTML = planBanner() + protectCard() + lateCard + (started && !history.some((x) => x.id === D.id) ? `<div class="draft-card"><div><b>Continue your ${LABEL[D.type].toLowerCase()}</b><small>${esc(D.number)}${D.client.name ? " for " + esc(D.client.name) : ""} · not sent yet</small></div><button class="btn sm primary" type="button" id="draft-go">Continue</button></div>` : "");
   $("#home-recent").innerHTML = history.length ? history.slice(0, 5).map(docRow).join("") : `<div class="home-empty">Your invoices, receipts and quotations will appear here. Start with <b>New invoice</b> above.</div>`;
   $("#home-all").hidden = history.length <= 5;
   $$(".js-support").forEach((a) => (a.href = supportHref()));
@@ -3951,7 +4230,7 @@ function freeSheet(title) {
   sheet(title, `<div class="lock-card" style="margin:6px 4px 8px"><h3>Get Aurum for good</h3><ul><li>Unlimited invoices, receipts and quotations</li><li>No "Made with Aurum" line on your documents</li><li>All the envelope opening styles</li><li>Pay once, no monthly fees</li></ul><p class="hint" style="margin:8px 0">Your ${freeLimit()} free documents come back on the 1st of next month.</p><a class="btn primary" href="${esc(buyHref())}" target="_blank" rel="noopener">Get your licence</a></div>`);
 }
 function upgradeSheet(feature) {
-  sheet(feature, `<div class="lock-card" style="margin:6px 4px 8px"><h3>This is a Prestige feature</h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts, monthly report and team view</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div>`);
+  sheet(feature, `<div class="lock-card" style="margin:6px 4px 8px"><h3>This is a Prestige feature</h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts, monthly report and team view</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul>${upgradeBtn()}</div>`);
 }
 const VAPID_PUBLIC = "BK-5BBGbQog_X3Fd7WlJX40qIBBJ2Ejb-mcA5XpBxEgsPZ838yFaE0h8wH7AHMqaq66xLH12s7i2U5OCvh5BoUI";
 const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
@@ -3963,7 +4242,7 @@ async function refreshPushUI() {
   const sub = $("#push-sub"); if (sub) sub.textContent = on ? "On for this phone. You'll be told when a client opens or pays." : "Know the moment a client opens or pays.";
 }
 async function togglePush() {
-  if (!isPrestige()) return upgradeSheet("Phone alerts");
+  if (!isPrestige()) return lockSheet("Phone alerts", "pro");
   if (!pushSupported()) return toast(isIOS() && !standalone() ? "On iPhone, add Aurum to your Home Screen first, then turn alerts on." : "This browser can't show phone alerts. Try Chrome.");
   try {
     if (await pushIsOn()) { const reg = await navigator.serviceWorker.getRegistration(); const sub = await reg.pushManager.getSubscription(); await sub?.unsubscribe(); rpc("remove_push", { p_key: licence.key, p_device: deviceId }).catch(() => {}); toast("Phone alerts are off"); return refreshPushUI(); }
@@ -4084,7 +4363,7 @@ function renderDash() {
     $("#dash-clients").innerHTML = book.length ? `<div class="doc-list">${book.map((c, i) => `<button class="client-row" type="button" data-client="${i}"><div><b>${esc(c.name)}</b><small>${c.docs.length} document${c.docs.length === 1 ? "" : "s"} · last ${fmtDate(c.last)}</small></div><div class="amt">${money(c.invoiced || c.received)}<small class="${c.owing ? "due" : "ok"}">${c.owing ? money(c.owing) + " owed" : "All paid"}</small></div></button>`).join("")}</div>` : `<div class="home-empty">Clients appear here after your first invoice or receipt.</div>`;
   }
   if (dashState.tab === "team") {
-    if (!isPrestige() && !isDemo()) $("#dash-team").innerHTML = `<div class="lock-card"><h3>Team view <span class="pbadge">Prestige</span></h3><ul><li>See who on your team made each document</li><li>Each person's invoices and money received</li><li>Works on up to 5 phones and laptops</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div>`;
+    if (!isPrestige() && !isDemo()) $("#dash-team").innerHTML = `<div class="lock-card"><h3>Team view <span class="pbadge">Prestige</span></h3><ul><li>See who on your team made each document</li><li>Each person's invoices and money received</li><li>Works on up to 5 phones and laptops</li></ul>${upgradeBtn()}</div>`;
     else {
       const people = new Map();
       docsIn.forEach(({ doc: d }) => { const n = (d.preparedBy || "").trim() || "Owner"; if (!people.has(n)) people.set(n, { n, docs: 0, inv: 0, rec: 0 }); const p = people.get(n), t = calc(d); p.docs++; if (d.type === "invoice") p.inv += t.total; if (d.type === "receipt") p.rec += t.total; });
@@ -4175,7 +4454,7 @@ $("#dash").addEventListener("click", (e) => {
   const cl = e.target.closest("[data-client]"); if (cl) return openClient(clientBook()[Number(cl.dataset.client)]);
   const rm = e.target.closest("[data-remind]"); if (rm) return remindSheet(rm.dataset.remind);
   if (e.target.closest("#dash-money")) return openOverview();
-  if (e.target.closest("#dash-report")) return isPrestige() || isDemo() ? openReportPicker() : upgradeSheet("Monthly business report");
+  if (e.target.closest("#dash-report")) return isPrestige() || isDemo() ? openReportPicker() : lockSheet("Monthly business report", "pro");
   if (e.target.closest("[data-open], [data-conv]")) handleSaved(e);
 });
 $("#dash-q").addEventListener("input", (e) => { dashState.q = e.target.value; renderDash(); });
@@ -4239,7 +4518,7 @@ const qs = new URLSearchParams(location.search);
 if (qs.get("i")) bootClient({ id: qs.get("i") });
 else if (location.hash.startsWith("#v=")) bootClient({ hash: location.hash.slice(3) });
 else if (/^#(access_token|error)=/.test(location.hash)) bootAuthReturn();
-else { bootLicence(); if (qs.get("free")) claimFree(String(qs.get("free")).replace(/[^a-f0-9]/gi, "").slice(0, 48)); else if (qs.get("startfree")) setTimeout(() => { if (!$("#gate").hidden && gateCtx.panel === "welcome") gateGo("create"); }, 400); const pre = (qs.get("key") || "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 40); if (pre) { const kf = document.querySelector("#lic-key"); if (kf) { kf.value = pre; setTimeout(() => { if (!$("#gate").hidden && gateCtx.panel === "welcome") gateGo("key"); }, 400); } try { window.history.replaceState(null, "", location.pathname); } catch (e) {} } const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
+else { bootLicence(); const paidRef = qs.get("paid"); if (/^AUS-[A-Z0-9]{20}$/.test(paidRef || "")) returnFromPayment(paidRef); if (qs.get("free")) claimFree(String(qs.get("free")).replace(/[^a-f0-9]/gi, "").slice(0, 48)); else if (qs.get("startfree")) setTimeout(() => { if (!$("#gate").hidden && gateCtx.panel === "welcome") gateGo("create"); }, 400); const pre = (qs.get("key") || "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 40); if (pre) { const kf = document.querySelector("#lic-key"); if (kf) { kf.value = pre; setTimeout(() => { if (!$("#gate").hidden && gateCtx.panel === "welcome") gateGo("key"); }, 400); } try { window.history.replaceState(null, "", location.pathname); } catch (e) {} } const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
 })();
 </script>
 </body>
