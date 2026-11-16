@@ -2559,7 +2559,7 @@ async function bootLicence() {
       return showGate("Connect to the internet so we can confirm your licence.");
     }
   }
-  if (!licence && session) return afterSignIn();   // signed in, but the account never finished opening
+  if (!licence && session) { $("#gate").hidden = false; setupGateUI(); return afterSignIn(); }   // signed in, but the account never finished opening: show the screen while it finishes (a hidden gate left a blank page)
   showGate("", false);
 }
 $("#gate-form").addEventListener("submit", async (e) => {
@@ -2860,7 +2860,7 @@ function accountSection() {
   if (isDemo() || !licence?.key) return "";
   const e = licence.ent, nm = e?.label || (licence.plan === "prestige" ? "Prestige" : licence.plan === "signature" ? "Signature" : "Free");
   if (licence.acct) {
-    const use = e && e.docs_limit != null ? `${e.docs_used ?? 0} of ${e.docs_limit} documents used · resets ${esc(fmtDate(e.resets_on))}` : "No monthly limit on your documents.";
+    const use = e && e.docs_limit != null ? `${Math.min(e.docs_used ?? 0, e.docs_limit)} of ${e.docs_limit} documents used · resets ${esc(fmtDate(e.resets_on))}` : "No monthly limit on your documents.";
     return `<section><h3 class="sub">Your account</h3><div class="prestige-card"><span class="eyebrow">${esc(nm)}</span><b style="overflow-wrap:anywhere">${esc(licence.accEmail || licence.email || "")}</b><p>${use}</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" type="button" data-acct="devices">Devices</button><button class="btn sm" type="button" data-acct="signout">Sign out</button></div></div>
       <p class="hint" style="margin-top:10px"><button class="link-btn" type="button" data-acct="delete" style="font-size:13px">Delete my account</button></p></section>`;
@@ -3064,7 +3064,7 @@ function planSectionNew() {
   if (e.legacy) { head = `${lab}. Paid once. Yours to keep. Nothing to renew.`; line = e.paid_tier ? planStatusLine(e) : ""; if (e.legacy === "signature") btn = `<button class="btn sm primary" type="button" data-plan="pro">Upgrade to Pro</button>`; else btn = ""; }
   else if (e.paid_tier && e.status !== "ended") { head = `${lab} plan`; line = planStatusLine(e); btn = `<button class="btn sm primary" type="button" data-plan="open">Change plan</button>`; }
   else if (e.paid_tier) { head = `${paidName(e)} plan has ended`; line = "Your documents are safe. Renew any time."; btn = `<button class="btn sm primary" type="button" data-plan="open">Renew</button>`; }
-  else { head = "Free plan"; line = e.docs_limit != null ? `${e.docs_used ?? 0} of ${e.docs_limit} documents used · resets ${e.resets_on ? esc(fmtDate(e.resets_on)) : "on the 1st"}` : ""; }
+  else { head = "Free plan"; line = e.docs_limit != null ? `${Math.min(e.docs_used ?? 0, e.docs_limit)} of ${e.docs_limit} documents used · resets ${e.resets_on ? esc(fmtDate(e.resets_on)) : "on the 1st"}` : ""; }
   return `<section><h3 class="sub">Your plan</h3><div class="prestige-card"><span class="eyebrow">${esc(lab)}</span><b>${esc(head)}</b>${line ? `<p>${line}</p>` : ""}<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${btn}${session && licence.acct ? `<button class="btn sm" type="button" data-plan="payments">Payments</button>` : ""}</div></div></section>`;
 }
 function planStatusLine(e) {
@@ -3102,7 +3102,7 @@ function openPlans(focus) {
     const e = entNow() || {}, owned = e.legacy ? e.legacy : null, proActive = e.paid_tier === "pro" && e.status !== "ended", starterActive = e.paid_tier === "starter" && e.status !== "ended";
     const onFree = !e.legacy && !(e.paid_tier && e.status !== "ended");
     const head = e.legacy && !e.paid_tier ? "You have " + esc(e.label) + "." : e.paid_tier && e.status !== "ended" ? "You are on " + esc(e.label) + "." : e.paid_tier ? "Your " + esc(paidName(e)) + " plan has ended." : "You are on the Free plan.";
-    const status = e.legacy && !e.paid_tier ? "Paid once. Yours to keep. Nothing to renew." : e.paid_tier ? (e.status === "ended" ? "Your documents are safe. Renew any time." : planStatusLine(e)) : e.docs_limit != null ? (e.docs_used ?? 0) + " of " + e.docs_limit + " documents used this month. They come back on " + esc(e.resets_on ? fmtLong(e.resets_on + "T12:00:00") : "the 1st") + "." : "";
+    const status = e.legacy && !e.paid_tier ? "Paid once. Yours to keep. Nothing to renew." : e.paid_tier ? (e.status === "ended" ? "Your documents are safe. Renew any time." : planStatusLine(e)) : e.docs_limit != null ? Math.min(e.docs_used ?? 0, e.docs_limit) + " of " + e.docs_limit + " documents used this month. They come back on " + esc(e.resets_on ? fmtLong(e.resets_on + "T12:00:00") : "the 1st") + "." : "";
     const list = (pts) => '<ul class="pp-list">' + pts.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>";
     const priceBlock = (tier) => '<div class="pp-price"><b>' + perPrice(tier, per) + '</b><span>/ month</span></div><p class="pp-bill">' + (priceOf(tier, per) ? (per === "year" ? "Billed " + naira(priceOf(tier, per)) + " once a year" : "Billed monthly") : "") + "</p>";
     const card = (tier) => {

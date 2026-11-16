@@ -348,7 +348,7 @@ begin
     end if;
   end if;
   perform public._log('refunded', p_reference, jsonb_build_object('key', p.licence_key, 'rolled_back', not later_exists));
-  return json_build_object('ok', true, 'rolled_back', not later_exists);
+  return json_build_object('ok', true, 'rolled_back', not later_exists, 'licence_key', p.licence_key);
 end; $$;
 
 create or replace function public.save_subscription(p_licence_key text, p_customer_code text, p_subscription_code text, p_email_token text, p_plan_code text, p_tier text, p_period text, p_next timestamptz default null) returns void language plpgsql security definer set search_path = public as $$

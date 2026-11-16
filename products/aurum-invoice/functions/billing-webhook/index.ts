@@ -104,6 +104,18 @@ async function onSubscriptionCreate(d: any, mode: Mode) {
     p_plan_code: d.plan?.plan_code || null, p_tier: plan?.tier || null, p_period: plan?.period || null, p_next: d.next_payment_date || null });
 }
 
+// A refund: the database takes that payment's time away, and the card subscription is switched off so the person is not charged again.
+async function onRefund(ref: string, mode: Mode) {
+  const res = await rpc("apply_refund", { p_reference: ref });
+  if (!res?.ok || res.already || !res.licence_key) return;
+  const sub = await rpc("subscription_of", { p_key: res.licence_key });
+  if (sub?.code && sub?.token && sub.status !== "off") {
+    const off = await paystack(mode, "POST", "/subscription/disable", { code: sub.code, token: sub.token });
+    await log(off.ok ? "refund_subscription_disabled" : "refund_subscription_disable_failed", sub.code, { reference: ref });
+    if (off.ok) await rpc("mark_subscription", { p_subscription_code: sub.code, p_status: "off" });
+  }
+}
+
 async function handle(event: any, mode: Mode) {
   const ev = String(event?.event || ""), d = event?.data || {};
   await log("webhook:" + ev, d.reference || d.subscription_code || d.transaction_reference || null, { mode, domain: d.domain || null, status: d.status || null });
@@ -121,7 +133,7 @@ async function handle(event: any, mode: Mode) {
     if (d.subscription_code) await rpc("mark_subscription", { p_subscription_code: d.subscription_code, p_status: "off" });
   } else if (ev === "refund.processed") {
     const ref = d.transaction_reference || d.transaction?.reference;
-    if (ref) await rpc("apply_refund", { p_reference: String(ref) });
+    if (ref) await onRefund(String(ref), mode);
   }
 }
 
