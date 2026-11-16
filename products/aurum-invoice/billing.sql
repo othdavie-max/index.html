@@ -537,10 +537,10 @@ begin
       'plan_ending', r.key || ':' || (r.paid_until at time zone 'Africa/Lagos')::date || ':' || r.days_left);
     n_mail := n_mail + 1;
   end loop;
-  -- 4. a plan that ended in the last day
+  -- 4. a plan that ended in the last day (25 hours, so a plan that ended just before yesterday's run is never missed; the unique mail key stops repeats)
   for r in
     select l.key, l.paid_tier, l.ended_at, u.email from public.licences l join auth.users u on u.id = l.user_id
-    where l.ended_at is not null and l.ended_at > now() - interval '1 day' and l.paid_tier is not null
+    where l.ended_at is not null and l.ended_at >= now() - interval '25 hours' and l.paid_tier is not null
   loop
     nm := case r.paid_tier when 'pro' then 'Pro' else 'Starter' end;
     perform public.queue_mail(r.email, 'Your Aurum ' || nm || ' plan has ended',

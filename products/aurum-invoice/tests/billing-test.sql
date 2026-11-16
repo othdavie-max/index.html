@@ -194,7 +194,8 @@ begin
   res := pg_temp.t_add(res, '45 a Pro account link of the same age stays open', (select closed_at is null from public.invoices where licence_key = kA and doc_id = 'doc-a-1'), '');
   res := pg_temp.t_add(res, '46 an old free key link stays open while the rules are off', (select closed_at is null from public.invoices where licence_key = kFreeOld and doc_id = 'doc-o-1'), '');
   res := pg_temp.t_add(res, '47 a closed link keeps only the business name and number', (select payload->>'stub' = 'true' and payload->'profile'->'business'->>'name' = 'Shop One' and payload->'doc' is null from public.invoices where licence_key = kD and doc_id = 'doc-d-1'), (select payload::text from public.invoices where licence_key = kD and doc_id = 'doc-d-1'));
-  set local role anon; r := public.view_invoice((select id from public.invoices where licence_key = kD and doc_id = 'doc-d-1')); reset role;
+  s := (select id from public.invoices where licence_key = kD and doc_id = 'doc-d-1');
+  set local role anon; r := public.view_invoice(s); reset role;
   res := pg_temp.t_add(res, '48 the client page is told the link has closed, with the stub', r->>'reason' = 'closed' and r->'stub'->'profile'->'business'->>'name' = 'Shop One', r::text);
   set local role anon; r := public.activate_license(kD, 'device-dddd0001'); r := public.free_use(kD, 'device-dddd0001', 'doc-d-1', 's1'); r := public.publish_invoice(kD, 'device-dddd0001', 'doc-d-1', pl); reset role;
   res := pg_temp.t_add(res, '49 sending the document again opens the link again', (r->>'ok')::boolean and (select closed_at is null and payload->'doc' is not null from public.invoices where licence_key = kD and doc_id = 'doc-d-1'), r::text);
