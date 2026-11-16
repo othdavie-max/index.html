@@ -132,7 +132,7 @@ begin
   set local role authenticated; r := public.plan_quote('pro', 'year'); reset role;
   res := pg_temp.t_add(res, '27 but can buy Pro', (r->>'ok')::boolean, r::text);
   update public.licences set user_id = null where key = kSig; update public.licences set user_id = ud where key = kD;
-  update public.licences set user_id = ue where key = kPre; update public.licences set user_id = null where key = kE;
+  update public.licences set user_id = null where key = kE; update public.licences set user_id = ue where key = kPre;
   perform set_config('request.jwt.claims', json_build_object('sub', ue::text, 'role', 'authenticated')::text, true);
   set local role authenticated; r := public.plan_quote('pro', 'month'); reset role;
   res := pg_temp.t_add(res, '28 a Prestige owner has nothing to buy', r->>'reason' = 'not_needed', r::text);
