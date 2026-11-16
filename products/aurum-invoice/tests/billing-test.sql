@@ -111,6 +111,9 @@ begin
   res := pg_temp.t_add(res, '20 the same renewal again is ignored', (r->>'already')::boolean and n = 1, r::text);
   r := public.mark_subscription('SUB_test1', 'attention');
   res := pg_temp.t_add(res, '21 a failed renewal marks the subscription', (r->>'ok')::boolean and (select status from public.subscriptions where licence_key = kC) = 'attention', r::text);
+  r := public.mark_subscription('SUB_test1', 'attention');   -- a second failure the same day must not send a second email
+  select count(*) into n from public.mail_queue where kind = 'renewal_failed' and to_email = 'c@test.aurum.invalid';
+  res := pg_temp.t_add(res, '21b a failed renewal emails the account owner once a day', n = 1 and (select body from public.mail_queue where kind = 'renewal_failed' and to_email = 'c@test.aurum.invalid') like 'Your card payment for Pro did not go through. Your plan keeps working until %', n::text);
   r := public._ent(kC)::json;
   res := pg_temp.t_add(res, '22 and the plan details say it does not renew by itself any more', not (r->>'renews')::boolean and r->>'sub_status' = 'attention', r::text);
 

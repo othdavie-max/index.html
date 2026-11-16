@@ -363,9 +363,20 @@ begin
     status = 'active', next_payment = coalesce(excluded.next_payment, public.subscriptions.next_payment), updated_at = now();
 end; $$;
 create or replace function public.mark_subscription(p_subscription_code text, p_status text, p_next timestamptz default null) returns json language plpgsql security definer set search_path = public as $$
-declare k text;
+declare k text; lic public.licences; em text; nm text;
 begin
   update public.subscriptions set status = p_status, next_payment = coalesce(p_next, next_payment), updated_at = now() where subscription_code = p_subscription_code returning licence_key into k;
+  -- a card payment that did not go through: tell the owner of the account (once a day at most)
+  if k is not null and p_status = 'attention' then
+    select * into lic from public.licences where key = k;
+    select email into em from auth.users where id = lic.user_id;
+    if em is not null and lic.paid_until is not null then
+      nm := case lic.paid_tier when 'pro' then 'Pro' else 'Starter' end;
+      perform public.queue_mail(em, 'We could not renew your Aurum plan',
+        'Your card payment for ' || nm || ' did not go through. Your plan keeps working until ' || to_char((lic.paid_until + interval '7 days') at time zone 'Africa/Lagos', 'FMDD FMMonth YYYY') || '. To keep it, open Aurum and tap "Pay now". You can pay by card, transfer or USSD.',
+        'renewal_failed', k || ':' || (now() at time zone 'Africa/Lagos')::date);
+    end if;
+  end if;
   return json_build_object('ok', k is not null, 'licence_key', k);
 end; $$;
 create or replace function public.subscription_of(p_key text) returns json language sql stable security definer set search_path = public as $$
