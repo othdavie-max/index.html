@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script>document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-9]$/.test(q))localStorage.setItem("aurum.fx",q);var f=localStorage.getItem("aurum.fx");if(!f){f="1";try{var c=document.createElement("canvas"),g=c.getContext("webgl")||c.getContext("experimental-webgl"),x=g&&g.getExtension("WEBGL_debug_renderer_info"),r=x?String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)):"";if(/Mali/i.test(r))f="8"}catch(e2){}}document.documentElement.setAttribute("data-fx",f)}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
+<script>try{if(/[?&]embed=1/.test(location.search)){Object.defineProperty(window,"localStorage",{get:function(){return window.sessionStorage}});sessionStorage.setItem("aurum.licence",'{"mode":"demo"}');document.documentElement.classList.add("embed")}}catch(e){}
+document.documentElement.classList.add("lite");try{var q=new URLSearchParams(location.search).get("fx");if(q!==null&&/^[0-9]$/.test(q))localStorage.setItem("aurum.fx",q);var f=localStorage.getItem("aurum.fx");if(!f){f="1";try{var ua=navigator.userAgent||"",an=/Android/i.test(ua),r="";try{var c=document.createElement("canvas"),g=c.getContext("webgl")||c.getContext("experimental-webgl"),x=g&&g.getExtension("WEBGL_debug_renderer_info");r=x?String(g.getParameter(x.UNMASKED_RENDERER_WEBGL))+" "+String(g.getParameter(x.UNMASKED_VENDOR_WEBGL)):""}catch(e3){}var mem=navigator.deviceMemory||8,cores=navigator.hardwareConcurrency||8;if(/Mali|PowerVR|IMG|Immortalis|SwiftShader|llvmpipe|Software|Adreno[^0-9]*[2-4][0-9][0-9]\b|Unisoc|Spreadtrum|Vivante|VideoCore/i.test(r)||(an&&(mem<=4||cores<=6))||(an&&!r))f="8"}catch(e2){}}document.documentElement.setAttribute("data-fx",f)}catch(e){document.documentElement.setAttribute("data-fx","1")}</script>
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Aurum Invoice Studio</title>
@@ -267,7 +268,7 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .tpl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .tpl i.pv { aspect-ratio: 794 / 1123; position: relative; overflow: hidden; background: #fff !important; box-shadow: 0 0 0 1px rgba(255,255,255,.1) !important; border-radius: 6px; }
 .tpl i[data-pv] { aspect-ratio: 794 / 1123; }
-.pv-in { position: absolute; left: 0; top: 0; width: 794px; transform-origin: 0 0; pointer-events: none; }
+.pv-in { position: absolute; left: 0; top: 0; width: 794px; pointer-events: none; }
 .pv-in .inv { margin: 0; box-shadow: none; }
 .tpl { border: 1px solid var(--line); border-radius: 16px; padding: 8px; background: var(--surface); display: grid; gap: 8px; text-align: left; transition: border-color .2s; }
 .tpl b { font-size: 13px; padding: 0 4px 4px; }
@@ -1330,7 +1331,8 @@ html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
   background: repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px); }
 .env-foil::before { content: ""; position: absolute; left: 4%; right: 4%; top: 30%; bottom: 6%; border: 1px solid rgba(201,168,106,.5); border-top: 0; border-radius: 0 0 2px 2px; }
 .env-foil::after { content: ""; position: absolute; left: 6.2%; right: 6.2%; top: 30%; bottom: 8.4%; border: 1px dashed rgba(201,168,106,.28); border-top: 0; }
-.env .letter { background-color: #F6EEDC; }
+.env .letter { background-color: #F6EEDC; opacity: 1 !important; isolation: isolate; }
+.env .letter::before { content: ""; position: absolute; inset: 0; background: #F6EEDC; z-index: -1; border-radius: inherit; }
 .env-liner { background: repeating-linear-gradient(45deg, rgba(201,168,106,.10) 0 1px, transparent 1px 8px), repeating-linear-gradient(-45deg, rgba(201,168,106,.10) 0 1px, transparent 1px 8px), linear-gradient(180deg, #17140F, #0E0C09); box-shadow: inset 0 0 0 1px rgba(201,168,106,.22); }
 .env .letter { border-top: 1.5px solid #C9A86A; }
 .env .letter::after { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(184,147,90,.35); pointer-events: none; }
@@ -1547,6 +1549,7 @@ html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
 /* ---------- Install on phone ---------- */
 .install-bar { display: flex; align-items: center; gap: 12px; padding: 10px max(16px, env(safe-area-inset-left, 0px)); background: linear-gradient(90deg, #1C1810, #241E12); border-bottom: 1px solid var(--line-2); }
 .install-bar[hidden] { display: none; }
+html.embed .install-bar, html.embed #install-bar, html.embed .js-install { display: none !important; }
 .install-bar > span { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .install-bar b { font-size: 13.5px; color: var(--gold-hi, #E9D39E); font-weight: 600; }
 .install-bar small { font-size: 12px; color: var(--muted); }
@@ -1897,6 +1900,8 @@ html[data-fx="6"] *:not(.sr):not(input[type="file"]) { overflow: visible !import
 /* 8 = keep the rounded corners but give every rounded piece its own layer; 9 = softly rounded (6px) instead of round */
 html[data-fx="8"] :not(.cv):not(.cv *), html[data-fx="9"] :not(.cv):not(.cv *) { box-shadow: none !important; }
 html[data-fx="8"] :is(.act, .alert-card, .ap-l, .art-glow, .art-paper, .bar i, .bar-x, .btn, .card-btn, .card-line, .chip, .client-row, .client-sum div, .cz-prev, .dash-search, .doc-row, .doc-row .pill, .draft-card, .due-chip, .due-chip i, .email-ask input, .field input, .field select, .field textarea, .gstep .dot, .help-btn, .hn, .hn-ic, .home-empty, .iback) .l-line, .icon-btn, .iface, .ind, .input, .inst-tab, .it-thumb, .item-card, .item-head .x, .key-row, .kpi, .late-tag, .letter, .link-box, .lock-card, .mark-preview, .opt, .opt .logo, .owe, .owe-row, .pbadge, .pick, .pick-row, .pill, .plan-chip, .plan-chip i, .prestige-card, .rcpt-peek, .rv, .saved-item, .seg, .seg button, .send-card, .send-hero, .sheet, .stepper, .suggest, .suggest button, .sumbox, .swatch, .swatch-custom, .switch i, .tab, .tabs, .tag i, .team-row, .toast, .tool .collar, .tool .die, .tool .handle, .tpl, .tpl i, .ty-card, .upload .thumb, .verify img, :is(.letter) { transform: translateZ(0); }
+html[data-fx="8"] :is(.pg, .pg i, .tpl i.pv, .pv-in, .cz-prev, .paper-wrap, .tpl-sec, .accent-row, .acct-card, .plan-card, .price-card, .pay-card, .pg-grid) { transform: translateZ(0); }
+html[data-fx="8"] .pv-in .inv, html[data-fx="8"] .pv-in .inv * { box-shadow: none !important; text-shadow: none !important; animation: none !important; transition: none !important; }
 html[data-fx="9"] :not(.cv):not(.cv *) { border-radius: 6px !important; }
 html[data-fx="7"] *:not(#toast):not(.toast):not(.scrim):not(.sheet):not(.cv):not(#cv) { transform: none !important; opacity: 1 !important; }
 .env3d { position: relative; width: 100%; aspect-ratio: 1.46; }
@@ -2066,7 +2071,7 @@ html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important;
 </header>
 <div class="install-bar" id="install-bar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span><b>Install Aurum on your phone</b><small>Android &amp; iPhone. Opens full screen, works offline.</small></span><button class="btn sm js-install" type="button">Install app</button><button class="bar-x" type="button" id="bar-x" aria-label="Hide this">×</button></div>
 
-<div class="trial-bar" id="trial-bar" hidden><span><b>Free demo</b><small>Sample business and sample amounts only. Get Aurum to use your own.</small></span><a class="btn sm primary" id="trial-buy" href="#" target="_blank" rel="noopener">Get Aurum</a></div>
+<div class="trial-bar" id="trial-bar" hidden><span><b>Free demo</b><small>Sample business and sample amounts only. Choose a plan to use your own.</small></span><a class="btn sm primary" id="trial-buy" href="#" target="_blank" rel="noopener">See plans</a></div>
 
 <section class="home" id="home" hidden aria-label="Home">
   <div class="home-wrap">
@@ -2778,8 +2783,10 @@ async function openEnvelope(cv, wax, onDone) {
   flap.animate([{ transform: "rotateX(0deg)" }, { transform: "rotateX(-8deg)", offset: .12 }, { transform: "rotateX(180deg)" }], { duration: 1400, easing: "cubic-bezier(.55,0,.25,1)", fill: "forwards" });
   $(".face.front .shade", cv).animate([{ opacity: 0 }, { opacity: .65 }], { duration: 700, easing: "ease-in", fill: "forwards" });
   $(".face.back .shade", cv).animate([{ opacity: .55 }, { opacity: .55, offset: .5 }, { opacity: 0 }], { duration: 1400, easing: "ease-out", fill: "forwards" });
-  setTimeout(() => { flap.style.zIndex = "0"; }, 720);
+  setTimeout(() => { const ff = $(".face.front", cv); if (ff) ff.style.visibility = "hidden"; }, 640);
+  setTimeout(() => { flap.style.zIndex = "0"; flap.style.transformStyle = "flat"; }, 720);
   await wait(1250);
+  { const ff = $(".face.front", cv); if (ff) ff.style.display = "none"; $$(".shade", cv).forEach((s) => { s.style.display = "none"; }); }
   // 4 · the letter slides out of the pocket
   letter.animate([{ transform: "translateY(0) rotate(0deg)" }, { transform: "translateY(-40%) rotate(-.6deg)", offset: .55 }, { transform: "translateY(-74%) rotate(0deg)" }], { duration: 1250, easing: "cubic-bezier(.45,0,.2,1)", fill: "forwards" });
   $("#envLip", cv)?.animate([{ opacity: 0 }, { opacity: .5, offset: .5 }, { opacity: 0 }], { duration: 1250, fill: "forwards" });
@@ -3679,7 +3686,7 @@ function fillTplThumbs(root) {
   const paint = (el, n = 0) => {
     if (el.classList.contains("pv") || !el.isConnected) return; const w = el.clientWidth; if (!w) { if (n < 20) setTimeout(() => paint(el, n + 1), 150); return; }
     const P = { ...S.profile, design: { ...S.profile.design, template: el.dataset.pv } };
-    el.innerHTML = '<div class="pv-in" style="transform:scale(' + w / 794 + ')">' + invoiceHTML(P, D, { static: true }) + "</div>"; el.classList.add("pv");
+    el.innerHTML = '<div class="pv-in" style="zoom:' + (w / 794).toFixed(4) + '">' + invoiceHTML(P, D, { static: true }) + "</div>"; el.classList.add("pv");
   };
   if (!("IntersectionObserver" in window)) return items.forEach(paint);
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { io.unobserve(e.target); paint(e.target); } }), { rootMargin: "120px" });
@@ -4968,6 +4975,8 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
         <label class="toggle"><span>My business name as a watermark<small style="display:block;font-weight:400">Shows faintly across every document, so it is harder to copy</small></span><span class="switch"><input type="checkbox" id="h-wm" ${WM_TYPES.every((k) => docStyle(S.profile, k).watermark === "name") ? "checked" : ""}><i></i></span></label>
         <label class="toggle"><span>Company seal on documents</span><span class="switch"><input type="checkbox" data-bind="profile.design.seal" ${G.seal ? "checked" : ""}><i></i></span></label>
       </section>
+      <section><h3 class="sub">If the app looks odd or feels slow</h3><p class="hint" style="margin:0 0 10px">Auto picks the safest look for your phone. If something looks wrong, choose Smooth mode.</p>
+        <div class="chips">${[["auto", "Auto"], ["8", "Smooth mode"], ["1", "Full effects"]].map(([k, n]) => `<button type="button" class="chip" data-fxset="${k}" aria-pressed="${(localStorage.getItem("aurum.fx") || "auto") === k}">${n}</button>`).join("")}</div></section>
       <section><h3 class="sub">What your client sees</h3><p class="hint" style="margin:0 0 10px">After they open the envelope, this is the page with the amount to pay.</p>
         <div class="pg-grid">${PAGES.map(([k, n, d]) => `<button type="button" class="pg${allowedPage(k) ? "" : " locked"}" data-pg="${k}" style="--pc:${esc(G.brand)}" aria-pressed="${(G.page || "classic") === k}"><i></i><b>${n}</b><small>${d}</small></button>`).join("")}</div>
         <button class="btn sm" type="button" data-h="pagepreview" style="margin-top:10px">See it as your client</button>
@@ -5001,6 +5010,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
     if (sw) { G.brand = sw.dataset.color; persist(); reopenHouse(); render(); }
     if (sg) { B.signMode = sg.dataset.sign; persist(); reopenHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
+    const fxb = e.target.closest("[data-fxset]"); if (fxb) { try { fxb.dataset.fxset === "auto" ? localStorage.removeItem("aurum.fx") : localStorage.setItem("aurum.fx", fxb.dataset.fxset); } catch (er) {} return location.reload(); }
     const pgb = e.target.closest("[data-pg]"); if (pgb) { const k = pgb.dataset.pg; if (!allowedPage(k)) return lockSheet((PAGES.find((p) => p[0] === k) || [])[1] || "This page", "pro"); G.page = k; persist(); reopenHouse(); return; }
     if (h?.dataset.h === "pagepreview") { closeLayer(); return openClientView(payload(), { preview: true, verified: false }); }
     const gr = e.target.closest("[data-greet]"); if (gr) { G.greeting = gr.dataset.greet; persist(); return reopenHouse(); }
@@ -5222,7 +5232,7 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#bar-x")) { try { sessionStorage.setItem("aurum.installHidden", "1"); } catch (err) {} updateInstallBar(); }
 });
 updateInstallBar();
-if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !window.AURUM_NO_DOWNLOADS) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !window.AURUM_NO_DOWNLOADS && !document.documentElement.classList.contains("embed")) navigator.serviceWorker.register("sw.js").catch(() => {});
 if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", (e) => { if (e.data !== "aurum-updated") return; if (performance.now() < 8000 && !document.querySelector("input:focus,textarea:focus")) location.reload(); });
 // no pinch or double-tap zoom, like a real app
 ["gesturestart", "gesturechange", "gestureend"].forEach((n) => document.addEventListener(n, (e) => e.preventDefault()));
@@ -5317,7 +5327,7 @@ function addBrandSheet() {
 /* ---------- Prestige: upgrade prompt, phone alerts, monthly report ---------- */
 const upgradeHref = () => `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to upgrade my Aurum licence to Prestige.")}`;
 function freeSheet(title) {
-  sheet(title, `<div class="lock-card" style="margin:6px 4px 8px"><h3>Get Aurum for good</h3><ul><li>Unlimited invoices, receipts and quotations</li><li>No "Made with Aurum" line on your documents</li><li>All the envelope opening styles</li><li>Pay once, no monthly fees</li></ul><p class="hint" style="margin:8px 0">Your ${freeLimit()} free documents come back on the 1st of next month.</p><a class="btn primary" href="${esc(buyHref())}" target="_blank" rel="noopener">Get your licence</a></div>`);
+  sheet(title, `<div class="lock-card" style="margin:6px 4px 8px"><h3>Get more from Aurum</h3><ul><li>More documents every month</li><li>No "Made with Aurum" line on your documents</li><li>More designs and envelope openings</li><li>Plans from ₦3,000 a month</li></ul><p class="hint" style="margin:8px 0">Your ${freeLimit()} free documents come back on the 1st of next month.</p><a class="btn primary" href="${esc(buyHref())}" target="_blank" rel="noopener">See plans</a></div>`);
 }
 function upgradeSheet(feature) {
   sheet(feature, `<div class="lock-card" style="margin:6px 4px 8px"><h3>This is a Prestige feature</h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts, monthly report and team view</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul>${upgradeBtn()}</div>`);
@@ -5551,7 +5561,7 @@ $("#dash").addEventListener("click", (e) => {
 $("#dash-q").addEventListener("input", (e) => { dashState.q = e.target.value; renderDash(); });
 
 /* ---------- free trial: sample details only ---------- */
-const buyHref = () => CONFIG.BUY_LINK || (CONFIG.SELLER_WHATSAPP ? `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to buy Aurum.")}` : "#");
+const buyHref = () => "/pricing/";
 function updateTrialBar() { const b = $("#trial-bar"); if (!b) return; b.hidden = !isDemo(); const a = $("#trial-buy"); if (a) a.href = buyHref(); }
 const TRIAL_TEXT = "input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=date]):not([type=file]):not([type=hidden]):not([type=button]), textarea";
 let lockQueued = false;
@@ -5577,7 +5587,7 @@ function trialTap(e) {
   if (el.id.startsWith("c-")) return openDemoClients();
   if (el.dataset.item === "desc") return openDemoItems(el.closest(".item-card")?.dataset.id);
   if (el.dataset.item === "price" || el.dataset.item === "qty") return toast("In the free trial, the amounts are set for you.");
-  toast("The free trial uses sample details. Get Aurum to type your own.");
+  toast("The free demo uses sample details. Choose a plan to type your own.");
 }
 document.addEventListener("click", trialTap, true);
 document.addEventListener("focusin", trialTap, true);
@@ -5592,9 +5602,9 @@ function openDemoItems(id) {
 }
 function openDemoHouse() {
   const cur = S.profile.demoHouse ?? 0;
-  sheet("Try a sample business", `<p class="hint" style="padding:0 8px 12px">This is the free trial, so it runs on sample businesses with sample prices. Get Aurum to use your own name, logo, bank details, clients and amounts.</p>`
+  sheet("Try a sample business", `<p class="hint" style="padding:0 8px 12px">This is the free trial, so it runs on sample businesses with sample prices. Choose a plan to use your own name, logo, bank details, clients and amounts.</p>`
     + DEMO_HOUSES.map((h, i) => `<button type="button" class="pick-row" data-demo-house="${i}" aria-pressed="${i === cur}"><b>${esc(h.name)}</b><small>${esc(h.tagline)}</small></button>`).join("")
-    + `<a class="btn primary block" style="margin:14px 0 4px" href="${esc(buyHref())}" target="_blank" rel="noopener">Get Aurum</a>`,
+    + `<a class="btn primary block" style="margin:14px 0 4px" href="${esc(buyHref())}" target="_blank" rel="noopener">See plans</a>`,
     { onClick: (e) => { const b = e.target.closest("[data-demo-house]"); if (!b) return; applyDemoHouse(Number(b.dataset.demoHouse)); closeLayer(); startStudio(); showStep(1); swapAnim(); render({ enter: true }); toast("Sample business changed"); } });
 }
 

@@ -448,6 +448,32 @@ for (const [p, ti, de, h1, lead, body, faq, cn, opts] of newPages) { must(ti.len
   wr("_headers", rd("_headers").replace(/\s*$/, NL) + "/admin.html\n  X-Robots-Tag: noindex, nofollow, noarchive\n/app/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n/llms.txt\n  Content-Type: text/plain; charset=utf-8\n  Cache-Control: public, max-age=3600\n");
 }
 
+/* ---------------------------------------------------------------- 4b. pay on the website, a working demo phone, no WhatsApp "Get Aurum" links */
+{
+  const salesCfg = rd("index.html");
+  const g = (k) => (salesCfg.match(new RegExp(k + ': "([^"]*)"')) || [])[1] || "";
+  const sb = g("SUPABASE_URL"), ak = g("SUPABASE_ANON_KEY");
+  must(!!sb && !!ak, "supabase settings for the website checkout");
+  wr("checkout.js", fs.readFileSync(path.join(__dirname, "checkout.template.js"), "utf8").replace("__SB__", sb).replace("__AK__", ak));
+  wr("live-demo.js", fs.readFileSync(path.join(__dirname, "live-demo.js"), "utf8"));
+  const pages = [...new Set(walk(OUT).concat(["index.html"]))].filter((f) => /\.html$/.test(f) && f !== "admin.html" && !/^app[\\/]/.test(f));
+  for (const f of pages) {
+    let t = rd(f);
+    // any old "Get Aurum" button that still points at WhatsApp goes to the plans page instead
+    t = t.replace(/<a\b[^>]*\bdata-buy\b[^>]*>/g, (tag) => tag.replace(/\sdata-buy(?=[\s>])/, "").replace(/href="[^"]*"/, 'href="/pricing/"').replace(/\starget="_blank"/, ""));
+    t = t.replace(/<a\b[^>]*\bdata-prestige\b[^>]*>/g, (tag) => tag.replace(/\sdata-prestige(?=[\s>])/, "").replace(/href="[^"]*"/, 'href="/pricing/"'));
+    if (!t.includes("/checkout.js")) t = t.replace("</body>", '<script src="/checkout.js" defer></script>\n</body>');
+    if (f === "index.html") {
+      t = t.replace('<div class="hero-art" aria-hidden="true">', '<div class="hero-art">');
+      t = t.replace('<div class="phone p2">', '<div class="phone p2" data-demo role="button" tabindex="0" aria-label="Try the live demo">');
+      t = t.replace(/(<div class="chip"><i><\/i>Opened[^<]*<\/div>)/, '$1\n      <button class="demo-cta" type="button" data-demo>▶ Tap to try the live demo</button>');
+      t = t.replace('<a class="btn ghost" href="pricing/">See plans</a></div>', '<a class="btn ghost" href="pricing/">See plans</a><button class="btn" type="button" data-demo>Try the live demo</button></div>');
+      t = t.replace("</body>", '<script src="/live-demo.js" defer></script>\n</body>');
+    }
+    wr(f, t);
+  }
+}
+
 /* ---------------------------------------------------------------- 5. check for old wording left behind */
 {
   const left = /(pay once|one-time|one time payment|no monthly|licence key|licence|lifetime|selar|black friday|get aurum|free demo|try the demo|\bsignature\b plan|\bprestige\b)/i;
