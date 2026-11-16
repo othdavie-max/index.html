@@ -1,6 +1,6 @@
 // Aurum offline support: the app opens and works without data;
 // licence checks, links and payments always go to the live server.
-const CACHE = "aurum-v3";
+const CACHE = "aurum-v4";
 const SHELL = ["./", "./index.html", "./policies.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

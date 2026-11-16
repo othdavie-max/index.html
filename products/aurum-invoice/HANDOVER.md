@@ -22,3 +22,32 @@ Subscriptions (Free/Starter/Pro, Business coming soon), email + Google registrat
 
 ## SEO and AI-visibility plan (done, 15 Nov 2026)
 The plan is in `products/aurum-invoice/plan/` (start with its README). It is a plan only; nothing in it is built. The master plan is `plan/00-master-plan.md` (done, 15 Nov 2026); follow its order of work. The accounts and billing design is `plan/07-accounts-and-billing.md` (done, 15 Nov 2026); it has six decisions waiting for the owner in its part N and set-up jobs in its part L. The designs and openings spec is `plan/08-designs-and-openings.md` (done, 15 Nov 2026); four decisions wait for the owner in its part F. The saved items spec is `plan/09-saved-items.md` (done, 15 Nov 2026); three decisions wait for the owner in its part 12. The reminders and storefront brief is `plan/10-reminders-and-storefront.md` (done, 16 Nov 2026); seven decisions wait for the owner in its part C, and the owner must ask Paystack three questions before Zip 7b. **All Fable files are now written (00 to 10).** Next: step 0 clean-up (Haiku, low), then Build 1, accounts (Sonnet, high), from file 07 parts A to D. Build 1 (accounts, Sonnet, high) can start from file 07 parts A to D as soon as set-up jobs 1 to 4 in part L are done. After that, unwritten Fable files go to Opus at high. Items marked `[BILLING]` in the plan wait for the billing file; items marked `[VERIFY]` wait for an accountant's check. The builder must not switch the live "Pay once" wording until subscriptions launch.
+
+## Build 1: accounts (built 16 Nov 2026)
+Built from `plan/07-accounts-and-billing.md` parts A to D. **Nothing about plans, payment or the pricing page is built; that is Build 2.**
+
+What changed
+- `index.html` (the app): new sign-in screens in the gate (Google, email + 6-digit code, password sign-in, forgot password, licence key, choose-a-device), account card in My house (devices, sign out, delete my account), "Protect your purchase" card on Home for Signature and Prestige buyers, business-name change when the account's name differs, free limit shown as 5 a month. Code is in the "ACCOUNTS" block just after the licence code.
+- `accounts.sql`: the server side. **Has been tested (47 checks, all pass, inside a transaction that rolls back) but is NOT yet applied to the live database.** The permission system blocked applying it. It must be run once, before the new app is deployed (see below).
+- `tests/accounts-test.sql`: the test. Run it together with `accounts.sql` in ONE query; it ends with a deliberate error that undoes everything, and prints its results inside the error message.
+- `tests/serve.js` and `tests/mock.js`: a local test server and a stand-in for Supabase (add `?mock=1`).
+- `package.sh`: builds the folder/zip for Netlify (`bash package.sh <folder>`). The layout was checked against the live site: all 160 files sit at addresses that already exist.
+- `sw.js`: cache name changed to `aurum-v4` so installed copies update.
+
+Order to switch on (the app works with the old database too, but the account screens need the new functions)
+1. Owner runs `accounts.sql` in the Supabase SQL editor (Project > SQL Editor > paste > Run). It is safe to run twice.
+2. Owner deploys the zip.
+3. Launch day only: `update app_config set value = 'on' where key = 'accounts_required';` (until then, old free keys can still send without an account).
+
+Set-up jobs from file 07 part L, as checked on 16 Nov
+- Job 4 (Supabase settings): done through Composio: site address `https://auruminvoice.com.ng/app/`, redirect list the same, code length 6, password minimum 8.
+- **Email templates could not be set:** Supabase only allows custom email templates once a custom mail service (job 1) is connected. Until then sign-up emails use Supabase's default wording, which has a LINK and no code, and Supabase's own sender is limited to a few emails an hour. The app also accepts that link (it signs the person in when they tap it), so sign-up still works, but the "6-digit code" screen will not match the email. **Job 1 is needed before real testing.**
+- Job 3 (Google sign-in) is not done: Google is switched off in Supabase, so the Google buttons stay hidden (the app checks this itself; no code change needed when it is switched on).
+- `GOOGLE_IN_IOS_APP` in `CONFIG` is false: Google sign-in inside the installed iPhone app is hidden until tested on a real iPhone.
+- Not done (owner): jobs 1, 2, 3; changing the Gmail app password.
+
+Known limits and notes
+- The code screen is one number field (styled with wide spacing), not six separate boxes.
+- Account functions: `account_enter`, `link_licence`, `account_swap_device`, `account_devices`, `account_remove_device`, `account_release_device`, `rename_business`, `request_delete`, `my_plan`. Plan limits are in the `plan_rules` table; `_ent(key)` is what the app reads.
+- The app's own variable named `history` hides the browser's `history`: use `window.history` for the address bar.
+- Files use Windows line endings (CRLF) in the working copy.

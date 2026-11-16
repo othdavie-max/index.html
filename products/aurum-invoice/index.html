@@ -659,6 +659,36 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .key-row:focus-within { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(217,190,132,.12); }
 .key-row input { flex: 1; min-width: 0; height: 46px; border: 0; background: transparent; color: var(--ink); padding: 0 16px; font-size: 16px; letter-spacing: .12em; text-transform: uppercase; outline: none; }
 .key-row input::placeholder { letter-spacing: .04em; text-transform: none; color: var(--faint); }
+/* ---- accounts: the sign-in screens inside the gate ---- */
+.g-panel { display: grid; gap: 12px; max-width: 460px; min-width: 0; }
+.g-msg { color: var(--gold); font-size: 14.5px; line-height: 1.5; max-width: 460px; }
+.g-msg:empty { display: none; }
+.g-msg.bad { color: #E58E85; }
+.g-help { justify-self: start; font-size: 14px; }
+.g-lead { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
+.g-lead b { color: var(--ink); font-weight: 700; overflow-wrap: anywhere; }
+.g-btns { display: grid; gap: 10px; }
+.g-note { border: 1px solid rgba(217,190,132,.35); border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.g-input { width: 100%; height: 52px; border-radius: 99px; border: 1px solid var(--line-2); background: rgba(15,14,12,.8); color: var(--ink); padding: 0 20px; font: 500 16px var(--f-body); outline: none; transition: border-color .25s, box-shadow .25s; }
+.g-input:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(217,190,132,.12); }
+.g-input::placeholder { color: var(--faint); }
+.g-input.code { text-align: center; letter-spacing: .5em; padding-left: calc(20px + .5em); font-size: 24px; font-weight: 700; }
+.g-input.code::placeholder { letter-spacing: .5em; }
+.g-pw { position: relative; }
+.g-pw .g-input { padding-right: 78px; }
+.g-eye { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 36px; padding: 0 14px; border: 0; border-radius: 99px; background: transparent; color: var(--gold); font: 700 13px var(--f-body); letter-spacing: .04em; cursor: pointer; }
+.g-two { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.g-dev { display: grid; gap: 8px; }
+.g-devbtn { display: grid; gap: 2px; text-align: left; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--line-2); background: rgba(15,14,12,.8); color: var(--ink); font: inherit; cursor: pointer; }
+.g-devbtn small { color: var(--faint); }
+.g-devbtn:disabled { opacity: .5; }
+.dev-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 8px; border-bottom: 1px solid var(--line); }
+.dev-row div { display: grid; gap: 2px; min-width: 0; }
+.dev-row small { color: var(--muted); font-size: 13px; }
+.protect-card { align-items: center; }
+html[data-theme="light"] .g-input, html[data-theme="light"] .g-devbtn { background: var(--surface); }
+html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
+
 .key-row .btn { height: 46px; padding: 0 26px; }
 .gate .err { min-height: 18px; margin-top: 8px; color: var(--danger); font-size: 13.5px; }
 .gate-alt { margin-top: -8px; }
@@ -1284,23 +1314,85 @@ html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important;
   <div class="gate-grid">
     <div class="gate-copy">
       <span class="eyebrow g-in" style="--d:.1s">Sealed in wax · Delivered by link</span>
-      <h1 id="gate-title" class="g-in" style="--d:.2s">Your business is premium. <em>Your invoice should be too.</em></h1>
-      <p class="gate-lead g-in" style="--d:.35s">For businesses that care how they are remembered. Your clients break your seal, pay in a tap, and keep a signed original.</p>
-      <form id="gate-form" class="g-in" style="--d:.5s" autocomplete="off">
-        <label class="sr" for="lic-key">Licence key</label>
-        <div class="key-row"><input id="lic-key" name="key" placeholder="Your licence key" maxlength="40" required><button class="btn primary" type="submit" id="lic-submit">Enter</button></div>
-        <div class="err" id="lic-err" role="alert"></div>
+      <h1 id="gate-title" class="g-in" style="--d:.2s">Welcome to <em>Aurum</em></h1>
+      <p class="gate-lead g-in" style="--d:.35s">Create your free account. 5 documents a month, no card needed.</p>
+            <div class="g-msg g-in" style="--d:.4s" id="g-msg" role="alert"></div>
+      <a class="link-btn g-help" id="g-help" href="#" target="_blank" rel="noopener" hidden>Message us on WhatsApp</a>
+
+      <div class="g-panel g-in" style="--d:.5s" data-panel="welcome">
+        <div class="g-btns">
+          <button class="btn primary block js-google" type="button" hidden>Continue with Google</button>
+          <button class="btn block" type="button" data-go="create">Continue with email</button>
+        </div>
+        <div class="g-note" id="g-note" hidden></div>
+        <div class="gate-alt" style="display:flex;flex-wrap:wrap;gap:4px 18px"><button class="link-btn" type="button" data-go="signin">I already have an account</button><button class="link-btn" type="button" data-go="key">I have a licence key</button><button class="link-btn" type="button" id="lic-demo">See a sample invoice</button></div>
+        <div class="gate-install-wrap"><button class="btn gate-install js-install" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span>Install the app on your phone<small>Android &amp; iPhone</small></span></button></div>
+        <p class="fine">By continuing you agree to our <a href="policies.html" target="_blank" rel="noopener">terms</a> and <a href="policies.html#privacy" target="_blank" rel="noopener">privacy notice</a>.</p>
+      </div>
+
+      <form class="g-panel" data-panel="create" id="g-create" autocomplete="on" hidden novalidate>
+        <label class="sr" for="gc-email">Your email</label>
+        <input class="g-input" id="gc-email" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="Your email address" required>
+        <label class="sr" for="gc-pw">Choose a password</label>
+        <div class="g-pw"><input class="g-input" id="gc-pw" type="password" autocomplete="new-password" maxlength="72" placeholder="Choose a password" required><button class="g-eye" type="button" data-eye="gc-pw">Show</button></div>
+        <p class="fine" style="margin:0">At least 8 characters.</p>
+        <button class="btn primary block" type="submit" id="gc-go">Create account</button>
+        <button class="js-google link-btn" type="button" hidden>Or continue with Google</button>
+        <button class="link-btn js-back" type="button">Back</button>
       </form>
-      <div class="gate-install-wrap g-in" style="--d:.55s"><button class="btn gate-install js-install" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3"/></svg><span>Install the app on your phone<small>Android &amp; iPhone</small></span></button></div>
-      <div class="gate-alt g-in" style="--d:.6s;display:flex;flex-wrap:wrap;gap:4px 18px"><button class="link-btn" type="button" id="lic-free">Try it free <span aria-hidden="true">→</span></button> <button class="link-btn" type="button" id="lic-demo">Explore the demo</button></div>
-      <form id="free-form" class="g-in" style="--d:.62s;margin-top:10px" autocomplete="on" hidden>
-        <label class="sr" for="free-email">Your email</label>
-        <div class="key-row"><input id="free-email" style="min-width:0" name="email" type="email" placeholder="Your email address" maxlength="120" autocomplete="email" required><button class="btn primary" type="submit" id="free-submit">Send link</button></div>
-        <input id="free-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
-        <div class="err" id="free-msg" role="alert"></div>
-        <p class="fine" style="margin-top:6px">Free plan: make 3 invoices, receipts or quotations every month. We email you a link to confirm your email. No card needed.</p>
+
+      <form class="g-panel" data-panel="code" id="g-code" autocomplete="one-time-code" hidden novalidate>
+        <p class="g-lead">We sent a 6-digit code to <b id="gk-email"></b>. Type it here.</p>
+        <label class="sr" for="gk-code">6-digit code</label>
+        <input class="g-input code" id="gk-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······" required>
+        <button class="btn primary block" type="submit" id="gk-go">Continue</button>
+        <div class="g-two"><button class="link-btn" type="button" id="gk-resend">Send it again</button><button class="link-btn" type="button" id="gk-change">Change email</button></div>
       </form>
-      <p class="fine g-in" style="--d:.7s" id="gate-fine">Your licence is personal to you and works on your own devices.</p>
+
+      <form class="g-panel" data-panel="signin" id="g-signin" autocomplete="on" hidden novalidate>
+        <label class="sr" for="gs-email">Your email</label>
+        <input class="g-input" id="gs-email" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="Your email address" required>
+        <label class="sr" for="gs-pw">Password</label>
+        <div class="g-pw"><input class="g-input" id="gs-pw" type="password" autocomplete="current-password" maxlength="72" placeholder="Password" required><button class="g-eye" type="button" data-eye="gs-pw">Show</button></div>
+        <button class="btn primary block" type="submit" id="gs-go">Sign in</button>
+        <button class="js-google link-btn" type="button" hidden>Or continue with Google</button>
+        <div class="g-two"><button class="link-btn" type="button" data-go="forgot">Forgot password?</button><button class="link-btn js-back" type="button">Back</button></div>
+      </form>
+
+      <form class="g-panel" data-panel="forgot" id="g-forgot" autocomplete="on" hidden novalidate>
+        <p class="g-lead">Enter your email and we will send you a code.</p>
+        <label class="sr" for="gf-email">Your email</label>
+        <input class="g-input" id="gf-email" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="Your email address" required>
+        <button class="btn primary block" type="submit" id="gf-go">Send code</button>
+        <button class="link-btn" type="button" data-go="signin">Back to sign in</button>
+      </form>
+
+      <form class="g-panel" data-panel="newpass" id="g-newpass" autocomplete="on" hidden novalidate>
+        <p class="g-lead">Choose a new password.</p>
+        <label class="sr" for="gn-pw">New password</label>
+        <div class="g-pw"><input class="g-input" id="gn-pw" type="password" autocomplete="new-password" maxlength="72" placeholder="New password" required><button class="g-eye" type="button" data-eye="gn-pw">Show</button></div>
+        <p class="fine" style="margin:0">At least 8 characters.</p>
+        <button class="btn primary block" type="submit" id="gn-go">Save and sign in</button>
+      </form>
+
+      <div class="g-panel" data-panel="key" hidden>
+        <form id="gate-form" autocomplete="off">
+          <label class="sr" for="lic-key">Licence key</label>
+          <div class="key-row"><input id="lic-key" name="key" placeholder="Your licence key" maxlength="40" required><button class="btn primary" type="submit" id="lic-submit">Enter</button></div>
+          <div class="err" id="lic-err" role="alert"></div>
+        </form>
+        <p class="fine" style="margin:0">Bought a licence? Type your key here. You can create an account afterwards to protect it.</p>
+        <button class="link-btn js-back" type="button">Back</button>
+      </div>
+
+      <div class="g-panel" data-panel="devices" hidden>
+        <p class="g-lead" id="gd-title"></p>
+        <div class="g-dev" id="gd-list"></div>
+        <button class="link-btn js-back" type="button">Cancel</button>
+      </div>
+
+      <div class="g-panel" data-panel="wait" hidden><p class="g-lead">Opening your account…</p></div>
+<p class="fine g-in" style="--d:.7s" id="gate-fine">Your licence is personal to you and works on your own devices.</p>
     </div>
     <div class="gate-art" aria-hidden="true">
       <div class="art-glow"></div>
@@ -1547,6 +1639,7 @@ const CONFIG = {
   BUY_LINK: "",            // your Selar product page
   SELLER_WHATSAPP: "2347032978008",     // e.g. 2348031234567 — buyers contact you here (Prestige upgrades, device moves)
   OFFLINE_GRACE_DAYS: 7,
+  GOOGLE_IN_IOS_APP: false,   // Google sign-in inside the installed app on iPhone: switch on after testing on a real iPhone
   REFERRAL_OFFER: "₦2,000 off", // what a friend gets with a buyer's referral code (honour it on Selar)
 };
 
@@ -2373,36 +2466,39 @@ const isPrestige = () => licence?.mode === "full" && licence.plan === "prestige"
 const isFree = () => licence?.mode === "full" && licence.plan === "free";
 let freeLeft = null;
 const FREE_REASONS = { email: "That email doesn't look right. Check it and try again.", disposable: "Please use your real email address, not a temporary one.", email_limit: "Too many tries for that email. Check your inbox and spam folder, or try again tomorrow.", ip_limit: "Too many sign-ups from this network today. Try again tomorrow.", device_limit: "Too many tries from this phone today. Try again tomorrow.", device: "Please reload the page and try again.", not_configured: "Free sign-up is not switched on yet. Try the demo for now.", mail_failed: "We couldn't send the email. Check the address and try again.", expired: "That link has expired. Ask for a new one below.", invalid: "That link isn't valid. Ask for a new one below.", device_used: "A free account already exists on this phone. Use that email, or buy a licence." };
-const REASONS = { invalid: "That licence key isn't valid. Check it and try again.", revoked: "This licence has been switched off. Contact the seller.", device_limit: "This key is already in use on its devices. Contact the seller to move it to this one." };
+const REASONS = { use_account: "This licence is joined to an account. Sign in with your email or Google.", invalid: "That licence key isn't valid. Check it and try again.", revoked: "This licence has been switched off. Contact the seller.", device_limit: "This key is already in use on its devices. Contact the seller to move it to this one." };
 
 async function bootLicence() {
   $("#art-env").innerHTML = envelopeHTML({ name: "Maison Temi" }, { type: "invoice", number: "INV-0001", client: { name: "Chief Mrs. Adebayo" } }, "#5A1A24");
   ["env", "letter", "pocket", "flap", "sealTop", "sealWrap", "sealLow", "crackPath", "sealBtn"].forEach((k) => $("#art-env #" + k)?.removeAttribute("id"));
   const tilt = $("#art-tilt");
   if (!reduceMotion && matchMedia("(hover: hover)").matches) $("#gate").addEventListener("pointermove", (e) => { const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5; tilt.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 8}deg)`; });
-  $("#gate-fine").innerHTML = "Your licence is personal to you and works on your own devices. <span style=\"opacity:.6\">Version 13 Nov c · level " + (document.documentElement.getAttribute("data-fx") || "1") + "</span> " + (CONFIG.BUY_LINK ? ` <a href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get a licence</a>` : "");
+  $("#gate-fine").innerHTML = "<span style=\"opacity:.6\">Version 16 Nov a · level " + (document.documentElement.getAttribute("data-fx") || "1") + "</span> " + (CONFIG.BUY_LINK ? ` <a href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get a licence</a>` : "");
+  if (window.__authReturn) return handleAuthReturn();
   if (licence?.mode === "demo") return enter();
   if (licence?.mode === "full" && configured()) {
     try {
       const r = await rpc("activate_license", { p_key: licence.key, p_device: deviceId });
-      if (r.ok) { licence = { ...licence, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || licence.refCode, checkedAt: Date.now() }; LS.set("aurum.licence", licence); return enter(); }
+      if (r.ok) { licence = { ...licence, email: r.email || licence.email, plan: r.plan || "signature", refCode: r.ref_code || licence.refCode, acct: !!r.account, ent: r.ent || licence.ent || null, checkedAt: Date.now() }; LS.set("aurum.licence", licence); applyEnt(r.ent); return enter(); }
+      // the key belongs to an account and this phone is no longer on it (signed out from another phone): sign in again
+      if (r.reason === "use_account") return showGate("This phone was signed out of your account. Please sign in again.", false, "signin");
       LS.del("aurum.licence"); licence = null; return showGate(REASONS[r.reason] || REASONS.invalid);
     } catch {
       if ((Date.now() - (licence.checkedAt || 0)) / 864e5 < CONFIG.OFFLINE_GRACE_DAYS) return enter();
       return showGate("Connect to the internet so we can confirm your licence.");
     }
   }
-  showGate("");
+  if (!licence && session) return afterSignIn();   // signed in, but the account never finished opening
+  showGate("", false);
 }
-function showGate(msg) { $("#gate").hidden = false; $("#lic-err").textContent = msg || ""; }
 $("#gate-form").addEventListener("submit", async (e) => {
   e.preventDefault(); const key = $("#lic-key").value.trim().toUpperCase(); if (!key) return;
   if (!configured()) { $("#lic-err").textContent = "Licences aren't switched on yet. Explore the free trial for now."; return; }
   const btn = $("#lic-submit"); btn.disabled = true; btn.textContent = "Checking…"; $("#lic-err").textContent = "";
   try {
     const r = await rpc("activate_license", { p_key: key, p_device: deviceId });
-    if (r.ok) { licence = { mode: "full", key, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || "", checkedAt: Date.now() }; LS.set("aurum.licence", licence); trackEvt("key_activated", { plan: licence.plan }); if (S.profile.demo) resetForRealBusiness(); enter(); toast("Welcome to Aurum"); }
-    else $("#lic-err").textContent = REASONS[r.reason] || REASONS.invalid;
+    if (r.ok) { licence = { mode: "full", key, email: r.email, plan: r.plan || "signature", refCode: r.ref_code || "", acct: !!r.account, ent: r.ent || null, checkedAt: Date.now() }; LS.set("aurum.licence", licence); applyEnt(r.ent); trackEvt("key_activated", { plan: licence.plan }); if (S.profile.demo) resetForRealBusiness(); enter(); toast("Welcome to Aurum"); }
+    else if (r.reason === "use_account") { gateGo("signin", REASONS.use_account, false); } else $("#lic-err").textContent = REASONS[r.reason] || REASONS.invalid;
   } catch { $("#lic-err").textContent = "We couldn't reach the licence server. Check your internet and try again."; }
   btn.disabled = false; btn.textContent = "Enter";
 });
@@ -2413,40 +2509,376 @@ function trackEvt(type, meta) {
     rpc("track", { p_session: sid, p_type: type, p_page: "app", p_source: localStorage.getItem("aurumSrc") || "direct", p_campaign: localStorage.getItem("aurumCmp") || "", p_referrer: "", p_device: device, p_meta: meta || null }).catch(() => {});
   } catch (e) {}
 }
-$("#lic-free").addEventListener("click", () => { const f = $("#free-form"); f.hidden = false; $("#free-email").focus(); });
-$("#free-form").addEventListener("submit", async (e) => {
-  e.preventDefault(); const btn = $("#free-submit"), msg = $("#free-msg"); const email = $("#free-email").value.trim();
-  if (!email) return; btn.disabled = true; btn.textContent = "Sending…"; msg.textContent = ""; msg.style.color = "";
-  try {
-    const res = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/, "") + "/functions/v1/free-signup", { method: "POST", headers: { "Content-Type": "application/json", apikey: CONFIG.SUPABASE_ANON_KEY }, body: JSON.stringify({ email, device: deviceId, website: $("#free-hp").value }) });
-    const r = await res.json().catch(() => ({}));
-    if (r.ok) { msg.style.color = "var(--gold)"; msg.textContent = "Check your inbox (and spam) for the link. Tap it on this phone."; trackEvt("free_signup"); }
-    else msg.textContent = FREE_REASONS[r.reason] || "Something went wrong. Try again in a moment.";
-  } catch { msg.textContent = "We couldn't reach the server. Check your internet and try again."; }
-  btn.disabled = false; btn.textContent = "Send link";
+/* =========================================================
+   ACCOUNTS — email or Google sign-in (plan/07, parts A to D)
+   An account owns one workspace: a licence key the person never sees. Keys that were bought (or issued free
+   by email link) keep working exactly as before and can be joined to an account once. Everything the app
+   sends to the server after sign-in still uses the key and this device, as it always has.
+   ========================================================= */
+const SESSION_KEY = "aurum.session";
+let session = LS.get(SESSION_KEY, null);   // { access_token, refresh_token, expires_at (seconds), email, uid }
+let authLost = false;                      // true when the saved sign-in can no longer be renewed
+const sbUrl = () => CONFIG.SUPABASE_URL.replace(/\/$/, "");
+const jwtPayload = (t) => { try { return JSON.parse(atob(String(t).split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))); } catch { return {}; } };
+function setSession(s) {
+  if (!s || !s.access_token) { session = null; LS.del(SESSION_KEY); return null; }
+  const c = jwtPayload(s.access_token);
+  session = { access_token: s.access_token, refresh_token: s.refresh_token || session?.refresh_token || "", expires_at: Number(s.expires_at) || c.exp || Math.floor(Date.now() / 1000) + (Number(s.expires_in) || 3600), email: String(s.user?.email || c.email || session?.email || "").toLowerCase(), uid: s.user?.id || c.sub || session?.uid || "" };
+  LS.set(SESSION_KEY, session); authLost = false; return session;
+}
+async function authCall(path, { method = "POST", body, token } = {}) {
+  let res;
+  try { res = await fetch(sbUrl() + "/auth/v1/" + path, { method, headers: { "Content-Type": "application/json", apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: "Bearer " + (token || CONFIG.SUPABASE_ANON_KEY) }, body: body ? JSON.stringify(body) : undefined }); }
+  catch { return { ok: false, status: 0, offline: true, data: {} }; }
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+}
+function authReason(r) {
+  if (r.offline) return "offline";
+  const c = String(r.data?.error_code || r.data?.code || "").toLowerCase(), m = String(r.data?.msg || r.data?.message || r.data?.error_description || "").toLowerCase();
+  if (r.status === 429 || /rate_limit|too many|rate limit/.test(c + " " + m)) return "rate";
+  if (c === "invalid_credentials" || /invalid login/.test(m)) return "creds";
+  if (c === "email_not_confirmed" || /not confirmed/.test(m)) return "unconfirmed";
+  if (c === "otp_expired" || c === "otp_disabled" || /token has expired|invalid or has expired|invalid.*(token|code)/.test(m)) return "code";
+  if (c === "weak_password") return "weak";
+  if (c === "user_already_exists" || /already registered/.test(m)) return "exists";
+  return "other";
+}
+// A valid access token, renewed when it is close to ending. With no connection, the saved one is used while it still works.
+async function freshToken() {
+  if (!session) return null;
+  if (session.expires_at - Date.now() / 1000 > 300) return session.access_token;
+  if (!session.refresh_token) { authLost = true; return null; }
+  const r = await authCall("token?grant_type=refresh_token", { body: { refresh_token: session.refresh_token } });
+  if (r.ok && r.data.access_token) { setSession(r.data); return session.access_token; }
+  if (r.offline || r.status >= 500) return session.expires_at > Date.now() / 1000 ? session.access_token : null;
+  authLost = true; setSession(null); return null;
+}
+async function rpcAuth(fn, body) {
+  const t = await freshToken(); if (!t) throw new Error("auth");
+  const res = await fetch(sbUrl() + "/rest/v1/rpc/" + fn, { method: "POST", headers: { "Content-Type": "application/json", apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: "Bearer " + t }, body: JSON.stringify(body) });
+  if (res.status === 401) { authLost = true; throw new Error("auth"); }
+  if (!res.ok) throw new Error("server " + res.status);
+  return res.json();
+}
+const deviceLabel = () => { const ua = navigator.userAgent; const what = /iphone/i.test(ua) ? "iPhone" : /ipad/i.test(ua) ? "iPad" : /android/i.test(ua) ? "Android phone" : /windows/i.test(ua) ? "Windows computer" : /macintosh|mac os/i.test(ua) ? "Mac" : "Computer"; const br = /edg\//i.test(ua) ? "Edge" : /opr\/|opera/i.test(ua) ? "Opera" : /chrome|crios/i.test(ua) ? "Chrome" : /firefox|fxios/i.test(ua) ? "Firefox" : /safari/i.test(ua) ? "Safari" : ""; return (what + (br ? " · " + br : "")).slice(0, 60); };
+// Google refuses to sign people in from the browsers inside Instagram, Facebook, TikTok and similar apps.
+const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Instagram|TikTok|musical_ly|Line\/|Snapchat/i.test(navigator.userAgent);
+const iosInstalled = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && (navigator.standalone === true || matchMedia("(display-mode: standalone)").matches);
+let googleOn = null;
+async function checkGoogle() { if (googleOn !== null) return googleOn; try { const res = await fetch(sbUrl() + "/auth/v1/settings", { headers: { apikey: CONFIG.SUPABASE_ANON_KEY } }); const j = await res.json(); googleOn = !!j?.external?.google; } catch { googleOn = false; } return googleOn; }
+const dAgo = (s) => { const d = Math.round((Date.now() - new Date(s).getTime()) / 864e5); return d <= 0 ? "today" : d === 1 ? "yesterday" : d + " days ago"; };
+function wipeLocalData() { try { const keep = new Set(["aurum.device", "aurum.theme", "aurum.fx", "aurum.v3d", "aurumSrc", "aurumCmp"]); Object.keys(localStorage).filter((k) => /^aurum/i.test(k) && !keep.has(k)).forEach((k) => localStorage.removeItem(k)); } catch {} }
+// What this workspace may do, as the server last said (file 07, B3). Build 1 only uses the document count; later builds use the rest.
+function applyEnt(e) {
+  if (!e || !licence) return;
+  licence.ent = e; LS.set("aurum.licence", licence);
+  if (e.tier === "free" && e.docs_left != null) freeLeft = e.docs_left;
+  try { if (typeof syncChrome === "function") syncChrome(); } catch {}
+}
+const freeLimit = () => licence?.ent?.docs_limit ?? 5;
+
+/* ---------- the sign-in screens (inside the gate) ---------- */
+const AUTH_MSG = {
+  creds: "That email or password is not right. Try again, or tap \"Forgot password\".",
+  exists: "You already have an account with this email. Sign in instead.",
+  code: "That code is not right, or it has expired. Tap \"Send it again\".",
+  offline: "You are offline. Connect to the internet to sign in.",
+  rate: "Too many tries. Please wait a few minutes.",
+  disposable: "Please use your regular email address.",
+  weak: "That password is too easy to guess. Use at least 8 characters.",
+  short: "Use at least 8 characters for your password.",
+  email: "That email doesn't look right. Check it and try again.",
+  unconfirmed: "Please confirm your email first. We sent you a new code.",
+  other: "Something went wrong. Please try again in a moment.",
+};
+const gateCtx = { panel: "welcome", mode: "signup", email: "", inApp: false };
+const gMsg = (t, bad) => { const el = $("#g-msg"); el.textContent = t || ""; el.classList.toggle("bad", !!bad); if (!t) $("#g-help").hidden = true; };
+const waHelp = (text) => { const a = $("#g-help"); a.href = `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent(text)}`; a.hidden = false; };
+function gateGo(panel, msg, bad) {
+  gateCtx.panel = panel;
+  $$(".g-panel").forEach((p) => (p.hidden = p.dataset.panel !== panel));
+  $$(".js-back").forEach((b) => (b.textContent = gateCtx.inApp ? "Cancel" : "Back"));
+  gMsg(msg || "", bad); $("#g-help").hidden = true;
+  const first = { create: "#gc-email", signin: "#gs-email", forgot: "#gf-email", code: "#gk-code", newpass: "#gn-pw", key: "#lic-key" }[panel];
+  if (first) setTimeout(() => { const el = $(first); if (el && !el.value) el.focus(); }, 120);
+}
+async function setupGateUI() {
+  const note = $("#g-note"); note.hidden = true;
+  const noGoogle = inAppBrowser() || (iosInstalled() && !CONFIG.GOOGLE_IN_IOS_APP);
+  if (inAppBrowser()) { note.hidden = false; note.textContent = "To continue with Google, open this page in Chrome or Safari. Tap the three dots at the top, then \"Open in browser\". Or use your email below."; }
+  else if (iosInstalled() && !CONFIG.GOOGLE_IN_IOS_APP) { note.hidden = false; note.textContent = "Use your email here. If you joined with Google, tap \"Forgot password\" to set one."; }
+  const show = !noGoogle && (await checkGoogle());
+  $$(".js-google").forEach((b) => (b.hidden = !show));
+}
+function showGate(msg, bad = true, panel = "welcome") { $("#gate").hidden = false; gateCtx.inApp = false; setupGateUI(); gateGo(panel, msg, bad && !!msg); }
+function openAccountGate(panel = "create") {
+  closeLayer(); gateCtx.inApp = true; $("#gate").hidden = false; setupGateUI();
+  const em0 = String(licence?.email || session?.email || "").trim().toLowerCase(), em = /^\S+@\S+\.\S+$/.test(em0) ? em0 : "";
+  if (em && !$("#gc-email").value) $("#gc-email").value = em;
+  if (em && !$("#gs-email").value) $("#gs-email").value = em;
+  const nm = licence?.ent?.label || (licence?.plan === "prestige" ? "Prestige" : licence?.plan === "signature" ? "Signature" : "");
+  gateGo(panel, licence?.plan && licence.plan !== "free" ? `Your ${nm} plan stays exactly as it is.` : "", false);
+}
+const gateClose = () => { $("#gate").hidden = true; gateCtx.inApp = false; };
+const busy = (btn, text) => { const old = btn.textContent; btn.disabled = true; btn.textContent = text; return () => { btn.disabled = false; btn.textContent = old; }; };
+let resendLeft = 0, resendTimer = null;
+function startResend() {
+  clearInterval(resendTimer); resendLeft = 60; const b = $("#gk-resend");
+  const tick = () => { b.disabled = resendLeft > 0; b.textContent = resendLeft > 0 ? `Send it again (${resendLeft})` : "Send it again"; if (resendLeft-- <= 0) clearInterval(resendTimer); };
+  tick(); resendTimer = setInterval(tick, 1000);
+}
+function codePanel(note) { gateGo("code"); $("#gk-email").textContent = gateCtx.email; $("#gk-code").value = ""; startResend(); if (note) gMsg(note, false); }
+
+$("#gate").addEventListener("click", (e) => {
+  const go = e.target.closest("[data-go]"); if (go) return gateGo(go.dataset.go);
+  if (e.target.closest(".js-back")) return gateCtx.inApp ? gateClose() : gateGo("welcome");
+  if (e.target.closest(".js-google")) return googleStart();
+  const eye = e.target.closest("[data-eye]"); if (eye) { const i = $("#" + eye.dataset.eye); const show = i.type === "password"; i.type = show ? "text" : "password"; eye.textContent = show ? "Hide" : "Show"; }
 });
+$("#gk-change").addEventListener("click", () => gateGo(gateCtx.mode === "recovery" ? "forgot" : "create"));
+$("#gk-code").addEventListener("input", (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6); });
+function googleStart() {
+  gMsg("");
+  const dest = /auruminvoice\.com\.ng$/.test(location.hostname) ? "https://auruminvoice.com.ng/app/" : location.origin + location.pathname;
+  location.href = sbUrl() + "/auth/v1/authorize?provider=google&redirect_to=" + encodeURIComponent(dest);
+}
+$("#g-create").addEventListener("submit", async (e) => {
+  e.preventDefault(); const email = $("#gc-email").value.trim().toLowerCase(), pw = $("#gc-pw").value;
+  if (!/^\S+@\S+\.\S+$/.test(email)) return gMsg(AUTH_MSG.email, true);
+  if (pw.length < 8) return gMsg(AUTH_MSG.short, true);
+  const done = busy($("#gc-go"), "Creating…"); gMsg("");
+  const r = await authCall("signup", { body: { email, password: pw } });
+  done();
+  if (r.ok) {
+    if (r.data.access_token) { setSession(r.data); return afterSignIn(); }
+    const u = r.data.user || r.data;
+    if (Array.isArray(u.identities) && u.identities.length === 0) return gMsg(AUTH_MSG.exists, true);
+    gateCtx.email = email; gateCtx.mode = "signup"; trackEvt("account_started"); return codePanel();
+  }
+  gMsg(AUTH_MSG[authReason(r)] || AUTH_MSG.other, true);
+});
+$("#g-code").addEventListener("submit", async (e) => {
+  e.preventDefault(); const token = $("#gk-code").value.replace(/\D/g, "");
+  if (token.length < 6) return gMsg(AUTH_MSG.code, true);
+  const done = busy($("#gk-go"), "Checking…"); gMsg("");
+  const r = await authCall("verify", { body: { type: gateCtx.mode === "recovery" ? "recovery" : "signup", email: gateCtx.email, token } });
+  done();
+  if (r.ok && r.data.access_token) { setSession(r.data); return gateCtx.mode === "recovery" ? gateGo("newpass") : afterSignIn(); }
+  gMsg(AUTH_MSG[authReason(r)] || AUTH_MSG.code, true);
+});
+$("#gk-resend").addEventListener("click", async () => {
+  if (resendLeft > 0) return;
+  const r = gateCtx.mode === "recovery" ? await authCall("recover", { body: { email: gateCtx.email } }) : await authCall("resend", { body: { type: "signup", email: gateCtx.email } });
+  if (r.ok) { gMsg("We sent a new code.", false); startResend(); } else gMsg(AUTH_MSG[authReason(r)] || AUTH_MSG.other, true);
+});
+$("#g-signin").addEventListener("submit", async (e) => {
+  e.preventDefault(); const email = $("#gs-email").value.trim().toLowerCase(), pw = $("#gs-pw").value;
+  if (!email || !pw) return gMsg(AUTH_MSG.creds, true);
+  const done = busy($("#gs-go"), "Signing in…"); gMsg("");
+  const r = await authCall("token?grant_type=password", { body: { email, password: pw } });
+  done();
+  if (r.ok && r.data.access_token) { setSession(r.data); return afterSignIn(); }
+  const why = authReason(r);
+  if (why === "unconfirmed") { gateCtx.email = email; gateCtx.mode = "signup"; await authCall("resend", { body: { type: "signup", email } }); return codePanel(AUTH_MSG.unconfirmed); }
+  gMsg(AUTH_MSG[why] || AUTH_MSG.other, true);
+});
+$("#g-forgot").addEventListener("submit", async (e) => {
+  e.preventDefault(); const email = $("#gf-email").value.trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) return gMsg(AUTH_MSG.email, true);
+  const done = busy($("#gf-go"), "Sending…"); gMsg("");
+  const r = await authCall("recover", { body: { email } });
+  done();
+  if (r.ok) { gateCtx.email = email; gateCtx.mode = "recovery"; return codePanel("If that email has an account, we sent you a code."); }
+  gMsg(AUTH_MSG[authReason(r)] || AUTH_MSG.other, true);
+});
+$("#g-newpass").addEventListener("submit", async (e) => {
+  e.preventDefault(); const pw = $("#gn-pw").value;
+  if (pw.length < 8) return gMsg(AUTH_MSG.short, true);
+  if (!session) return gateGo("signin", "Please sign in again.", true);
+  const done = busy($("#gn-go"), "Saving…"); gMsg("");
+  const r = await authCall("user", { method: "PUT", token: session.access_token, body: { password: pw } });
+  done();
+  if (r.ok) return afterSignIn();
+  gMsg(AUTH_MSG[authReason(r)] || AUTH_MSG.other, true);
+});
+
+/* ---------- after any successful sign-in: open (or join) the workspace ---------- */
+const ACCT_ERR = {
+  disposable: AUTH_MSG.disposable,
+  revoked: "This account has been switched off. Please contact the seller.",
+  taken: "This licence is already joined to another account. Sign in with that account.",
+  no_match: "We could not match this key to you. Message us on WhatsApp with the email you bought with.",
+  account_has_documents: "This account already has documents. Message us on WhatsApp and we will join them for you.",
+  invalid: "That licence key isn't valid. Check it and try again.",
+  too_many_changes: "You have changed devices several times this month. Message us on WhatsApp and we will help.",
+  unknown_device: AUTH_MSG.other, device: AUTH_MSG.other, auth: "Please sign in again.",
+};
+async function afterSignIn() {
+  if (!session) return gateGo("signin", "Please sign in again.", true);
+  gateGo("wait");
+  try {
+    // another person's account was last on this phone: start clean (their documents are safe in their account)
+    if (licence?.mode === "full" && licence.acct && licence.accEmail && licence.accEmail !== session.email) { const keep = session; wipeLocalData(); setSession(keep); return location.reload(); }
+    const holdsKey = licence?.mode === "full" && !!licence.key && !licence.acct;
+    const r = holdsKey ? await rpcAuth("link_licence", { p_key: licence.key, p_device: deviceId, p_label: deviceLabel() }) : await rpcAuth("account_enter", { p_device: deviceId, p_label: deviceLabel() });
+    return authResult(r, holdsKey);
+  } catch (err) {
+    if (err.message === "auth") return gateGo("signin", "Please sign in again.", true);
+    console.error(err);
+    // "server 404" means the account functions are not installed on the server yet; anything else is a lost connection
+    gateGo(gateCtx.inApp ? "create" : "welcome", String(err.message || "").startsWith("server") ? AUTH_MSG.other : AUTH_MSG.offline.replace("sign in", "continue"), true);
+  }
+}
+function authResult(r, wasKey) {
+  if (r.ok) return authDone(r);
+  if (r.reason === "device_limit") return deviceChoice(r);
+  const ended = (text, help) => { authCall("logout", { token: session?.access_token }); setSession(null); gateGo(gateCtx.inApp ? "create" : "welcome", text, true); if (help) waHelp(help); };
+  if (r.reason === "device_has_account") return ended(`This phone already has a free account (${r.masked || "another email"}). Sign in with that one.`);
+  const text = ACCT_ERR[r.reason] || AUTH_MSG.other;
+  ended(text, ["no_match", "account_has_documents", "too_many_changes"].includes(r.reason) ? "Hello, I need help joining my Aurum licence to my account." : "");
+}
+function authDone(r) {
+  const was = licence?.mode === "full" && !!licence.key;
+  licence = { mode: "full", key: r.key, email: r.email || session?.email || "", plan: r.plan || "free", refCode: r.ref_code || "", acct: true, accEmail: session?.email || "", ent: r.ent || null, checkedAt: Date.now() };
+  LS.set("aurum.licence", licence); LS.del("aurum.protectLater");
+  trackEvt("account_ready", { plan: licence.plan });
+  if (S.profile.demo) resetForRealBusiness();
+  applyEnt(r.ent);
+  if (was && gateCtx.inApp) { gateClose(); try { if (!$("#home").hidden) renderHome(); } catch {} pushSoon(); return toast("Your account is ready"); }
+  gateCtx.inApp = false; enter(); toast("Welcome to Aurum");
+}
+// The plan allows fewer phones than are signed in: let the person choose which one to sign out.
+function deviceChoice(r) {
+  const n = r.ent?.devices_max || 1;
+  gateGo("devices"); $("#gd-title").textContent = `Your plan allows ${n} device${n === 1 ? "" : "s"}. Choose one to sign out.`;
+  $("#gd-list").innerHTML = (r.devices || []).map((d) => `<button type="button" class="g-devbtn" data-out="${esc(d.device_id)}"><b>${esc(d.label)}</b><small>last used ${esc(dAgo(d.last_seen))}</small></button>`).join("");
+  $("#gd-list").onclick = async (e) => {
+    const b = e.target.closest("[data-out]"); if (!b) return; $$("#gd-list button").forEach((x) => (x.disabled = true));
+    try { const r2 = await rpcAuth("account_swap_device", { p_device: deviceId, p_label: deviceLabel(), p_remove: b.dataset.out }); if (r2.ok) return authDone(r2); authResult(r2, false); }
+    catch { gateGo(gateCtx.inApp ? "create" : "welcome", AUTH_MSG.offline, true); }
+  };
+}
+// Google and the links in sign-in emails bring the person back here with the sign-in in the address after "#".
+function bootAuthReturn() {
+  window.__authReturn = Object.fromEntries(new URLSearchParams(location.hash.slice(1)).entries());
+  try { window.history.replaceState(null, "", location.pathname + location.search); } catch {}
+  bootLicence();
+}
+function handleAuthReturn() {
+  const p = window.__authReturn; window.__authReturn = null;
+  if (p.error || !p.access_token) { const d = String(p.error_description || ""); return showGate(/expired|invalid/i.test(d) ? "That link has expired. Sign in, or choose \"Forgot password\"." : "Sign-in was not finished. Please try again."); }
+  setSession({ access_token: p.access_token, refresh_token: p.refresh_token, expires_in: p.expires_in, expires_at: p.expires_at });
+  if (p.type === "recovery") { showGate("", false); return gateGo("newpass"); }
+  return afterSignIn();
+}
+
+/* ---------- inside the app: the account card, devices, sign out, delete ---------- */
+function protectCard() {
+  if (!(licence?.mode === "full" && !licence.acct && (licence.plan === "signature" || licence.plan === "prestige"))) return "";
+  const t = LS.get("aurum.protectLater", 0); if (t && Date.now() - t < 30 * 864e5) return "";
+  const nm = licence.plan === "prestige" ? "Prestige" : "Signature";
+  return `<div class="alert-card protect-card"><div><b>Protect your purchase</b><small>Create an account so you never lose your key or your documents. Your ${nm} plan stays exactly as it is.</small></div><div style="display:grid;gap:6px"><button class="btn sm primary" type="button" data-acct="create">Create account</button><button class="btn sm ghost" type="button" data-acct="later">Later</button></div></div>`;
+}
+function accountSection() {
+  if (isDemo() || !licence?.key) return "";
+  const e = licence.ent, nm = e?.label || (licence.plan === "prestige" ? "Prestige" : licence.plan === "signature" ? "Signature" : "Free");
+  if (licence.acct) {
+    const use = e && e.docs_limit != null ? `${e.docs_used ?? 0} of ${e.docs_limit} documents used · resets ${esc(fmtDate(e.resets_on))}` : "No monthly limit on your documents.";
+    return `<section><h3 class="sub">Your account</h3><div class="prestige-card"><span class="eyebrow">${esc(nm)}</span><b style="overflow-wrap:anywhere">${esc(licence.accEmail || licence.email || "")}</b><p>${use}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" type="button" data-acct="devices">Devices</button><button class="btn sm" type="button" data-acct="signout">Sign out</button></div></div>
+      <p class="hint" style="margin-top:10px"><button class="link-btn" type="button" data-acct="delete" style="font-size:13px">Delete my account</button></p></section>`;
+  }
+  return `<section><h3 class="sub">Your account</h3><div class="prestige-card"><span class="eyebrow">${licence.plan === "free" ? "Free plan" : "Protect your " + esc(nm)}</span><b>Create an account</b><p>${licence.plan === "free" ? "Keep your documents safe and sign in on any phone." : `So you never lose your key or your documents. Your ${esc(nm)} plan stays exactly as it is.`}</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn sm primary" type="button" data-acct="create">Create account</button><button class="link-btn" type="button" data-acct="signin" style="font-size:13px">I already have an account</button></div></div></section>`;
+}
+document.addEventListener("click", (e) => { const a = e.target.closest("[data-acct]"); if (a) acctAction(a.dataset.acct); });
+function acctAction(a) {
+  if (a === "create" || a === "signin") return openAccountGate(a);
+  if (a === "later") { LS.set("aurum.protectLater", Date.now()); try { renderHome(); } catch {} return; }
+  if (a === "devices") return openDevices();
+  if (a === "signout") return signOutFlow();
+  if (a === "delete") return deleteFlow();
+}
+function accountNeededSheet() {
+  sheet("Create your free account", `<div class="lock-card" style="margin:6px 4px 8px"><h3>Keep sending, free</h3><p class="hint" style="margin:6px 0 10px">Create your free account to keep sending. You now get ${freeLimit()} documents a month, up from 3.</p><div style="display:grid;gap:8px"><button class="btn primary" type="button" data-acct="create">Create account</button><button class="link-btn" type="button" data-acct="signin">I already have an account</button></div></div>`);
+}
+async function openDevices() {
+  sheet("Devices", `<p class="hint" style="padding:0 8px">Loading…</p>`, { onClick: async (ev) => {
+    const b = ev.target.closest("[data-devout]"); if (!b) return; b.disabled = true;
+    try { const r = await rpcAuth("account_remove_device", { p_remove: b.dataset.devout, p_current: deviceId }); if (r.ok) { toast("Signed out of that device"); return openDevices(); } toast(ACCT_ERR[r.reason] || AUTH_MSG.other); b.disabled = false; }
+    catch { toast("Connect to the internet to do that."); b.disabled = false; }
+  } });
+  try {
+    const r = await rpcAuth("account_devices", {}); if (!r.ok) throw new Error("x");
+    const e = r.ent || {}; applyEnt(e);
+    const rows = (r.devices || []).map((d) => { const me = d.device_id === deviceId; return `<div class="dev-row"><div><b>${esc(d.label)}</b><small>${me ? "This phone · " : ""}last used ${esc(dAgo(d.last_seen))}</small></div>${me ? "" : `<button class="btn sm ghost" type="button" data-devout="${esc(d.device_id)}">Sign out</button>`}</div>`; }).join("");
+    $("#sheet-body").innerHTML = `<p class="hint" style="padding:0 8px 8px">${e.devices_used ?? (r.devices || []).length} of ${e.devices_max ?? 1} device${(e.devices_max ?? 1) === 1 ? "" : "s"} used.</p>${rows}<p class="hint" style="padding:10px 8px 0">You can sign phones out ${r.changes_left ?? 0} more time${r.changes_left === 1 ? "" : "s"} in the next 30 days.</p>`;
+  } catch (err) { $("#sheet-body").innerHTML = `<p class="hint" style="padding:0 8px">${err.message === "auth" ? "Please sign in again to see your devices." : "You are offline. Connect to the internet to see your devices."}</p>`; }
+}
+function signOutFlow() {
+  sheet("Sign out", `<p class="hint" style="padding:0 8px 12px">Sign out of this phone? Your documents stay safe in your account.</p><div style="display:grid;gap:10px;padding:0 8px 8px"><button class="btn primary" type="button" id="so-go">Sign out</button><button class="btn ghost" type="button" data-close>Stay</button></div>`);
+  $("#so-go").onclick = () => doSignOut(false);
+}
+async function waitSaved(ms) { const t0 = Date.now(); while (Date.now() - t0 < ms) { const s = $("#sync-state")?.dataset.state; if (s === "saved") return true; if (s === "offline" || s === "error") return false; await wait(250); } return false; }
+async function doSignOut(force) {
+  const b = $("#so-go"); if (b) { b.disabled = true; b.textContent = "Saving…"; }
+  saveNow();
+  if (!force && canSync()) {
+    try { push(); } catch {}
+    const ok = await waitSaved(9000);
+    if (!ok) { $("#sheet-body").innerHTML = `<p class="hint" style="padding:0 8px 12px">You have changes that are not backed up yet. Connect to the internet first, or you may lose them.</p><div style="display:grid;gap:10px;padding:0 8px 8px"><button class="btn primary" type="button" data-close>Stay</button><button class="btn ghost" type="button" id="so-force">Sign out anyway</button></div>`; $("#so-force").onclick = () => doSignOut(true); return; }
+  }
+  try { await rpcAuth("account_release_device", { p_device: deviceId }); } catch {}
+  try { await authCall("logout", { token: session?.access_token }); } catch {}
+  wipeLocalData(); location.reload();
+}
+function deleteFlow() {
+  sheet("Delete my account", `<p class="hint" style="padding:0 8px 12px">Delete your account? We will delete your account and documents within 7 days and confirm by email. Client links you sent will stop working.</p><div style="display:grid;gap:10px;padding:0 8px 8px"><button class="btn primary" type="button" id="del-go">Request deletion</button><button class="btn ghost" type="button" data-close>Keep my account</button></div>`);
+  $("#del-go").onclick = async () => {
+    const b = $("#del-go"); b.disabled = true; b.textContent = "Sending…";
+    try { const r = await rpcAuth("request_delete", {}); if (!r.ok) throw new Error("x"); $("#sheet-body").innerHTML = `<p class="hint" style="padding:0 8px 12px">We have your request. We will delete your account and documents within 7 days and confirm by email. Client links you sent will stop working.</p>`; }
+    catch { b.disabled = false; b.textContent = "Request deletion"; toast("Connect to the internet to send your request."); }
+  };
+}
+// The business name is locked to the workspace. When a send is refused for that reason, offer to change it (once every 60 days).
+function businessNameSheet(newName) {
+  if (!licence?.acct) return toast("This licence belongs to another business name. Contact the seller to change it.");
+  sheet("Change your business name?", `<p class="hint" style="padding:0 8px 12px">Your account is set up for a different business name. Change it to <b>${esc(newName)}</b>? You can do this once every 60 days.</p><div style="display:grid;gap:10px;padding:0 8px 8px"><button class="btn primary" type="button" id="bn-go">Change it</button><button class="btn ghost" type="button" data-close>Cancel</button></div>`);
+  $("#bn-go").onclick = async () => {
+    const b = $("#bn-go"); b.disabled = true; b.textContent = "Changing…";
+    try {
+      const r = await rpcAuth("rename_business", { p_key: licence.key, p_device: deviceId, p_slot: 1, p_name: newName });
+      if (r.ok) { closeLayer(); return toast("Business name changed. Send again."); }
+      b.disabled = false; b.textContent = "Change it";
+      toast(r.reason === "too_soon" ? `You can change it again on ${fmtDate(String(r.next || ""))}. Message us on WhatsApp if it is urgent.` : AUTH_MSG.other);
+    } catch { b.disabled = false; b.textContent = "Change it"; toast("Connect to the internet to do that."); }
+  };
+}
+
 // The email link opens the app with ?free=TOKEN: collect the free key and enter.
 async function claimFree(tok) {
   try { window.history.replaceState(null, "", location.pathname); } catch (e) {}
   if (licence?.mode === "full" && licence.plan !== "free") return;
-  $("#gate").hidden = false; $("#lic-err").textContent = "Opening your free Aurum…";
+  showGate("Opening your free Aurum…", false);
   try {
     const c = await rpc("claim_free", { p_token: tok, p_device: deviceId });
     if (!c.ok) return showGate(FREE_REASONS[c.reason] || FREE_REASONS.invalid);
     const r = await rpc("activate_license", { p_key: c.key, p_device: deviceId });
     if (!r.ok) return showGate(REASONS[r.reason] || REASONS.invalid);
-    licence = { mode: "full", key: c.key, email: r.email, plan: "free", refCode: "", checkedAt: Date.now() }; LS.set("aurum.licence", licence);
-    trackEvt("free_started"); if (S.profile.demo) resetForRealBusiness(); enter(); toast("Welcome to Aurum. You have 3 free documents this month.");
+    licence = { mode: "full", key: c.key, email: r.email, plan: "free", refCode: "", acct: !!r.account, ent: r.ent || null, checkedAt: Date.now() }; LS.set("aurum.licence", licence); applyEnt(r.ent);
+    trackEvt("free_started"); if (S.profile.demo) resetForRealBusiness(); enter(); toast(`Welcome to Aurum. You have ${freeLimit()} free documents this month.`);
   } catch { showGate("We couldn't reach the server. Check your internet and open the link again."); }
 }
 // Free plan: each new document (link, PDF, image or WhatsApp) is counted on the server before it is sent.
-async function refreshFree() { if (!isFree() || !configured()) return; try { const r = await rpc("free_status", { p_key: licence.key, p_device: deviceId }); if (r.ok && r.plan === "free") { freeLeft = r.left; if (typeof syncChrome === "function") syncChrome(); } } catch {} }
+async function refreshFree() { if (!isFree() || !configured()) return; try { const r = await rpc("free_status", { p_key: licence.key, p_device: deviceId }); if (r.ent) applyEnt(r.ent); if (r.ok && r.plan === "free") { freeLeft = r.left; if (typeof syncChrome === "function") syncChrome(); } } catch {} }
 async function freeGo(D) {
   if (!isFree()) return true;
   try {
     const r = await rpc("free_use", { p_key: licence.key, p_device: deviceId, p_doc_id: D.id, p_sig: [D.client.name || "", Math.round(calc(D).total), D.number].join("|") });
     if (r.ok) { freeLeft = r.left; syncChrome(); return true; }
-    if (r.reason === "free_limit") { freeLeft = 0; syncChrome(); freeSheet("Your 3 free documents are used"); return false; }
+    if (r.reason === "free_limit") { freeLeft = 0; syncChrome(); freeSheet(`Your ${r.limit || freeLimit()} free documents are used`); return false; }
+    if (r.reason === "account_needed") { accountNeededSheet(); return false; }
     toast(REASONS[r.reason] || "Couldn't confirm your free plan. Try again."); return false;
   } catch { toast("Connect to the internet to send on the free plan."); return false; }
 }
@@ -3107,7 +3539,7 @@ $("#make-link").addEventListener("click", async () => {
     }
     rememberDoc(); syncChrome(); render(); renderHistory();
     const ok = await copyText(S.doc.link); toast(ok ? "Private link created and copied" : "Private link created");
-  } catch (err) { console.error(err); toast(err.message?.startsWith("This licence") ? err.message : "Couldn't create the link. Check your internet and try again."); }
+  } catch (err) { console.error(err); if (err.message?.startsWith("This licence") && licence?.acct) businessNameSheet(S.profile.business.name); else toast(err.message?.startsWith("This licence") ? err.message : "Couldn't create the link. Check your internet and try again."); }
   btn.disabled = false; syncChrome();
 });
 $("#copy-link").addEventListener("click", () => copyText(S.doc.link).then((ok) => toast(ok ? "Link copied" : "Press and hold the link to copy it")));
@@ -3191,13 +3623,14 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
         ${B.signMode === "image" ? `<div class="upload"><div class="thumb${B.signImg ? " has" : ""}" style="${B.signImg ? `background-image:url(${B.signImg})` : ""}"><span>SIGN</span></div><label class="btn sm">Upload signature<input type="file" accept="image/*" data-upload="sign"></label></div>` : ""}
         <div class="row2">${f("Signed by", "profile.business.signName")}${f("Title", "profile.business.signTitle")}</div>
       </section>
+      ${accountSection()}
       <section><h3 class="sub">Your plan</h3>
         <div class="prestige-card"><span class="eyebrow">${isDemo() ? "Free trial" : isFree() ? "Free plan" : isPrestige() ? "Prestige" : "Signature"}</span>
           ${isPrestige() ? `<b>Your own address, no Aurum branding</b><p>Your envelopes are delivered from your own web address and carry only your name.</p>`
             : `<b>Prestige</b><p>Send envelopes from your own web address (for example invoice.yourbrand.ng), with no Aurum branding anywhere your client looks.</p>${CONFIG.SELLER_WHATSAPP ? `<a class="btn sm primary" style="justify-self:start" href="https://wa.me/${esc(CONFIG.SELLER_WHATSAPP)}?text=${encodeURIComponent("Hello, I'd like to upgrade Aurum to Prestige.")}" target="_blank" rel="noopener">Ask about Prestige</a>` : ""}`}
           ${isDemo() && CONFIG.BUY_LINK ? `<a class="btn sm" style="justify-self:start" href="${esc(CONFIG.BUY_LINK)}" target="_blank" rel="noopener">Get your licence</a>` : ""}
         </div>
-        ${licence?.key ? `<p class="hint">Licence ${esc(licence.key.slice(0, 8))}•••• · this device is registered to you.${canSync() ? " Your documents are backed up and shared with your other devices." : ""}</p>` : ""}
+        ${licence?.key && !licence.acct ? `<p class="hint">Licence ${esc(licence.key.slice(0, 8))}•••• · this device is registered to you.${canSync() ? " Your documents are backed up and shared with your other devices." : ""}</p>` : ""}
       </section>
       ${licence?.refCode ? `<section><h3 class="sub">Refer a friend</h3>
         <div class="prestige-card"><span class="eyebrow">Your code</span><b style="letter-spacing:.12em">${esc(licence.refCode)}</b><p>Friends who buy with your code get ${esc(CONFIG.REFERRAL_OFFER)}. Ask us about your reward.</p>
@@ -3463,7 +3896,7 @@ function renderHome() {
   $("#home-brand").hidden = !(isPrestige() && hasSecondBrand()); $("#home-brand").textContent = "Switch to " + otherBrandName() + " ⇄";
   $("#home-owed").querySelector("span").textContent = late.length ? `${late.length} overdue · see who` : L.owing.length ? L.owing.length + " unpaid · see who" : "Nobody owes you";
   const lateCard = late.length ? `<div class="alert-card"><div><b>${plural(late.length, "invoice")} overdue</b><small>${esc(late.slice(0, 2).map((d) => d.client.name || d.number).join(", "))}${late.length > 2 ? " and more" : ""}</small></div><button class="btn sm primary" type="button" data-late>Remind</button></div>` : "";
-  $("#home-draft").innerHTML = lateCard + (started && !history.some((x) => x.id === D.id) ? `<div class="draft-card"><div><b>Continue your ${LABEL[D.type].toLowerCase()}</b><small>${esc(D.number)}${D.client.name ? " for " + esc(D.client.name) : ""} · not sent yet</small></div><button class="btn sm primary" type="button" id="draft-go">Continue</button></div>` : "");
+  $("#home-draft").innerHTML = protectCard() + lateCard + (started && !history.some((x) => x.id === D.id) ? `<div class="draft-card"><div><b>Continue your ${LABEL[D.type].toLowerCase()}</b><small>${esc(D.number)}${D.client.name ? " for " + esc(D.client.name) : ""} · not sent yet</small></div><button class="btn sm primary" type="button" id="draft-go">Continue</button></div>` : "");
   $("#home-recent").innerHTML = history.length ? history.slice(0, 5).map(docRow).join("") : `<div class="home-empty">Your invoices, receipts and quotations will appear here. Start with <b>New invoice</b> above.</div>`;
   $("#home-all").hidden = history.length <= 5;
   $$(".js-support").forEach((a) => (a.href = supportHref()));
@@ -3515,7 +3948,7 @@ function addBrandSheet() {
 /* ---------- Prestige: upgrade prompt, phone alerts, monthly report ---------- */
 const upgradeHref = () => `https://wa.me/${CONFIG.SELLER_WHATSAPP}?text=${encodeURIComponent("Hello, I'd like to upgrade my Aurum licence to Prestige.")}`;
 function freeSheet(title) {
-  sheet(title, `<div class="lock-card" style="margin:6px 4px 8px"><h3>Get Aurum for good</h3><ul><li>Unlimited invoices, receipts and quotations</li><li>No "Made with Aurum" line on your documents</li><li>All the envelope opening styles</li><li>Pay once, no monthly fees</li></ul><p class="hint" style="margin:8px 0">Your 3 free documents come back on the 1st of next month.</p><a class="btn primary" href="${esc(buyHref())}" target="_blank" rel="noopener">Get your licence</a></div>`);
+  sheet(title, `<div class="lock-card" style="margin:6px 4px 8px"><h3>Get Aurum for good</h3><ul><li>Unlimited invoices, receipts and quotations</li><li>No "Made with Aurum" line on your documents</li><li>All the envelope opening styles</li><li>Pay once, no monthly fees</li></ul><p class="hint" style="margin:8px 0">Your ${freeLimit()} free documents come back on the 1st of next month.</p><a class="btn primary" href="${esc(buyHref())}" target="_blank" rel="noopener">Get your licence</a></div>`);
 }
 function upgradeSheet(feature) {
   sheet(feature, `<div class="lock-card" style="margin:6px 4px 8px"><h3>This is a Prestige feature</h3><ul><li>Your own web address, no Aurum name</li><li>Phone alerts, monthly report and team view</li><li>Your logo pressed into the wax seal</li><li>5 devices for you and your staff</li></ul><a class="btn primary" href="${esc(upgradeHref())}" target="_blank" rel="noopener">Ask about upgrading</a></div>`);
@@ -3805,7 +4238,8 @@ document.addEventListener("touchend", (e) => { const n = Date.now(); if (n - las
 const qs = new URLSearchParams(location.search);
 if (qs.get("i")) bootClient({ id: qs.get("i") });
 else if (location.hash.startsWith("#v=")) bootClient({ hash: location.hash.slice(3) });
-else { bootLicence(); if (qs.get("free")) claimFree(String(qs.get("free")).replace(/[^a-f0-9]/gi, "").slice(0, 48)); else if (qs.get("startfree")) setTimeout(() => { if (!$("#gate").hidden) { $("#free-form").hidden = false; $("#free-email").focus(); } }, 400); const pre = (qs.get("key") || "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 40); if (pre) { const kf = document.querySelector("#lic-key"); if (kf) kf.value = pre; try { window.history.replaceState(null, "", location.pathname); } catch (e) {} } const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
+else if (/^#(access_token|error)=/.test(location.hash)) bootAuthReturn();
+else { bootLicence(); if (qs.get("free")) claimFree(String(qs.get("free")).replace(/[^a-f0-9]/gi, "").slice(0, 48)); else if (qs.get("startfree")) setTimeout(() => { if (!$("#gate").hidden && gateCtx.panel === "welcome") gateGo("create"); }, 400); const pre = (qs.get("key") || "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 40); if (pre) { const kf = document.querySelector("#lic-key"); if (kf) { kf.value = pre; setTimeout(() => { if (!$("#gate").hidden && gateCtx.panel === "welcome") gateGo("key"); }, 400); } try { window.history.replaceState(null, "", location.pathname); } catch (e) {} } const want = qs.get("install"); if (want) setTimeout(() => openInstall(want === "ios" ? "ios" : "android"), 700); }
 })();
 </script>
 </body>
