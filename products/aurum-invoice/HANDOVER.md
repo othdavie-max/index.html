@@ -6,7 +6,7 @@ Read WORKFLOW.md first, then this file.
 - Product: Aurum Invoice Studio, a luxury invoice/receipt/quotation PWA for Nigerian businesses. Live at https://auruminvoice.com.ng (Netlify, drag-and-drop zip). Old address auruminvoicestudio.netlify.app still works.
 - Source: single-file app built from parts kept in the session scratchpad (build.py, package.sh, build_landing.py); the built outputs are in `products/aurum-invoice/` (`index.html` app, `landing.html` sales page, SEO pages in `seo/`). If the scratchpad is gone, edit the built files directly. **Checked 16 Nov 2026: the app's build scripts (`build.py`, `package.sh`, `build_landing.py`) are not in the repository, not in its history and not on the owner's computer. The built files are the source.** Only the SEO pages still have a generator (`seo/build_seo.py`).
 - Backend: Supabase project ymmxhjfcfaawrebxoxbu (Edge Functions `paystack`, `notify`, `free-signup`; set verify_jwt false after each deploy). Reached through Composio.
-- Free plan today: email link for 3 documents/month (to be replaced by real accounts and 5/month).
+- Free plan today: email link for 3 documents/month (replaced by accounts and 5/month once the switches are on, see Build 1 and Build 2).
 - Opening animation: the classic CSS envelope is the default. The Blender 3D videos exist but are switched off (user prefers the CSS one, wants a more detailed version later).
 - Phone-safety: html `data-fx` levels; Mali GPUs (Infinix Note 30) default to level 8. Do not undo this.
 
@@ -21,7 +21,7 @@ Read WORKFLOW.md first, then this file.
 Subscriptions (Free/Starter/Pro, Business coming soon), email + Google registration, five luxury invoice designs, six openings, tracking and reminders, saved items, later a public storefront, and very strong SEO (Google, plus being recommended by AI assistants). Backlinks are a to-do list for the owner (profiles, directories, answers, partnerships); never buy or fake links.
 
 ## SEO and AI-visibility plan (done, 15 Nov 2026)
-The plan is in `products/aurum-invoice/plan/` (start with its README). It is a plan only; nothing in it is built. The master plan is `plan/00-master-plan.md` (done, 15 Nov 2026); follow its order of work. The accounts and billing design is `plan/07-accounts-and-billing.md` (done, 15 Nov 2026); it has six decisions waiting for the owner in its part N and set-up jobs in its part L. The designs and openings spec is `plan/08-designs-and-openings.md` (done, 15 Nov 2026); four decisions wait for the owner in its part F. The saved items spec is `plan/09-saved-items.md` (done, 15 Nov 2026); three decisions wait for the owner in its part 12. The reminders and storefront brief is `plan/10-reminders-and-storefront.md` (done, 16 Nov 2026); seven decisions wait for the owner in its part C, and the owner must ask Paystack three questions before Zip 7b. **All Fable files are now written (00 to 10).** Next: step 0 clean-up (Haiku, low), then Build 1, accounts (Sonnet, high), from file 07 parts A to D. Build 1 (accounts, Sonnet, high) can start from file 07 parts A to D as soon as set-up jobs 1 to 4 in part L are done. After that, unwritten Fable files go to Opus at high. Items marked `[BILLING]` in the plan wait for the billing file; items marked `[VERIFY]` wait for an accountant's check. The builder must not switch the live "Pay once" wording until subscriptions launch.
+The plan is in `products/aurum-invoice/plan/` (start with its README). It is a plan only; nothing in it is built. The master plan is `plan/00-master-plan.md` (done, 15 Nov 2026); follow its order of work. The accounts and billing design is `plan/07-accounts-and-billing.md` (done, 15 Nov 2026); it has six decisions waiting for the owner in its part N and set-up jobs in its part L. The designs and openings spec is `plan/08-designs-and-openings.md` (done, 15 Nov 2026); four decisions wait for the owner in its part F. The saved items spec is `plan/09-saved-items.md` (done, 15 Nov 2026); three decisions wait for the owner in its part 12. The reminders and storefront brief is `plan/10-reminders-and-storefront.md` (done, 16 Nov 2026); seven decisions wait for the owner in its part C, and the owner must ask Paystack three questions before Zip 7b. **All Fable files are now written (00 to 10).** Step 0, Build 1 and Build 2 are done (see below). Next: the owner's switch-on steps and tests, then Build 3 (designs and openings, file 08). Items marked `[BILLING]` in the plan wait for the billing file; items marked `[VERIFY]` wait for an accountant's check. The builder must not switch the live "Pay once" wording until subscriptions launch.
 
 ## Build 1: accounts (built 16 Nov 2026)
 Built from `plan/07-accounts-and-billing.md` parts A to D. **Nothing about plans, payment or the pricing page is built; that is Build 2.**
@@ -51,3 +51,43 @@ Known limits and notes
 - Account functions: `account_enter`, `link_licence`, `account_swap_device`, `account_devices`, `account_remove_device`, `account_release_device`, `rename_business`, `request_delete`, `my_plan`. Plan limits are in the `plan_rules` table; `_ent(key)` is what the app reads.
 - The app's own variable named `history` hides the browser's `history`: use `window.history` for the address bar.
 - Files use Windows line endings (CRLF) in the working copy.
+
+## Build 2: plans, payment, pricing page (built 16 Nov 2026)
+Built from `plan/07-accounts-and-billing.md` parts E to K, plus the SEO plan's Phase A (the launch pages). **Nothing in Build 2 has been applied to the live database or deployed. Every plan switch is OFF, so the live site behaves as it does today until the owner turns switches on.**
+
+The owner told us on 16 Nov 2026 that **nobody has bought Aurum before subscriptions began.** The database agrees: 202 keys (101 Signature, 101 Prestige) were all made on 9 Nov 2026 as unsold stock, none has a business name, one was opened on a device, two carry a buyer email (the owner confirmed these were their own test payments). So the launch pages have no "I bought before" text. The app and database still honour such keys (nothing was removed). At launch the owner should decide whether to switch off the unsold stock keys.
+
+What was built
+- `index.html` (the app): the Build 2 block: plan cards, Monthly/Yearly, pay sheet (card renews by itself; transfer or USSD pays one period), return-from-Paystack flow (pending, then confirmed), upgrade with the half-days rule, stop renewal, Payments list, Request Business form, limit and lock sheets, plan banners, offline document counting (`aurum.pendingDocs`). `CONFIG.REFUND_LINE=false` hides the refund sentence until the owner says yes. Tested in a browser against a stand-in server (`tests/mock.js`).
+- `billing.sql` (**not applied**): tables `admins, prices, sub_orders, payments, subscriptions, business_requests, billing_log, mail_queue` and the functions that price, record and refund payments, extend `_ent`, enforce the plan rules in `publish_invoice` and `view_invoice`, and run `nightly()`. Test: `tests/billing-test.sql`, 64 of 64 pass (run with `billing.sql` in one query; it ends with a deliberate error that undoes everything).
+- `admin.sql` (**not applied**, run after `billing.sql`): owner-only functions behind `_is_admin()`. Test: `tests/admin-test.sql`, 27 of 27 pass. The commented lines at the bottom add you to `admins` and later drop the old passcode functions.
+- `billing-cron.sql` (**not applied**): sends the mail queue and schedules `aurum-nightly` (7 am UTC, 8 am Lagos). Needs `billing_mail_url` and `billing_mail_secret` in `app_config` first.
+- `functions/billing` (verify_jwt ON; actions init, verify, stop_renewal, manage_link, setup_plans), `functions/billing-webhook` (verify_jwt **OFF**), `functions/billing-mail` (verify_jwt **OFF**, shared secret header). **Not deployed.** Local test: `node tests/functions-test.mjs`, 47 of 47 pass. Secrets: `PAYSTACK_TEST_SECRET_KEY`, `PAYSTACK_LIVE_SECRET_KEY`, `BREVO_API_KEY`, `MAIL_FROM_EMAIL`, `BILLING_MAIL_SECRET`.
+- `admin.html`: rewritten. Sign in with your own account (not a passcode). Cards: plans and money, needs attention, business requests, find an account (add time, sign a device out, unlock a business name), Paystack plan set-up, reviews. Tested in a browser.
+- `launch/launch.js`: builds the LAUNCH version of the site from a built site folder: `node launch/launch.js <built site> <output folder with "launch" in its name>`. It rewrites the sales page (Free, Starter, Pro cards; 10-question FAQ; schema.org offers and FAQ; no Black Friday bar, no checkout), the SEO pages' old "pay once" and "free demo" wording, the About page (+ "Aurum in brief" table), adds `/pricing/` and `/free-invoice-generator/`, rewrites the policies, and updates sitemap, robots.txt (AI crawlers named), llms.txt and `_headers` (noindex for `/admin.html` and `/app/*`). It prints any sentence that still has old wording (the only ones left are two neutral lines in a guide). The launch site was checked: 47 pages, 1,398 internal links, none broken, all structured data parses, every sitemap address exists.
+- `tests/BUILD2-TEST-LIST.md`: the owner's test list. `tests/serve.js`, `tests/mock.js`: local test server and stand-in for Supabase (`?mock=1`).
+
+Two zips (delivered to `Documents\list of buyer\aurum builds\`)
+- `aurum-site-build2-test.zip`: `bash package.sh` output. App with plans built in, all switches off, old sales page. Safe to upload any time.
+- `aurum-site-build2-LAUNCH.zip`: `package.sh` then `launch.js`. **Upload on launch day only.**
+
+Order to switch on (details and test steps in `tests/BUILD2-TEST-LIST.md`)
+1. Upload the test zip.
+2. Apply `billing.sql`, then `admin.sql`. Deploy the three functions (check verify_jwt after every deploy). Add the Paystack test secret. Point Paystack's test webhook to `billing-webhook`. Add yourself to `admins`. Create the test plans from the dashboard. `update app_config set value = 'test' where key = 'subs_mode';` (only `admins` can pay in test mode).
+3. Run the tests in the list (payments, limits, dashboard). Mail service (set-up job 1) and `billing-cron.sql` before the email tests.
+4. Launch day: live plans, live secret, live webhook, `subs_mode` = live, `plans_enforced` = on, `accounts_required` = on, then upload the LAUNCH zip.
+
+Needs the owner (not done)
+- Decision 2 of file 07 part N: the refund rule. The launch `policies.html` assumes "full refund within 7 days of the first payment, none for renewals". If the owner says no, edit the policies block in `launch/launch.js`; if yes, set `CONFIG.REFUND_LINE = true` in the app and add the refund line from file 07 part J to Pricing and About. **A lawyer should read the policies.** Their "last updated" date is 16 Nov 2026.
+- Other open decisions in file 07 part N (Starter 50 documents a month, the free-plan line, 60-day free links, referral pause, VAT on subscriptions [VERIFY]).
+- Set-up jobs: mail service and a `hello@` address (job 1), Google sign-in (job 3), Brevo key, Paystack webhooks, changing the Gmail app password, Search Console verification, Netlify primary domain.
+- The old one-time checkout (`paystack` function) can stay until launch, then retire. Decide what to do with the unsold stock keys.
+
+Not built yet (later builds): new Silk and Heritage designs and three new openings (Build 3; the Pro plan says "all, new ones included" ahead of them), saved items and the 500-item limit (Build 4), reminders (Build 5), storefront (Build 6, Opus), SEO phases B and C.
+
+Known limits and notes
+- The pricing page table leaves out the saved-items row on purpose until Build 4.
+- "Request Business" on the website is a WhatsApp link; in the app it is a form.
+- Rules apply to accounts made with the new sign-in; old free keys keep old behaviour until `accounts_required` is on.
+- The launch zip's `/app/policies.html` is the same text as `/policies.html`.
+- The "Refer a friend" card hides itself when `subs_mode` is live (referrals are paused at launch).
