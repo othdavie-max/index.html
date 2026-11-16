@@ -82,17 +82,20 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
 .linkout { display: flex; gap: 8px; align-items: center; background: var(--sand); border-radius: 12px; padding: 8px 8px 8px 12px; }
 .linkout code { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
 .updated { font-size: 12px; color: var(--faint); }
+select { height: 38px; border: 1.5px solid var(--line-2); border-radius: 12px; background: var(--paper); color: var(--ink); font: 600 13px var(--f-body); padding: 0 10px; }
+#q { height: 46px; }
 @media (min-width: 760px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grid2 { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 1000px) { .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 </style>
 </head>
 <body>
-<header class="top"><div class="in"><h1>Aurum <span>Admin</span></h1><button class="btn" type="button" id="refresh" hidden>Refresh</button><button class="btn" type="button" id="logout" hidden>Lock</button></div></header>
+<header class="top"><div class="in"><h1>Aurum <span>Admin</span></h1><button class="btn" type="button" id="refresh" hidden>Refresh</button><button class="btn" type="button" id="logout" hidden>Sign out</button></div></header>
 
 <section class="login" id="login">
   <h2>Your dashboard</h2>
-  <p style="margin:0;color:var(--muted)">Enter your admin passcode. It stays on this phone so you only type it once.</p>
-  <input id="pass" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false">
+  <p style="margin:0;color:var(--muted)">Sign in with the email and password of your Aurum owner account.</p>
+  <input id="email" type="email" placeholder="Your email" autocomplete="username" spellcheck="false">
+  <input id="pw" type="password" placeholder="Your password" autocomplete="current-password">
   <div class="err" id="err" role="alert"></div>
   <button class="btn primary" type="button" id="go">Open dashboard</button>
 </section>
@@ -109,6 +112,16 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
     <div class="card"><h2>Campaigns</h2><div class="tbl" id="campaigns"></div></div>
     <div class="card"><h2>Phones and computers</h2><div class="tbl" id="devices"></div></div>
   </div>
+  <div class="card" id="money"><h2>Plans and money</h2><p class="hint" id="mode-line">Loading…</p><div class="kpis" id="billk"></div><div id="problems"></div></div>
+  <div class="grid2">
+    <div class="card"><h2>Needs your attention</h2><div id="attn">Loading…</div></div>
+    <div class="card"><h2>Business requests</h2><p class="hint">People who asked for the Business plan.</p><div class="tbl" id="bizreq">Loading…</div></div>
+  </div>
+  <div class="card" id="tools"><h2>Find an account</h2><p class="hint">Search by email or by key. Add time for someone who paid you directly, sign a device out, or let a business change its name.</p>
+    <div style="display:flex;gap:8px"><input id="q" placeholder="Email or licence key" autocomplete="off"><button class="btn primary" type="button" id="qgo" style="flex:none">Find</button></div>
+    <div class="err" id="found-msg" style="color:var(--ok)" role="status"></div><div id="found"></div></div>
+  <div class="card" id="setup"><h2>Paystack plans</h2><p class="hint">Makes the four Paystack plans (Starter and Pro, monthly and yearly) the card payments need. It only makes the ones that are missing. Do test first, then live on launch day.</p>
+    <div class="chips"><button class="btn" type="button" data-setup="test">Create plans (test)</button><button class="btn" type="button" data-setup="live">Create plans (live)</button></div><div class="empty" id="setup-out"></div></div>
   <div class="card" id="reviews"><h2>Customer reviews</h2><p class="hint">People send reviews from your website. Nothing shows publicly until you press Approve.</p><div id="rvlist">Loading…</div></div>
   <div class="card"><h2>Recent sales</h2><div class="tbl" id="sales"></div></div>
   <div class="card"><h2>Your customers using the app</h2><div class="kpis" id="appk" style="grid-template-columns:repeat(2,minmax(0,1fr))"></div></div>
@@ -134,12 +147,37 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
   const naira = (v) => "₦" + Math.round(n(v)).toLocaleString("en-NG");
   const pct = (a, b) => (n(b) ? Math.round((n(a) / n(b)) * 1000) / 10 : 0) + "%";
   const store = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }, del: (k) => { try { localStorage.removeItem(k); } catch (e) {} } };
-  let pass = store.get("aurumAdminPass") || "", days = 7, timer = null;
+  let sess = null; try { sess = JSON.parse(store.get("aurumAdminSess") || "null"); } catch (e) {}
+  store.del("aurumAdminPass");   // the old passcode is no longer used
+  let days = 7, timer = null;
 
+  /* ---- signing in with your own account ---- */
+  async function authCall(path, body, token) {
+    const res = await fetch(`${API}/auth/v1/${path}`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + (token || AK) }, body: JSON.stringify(body) });
+    return { ok: res.ok, status: res.status, data: await res.json().catch(() => ({})) };
+  }
+  function keep(d) { sess = { token: d.access_token, refresh: d.refresh_token || (sess && sess.refresh) || "", exp: d.expires_at || (Math.floor(Date.now() / 1000) + (d.expires_in || 3600)) }; store.set("aurumAdminSess", JSON.stringify(sess)); }
+  async function token() {
+    if (!sess) return null;
+    if (sess.exp - Date.now() / 1000 > 120) return sess.token;
+    const r = await authCall("token?grant_type=refresh_token", { refresh_token: sess.refresh });
+    if (r.ok && r.data.access_token) { keep(r.data); return sess.token; }
+    sess = null; store.del("aurumAdminSess"); return null;
+  }
+  async function adminRpc(fn, args) {
+    const t = await token(); if (!t) throw new Error("auth");
+    const res = await fetch(`${API}/rest/v1/rpc/${fn}`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + t }, body: JSON.stringify(args || {}) });
+    if (res.status === 401) throw new Error("auth");
+    return res.json();
+  }
   async function load() {
-    const r = await (await fetch(`${API}/rest/v1/rpc/admin_stats`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK }, body: JSON.stringify({ p_pass: pass, p_days: days }) })).json();
-    if (!r || !r.ok) { store.del("aurumAdminPass"); pass = ""; showLogin("That passcode isn't right."); return; }
-    render(r); loadReviews();
+    let r;
+    try { r = await adminRpc("admin_stats_auth", { p_days: days }); } catch (e) { return showLogin(e.message === "auth" ? "Please sign in again." : "Could not reach the server."); }
+    if (!r || !r.ok) {
+      if (r && r.reason === "not_admin") { sess = null; store.del("aurumAdminSess"); return showLogin("This account is not an owner account."); }
+      return showLogin("The owner functions are not installed on the server yet. Run billing.sql and admin.sql in Supabase.");
+    }
+    showDash(); render(r); loadBilling(); loadReviews();
   }
   function showLogin(msg) { $("#dash").hidden = true; $("#login").hidden = false; $("#refresh").hidden = $("#logout").hidden = true; $("#err").textContent = msg || ""; clearInterval(timer); }
   function showDash() { $("#login").hidden = true; $("#dash").hidden = false; $("#refresh").hidden = $("#logout").hidden = false; clearInterval(timer); timer = setInterval(load, 60000); }
@@ -180,7 +218,7 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
 
   async function loadReviews() {
     try {
-      const r = await (await fetch(`${API}/rest/v1/rpc/admin_reviews`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK }, body: JSON.stringify({ p_pass: pass }) })).json();
+      const r = await adminRpc("admin_reviews_auth", {});
       if (!r || !r.ok) { $("#rvlist").textContent = "Could not load reviews."; return; }
       const it = r.items || [];
       $("#rvlist").innerHTML = it.length ? it.map((x) => `<div class="rvrow"><div><span class="tag ${esc(x.status)}">${esc(x.status)}</span> <b>${"★".repeat(x.rating)}${"☆".repeat(5 - x.rating)}</b></div><p>${esc(x.body)}</p><div class="meta">${esc(x.name)}${x.business ? " · " + esc(x.business) : ""} · ${new Date(x.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}${x.verified ? " · Verified buyer" : ""}</div><div class="rvbtns">${x.status !== "approved" ? `<button class="btn primary" data-rv="${x.id}" data-st="approved">Approve</button>` : ""}${x.status !== "hidden" ? `<button class="btn" data-rv="${x.id}" data-st="hidden">Hide</button>` : ""}<button class="btn" data-rv="${x.id}" data-ver="${x.verified ? 0 : 1}">${x.verified ? "Remove verified" : "Mark verified buyer"}</button></div></div>`).join("") : '<p class="hint">No reviews yet. When someone sends one, it appears here.</p>';
@@ -188,19 +226,98 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
   }
   $("#rvlist").addEventListener("click", async (e) => {
     const b = e.target.closest("[data-rv]"); if (!b) return; b.disabled = true;
-    const body = { p_pass: pass, p_id: Number(b.dataset.rv) }; if (b.dataset.st) body.p_status = b.dataset.st; if (b.dataset.ver !== undefined) body.p_verified = b.dataset.ver === "1";
-    try { await fetch(`${API}/rest/v1/rpc/admin_review_set`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + AK }, body: JSON.stringify(body) }); } catch (err) {}
+    const body = { p_id: Number(b.dataset.rv) }; if (b.dataset.st) body.p_status = b.dataset.st; if (b.dataset.ver !== undefined) body.p_verified = b.dataset.ver === "1";
+    try { await adminRpc("admin_review_set_auth", body); } catch (err) {}
     loadReviews();
   });
   function utm() { const s = $("#u-src").value.trim().toLowerCase().replace(/\s+/g, "-"), c = $("#u-cmp").value.trim().toLowerCase().replace(/\s+/g, "-"); $("#u-out").textContent = `${SITE}?utm_source=${encodeURIComponent(s || "instagram")}${c ? "&utm_campaign=" + encodeURIComponent(c) : ""}`; }
   $("#u-src").addEventListener("input", utm); $("#u-cmp").addEventListener("input", utm); utm();
   $("#u-copy").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#u-out").textContent); $("#u-copy").textContent = "Copied"; } catch (e) { const r = document.createRange(); r.selectNodeContents($("#u-out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("#u-copy").textContent = "Selected"; } setTimeout(() => ($("#u-copy").textContent = "Copy"), 2000); });
   $("#period").addEventListener("click", (e) => { const b = e.target.closest("[data-days]"); if (!b) return; days = Number(b.dataset.days); document.querySelectorAll("#period .chip").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); load(); });
-  $("#go").addEventListener("click", async () => { pass = $("#pass").value.trim().toUpperCase(); if (!pass) return; $("#go").disabled = true; $("#go").textContent = "Checking…"; store.set("aurumAdminPass", pass); showDash(); await load(); $("#go").disabled = false; $("#go").textContent = "Open dashboard"; });
-  $("#pass").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#go").click(); });
+  $("#go").addEventListener("click", async () => {
+    const email = $("#email").value.trim().toLowerCase(), pw = $("#pw").value;
+    if (!email || !pw) { $("#err").textContent = "Enter your email and password."; return; }
+    $("#go").disabled = true; $("#go").textContent = "Checking…"; $("#err").textContent = "";
+    let r; try { r = await authCall("token?grant_type=password", { email, password: pw }); } catch (e) { r = { ok: false, data: {} }; }
+    $("#go").disabled = false; $("#go").textContent = "Open dashboard";
+    if (r.ok && r.data.access_token) { keep(r.data); $("#pw").value = ""; return load(); }
+    $("#err").textContent = "That email or password is not right.";
+  });
+  $("#pw").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#go").click(); });
   $("#refresh").addEventListener("click", load);
-  $("#logout").addEventListener("click", () => { store.del("aurumAdminPass"); pass = ""; showLogin(""); });
-  if (pass) { showDash(); load(); } else showLogin("");
+  $("#logout").addEventListener("click", async () => { try { if (sess) await authCall("logout", {}, sess.token); } catch (e) {} sess = null; store.del("aurumAdminSess"); showLogin(""); });
+
+  /* ---- plans, payments and what needs your attention ---- */
+  const when = (d) => (d ? new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : "Never");
+  const day = (d) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "");
+  const tierName = (t) => ({ starter: "Starter", pro: "Pro" }[t] || t || "");
+  const modeText = (m) => ({ off: "Plans are switched off. Nobody can pay yet.", test: "Plans are in TEST mode. Only owner accounts can pay, with test money.", live: "Plans are LIVE. Customers can pay." }[m] || m);
+  async function loadBilling() {
+    let b; try { b = await adminRpc("admin_billing_auth", {}); } catch (e) { return; }
+    if (!b || !b.ok) { $("#billk").innerHTML = `<div class="empty">Plans and payments are not installed on the server yet. Run billing.sql and admin.sql in Supabase.</div>`; return; }
+    $("#mode-line").textContent = `${modeText(b.mode)} Plan rules for every key: ${b.plans_enforced === "on" ? "on" : "off (only new accounts)"}. Old free keys need an account to send: ${b.accounts_required === "on" ? "yes" : "no"}.`;
+    const L = b.levels || {}, pm = b.payments_month || {}, mb = Math.round(n(b.db_bytes) / 1048576);
+    $("#billk").innerHTML = [
+      ["Accounts", fmt(b.accounts.total), `${fmt(b.accounts.today)} today · ${fmt(b.accounts.week)} this week`],
+      ["Free", fmt(L.free || 0), "keys on the free plan"],
+      ["Starter", fmt(L.starter || 0), "paying monthly or yearly"],
+      ["Pro", fmt(L.pro || 0), "paying monthly or yearly"],
+      ["Signature", fmt(L.signature || 0), "bought once"],
+      ["Prestige", fmt(L.prestige || 0), "bought once"],
+      ["Paid this month", naira(n(pm.kobo) / 100), `${fmt(pm.count)} payments · ${fmt(pm.refunds)} refunded`, true],
+      ["Failed renewals", fmt((b.failed_renewals || []).length), "card payments that did not go through"],
+      ["Ending in 7 days", fmt((b.ending_soon || []).length), "plans about to end"],
+      ["Last message from Paystack", b.last_webhook ? when(b.last_webhook) : "Never", b.last_webhook ? "" : "If you have had payments, check the webhook address"],
+      ["Emails waiting", fmt(b.mail_waiting), b.mail_failed ? `${fmt(b.mail_failed)} could not be sent` : "to be sent tonight"],
+      ["Database size", mb + " MB", "of 500 MB on the free plan"],
+    ].map(([a, v, c, g]) => `<div class="kpi${g ? " gold" : ""}"><small>${a}</small><b style="font-size:${String(v).length > 14 ? 15 : 24}px">${v}</b><span>${esc(c)}</span></div>`).join("");
+    $("#problems").innerHTML = (b.problems || []).length ? `<div class="empty" style="color:var(--bad);font-weight:600">Recent problems</div>` + table(b.problems, [{ h: "When", f: (x) => when(x.at) }, { h: "What", f: (x) => esc(x.kind) }, { h: "Reference", f: (x) => esc(x.reference || "") }]) : "";
+    const parts = [];
+    if ((b.failed_renewals || []).length) parts.push(`<b>Card renewals that failed</b>` + table(b.failed_renewals, [{ h: "Account", f: (x) => esc(x.email || "") }, { h: "Plan", f: (x) => tierName(x.tier) + " · " + (x.period === "year" ? "yearly" : "monthly") }, { h: "Since", f: (x) => day(x.updated_at) }]));
+    if ((b.ending_soon || []).length) parts.push(`<b>Plans ending in the next 7 days</b>` + table(b.ending_soon, [{ h: "Account", f: (x) => esc(x.email || "") }, { h: "Plan", f: (x) => tierName(x.tier) }, { h: "Ends", f: (x) => day(x.paid_until) }, { h: "Pays by", f: (x) => (x.method === "card" ? "card (renews)" : "transfer") }]));
+    if ((b.delete_requests || []).length) parts.push(`<b>People who asked to delete their account</b>` + (b.delete_requests).map((x) => `<div class="rvrow"><p>${esc(x.email || "")} <span class="meta">asked on ${day(x.created_at)} · key ${esc(x.licence_key || "")}</span></p><div class="rvbtns"><button class="btn" data-delreq="${x.id}">I have deleted it</button></div></div>`).join(""));
+    $("#attn").innerHTML = parts.length ? parts.join("<div style='height:10px'></div>") : `<div class="empty">Nothing needs you right now.</div>`;
+    $("#bizreq").innerHTML = (b.business_requests || []).length ? table(b.business_requests, [{ h: "When", f: (x) => day(x.created_at) }, { h: "Name", f: (x) => esc(x.name) }, { h: "Business", f: (x) => esc(x.business) }, { h: "WhatsApp", f: (x) => `<a href="https://wa.me/${esc(String(x.whatsapp || "").replace(/[^0-9]/g, ""))}" target="_blank" rel="noopener">${esc(x.whatsapp)}</a>` }, { h: "Team", f: (x) => esc(x.team_size) }, { h: "Needs", f: (x) => esc(x.note || "") }]) : `<div class="empty">No requests yet.</div>`;
+  }
+  $("#attn").addEventListener("click", async (e) => { const b = e.target.closest("[data-delreq]"); if (!b) return; b.disabled = true; try { await adminRpc("admin_delete_done", { p_id: Number(b.dataset.delreq) }); } catch (err) {} loadBilling(); });
+
+  /* ---- find one account and help it ---- */
+  async function find() {
+    const q = $("#q").value.trim(); if (q.length < 3) { $("#found").innerHTML = `<div class="empty">Type at least 3 letters of an email, or a whole key.</div>`; return; }
+    let r; try { r = await adminRpc("admin_find", { p_q: q }); } catch (e) { return; }
+    const it = (r && r.items) || [];
+    $("#found").innerHTML = it.length ? it.map((x) => `<div class="rvrow" data-key="${esc(x.key)}">
+      <div><b>${esc(x.email || "No email")}</b> <span class="tag approved">${esc(x.level)}</span> ${x.has_account ? "" : `<span class="tag pending">no account yet</span>`}</div>
+      <p class="meta">Key ${esc(x.key)} · ${x.paid_until ? `${tierName(x.paid_tier)} until ${day(x.paid_until)} (${x.paid_method === "card" ? "card" : "transfer"})` : "no paid plan"} · businesses: ${esc([x.business_name, x.business_name_2].filter(Boolean).join(", ") || "none yet")}</p>
+      <div class="rvbtns"><select data-tier><option value="starter">Starter</option><option value="pro">Pro</option></select><select data-per><option value="month">1 month</option><option value="year">1 year</option></select><button class="btn" data-act="time">Add time</button><button class="btn" data-act="unlock">Unlock business names</button></div>
+      ${(x.devices || []).map((d) => `<div class="rvbtns" style="align-items:center"><span class="meta">${esc(d.label)} · last used ${day(d.last_seen)}</span><button class="btn" data-act="device" data-device="${esc(d.device_id)}">Sign it out</button></div>`).join("")}
+    </div>`).join("") : `<div class="empty">Nobody found.</div>`;
+  }
+  $("#qgo").addEventListener("click", find);
+  $("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") find(); });
+  $("#found").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-act]"); if (!b) return; const row = b.closest("[data-key]"), key = row.dataset.key; let msg = "";
+    try {
+      if (b.dataset.act === "time") { const tier = row.querySelector("[data-tier]").value, per = row.querySelector("[data-per]").value; if (!confirm(`Add ${per === "year" ? "1 year" : "1 month"} of ${tierName(tier)} to ${key}? This is for someone who paid you directly.`)) return; const r = await adminRpc("admin_add_time", { p_key: key, p_tier: tier, p_period: per }); msg = r && r.ok ? "Time added." : "Could not add time (" + ((r && r.reason) || "error") + ")."; }
+      if (b.dataset.act === "unlock") { if (!confirm("Let this business use a new business name?")) return; const r = await adminRpc("admin_unlock_business", { p_key: key }); msg = r && r.ok ? "Business names unlocked." : "Could not unlock."; }
+      if (b.dataset.act === "device") { if (!confirm("Sign this device out of the account?")) return; const r = await adminRpc("admin_free_device", { p_key: key, p_device: b.dataset.device }); msg = r && r.ok ? "Device signed out." : "Could not do that."; }
+    } catch (err) { msg = "Could not reach the server."; }
+    await find(); $("#found-msg").textContent = msg;
+  });
+
+  /* ---- make the Paystack plans (owner only; the server makes only the missing ones) ---- */
+  $("#setup").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-setup]"); if (!b) return; const mode = b.dataset.setup;
+    if (mode === "live" && !confirm("Create the four plans in your LIVE Paystack account?")) return;
+    b.disabled = true; $("#setup-out").textContent = "Working…";
+    try {
+      const t = await token(); const res = await fetch(`${API}/functions/v1/billing`, { method: "POST", headers: { "Content-Type": "application/json", apikey: AK, Authorization: "Bearer " + t }, body: JSON.stringify({ action: "setup_plans", mode }) });
+      const j = await res.json().catch(() => ({}));
+      $("#setup-out").textContent = j.ok ? `Done for ${mode}. Plan codes saved: ${Object.keys(j.codes || {}).length} of 4.` : res.status === 404 ? "The billing function is not deployed yet." : `Could not do that (${j.reason || res.status}).`;
+    } catch (err) { $("#setup-out").textContent = "Could not reach the server."; }
+    b.disabled = false;
+  });
+  if (sess) load(); else showLogin("");
 })();
 </script>
 </body>
