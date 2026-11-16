@@ -16,8 +16,11 @@ document.documentElement.classList.add("lite");try{var q=new URLSearchParams(loc
 <meta name="theme-color" content="#F6F1E7">
 <script>(function(){var d="light",t="light";try{t=localStorage.getItem("aurum.theme")||"light";d=t==="auto"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;}catch(e){}document.documentElement.setAttribute("data-theme",d);document.documentElement.setAttribute("data-theme-pref",t);})();</script>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icons/favicon-64.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="favicon.ico?v=2" sizes="48x48">
+<link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96.png?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2">
+<link rel="icon" type="image/svg+xml" href="icons/logo.svg?v=2">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2159,6 +2162,7 @@ html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important;
         <button type="button" data-rmode="items" aria-pressed="false">Itemised</button>
       </div>
       <div id="rsimple-block" class="stack">
+        <div class="field"><span class="label">Currency</span><div class="chips cur-chips"></div></div>
         <div class="field" id="f-ramt"><span>Amount received</span><div class="money-in field"><i>₦</i><input id="r-amt" class="input" inputmode="decimal" placeholder="0"></div></div>
         <div class="chips" id="ramt-chips"></div>
         <label class="field" id="f-rfor"><span>Being payment for</span><input id="r-for" data-bind="doc.paidFor" placeholder="e.g. Balance for bridal gown" autocomplete="off"></label>
@@ -2166,6 +2170,7 @@ html.lite svg:not(.cv svg) *, html.lite .art-env .env { filter: none !important;
         <div class="rcpt-peek" id="rcpt-peek"></div>
       </div>
       <div id="items-block" class="stack">
+        <div class="field"><span class="label">Currency</span><div class="chips cur-chips"></div></div>
         <div class="items-ed" id="items-ed"></div>
         <button class="btn block" type="button" id="add-item">+ Add another item</button>
         <div class="field"><span class="label">Discount</span><div class="chips" id="disc-chips"></div></div>
@@ -2309,7 +2314,13 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const group = (raw) => { const [i, d] = String(raw).split("."); const g = (i || "").replace(/\B(?=(\d{3})+(?!\d))/g, ","); return d !== undefined ? g + "." + d.slice(0, 2) : g; };
 
-const CUR = { NGN: { sym: "₦", major: "Naira", minor: "Kobo" }, USD: { sym: "$", major: "Dollars", minor: "Cents" }, GBP: { sym: "£", major: "Pounds", minor: "Pence" } };
+const CUR = { NGN: { sym: "₦", major: "Naira", minor: "Kobo", name: "Naira" }, USD: { sym: "$", major: "Dollars", minor: "Cents", name: "US dollar" }, GBP: { sym: "£", major: "Pounds", minor: "Pence", name: "Pound" }, EUR: { sym: "€", major: "Euros", minor: "Cents", name: "Euro" },
+  CAD: { sym: "CA$", major: "Canadian dollars", minor: "Cents", name: "Canadian dollar" }, GHS: { sym: "GH₵", major: "Ghana cedis", minor: "Pesewas", name: "Ghana cedi" }, KES: { sym: "KSh ", major: "Kenyan shillings", minor: "Cents", name: "Kenyan shilling" }, ZAR: { sym: "R", major: "Rand", minor: "Cents", name: "South African rand" } };
+const mainCur = () => (S.profile && CUR[S.profile.currency] ? S.profile.currency : "NGN");
+const curSym = (c) => (CUR[c] || CUR.NGN).sym.trim();
+const sumBy = (arr, amt) => { const m = {}; arr.forEach((x) => { const c = x.cur || (x.d && x.d.currency) || x.currency || "NGN"; m[c] = round2((m[c] || 0) + amt(x)); }); return m; };
+const moneyMix = (m, compact) => { const ks = Object.keys(m).filter((k) => m[k]); if (!ks.length) return (compact ? short : money)(0, mainCur()); ks.sort((a, b) => (a === mainCur() ? -1 : b === mainCur() ? 1 : a.localeCompare(b))); return ks.map((k) => (compact ? short : money)(m[k], k)).join(" + "); };
+const inMain = (x) => (x.cur || (x.d && x.d.currency) || x.currency || "NGN") === mainCur();
 const money = (n, c = "NGN") => (CUR[c] || CUR.NGN).sym + new Intl.NumberFormat("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
 const short = (n, c = "NGN") => (CUR[c] || CUR.NGN).sym + new Intl.NumberFormat("en-NG", { maximumFractionDigits: 0 }).format(n || 0);
 const LABEL = { invoice: "Invoice", receipt: "Receipt", quotation: "Quotation", delivery: "Delivery Note", credit: "Credit Note", purchase: "Purchase Order" };
@@ -2503,7 +2514,7 @@ function invoiceHTML(P, D, opts = {}) {
     ${type === "quotation" && num(D.depositPct) > 0 ? `<div class="balance"><dt>Deposit to begin (${num(D.depositPct)}%)</dt><dd>${money(round2(t.total * num(D.depositPct) / 100), c)}</dd></div>` : ""}
     ${type === "receipt" && num(D.balanceLeft) > 0 ? `<div class="balance"><dt>Balance outstanding</dt><dd>${money(num(D.balanceLeft), c)}</dd></div>` : ""}
     ${showPart ? `<div class="balance"><dt>Deposit paid</dt><dd>${money(t.paid, c)}</dd></div><div class="balance"><dt><b>Balance due</b></dt><dd>${money(t.balance, c)}</dd></div>` : ""}`;
-  const bankRows = [K.bankName && `<div><dt>Bank</dt><dd>${esc(K.bankName)}</dd></div>`, K.accountName && `<div><dt>Account name</dt><dd>${esc(K.accountName)}</dd></div>`, K.accountNumber && `<div><dt>Account no.</dt><dd class="acct">${esc(K.accountNumber)}</dd></div>`].filter(Boolean).join("");
+  const bankRows = [K.bankName && `<div><dt>Bank</dt><dd>${esc(K.bankName)}</dd></div>`, K.accountName && `<div><dt>Account name</dt><dd>${esc(K.accountName)}</dd></div>`, K.accountNumber && `<div><dt>Account no.</dt><dd class="acct">${esc(K.accountNumber)}</dd></div>`, c !== "NGN" && K.intl && `<div><dt>International</dt><dd style="white-space:pre-line">${esc(K.intl)}</dd></div>`].filter(Boolean).join("");
   const bank = type === "delivery" ? `<div class="bank"><span class="lbl">Delivery</span><dl><div><dt>Items</dt><dd>${items.length}</dd></div><div><dt>Total quantity</dt><dd>${items.reduce((a, it) => a + num(it.qty), 0)}</dd></div>${D.client.address ? `<div><dt>Address</dt><dd>${esc(D.client.address)}</dd></div>` : ""}${D.rider ? `<div><dt>Rider / vehicle</dt><dd>${esc(D.rider)}</dd></div>` : ""}</dl></div>`
     : type === "credit" ? `<div class="bank"><span class="lbl">Credit</span><dl><div><dt>Amount</dt><dd>${money(t.total, c)}</dd></div><div><dt>Settled as</dt><dd>${esc(D.refundMethod || "Store credit")}</dd></div>${D.fromDoc ? `<div><dt>Against</dt><dd>${esc(D.fromDoc)}</dd></div>` : ""}</dl></div>`
     : type === "purchase" ? `<div class="bank"><span class="lbl">Deliver to</span><dl><div><dt>Business</dt><dd>${esc(B.name)}</dd></div><div><dt>Address</dt><dd>${esc(D.shipTo || B.address || "—")}</dd></div>${B.phone ? `<div><dt>Phone</dt><dd>${esc(B.phone)}</dd></div>` : ""}</dl></div>`
@@ -3172,7 +3183,7 @@ function openClientView(payload, ctx = {}) {
       : `Thank you for choosing ${esc(B.name)}. Settling this takes less than a minute.`;
     const itemsList = type === "receipt" && D.receiptMode === "simple" ? `<p>Being payment for <b>${esc(D.paidFor || "goods and services")}</b>.</p>` : `<div class="cv-items">${D.items.filter((it) => it.desc).map((it) => `<div><span class="cv-it">${it.img ? `<img src="${it.img}" alt="">` : ""}<span>${esc(it.desc)}${num(it.qty) !== 1 ? ` × ${esc(num(it.qty))}` : ""}${it.note ? `<small>${esc(it.note)}</small>` : ""}</span></span><b>${PRICED(type) ? money(num(it.qty) * num(it.price), c) : "× " + esc(num(it.qty))}</b></div>`).join("")}</div>`;
     const canPaystack = K.paystackKey && /^pk_(live|test)_/.test(K.paystackKey) && c === "NGN" && amount > 0;
-    const bankCard = K.accountNumber ? `<div class="cv-bank"><div class="row"><span>Bank</span><b>${esc(K.bankName)}</b></div><div class="row"><span>Account name</span><b>${esc(K.accountName)}</b></div>
+    const bankCard = (K.accountNumber || (c !== "NGN" && K.intl)) ? `<div class="cv-bank">${c !== "NGN" && K.intl ? `<div class="row" style="display:block"><span>Pay from abroad</span><b style="white-space:pre-line;display:block;text-align:left;margin-top:4px">${esc(K.intl)}</b></div>` : ""}<div class="row"><span>Bank</span><b>${esc(K.bankName)}</b></div><div class="row"><span>Account name</span><b>${esc(K.accountName)}</b></div>
         <div class="acct"><strong>${esc(K.accountNumber)}</strong><button class="btn sm primary" type="button" data-cv="copy">Copy</button></div></div>` : "";
     const paystackBlock = canPaystack ? `<button class="btn primary block" type="button" data-cv="paystack" data-amount="${amount}">Pay ${money(amount, c)} now</button>
         <div class="email-ask" id="email-ask" hidden><input id="cv-email" type="email" inputmode="email" placeholder="Your email, for the payment receipt" autocomplete="email"></div>
@@ -3998,7 +4009,7 @@ const SAMPLE_PROFILE = () => ({ setupDone: true, isSample: true,
   bank: { bankName: "GTBank", accountName: "Adaeze Couture Ltd", accountNumber: "0123456789", payLink: "", paystackKey: "" },
   design: { template: "royal", brand: "#1A1817", seal: true, greeting: "en" }, counters: { invoice: 41, receipt: 17, quotation: 8, delivery: 3, credit: 1, purchase: 5 } });
 const blankItem = () => ({ id: uid(), desc: "", note: "", qty: 1, price: "" });
-const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", payBy: "", receiptMode: "simple", receivedAmount: "", rider: "", reason: "", refundMethod: "Store credit", deliverBy: "", shipTo: "", preparedBy: "", paidFor: "", reference: "", balanceLeft: "", depositPct: 0, timeline: "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: "NGN",
+const newDocFor = (P, type = "invoice") => ({ id: uid(), type, number: `${PREFIX[type]}-${pad((P.counters[type] || 0) + 1)}`, issueDate: iso(new Date()), dueDate: type === "quotation" ? iso(addDays(14)) : "", payBy: "", receiptMode: "simple", receivedAmount: "", rider: "", reason: "", refundMethod: "Store credit", deliverBy: "", shipTo: "", preparedBy: "", paidFor: "", reference: "", balanceLeft: "", depositPct: 0, timeline: "", reveal: P.design.reveal || "envelope", status: type === "receipt" ? "paid" : "unpaid", method: "Bank transfer", currency: (P.currency && CUR[P.currency]) ? P.currency : "NGN",
   client: { name: "", company: "", address: "", phone: "", email: "" }, items: [blankItem()], discountType: "amount", discount: "", delivery: "", vatOn: false, vatRate: 7.5, amountPaid: "", notes: "", link: "", shareId: "" });
 const sampleDoc = () => ({ ...newDocFor(SAMPLE_PROFILE()), number: "INV-0042", status: "part",
   client: { name: "Mrs. Funmilayo Bakare", company: "", address: "7 Bourdillon Road, Ikoyi, Lagos", phone: "0809 876 5432", email: "" },
@@ -4106,7 +4117,7 @@ function rememberItems(items) {
 
 const S = { profile: LS.get("aurum.profile", null) || blankProfile(), doc: LS.get("aurum.draft", null), clients: LS.get("aurum.clients", []), catalog: LS.get("aurum.catalog", []) };
 S.catalog = tidyCatalog(S.catalog);
-S.profile.bank.paystackKey ??= ""; S.profile.design ??= { template: "royal", brand: "#1A1817", seal: true };
+S.profile.bank.paystackKey ??= ""; S.profile.bank.intl ??= ""; S.profile.currency ??= "NGN"; S.profile.design ??= { template: "royal", brand: "#1A1817", seal: true };
 if (!S.doc) S.doc = newDocFor(S.profile);
 let history = LS.get("aurum.history", []);
 let activity = {};
@@ -4303,7 +4314,7 @@ function pickDate(label, path) {
   return layer;
 }
 function askAmount(label, { percent = false, value = "" } = {}, done) {
-  sheet(label, `<div style="display:grid; gap:14px; padding:10px 8px"><div class="money-in field"><i>${percent ? "%" : "₦"}</i><input class="input" id="sheet-amt" inputmode="decimal" value="${esc(value ? group(value) : "")}" placeholder="0"></div><button class="btn primary" type="button" id="sheet-amt-ok">Apply</button></div>`);
+  sheet(label, `<div style="display:grid; gap:14px; padding:10px 8px"><div class="money-in field"><i>${percent ? "%" : curSym(S.doc.currency)}</i><input class="input" id="sheet-amt" inputmode="decimal" value="${esc(value ? group(value) : "")}" placeholder="0"></div><button class="btn primary" type="button" id="sheet-amt-ok">Apply</button></div>`);
   const inp = $("#sheet-amt"); setTimeout(() => inp.focus(), 300);
   inp.addEventListener("input", () => { const raw = inp.value.replace(/[^\d.]/g, ""); inp.value = percent ? raw : group(raw); });
   $("#sheet-amt-ok").addEventListener("click", () => { done(inp.value.replace(/[^\d.]/g, "")); closeLayer(); });
@@ -4406,7 +4417,7 @@ function syncChrome() {
   $$("[data-rmode]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.rmode === (D.receiptMode || "items"))));
   $("#rsimple-block").hidden = !quickR; $("#items-block").hidden = quickR;
   if (quickR) {
-    if (document.activeElement !== $("#r-amt")) $("#r-amt").value = D.receivedAmount ? group(D.receivedAmount) : "";
+    renderCurChips(); if (document.activeElement !== $("#r-amt")) $("#r-amt").value = D.receivedAmount ? group(D.receivedAmount) : "";
     if (document.activeElement !== $("#r-for")) $("#r-for").value = D.paidFor || "";
     const ra = num(D.receivedAmount); const lastInv = history.find((h) => h.doc.type === "invoice" && h.doc.client.name === D.client.name);
     const amtOpts = lastInv ? [{ label: `Balance on ${lastInv.doc.number} · ${short(calc(lastInv.doc).balance || calc(lastInv.doc).total)}`, v: calc(lastInv.doc).balance || calc(lastInv.doc).total, inv: lastInv.doc }] : [];
@@ -4575,7 +4586,13 @@ document.addEventListener("click", (e) => { if (!e.target.closest(".field")) clo
 
 /* items */
 function industryItems() { return (INDUSTRIES[S.profile.business.industry] || INDUSTRIES.other).items; }
+function renderCurChips() {
+  const c = CUR[S.doc.currency] ? S.doc.currency : "NGN";
+  $$(".cur-chips").forEach((box) => { box.innerHTML = Object.keys(CUR).map((k) => '<button type="button" class="chip" data-cur="' + k + '" aria-pressed="' + (k === c) + '" title="' + esc(CUR[k].name) + '">' + esc(CUR[k].sym.trim()) + " " + k + "</button>").join(""); });
+  const ri = $("#f-ramt i"); if (ri) ri.textContent = curSym(c);
+}
 function renderItemsEditor() {
+  renderCurChips();
   const c = S.doc.currency; const sym = (CUR[c] || CUR.NGN).sym;
   $("#items-ed").innerHTML = S.doc.items.map((it, i) => `
     <div class="item-card" data-id="${it.id}">
@@ -4713,7 +4730,7 @@ function itemSheet(id, afterSave) {
     const catChips = cats().map((c) => '<button type="button" class="chip" data-cat="' + esc(c) + '" aria-pressed="' + (f.category === c && !newCat) + '">' + esc(c) + "</button>").join("") + '<button type="button" class="chip add" data-cat="__new" aria-pressed="' + newCat + '">New category</button>';
     return '<div class="si-form">' +
       '<label class="field"><span>Name</span><input id="si-name" maxlength="80" placeholder="For example: Bridal makeup" value="' + esc(f.desc) + '"></label>' +
-      '<label class="field"><span>Price</span><div class="money-in field"><i>₦</i><input id="si-price" inputmode="decimal" value="' + esc(f.price !== "" ? group(f.price) : "") + '" placeholder="0"></div><small class="hint">Leave empty if the price changes each time.</small></label>' +
+      '<label class="field"><span>Price</span><div class="money-in field"><i>' + curSym(mainCur()) + '</i><input id="si-price" inputmode="decimal" value="' + esc(f.price !== "" ? group(f.price) : "") + '" placeholder="0"></div><small class="hint">Leave empty if the price changes each time.</small></label>' +
       '<div class="field"><span>Sold</span><div class="chips">' + unitChips + "</div>" + (otherUnit ? '<input id="si-unit" maxlength="16" placeholder="For example: per set" value="' + esc(f.unit) + '" style="margin-top:8px">' : "") + "</div>" +
       '<div class="field"><span>Category</span><div class="chips">' + catChips + "</div>" + (newCat ? '<input id="si-newcat" maxlength="24" placeholder="Category name" value="' + esc(f.category) + '" style="margin-top:8px">' : "") + "</div>" +
       '<label class="field"><span>Detail</span><input id="si-note" maxlength="120" placeholder="Size, colour, what is included…" value="' + esc(f.note) + '"></label>' +
@@ -4946,6 +4963,8 @@ function openHouse(focus) {
       <section id="h-bank"><h3 class="sub">Bank &amp; payments</h3>
         <div class="field"><span>Bank</span><button class="pick" type="button" data-h="bank"><span class="${K.bankName ? "" : "placeholder"}" id="h-bankname">${esc(K.bankName || "Choose your bank")}</span></button></div>
         <div class="row2">${f("Account number", "profile.bank.accountNumber", 'inputmode="numeric" maxlength="10"')}${f("Account name", "profile.bank.accountName")}</div>
+        <label class="field"><span>International payment details <em>(optional)</em></span><textarea data-bind="profile.bank.intl" rows="3" maxlength="300" placeholder="e.g. Bank, account name, account number, SWIFT or IBAN, or your PayPal / Wise email" style="width:100%;border-radius:12px;border:1px solid var(--line);padding:12px;font:inherit;background:var(--surface);color:inherit">${esc(K.intl || "")}</textarea></label>
+        <p class="hint">Shown on invoices that are not in naira, so clients abroad know how to pay you.</p>
         <label class="field"><span>Paystack public key <em>(optional)</em></span><input data-bind="profile.bank.paystackKey" value="${esc(K.paystackKey)}" placeholder="pk_live_…" autocomplete="off" spellcheck="false"></label>
         <p class="hint">With Paystack, clients pay by card, transfer or USSD right inside your envelope. Find the key in Paystack → Settings → API Keys. Use the <b>public</b> key only, never the secret key.</p>
       </section>
@@ -4979,6 +4998,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
         <label class="toggle"><span>My business name as a watermark<small style="display:block;font-weight:400">Shows faintly across every document, so it is harder to copy</small></span><span class="switch"><input type="checkbox" id="h-wm" ${WM_TYPES.every((k) => docStyle(S.profile, k).watermark === "name") ? "checked" : ""}><i></i></span></label>
         <label class="toggle"><span>Company seal on documents</span><span class="switch"><input type="checkbox" data-bind="profile.design.seal" ${G.seal ? "checked" : ""}><i></i></span></label>
       </section>
+      <section><h3 class="sub">Main currency</h3><p class="hint" style="margin:0 0 10px">New documents start in this currency. You can change it on any document.</p><div class="chips">${Object.keys(CUR).map((k) => `<button type="button" class="chip" data-maincur="${k}" aria-pressed="${mainCur() === k}">${esc(CUR[k].sym.trim())} ${k}</button>`).join("")}</div></section>
       <section><h3 class="sub">My store</h3><p class="hint" style="margin:0 0 10px">Put your saved items on a page of your own. Customers order, and every order becomes a sealed invoice.</p><button class="btn sm" type="button" data-h="store">${proPack() ? (storeCfg().saved ? "Manage my store" : "Set up my store") : "My store · Pro"}</button></section>
       <section><h3 class="sub">Reminders</h3>${(() => { const RC = remindCfg(); return proPack() ? `<label class="toggle"><span>Schedule reminders for new invoices<small style="display:block;font-weight:400">Aurum tells you each morning who to remind, with the message ready.</small></span><span class="switch"><input type="checkbox" data-bind="profile.reminders.on" ${RC.on ? "checked" : ""}><i></i></span></label><div class="chips" style="margin:10px 0">${REMIND_CHOICES.map(([v, n]) => `<button type="button" class="chip" data-rday="${v}" aria-pressed="${RC.days.includes(v)}">${n}</button>`).join("")}</div><label class="toggle"><span>Also email my client<small style="display:block;font-weight:400">Aurum emails the reminder to your client for you. Only when their email is on the invoice and they have opened the link.</small></span><span class="switch"><input type="checkbox" data-bind="profile.reminders.email" ${RC.email ? "checked" : ""}><i></i></span></label>` : `<p class="hint" style="margin:0 0 10px">Aurum can remind your clients for you on the days you choose. Pro includes it. Reminding by hand from any invoice works on every plan.</p><button class="btn sm" type="button" data-h="plans">See plans</button>`; })()}</section>
       <section><h3 class="sub">If the app looks odd or feels slow</h3><p class="hint" style="margin:0 0 10px">Auto picks the safest look for your phone. If something looks wrong, choose Smooth mode.</p>
@@ -5016,6 +5036,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
     if (sw) { G.brand = sw.dataset.color; persist(); reopenHouse(); render(); }
     if (sg) { B.signMode = sg.dataset.sign; persist(); reopenHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
+    const mc = e.target.closest("[data-maincur]"); if (mc) { S.profile.currency = mc.dataset.maincur; persist(); return reopenHouse(); }
     const rdb = e.target.closest("[data-rday]"); if (rdb) { const v = Number(rdb.dataset.rday), c = remindCfg(); c.days = (c.days.includes(v) ? c.days.filter((x) => x !== v) : c.days.concat(v)).sort((a, b) => a - b); persist(); return reopenHouse(); }
     if (h?.dataset.h === "plans") { closeLayer(); return openPlans(); }
     if (h?.dataset.h === "store") return openStore();
@@ -5100,21 +5121,20 @@ function ledger() {
 }
 function openOverview() {
   const L = ledger(); const now = new Date(); const thisM = monthKey(iso(now));
-  const inMonth = L.received.filter((r) => monthKey(r.date) === thisM).reduce((a, r) => a + r.amount, 0);
-  const owed = L.owing.reduce((a, o) => a + o.due, 0);
+  const inMonthMap = sumBy(L.received.filter((r) => monthKey(r.date) === thisM), (r) => r.amount), owedMap = sumBy(L.owing, (o) => o.due), owed = Object.values(owedMap).reduce((a, b) => a + b, 0);
   const sentM = L.docs.filter((d) => d.type === "invoice" && monthKey(d.issueDate) === thisM).length;
   const quotesOpen = L.docs.filter((d) => d.type === "quotation" && !isExpired(d)).length;
-  const months = Array.from({ length: 6 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1); const k = iso(d).slice(0, 7); return { k, label: d.toLocaleDateString("en-GB", { month: "short" }), v: L.received.filter((r) => monthKey(r.date) === k).reduce((a, r) => a + r.amount, 0) }; });
+  const months = Array.from({ length: 6 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1); const k = iso(d).slice(0, 7); return { k, label: d.toLocaleDateString("en-GB", { month: "short" }), v: L.received.filter((r) => monthKey(r.date) === k && inMain(r)).reduce((a, r) => a + r.amount, 0) }; });
   const max = Math.max(1, ...months.map((m) => m.v));
-  const top = Object.entries(L.received.reduce((a, r) => { const k = r.client || "—"; a[k] = (a[k] || 0) + r.amount; return a; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const top = Object.entries(L.received.filter(inMain).reduce((a, r) => { const k = r.client || "—"; a[k] = (a[k] || 0) + r.amount; return a; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const vatRows = Object.entries(L.vat).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 4);
   const ago = (n) => (n <= 0 ? "today" : n === 1 ? "yesterday" : `${n} days ago`);
   $("#layer").innerHTML = `<div class="scrim" data-close></div><aside class="drawer wide" role="dialog" aria-label="Overview">
     <div class="drawer-head"><h2>Overview</h2><button class="btn sm" type="button" data-close>Done</button></div>
     <div class="drawer-body">
       <div class="kpis">
-        <div class="kpi"><small>Received this month</small><b>${short(inMonth)}</b></div>
-        <div class="kpi ${owed ? "warn" : ""}"><small>Owed to you</small><b>${short(owed)}</b><span>${L.owing.length} invoice${L.owing.length === 1 ? "" : "s"}</span></div>
+        <div class="kpi"><small>Received this month</small><b>${moneyMix(inMonthMap, true)}</b></div>
+        <div class="kpi ${owed ? "warn" : ""}"><small>Owed to you</small><b>${moneyMix(owedMap, true)}</b><span>${L.owing.length} invoice${L.owing.length === 1 ? "" : "s"}</span></div>
         <div class="kpi"><small>Invoices this month</small><b>${sentM}</b></div>
         <div class="kpi"><small>Open quotations</small><b>${quotesOpen}</b></div>
       </div>
@@ -5184,6 +5204,7 @@ $("#open-customise").addEventListener("click", () => openCustomise());
 $("#send-customise").addEventListener("click", () => openCustomise());
 $("#repeat-on").addEventListener("change", (e) => { S.doc.recurring = e.target.checked; if (e.target.checked && !S.doc.repeatFrom) S.doc.repeatFrom = S.doc.issueDate; persist(); rememberDoc(); toast(e.target.checked ? "This invoice will be ready again each month in Overview" : "Repeat switched off"); });
 $("#open-overview").addEventListener("click", () => showDash());
+document.addEventListener("click", (e) => { const b = e.target.closest(".cur-chips [data-cur]"); if (!b || !CUR[b.dataset.cur]) return; S.doc.currency = b.dataset.cur; persist(); renderItemsEditor(); render(); });
 $("#remind-line").addEventListener("click", () => remindInvoiceSheet());
 $("#next-doc").addEventListener("click", () => { rememberDoc(); const src = structuredClone(S.doc); if (src.type === "invoice") receiptFrom(src); else if (src.type === "quotation") invoiceFrom(src); });
 $("#home-mark").addEventListener("click", (e) => { e.preventDefault(); showHome(); });
@@ -5278,9 +5299,9 @@ function renderHome() {
   $("#home-title").textContent = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
   $("#home-sub").textContent = B.name ? `${B.name}. What would you like to send?` : "What would you like to send?";
   const L = ledger(), thisM = monthKey(iso(new Date()));
-  const owed = L.owing.reduce((a, o) => a + o.due, 0), inMonth = L.received.filter((r) => monthKey(r.date) === thisM).reduce((a, r) => a + r.amount, 0);
-  $("#home-owed").innerHTML = `<small>Owed to you</small><b>${money(owed)}</b><span>${L.owing.length ? L.owing.length + " unpaid · see who" : "Nobody owes you"}</span>`;
-  $("#home-month").innerHTML = `<small>Paid this month</small><b>${money(inMonth)}</b><span>Open overview</span>`;
+  const owedMap = sumBy(L.owing, (o) => o.due), monthMap = sumBy(L.received.filter((r) => monthKey(r.date) === thisM), (r) => r.amount), owed = Object.values(owedMap).reduce((a, b) => a + b, 0);
+  $("#home-owed").innerHTML = `<small>Owed to you</small><b>${moneyMix(owedMap)}</b><span>${L.owing.length ? L.owing.length + " unpaid · see who" : "Nobody owes you"}</span>`;
+  $("#home-month").innerHTML = `<small>Paid this month</small><b>${moneyMix(monthMap)}</b><span>Open overview</span>`;
   const D = S.doc, started = (D.client.name || "").trim() || D.items.some((i) => (i.desc || "").trim());
   const late = overdueDocs();
   $("#home-brand").hidden = !(isPrestige() && hasSecondBrand()); $("#home-brand").textContent = "Switch to " + otherBrandName() + " ⇄";
@@ -5563,12 +5584,10 @@ function clientBook() {
 function renderDash() {
   const R = periodRange(dashState.period), L = ledger();
   const docsIn = history.filter((h) => inRange(h.doc.issueDate, R));
-  const received = L.received.filter((r) => inRange(r.date, R)).reduce((a, r) => a + r.amount, 0);
-  const invoiced = docsIn.filter((h) => h.doc.type === "invoice").reduce((a, h) => a + calc(h.doc).total, 0);
-  const owed = L.owing.reduce((a, o) => a + o.due, 0);
-  $("#dash-kpis").innerHTML = `<button class="kpi" type="button" data-kt="docs"><small>Money received</small><b>${money(received)}</b><span>${plural(docsIn.filter((h) => h.doc.type === "receipt").length, "receipt")}</span></button>
-    <button class="kpi" type="button" data-kt="docs"><small>Invoiced</small><b>${money(invoiced)}</b><span>${plural(docsIn.filter((h) => h.doc.type === "invoice").length, "invoice")}</span></button>
-    <button class="kpi" type="button" data-kt="owe"><small>Owed to you now</small><b>${money(owed)}</b><span>${L.owing.length ? L.owing.length + " unpaid · remind" : "Nobody owes you"}</span></button>
+  const receivedMap = sumBy(L.received.filter((r) => inRange(r.date, R)), (r) => r.amount), invoicedMap = sumBy(docsIn.filter((h) => h.doc.type === "invoice").map((h) => ({ currency: h.doc.currency, t: calc(h.doc).total })), (x) => x.t), owedMap = sumBy(L.owing, (o) => o.due), owed = Object.values(owedMap).reduce((a, b) => a + b, 0);
+  $("#dash-kpis").innerHTML = `<button class="kpi" type="button" data-kt="docs"><small>Money received</small><b>${moneyMix(receivedMap)}</b><span>${plural(docsIn.filter((h) => h.doc.type === "receipt").length, "receipt")}</span></button>
+    <button class="kpi" type="button" data-kt="docs"><small>Invoiced</small><b>${moneyMix(invoicedMap)}</b><span>${plural(docsIn.filter((h) => h.doc.type === "invoice").length, "invoice")}</span></button>
+    <button class="kpi" type="button" data-kt="owe"><small>Owed to you now</small><b>${moneyMix(owedMap)}</b><span>${L.owing.length ? L.owing.length + " unpaid · remind" : "Nobody owes you"}</span></button>
     <button class="kpi" type="button" data-kt="clients"><small>Clients</small><b>${clientBook().length}</b><span>See each client</span></button>`;
   $$("#dash-period [data-period]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.period === dashState.period)));
   $$(".tabs [data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === dashState.tab)));

@@ -181,6 +181,8 @@ G({ slug: "how-to-price-your-services-nigeria", crumb: "Price your services", ti
   faq: [["What if the client says it is too expensive?", "Offer a smaller scope at a lower price instead of cutting your rate for the same work."], ["Should I show my prices publicly?", "Showing a starting price saves time, because people who cannot afford you do not enquire."]],
   related: [["/quotation-maker-nigeria/", "Quotation maker"], ["/guides/quotation-template-nigeria/", "Quotation template for Nigeria"], ["/guides/deposit-and-part-payment-invoice/", "Deposits and part payments"]] });
 
+require("./guides-legal")(G);
+
 /* trade pages */
 const TRADES = [
   ["logistics-and-dispatch-riders", "Logistics and Dispatch Riders", "per-delivery and bulk pricing, waybills, pay-on-delivery remittance and weekly statements", "A dispatch business charges by the delivery, the distance or the month. Your invoice should show which, and your waybills should back it up.", ["Price per delivery, per distance band or a bulk monthly rate, shown as separate lines.", "A waybill number for every delivery, so the customer can match each charge.", "Pay-on-delivery cash you collected for a customer, kept as its own line and its own remittance.", "A weekly statement for regular customers, instead of one invoice per drop."], [["Delivery within Lekki (20 drops)", "20", "₦2,000", "₦40,000"], ["Delivery to mainland (8 drops)", "8", "₦3,500", "₦28,000"]]],

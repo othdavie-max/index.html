@@ -477,7 +477,9 @@ for (const [p, ti, de, h1, lead, body, faq, cn, opts] of newPages) { must(ti.len
     // the new Aurum logo everywhere
     t = t.replace(/<svg viewBox="0 0 40 40"[^>]*>(?:(?!<\/svg>)[\s\S])*?>Au<\/text><\/svg>/g, '<img src="/icons/logo.svg" alt="" width="34" height="34">');
     t = t.replace(/<span class="mark">Au<\/span>/g, '<img class="mark-img" src="/icons/logo.svg" alt="" width="32" height="32">');
-    t = t.replace(/<link rel="icon"[^>]*>/g, '<link rel="icon" type="image/png" href="/icons/favicon-64.png">');
+    // the new logo as the site icon: a 48 px icon file, a 96 px and a 192 px picture (Google shows a multiple of 48 px next to search results), and the vector logo
+    t = t.replace(/<link rel="icon"[^>]*>\s*/g, "");
+    t = t.replace(/<link rel="apple-touch-icon"[^>]*>/g, '<link rel="icon" href="/favicon.ico?v=2" sizes="48x48">\n<link rel="icon" type="image/png" sizes="96x96" href="/icons/favicon-96.png?v=2">\n<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=2">\n<link rel="icon" type="image/svg+xml" href="/icons/logo.svg?v=2">\n<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=2">');
     if (!t.includes("site-chrome.css")) t = t.replace("</head>", '<link rel="stylesheet" href="/site-chrome.css">\n</head>');
     if (!t.includes("/menu.js")) t = t.replace("</body>", '<script src="/menu.js" defer></script>\n</body>');
     // any old "Get Aurum" button that still points at WhatsApp goes to the plans page instead
