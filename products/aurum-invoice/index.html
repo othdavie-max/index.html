@@ -272,6 +272,53 @@ h3.sub { margin: 8px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .24
 .tpl[data-template="royal"] i { background: linear-gradient(var(--tb, #1A1817) 0 30%, #C9A86A 30% 31.5%, #FFFDF9 31.5%); }
 .tpl[data-template="atelier"] i { background: linear-gradient(var(--tb, #1A1817), var(--tb, #1A1817)) 12% 12% / 52% 10% no-repeat, linear-gradient(var(--tb, #1A1817), var(--tb, #1A1817)) 12% 30% / 76% 1.5px no-repeat, #fff; }
 .tpl[data-template="noir"] i { background: #121211; box-shadow: inset 0 0 0 5px #121211, inset 0 0 0 6px #C9A86A; }
+/* --- Template: SILK (white, soft brand wash, rounded) --- */
+.t-silk { --paper: #FFFFFF; --p-rule: var(--brand-rule); --p-rule-soft: var(--brand-rule-soft); }
+.t-silk .inv-head { background: var(--brand-wash); align-items: center; padding-top: 60px; padding-bottom: 44px; }
+.t-silk .inv-head::after { content: ""; position: absolute; left: 56px; right: 56px; bottom: 0; height: 1px; background: var(--brand-rule); }
+.t-silk .biz-name { font-family: var(--f-body); font-weight: 800; font-size: 28px; letter-spacing: -.02em; color: var(--brand); }
+.t-silk .tagline, .t-silk .doc-no { color: var(--p-muted); }
+.t-silk .doc-type { font-family: var(--f-accent); font-weight: 600; font-size: 66px; }
+.inv.t-silk .foil, .inv.t-silk.static .foil { background: none; -webkit-text-fill-color: var(--brand); color: var(--brand); animation: none; }
+.t-silk .logo-box img { border-radius: 14px; }
+.t-silk .items th { color: var(--brand); border-bottom: 2px solid var(--brand-tint); }
+.t-silk .grand { background: var(--brand); color: #FFFFFF; border-radius: 14px; padding: 18px 20px; }
+.inv.t-silk .grand .foil, .inv.t-silk.static .grand .foil, .inv.t-silk .grand span { -webkit-text-fill-color: #FFFFFF; color: #FFFFFF; }
+.t-silk .bank { background: var(--brand-wash); border-radius: 14px; }
+.t-silk .bank::before, .t-silk .bank::after { display: none; }
+.t-silk .pill { background: var(--brand-wash); }
+.t-silk .inv-foot { background: var(--brand-wash); margin-top: auto; }
+.t-silk .inv-foot .ty { color: var(--brand); }
+/* --- Template: HERITAGE (woven band, gold thread) --- */
+.t-heritage {
+  --weave: repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 1px, transparent 1px 3px),
+           repeating-linear-gradient(90deg,
+             var(--brand) 0 14px, var(--brand-deep) 14px 18px, var(--gold-solid) 18px 20px, var(--brand-deep) 20px 24px,
+             var(--brand) 24px 46px, #FFFDF9 46px 48px, var(--brand) 48px 52px, #FFFDF9 52px 54px);
+}
+.t-heritage::before, .t-heritage::after { content: ""; position: absolute; left: 0; right: 0; background: var(--weave); z-index: 1; pointer-events: none; }
+.t-heritage::before { top: 0; height: 26px; }
+.t-heritage::after { bottom: 0; height: 12px; }
+.t-heritage .inv-head { margin: 0 56px; padding-left: 0; padding-right: 0; padding-top: 76px; padding-bottom: 34px; }
+.t-heritage .inv-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; border-top: 1px solid var(--gold-solid); border-bottom: 1px solid var(--gold-solid); }
+.t-heritage .tagline, .t-heritage .doc-no { color: var(--p-muted); }
+.t-heritage .items th { color: var(--brand); border-bottom: 2px solid var(--brand); }
+.t-heritage .grand { color: var(--brand); padding: 14px 0; border-top: 2px solid var(--brand); border-bottom: 2px solid var(--brand); }
+.t-heritage .inv-foot { margin-top: auto; border-top: 1px solid var(--p-rule); padding-bottom: 28px; }
+.t-heritage .inv-foot .ty { color: var(--brand); }
+.t-heritage .free-mark { bottom: 18px; }
+.tpl[data-template="silk"] i { background:
+  linear-gradient(var(--tb, #1A1817), var(--tb, #1A1817)) 86% 80% / 36% 9% no-repeat,
+  linear-gradient(rgba(255,255,255,.9) 0 30%, transparent 30%),
+  linear-gradient(var(--tb, #1A1817) 0 30%, #fff 30%); }
+.tpl[data-template="heritage"] i { background:
+  repeating-linear-gradient(90deg, var(--tb, #1A1817) 0 6px, #C9A86A 6px 7px, var(--tb, #1A1817) 7px 12px, #FFFDF9 12px 13px) top / 100% 9% no-repeat,
+  repeating-linear-gradient(90deg, var(--tb, #1A1817) 0 6px, #C9A86A 6px 7px, var(--tb, #1A1817) 7px 12px, #FFFDF9 12px 13px) bottom / 100% 4% no-repeat,
+  #FFFDF9; }
+/* a small lock on anything the plan does not include */
+.tpl.locked, .rv.locked { position: relative; }
+.tpl.locked::after, .rv.locked::after { content: ""; position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background: rgba(10,9,8,.78) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D9BE84' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='9' rx='2'/%3E%3Cpath d='M8 11V8a4 4 0 018 0v3'/%3E%3C/svg%3E") center / 12px no-repeat; }
+
 .swatches { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .swatch { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--bg-2); box-shadow: 0 0 0 1px var(--line-2); }
 .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--gold); }
@@ -839,6 +886,62 @@ html[data-theme="light"] .g-note { background: rgba(255,255,255,.55); }
 .env-stage { display: grid; place-items: center; }
 .intro.is-gift .env-stage { margin-top: 70px; }
 .intro.is-card .env-stage { margin: 24px 0 18px; }
+/* ---------- the three new openings (plan/08, part C) ---------- */
+.rv-letter { position: absolute; border-radius: 3px; color: #2A251C; text-align: left; background: var(--grain-dark), linear-gradient(180deg, #FCF8EF, #F0E7D4); box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 0 0 1px rgba(0,0,0,.04); padding: 8% 9%; display: grid; align-content: start; gap: 7px; }
+.rv-letter .l-eye { font-size: 8.5px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #8C7F68; }
+.rv-letter .l-name { font-family: var(--f-display); font-weight: 600; font-size: clamp(15px, 4.6vw, 19px); line-height: 1.1; color: #221D15; }
+.rv-letter .l-rule { height: 1px; width: 38%; background: linear-gradient(90deg, #B8935A, transparent); margin: 4px 0; }
+.rv-letter .l-for { font-family: var(--f-display); font-style: italic; font-size: 12.5px; color: #5B5142; }
+.rv-letter .l-line { height: 3px; border-radius: 2px; background: rgba(60,48,30,.09); }
+.scroll .wax, .doors .wax { position: absolute; filter: drop-shadow(0 6px 8px rgba(0,0,0,.55)); }
+.scroll .wax svg, .doors .wax svg, .dome .wax svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.scroll .seal-btn, .doors .seal-btn { inset: 0; border-radius: 12px; }
+.scroll .seal-btn::before, .doors .seal-btn::before, .dome .seal-btn::before { display: none; }
+/* Royal scroll */
+.intro.is-scroll .env-stage { margin-bottom: calc(min(250px, 64vw) * -1.3); }
+.scroll { position: relative; width: min(250px, 64vw); aspect-ratio: .62; }
+.sc-win { position: absolute; left: 0; right: 0; top: 7%; bottom: 0; overflow: hidden; z-index: 1; }
+.sc-win .rv-letter { inset: 0; transform: translateY(-100%); background: var(--grain-dark), linear-gradient(180deg, #F8F0DE, #EFE3C8); }
+.sc-win .rv-letter::before { content: ""; position: absolute; inset: 8px; border: 1px solid rgba(184,147,90,.55); pointer-events: none; }
+.sc-rod { position: absolute; left: -6%; right: -6%; height: 7%; border-radius: 99px; background: linear-gradient(180deg, var(--rod-l), var(--rod) 50%, var(--rod-d)); box-shadow: 0 3px 6px rgba(0,0,0,.4); z-index: 3; display: block; }
+.sc-rod.top { top: 0; } .sc-rod.bottom { top: 7%; z-index: 2; }
+.sc-rod::before, .sc-rod::after { content: ""; position: absolute; top: -20%; height: 140%; width: 7%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F5E7BE, #B8935A 55%, #8A6A35); }
+.sc-rod::before { left: -3%; } .sc-rod::after { right: -3%; }
+.sc-ribbon { position: absolute; top: 3.5%; height: 4.2%; width: 50%; z-index: 4; display: block; background: linear-gradient(180deg, var(--rod-l), var(--rod) 50%, var(--rod-d)); }
+.sc-ribbon.l { left: -6%; } .sc-ribbon.r { right: -6%; }
+.sc-seal { z-index: 5; left: 35%; width: 30%; aspect-ratio: 1; top: 5.2%; margin-top: -15%; }
+/* Grand doors */
+.doors { --fr: calc(min(300px, 76vw) * .05); position: relative; width: min(300px, 76vw); aspect-ratio: .82; perspective: 1200px; perspective-origin: 50% 45%; }
+.dr-frame { position: absolute; inset: 0; border: var(--fr) solid var(--dr-f); box-shadow: inset 0 0 0 1px rgba(217,190,132,.55); z-index: 4; pointer-events: none; display: block; }
+.dr-light { position: absolute; inset: var(--fr); background: radial-gradient(ellipse at 50% 45%, rgba(245,231,190,.9), rgba(204,150,60,.35) 45%, transparent 72%); opacity: 0; z-index: 1; display: block; }
+.doors .rv-letter { left: 19%; width: 62%; top: 15%; aspect-ratio: .74; transform: scale(.86); opacity: 0; z-index: 2; }
+.dr-leaf { position: absolute; top: var(--fr); bottom: var(--fr); width: calc(50% - var(--fr)); z-index: 3; background: linear-gradient(135deg, var(--dr-l), var(--dr-d)); backface-visibility: hidden; }
+.dr-leaf.l { left: var(--fr); transform-origin: left center; } .dr-leaf.r { right: var(--fr); transform-origin: right center; }
+.dr-leaf .dr-p { position: absolute; left: 12%; right: 12%; top: 8%; height: 38%; border: 1px solid rgba(217,190,132,.5); display: block; }
+.dr-leaf .dr-p.b { top: 52%; }
+.dr-leaf .dr-h { position: absolute; top: 46%; width: 7%; height: 12%; border-radius: 99px; background: linear-gradient(100deg, #8A6A35, #E9D39E 40%, #B8935A 60%, #A07D42); display: block; }
+.dr-leaf.l .dr-h { right: 8%; } .dr-leaf.r .dr-h { left: 8%; }
+.dr-leaf .shade { position: absolute; inset: 0; background: #000; opacity: 0; display: block; }
+.dr-seal { z-index: 5; left: 36%; width: 28%; aspect-ratio: 1; top: 50%; margin-top: -14%; }
+/* Gold serving dome */
+.dome { position: relative; width: min(290px, 72vw); aspect-ratio: 1.05; }
+.dm-tray { position: absolute; left: 0; right: 0; bottom: 0; height: 16%; border-radius: 50%; z-index: 1; display: block;
+  background: radial-gradient(ellipse at 50% 40%, #6B4F22 0 52%, transparent 54%), linear-gradient(180deg, #F5E7BE, #B8935A 45%, #8A6A35); }
+.dm-glow { position: absolute; left: 10%; right: 10%; top: 6%; bottom: 8%; z-index: 1; opacity: 0; display: block; background: radial-gradient(ellipse at 50% 55%, rgba(245,231,190,.8), rgba(204,150,60,.3) 50%, transparent 72%); }
+.dome .rv-letter { left: 20%; width: 60%; bottom: 11%; aspect-ratio: 1.02; z-index: 2; transform: translateY(8%) scale(.9); opacity: 0; }
+.dm-cover { position: absolute; left: 10%; width: 80%; height: 62%; bottom: 8%; z-index: 3; border-radius: 50% 50% 0 0 / 100% 100% 0 0; background: linear-gradient(100deg, #8A6A35 0%, #E9D39E 24%, #B8935A 42%, #F5E7BE 56%, #A07D42 76%, #E2C88E 100%); transform-origin: 50% 100%; }
+.dm-cover::before { content: ""; position: absolute; left: 17%; top: 24%; width: 7%; height: 46%; border-radius: 50%; background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0)); transform: rotate(14deg); }
+.dm-cover::after { content: ""; position: absolute; left: 50%; top: -7%; width: 9%; aspect-ratio: 1; margin-left: -4.5%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F5E7BE, #B8935A 55%, #8A6A35); }
+.dm-cover .wax { position: absolute; left: 50%; top: 34%; width: 32%; margin-left: -16%; aspect-ratio: 1; filter: drop-shadow(0 4px 6px rgba(0,0,0,.45)); }
+.dm-cover .seal-btn { position: absolute; inset: 0 0 30% 0; border-radius: 50% 50% 0 0; }
+/* a more detailed envelope */
+.env-liner { background: repeating-linear-gradient(45deg, rgba(233,211,158,.22) 0 1px, transparent 1px 9px), repeating-linear-gradient(-45deg, rgba(233,211,158,.22) 0 1px, transparent 1px 9px), repeating-linear-gradient(135deg, rgba(60,40,10,.22) 0 1px, transparent 1px 6px), linear-gradient(115deg, #8A6A35, #E9D39E 35%, #B8935A 55%, #F2E1B2 75%, #A07D42); }
+.env .letter { border-top: 1.5px solid #C9A86A; }
+.env .letter::after { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(184,147,90,.35); pointer-events: none; }
+.env-to { position: absolute; left: 8%; right: 8%; bottom: 9%; z-index: 4; text-align: center; font-family: var(--f-sign); font-size: clamp(20px, 6.4vw, 28px); line-height: 1.1; color: rgba(234,215,166,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.env-priv { position: absolute; left: 5%; top: 8%; z-index: 2; font: 700 8px/1 Manrope, sans-serif; letter-spacing: .24em; text-transform: uppercase; color: rgba(201,168,106,.7); white-space: nowrap; pointer-events: none; }
+.env-lip { position: absolute; left: 0; right: 0; top: 0; height: 7%; z-index: 4; opacity: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.55), transparent); }
+
 
 /* ---------- Gift box ---------- */
 .gift { position: relative; width: min(290px, 72vw); aspect-ratio: .95; }
@@ -1927,7 +2030,7 @@ function sealSVG(name, color) {
 /* ---------- the invoice document ---------- */
 function invoiceHTML(P, D, opts = {}) {
   const B = P.business, K = P.bank, G = opts.own ? effDesign(P.design) : P.design; const t = calc(D); const c = D.currency; const type = D.type; const X = docStyle(P, type);
-  const lineCol = G.template === "atelier" ? G.brand : "#C9A86A";
+  const lineCol = G.template === "atelier" || G.template === "silk" ? G.brand : "#C9A86A";
   const headLogo = B.logo ? `<img src="${B.logo}" alt="">`
     : `<svg viewBox="0 0 80 80" width="78" height="78" aria-hidden="true"><rect x="4" y="4" width="72" height="72" fill="none" stroke="${lineCol}" stroke-width="1"/><rect x="9" y="9" width="62" height="62" fill="none" stroke="${lineCol}" stroke-width=".6"/><text x="40" y="51" text-anchor="middle" font-family="Cormorant Garamond, Garamond, Georgia, serif" font-size="30" font-style="italic" font-weight="500" fill="${G.template === "atelier" ? G.brand : "#E2C88E"}">${esc(initials(B.name))}</text></svg>`;
   const expired = isExpired(D);
@@ -1981,7 +2084,7 @@ function invoiceHTML(P, D, opts = {}) {
   const clientLines = [D.client.company, D.client.address, D.client.phone, D.client.email].filter(Boolean).map((l) => `<p>${esc(l)}</p>`).join("");
   const thanks = { quotation: "We look forward to working with you", receipt: "Thank you for your payment", delivery: "Thank you for your order", credit: "We value your business", purchase: "Thank you for your prompt delivery" }[type] || "Thank you for your patronage";
   const verify = opts.qr ? `<div class="verify"><img src="${opts.qr}" alt=""><span>Scan to view online and confirm this ${LABEL[type].toLowerCase()} is genuine</span></div>` : "";
-  return `<article class="inv k-${esc(type)} t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}${X.paper === "white" ? " paper-white" : ""} ${Object.entries(X.show).filter(([, v]) => !v).map(([k]) => "no-" + k).join(" ")}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)}">
+  return `<article class="inv k-${esc(type)} t-${esc(G.template)}${opts.enter ? " enter" : ""}${opts.static ? " static" : ""}${X.paper === "white" ? " paper-white" : ""} ${Object.entries(X.show).filter(([, v]) => !v).map(([k]) => "no-" + k).join(" ")}" style="--brand:${esc(G.brand)};--brand-rule:${rgba(G.brand, .35)};--brand-rule-soft:${rgba(G.brand, .16)};--brand-wash:${rgba(G.brand, .07)};--brand-tint:${rgba(G.brand, .16)};--brand-deep:${shade(G.brand, -.35)}">
     <header class="inv-head px"><div class="brand"><div class="logo-box">${headLogo}</div><div style="min-width:0"><h1 class="biz-name foil">${esc(B.name) || "Your Business"}</h1>${B.tagline ? `<p class="tagline">${esc(B.tagline)}</p>` : ""}</div></div>
       <div class="doc-title"><span class="doc-type foil${(X.title || "").length > 10 ? " long" : ""}">${esc(X.title || LABEL[type])}</span><span class="doc-no">No. ${esc(D.number)}</span></div></header>
     <section class="inv-meta px"><div class="party"><label>${partyLabel}</label><div class="who">${esc(D.client.name) || "Client name"}</div>${clientLines}</div>
@@ -2136,6 +2239,9 @@ const REVEALS = {
   envelope: { name: "Wax-seal envelope", tap: "Break the seal" },
   gift: { name: "Gift box", tap: "Untie the ribbon" },
   card: { name: "Invitation card", tap: "Tap to reveal" },
+  scroll: { name: "Royal scroll", tap: "Untie the scroll" },
+  doors: { name: "Grand doors", tap: "Open the doors" },
+  dome: { name: "Gold serving dome", tap: "Lift the lid" },
   none: { name: "Straight to invoice", tap: "" },
 };
 const isExpired = (D) => D.type !== "receipt" && !!D.dueDate && daysUntil(D.dueDate) < 0 && D.status !== "paid";
@@ -2173,6 +2279,7 @@ function envelopeHTML(B, D, wax) {
     <div class="env-back"></div>
     <div class="env-liner"></div>
     <div class="letter" id="letter">${letterInner(B, D)}</div>
+    <i class="env-lip" id="envLip"></i>
     <svg class="env-pocket" id="pocket" viewBox="0 0 146 100" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="${id}l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1B1A17"/><stop offset="1" stop-color="#25231F"/></linearGradient>
@@ -2189,7 +2296,7 @@ function envelopeHTML(B, D, wax) {
       <rect width="146" height="100" filter="url(#${id}n)" clip-path="url(#${id}cp)"/>
     </svg>
     <div class="env-flap" id="flap">
-      <div class="face front">
+      <div class="face front"><span class="env-priv">Private · ${esc(D.number)}</span>
         <svg viewBox="0 0 146 58" preserveAspectRatio="none" aria-hidden="true">
           <defs><linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2824"/><stop offset="1" stop-color="#1D1B18"/></linearGradient>
             <filter id="${id}fs" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-color="#000" flood-opacity=".7"/></filter></defs>
@@ -2209,6 +2316,7 @@ function envelopeHTML(B, D, wax) {
         </svg>
       </div>
     </div>
+    ${D.client.name ? `<div class="env-to" id="envTo">${esc(D.client.name)}</div>` : ""}
     <div class="seal-wrap" id="sealWrap">
       <div class="seal-half" id="sealLow" style="clip-path:${lower}">${seal}</div>
       <svg class="crack" viewBox="0 0 120 120" aria-hidden="true"><path id="crackPath" d="${crackD}" style="stroke-dasharray:400;stroke-dashoffset:400" fill="none" stroke="${shade(wax, -.8)}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
@@ -2225,7 +2333,7 @@ async function openEnvelope(cv, wax, onDone) {
   [low, top].forEach((el) => el.animate(press, { duration: 280, easing: "cubic-bezier(.3,0,.3,1)" }));
   // 2 · the wax cracks along the edge of the flap
   crack.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 260, delay: 160, easing: "cubic-bezier(.6,0,.2,1)", fill: "forwards" });
-  await wait(430); buzz([6, 40, 10]); crumbs(sealWrap, wax, 6, .7);
+  await wait(430); buzz([6, 40, 10]); crumbs(sealWrap, wax, 9, .7);
   crack.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: "forwards" });
   // 3 · the flap lifts, carrying the top half of the seal with it; the bottom half stays on the envelope
   $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }));
@@ -2236,9 +2344,10 @@ async function openEnvelope(cv, wax, onDone) {
   await wait(1250);
   // 4 · the letter slides out of the pocket
   letter.animate([{ transform: "translateY(0) rotate(0deg)" }, { transform: "translateY(-40%) rotate(-.6deg)", offset: .55 }, { transform: "translateY(-74%) rotate(0deg)" }], { duration: 1250, easing: "cubic-bezier(.45,0,.2,1)", fill: "forwards" });
+  $("#envLip", cv)?.animate([{ opacity: 0 }, { opacity: .5, offset: .5 }, { opacity: 0 }], { duration: 1250, fill: "forwards" });
   await wait(1300);
   // 5 · the envelope drops away; the letter comes towards you
-  [$(".env-back", cv), $(".env-liner", cv), $("#pocket", cv), sealWrap].forEach((el) => el.animate([{ transform: el === sealWrap ? "translate(-50%,-50%)" : "none", opacity: 1 }, { transform: (el === sealWrap ? "translate(-50%,-50%) " : "") + "translateY(46%)", opacity: 0 }], { duration: 750, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" }));
+  [$(".env-back", cv), $(".env-liner", cv), $("#pocket", cv), sealWrap, $("#envTo", cv)].filter(Boolean).forEach((el) => el.animate([{ transform: el === sealWrap ? "translate(-50%,-50%)" : "none", opacity: 1 }, { transform: (el === sealWrap ? "translate(-50%,-50%) " : "") + "translateY(46%)", opacity: 0 }], { duration: 750, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" }));
   flap.animate([{ transform: "rotateX(180deg)", opacity: 1 }, { transform: "rotateX(180deg) translateY(-46%)", opacity: 0 }], { duration: 750, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" });
   await wait(280);
   finale(letter, "translateY(-74%)", onDone);
@@ -2332,6 +2441,101 @@ async function openCard(cv, wax, onDone) {
 }
 
 
+
+/* ---------- IV · the royal scroll ---------- */
+const rvLabel = (D) => esc(LABEL[D.type].toLowerCase());
+function scrollHTML(B, D, color, wax) {
+  const c = lum(color) < .012 ? "#1C1A18" : color;
+  return '<div class="scroll" id="scroll" style="--rod:' + c + ';--rod-l:' + shade(c, .25) + ';--rod-d:' + shade(c, -.5) + '">' +
+    '<div class="sc-win" id="scWin"><div class="rv-letter" id="rvLetter">' + letterInner(B, D) + '</div></div>' +
+    '<i class="sc-rod top" id="scTop"></i><i class="sc-rod bottom" id="scBot"></i>' +
+    '<i class="sc-ribbon l" id="scRibL"></i><i class="sc-ribbon r" id="scRibR"></i>' +
+    '<div class="wax sc-seal" id="scSeal">' + waxSVG(initials(B.name), wax, B.name) + '</div>' +
+    '<button class="seal-btn" type="button" id="sealBtn" aria-label="Reveal your ' + rvLabel(D) + '"></button></div>';
+}
+async function openScroll(cv, wax, onDone) {
+  const seal = $("#scSeal", cv), win = $("#scWin", cv), letter = $("#rvLetter", cv), top = $("#scTop", cv), bot = $("#scBot", cv), rl = $("#scRibL", cv), rr = $("#scRibR", cv);
+  buzz(10);
+  seal.animate([{ transform: "scale(1)" }, { transform: "scale(.94)" }, { transform: "scale(1)" }], { duration: 260 });
+  await wait(200);
+  $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, easing: "ease-out", fill: "forwards" }));
+  const slip = "cubic-bezier(.5,0,.75,0)";
+  rl.animate([{ transform: "translateX(0)", opacity: 1 }, { transform: "translateX(-70%)", opacity: 0 }], { duration: 520, easing: slip, fill: "forwards" });
+  rr.animate([{ transform: "translateX(0)", opacity: 1 }, { transform: "translateX(70%)", opacity: 0 }], { duration: 520, easing: slip, fill: "forwards" });
+  await wait(120);
+  seal.animate([{ transform: "translateY(0) rotate(0deg)", opacity: 1 }, { transform: "translateY(120%) rotate(18deg)", opacity: 0 }], { duration: 600, easing: slip, fill: "forwards" });
+  await wait(440); buzz(6);
+  const rh = top.getBoundingClientRect().height, h = win.getBoundingClientRect().height - rh * .9;   // the bottom rod comes to rest on the lower edge of the paper
+  const ease = "cubic-bezier(.3,0,.2,1)";
+  letter.animate([{ transform: "translateY(-100%)" }, { transform: "translateY(0)" }], { duration: 1500, easing: ease, fill: "forwards" });
+  bot.animate([{ transform: "translateY(0)" }, { transform: "translateY(" + (h * 1.015) + "px)", offset: .88 }, { transform: "translateY(" + h + "px)" }], { duration: 1500, easing: ease, fill: "forwards" });
+  await wait(1800);
+  top.animate([{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(" + (-rh * .3) + "px)", opacity: 0 }], { duration: 400, fill: "forwards" });
+  bot.animate([{ transform: "translateY(" + h + "px)", opacity: 1 }, { transform: "translateY(" + (h + rh * .3) + "px)", opacity: 0 }], { duration: 400, fill: "forwards" });
+  await wait(240);
+  win.style.overflow = "visible";
+  finale(win, "", onDone);
+}
+
+/* ---------- V · the grand doors ---------- */
+function doorsHTML(B, D, color, wax) {
+  const c = lum(color) < .012 ? "#1C1A18" : color;
+  const leaf = (s) => '<div class="dr-leaf ' + s + '" id="dr' + s.toUpperCase() + '"><i class="dr-p"></i><i class="dr-p b"></i><i class="dr-h"></i><i class="shade"></i></div>';
+  return '<div class="doors" id="doors" style="--dr-l:' + shade(c, -.15) + ';--dr-d:' + shade(c, -.5) + ';--dr-f:' + shade(c, -.6) + '">' +
+    '<i class="dr-light" id="drLight"></i><div class="rv-letter" id="rvLetter">' + letterInner(B, D) + '</div>' +
+    leaf("l") + leaf("r") + '<i class="dr-frame" id="drFrame"></i>' +
+    '<div class="wax dr-seal" id="drSeal">' + waxSVG(initials(B.name), wax, B.name) + '</div>' +
+    '<button class="seal-btn" type="button" id="sealBtn" aria-label="Reveal your ' + rvLabel(D) + '"></button></div>';
+}
+async function openDoors(cv, wax, onDone) {
+  const seal = $("#drSeal", cv), L = $("#drL", cv), R = $("#drR", cv), light = $("#drLight", cv), letter = $("#rvLetter", cv), frame = $("#drFrame", cv);
+  buzz(12);
+  seal.animate([{ transform: "scale(1)" }, { transform: "scale(.94)" }, { transform: "scale(1)" }], { duration: 260 });
+  await wait(200);
+  $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, easing: "ease-out", fill: "forwards" }));
+  seal.animate([{ transform: "scale(1)", opacity: 1 }, { transform: "scale(1.12)", opacity: 0 }], { duration: 380, fill: "forwards" });
+  await wait(320); buzz([6, 40, 10]);
+  const ease = "cubic-bezier(.55,0,.25,1)";
+  L.animate([{ transform: "rotateY(0deg)" }, { transform: "rotateY(3deg)", offset: .1 }, { transform: "rotateY(84deg)" }], { duration: 1500, easing: ease, fill: "forwards" });
+  R.animate([{ transform: "rotateY(0deg)" }, { transform: "rotateY(-3deg)", offset: .1 }, { transform: "rotateY(-84deg)" }], { duration: 1500, easing: ease, fill: "forwards" });
+  $$(".shade", cv).forEach((el) => el.animate([{ opacity: 0 }, { opacity: .55 }], { duration: 1500, easing: ease, fill: "forwards" }));
+  await wait(300);
+  light.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1200, fill: "forwards" });
+  await wait(200);
+  letter.animate([{ opacity: 0, transform: "scale(.86)" }, { opacity: 1, transform: "scale(.94)" }], { duration: 900, easing: "ease-out", fill: "forwards" });
+  await wait(1280);
+  [L, R, frame].forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: "forwards" }));
+  await wait(200);
+  finale(letter, "scale(.94)", onDone);
+}
+
+/* ---------- VI · the gold serving dome ---------- */
+function domeHTML(B, D, color, wax) {
+  return '<div class="dome" id="dome">' +
+    '<i class="dm-tray" id="dmTray"></i><i class="dm-glow" id="dmGlow"></i>' +
+    '<div class="rv-letter" id="rvLetter">' + letterInner(B, D) + '</div>' +
+    '<div class="dm-cover" id="dmCover"><div class="wax" id="dmSeal">' + waxSVG(initials(B.name), wax, B.name) + '</div>' +
+    '<button class="seal-btn" type="button" id="sealBtn" aria-label="Reveal your ' + rvLabel(D) + '"></button></div></div>';
+}
+async function openDome(cv, wax, onDone) {
+  const cover = $("#dmCover", cv), letter = $("#rvLetter", cv), glow = $("#dmGlow", cv), tray = $("#dmTray", cv);
+  buzz(10);
+  cover.animate([{ transform: "scale(1)" }, { transform: "scale(.985)" }, { transform: "scale(1)" }], { duration: 200 });
+  await wait(200);
+  $$(".intro > :not(.env-stage)", cv).forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, easing: "ease-out", fill: "forwards" }));
+  await wait(40); buzz(6);
+  cover.animate([{ transform: "translateY(0) rotate(0deg)", opacity: 1 }, { transform: "translateY(-8%) rotate(0deg)", opacity: 1, offset: .25 }, { transform: "translateY(-105%) rotate(-9deg)", opacity: 1, offset: .7 }, { transform: "translateY(-120%) rotate(-9deg)", opacity: 0 }], { duration: 1300, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" });
+  await wait(260);
+  glow.animate([{ opacity: 0 }, { opacity: 1, offset: .4 }, { opacity: .6 }], { duration: 900, fill: "forwards" });
+  await wait(100);
+  letter.animate([{ transform: "translateY(8%) scale(.9)", opacity: 0 }, { transform: "translateY(0%) scale(.95)", opacity: 1, offset: .35 }, { transform: "translateY(-6%) scale(1)", opacity: 1 }], { duration: 900, easing: "ease-out", fill: "forwards" });
+  await wait(1100);
+  [tray, glow].forEach((el) => el.animate([{ transform: "translateY(0)", opacity: el === glow ? .6 : 1 }, { transform: "translateY(30%)", opacity: 0 }], { duration: 500, fill: "forwards" }));
+  await wait(250);
+  finale(letter, "translateY(-6%)", onDone);
+}
+
+
 /* ---------- I-b · the openings filmed in 3D (made in Blender: real paper, wax, ribbon and physics) ---------- */
 const ENV3D = { onyx: "#1a1817", bordeaux: "#5a1a24", midnight: "#141e3a", emerald: "#0f3d2e", aubergine: "#3b1f4a", cognac: "#6b4a1e" };
 const env3dFile = (brand) => { const b = String(brand || "").toLowerCase(); return Object.keys(ENV3D).find((k) => ENV3D[k] === b) || null; };
@@ -2397,6 +2601,9 @@ function revealStage(style, B, D, P) {
   if (f3 && style === "gift") { const gc = lum(P.design.brand) < .012 ? "#1C1A18" : P.design.brand; const css = () => giftHTML(B, D, gc); return { html: gift3dHTML(B, D, f3), play: (cv, done) => open3d(cv, B, D, "gift", css, () => openGift(cv, wax, done), done), after: (cv) => env3dAfter(cv, B, D, css, "gift") }; }
   if (style === "gift") return { html: giftHTML(B, D, lum(P.design.brand) < .012 ? "#1C1A18" : P.design.brand), play: (cv, done) => openGift(cv, wax, done) };
   if (style === "card") return { html: cardHTML(B, D, P.design.brand || "#1A1817"), play: (cv, done) => openCard(cv, wax, done), after: startSway };
+  if (style === "scroll") return { html: scrollHTML(B, D, P.design.brand || "#1A1817", wax), play: (cv, done) => openScroll(cv, wax, done) };
+  if (style === "doors") return { html: doorsHTML(B, D, P.design.brand || "#1A1817", wax), play: (cv, done) => openDoors(cv, wax, done) };
+  if (style === "dome") return { html: domeHTML(B, D, P.design.brand || "#1A1817", wax), play: (cv, done) => openDome(cv, wax, done) };
   return { html: envelopeHTML(B, D, wax), play: (cv, done) => openEnvelope(cv, wax, done) };
 }
 
@@ -3014,6 +3221,7 @@ const limited = () => licence?.mode === "full" && (licence.ent ? entNow().docs_l
 const proPack = () => licence?.mode === "full" && (licence.ent ? !!entNow().pro_pack : licence.plan === "prestige");
 const noBranding = () => licence?.mode === "full" && (licence.ent ? entNow().branding === "none" : licence.plan === "prestige");
 const enforced = () => !!entNow()?.enforced;
+const DESIGNS = [["royal", "Royal"], ["atelier", "Atelier"], ["noir", "Noir"], ["silk", "Silk"], ["heritage", "Heritage"]], DESIGN_NAME = Object.fromEntries(DESIGNS);
 const STARTER_DESIGNS = ["royal", "atelier", "noir"], STARTER_OPENINGS = ["envelope", "gift", "card", "none"];
 const allowedDesign = (id) => isDemo() || !enforced() || entNow().designs.includes(id);
 const allowedOpening = (id) => isDemo() || (enforced() ? entNow().openings.includes(id) : isFree() ? id === "envelope" : true);
@@ -3755,9 +3963,9 @@ function syncChrome() {
   if (document.activeElement !== $("#c-phone")) $("#c-phone").value = D.client.phone || "";
   // send
   $("#send-sub").textContent = `Your ${LABEL[D.type].toLowerCase()} for ${D.client.name || "your client"} is ready.`;
-  const RV_ICONS = { envelope: '<path d="M3 7h18v11H3z"/><path d="M3 7l9 7 9-7"/><circle cx="12" cy="13.5" r="2.2" fill="currentColor" stroke="none"/>', gift: '<rect x="4" y="10" width="16" height="10"/><rect x="3" y="7" width="18" height="3.5"/><path d="M12 7v13M12 7c-2-4-6-4-5-1 1 2 5 1 5 1zM12 7c2-4 6-4 5-1-1 2-5 1-5 1z"/>', card: '<rect x="6" y="3" width="12" height="18" rx="1.5"/><rect x="8" y="5" width="8" height="14" rx=".5"/><path d="M10 12h4"/>', none: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 16h4"/>' };
+  const RV_ICONS = { scroll: '<path d="M6 5h12M6 19h12M8 5v14M16 5v14M10.5 10h3M10.5 13h3"/><circle cx="5" cy="5" r="1.2"/><circle cx="19" cy="5" r="1.2"/><circle cx="5" cy="19" r="1.2"/><circle cx="19" cy="19" r="1.2"/>', doors: '<rect x="4" y="3" width="16" height="18"/><path d="M12 3v18M10 11.5v2M14 11.5v2"/>', dome: '<path d="M4 17a8 8 0 0 1 16 0z"/><path d="M2.5 19.5h19"/><circle cx="12" cy="7.2" r="1.2"/>', envelope: '<path d="M3 7h18v11H3z"/><path d="M3 7l9 7 9-7"/><circle cx="12" cy="13.5" r="2.2" fill="currentColor" stroke="none"/>', gift: '<rect x="4" y="10" width="16" height="10"/><rect x="3" y="7" width="18" height="3.5"/><path d="M12 7v13M12 7c-2-4-6-4-5-1 1 2 5 1 5 1zM12 7c2-4 6-4 5-1-1 2-5 1-5 1z"/>', card: '<rect x="6" y="3" width="12" height="18" rx="1.5"/><rect x="8" y="5" width="8" height="14" rx=".5"/><path d="M10 12h4"/>', none: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 16h4"/>' };
   const curR = REVEALS[D.reveal] ? D.reveal : "envelope";
-  $("#reveal-grid").innerHTML = Object.entries(REVEALS).map(([k, v]) => `<button type="button" class="rv" data-reveal="${k}" aria-pressed="${k === curR}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">${RV_ICONS[k]}</svg>${v.name}</button>`).join("");
+  $("#reveal-grid").innerHTML = Object.entries(REVEALS).map(([k, v]) => `<button type="button" class="rv${allowedOpening(k) ? "" : " locked"}" data-reveal="${k}" aria-pressed="${k === curR}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">${RV_ICONS[k]}</svg>${v.name}</button>`).join("");
   $("#make-link").textContent = D.link ? "Update private link" : "Create private link";
   $("#repeat-line").hidden = D.type !== "invoice"; $("#repeat-on").checked = !!D.recurring;
   $("#next-doc").hidden = !["invoice", "quotation"].includes(D.type) || (D.type === "invoice" && D.status === "paid");
@@ -3804,7 +4012,7 @@ $$("[data-doctype]").forEach((b) => b.addEventListener("click", () => {
 $("#bank-line").addEventListener("click", () => openHouse("bank"));
 $("#payby-on").addEventListener("change", (e) => { S.doc.payBy = e.target.checked ? iso(addDays(7)) : ""; persist(); syncChrome(); render(); });
 $("#exp-on").addEventListener("change", (e) => { S.doc.dueDate = e.target.checked ? iso(addDays(14)) : ""; persist(); syncChrome(); render(); });
-$("#reveal-grid").addEventListener("click", (e) => { const b = e.target.closest("[data-reveal]"); if (!b) return; if (!allowedOpening(b.dataset.reveal)) return lockSheet("This opening", tierFor("opening", b.dataset.reveal)); S.doc.reveal = b.dataset.reveal; S.profile.design.reveal = b.dataset.reveal; persist(); syncChrome(); toast(`Your client will see: ${REVEALS[b.dataset.reveal].name}`); });
+$("#reveal-grid").addEventListener("click", (e) => { const b = e.target.closest("[data-reveal]"); if (!b) return; if (!allowedOpening(b.dataset.reveal)) return lockSheet((REVEALS[b.dataset.reveal] || {}).name || "This opening", tierFor("opening", b.dataset.reveal)); S.doc.reveal = b.dataset.reveal; S.profile.design.reveal = b.dataset.reveal; persist(); syncChrome(); toast(`Your client will see: ${REVEALS[b.dataset.reveal].name}`); });
 function swapAnim() { const w = $("#paper-wrap"); w.classList.remove("swap"); void w.offsetWidth; if (!reduceMotion) w.classList.add("swap"); }
 
 /* client autocomplete */
@@ -4033,7 +4241,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
         <p class="hint">Staff using your licence on another device can put their own name here.</p></section>
       <section><h3 class="sub">Documents</h3><button class="btn block" type="button" data-h="customise">Customise invoice, receipt &amp; quotation</button></section>
       <section><h3 class="sub">Look</h3>
-        <div class="tpl-grid" style="--tb:${esc(G.brand)}">${[["royal", "Royal"], ["atelier", "Atelier"], ["noir", "Noir"]].map(([k, n]) => `<button type="button" class="tpl" data-template="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
+        <div class="tpl-grid" style="--tb:${esc(G.brand)}">${DESIGNS.map(([k, n]) => `<button type="button" class="tpl${allowedDesign(k) ? "" : " locked"}" data-template="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
         <div class="swatches">${SWATCHES.map(([h, n]) => `<button type="button" class="swatch" data-color="${h}" style="background:${h}" aria-label="${n}" aria-pressed="${G.brand.toLowerCase() === h.toLowerCase()}"></button>`).join("")}<span class="swatch-custom"><input type="color" class="brand-custom" value="${esc(G.brand)}" aria-label="Any colour"></span></div>
         <label class="toggle"><span>Company seal on documents</span><span class="switch"><input type="checkbox" data-bind="profile.design.seal" ${G.seal ? "checked" : ""}><i></i></span></label>
       </section>
@@ -4062,7 +4270,7 @@ ${isDemo() ? "" : isPrestige() ? `<section><h3 class="sub">Prestige <span class=
   layer.onclick = (e) => {
     if (e.target.closest("[data-close]")) { closeLayer(); syncChrome(); render(); return; }
     const t = e.target.closest("[data-template]"), sw = e.target.closest(".swatch"), sg = e.target.closest("[data-sign]"), h = e.target.closest("[data-h]");
-    if (t) { if (!allowedDesign(t.dataset.template)) return lockSheet("This design", tierFor("design", t.dataset.template)); G.template = t.dataset.template; persist(); openHouse(); swapAnim(); render({ enter: true }); }
+    if (t) { if (!allowedDesign(t.dataset.template)) return lockSheet(DESIGN_NAME[t.dataset.template] || "This design", tierFor("design", t.dataset.template)); G.template = t.dataset.template; persist(); openHouse(); swapAnim(); render({ enter: true }); }
     if (sw) { G.brand = sw.dataset.color; persist(); openHouse(); render(); }
     if (sg) { B.signMode = sg.dataset.sign; persist(); openHouse(); render(); }
     if (h?.dataset.h === "bank") pickBank(() => openHouse("bank"));
@@ -4099,7 +4307,7 @@ function openCustomise(type = S.doc.type) {
         <div class="field"><span class="label">Terms &amp; conditions <em>(tap to add)</em></span>${`<div class="chips">${TERMS.map((t, i) => `<button type="button" class="chip" data-term="${i}" aria-pressed="${(X.terms || "").includes(t)}">${esc(t)}</button>`).join("")}</div>`}
         <textarea class="input" data-bind="${base}.terms" style="height:auto;min-height:90px;padding:14px 16px" placeholder="Optional">${esc(X.terms)}</textarea></div></section>
       <section><h3 class="sub">Design</h3>
-        <div class="tpl-grid" style="--tb:${esc(G.brand)}">${[["royal", "Royal"], ["atelier", "Atelier"], ["noir", "Noir"]].map(([k, n]) => `<button type="button" class="tpl" data-cz-tpl="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
+        <div class="tpl-grid" style="--tb:${esc(G.brand)}">${DESIGNS.map(([k, n]) => `<button type="button" class="tpl${allowedDesign(k) ? "" : " locked"}" data-cz-tpl="${k}" aria-pressed="${G.template === k}"><i></i><b>${n}</b></button>`).join("")}</div>
         <div class="swatches">${SWATCHES.map(([h, n]) => `<button type="button" class="swatch" data-cz-color="${h}" style="background:${h}" aria-label="${n}" aria-pressed="${G.brand.toLowerCase() === h.toLowerCase()}"></button>`).join("")}<span class="swatch-custom"><input type="color" class="brand-custom" value="${esc(G.brand)}" aria-label="Any colour"></span></div>
         <div class="field"><span class="label">Paper</span>${chips("paper", [["ivory", "Ivory"], ["white", "Bright white"]], X.paper)}</div></section>
     </div></aside>`;
@@ -4110,7 +4318,7 @@ function openCustomise(type = S.doc.type) {
     if (b.dataset.czType) return openCustomise(b.dataset.czType);
     if (b.dataset.cz) st[b.dataset.cz] = b.dataset.v;
     if (b.dataset.term !== undefined) { const t = TERMS[Number(b.dataset.term)]; const cur = docStyle(P, type).terms || ""; st.terms = cur.includes(t) ? cur.replace(t, "").replace(/\s{2,}/g, " ").trim() : (cur ? cur.trim() + " " : "") + t; }
-    if (b.dataset.czTpl) { if (!allowedDesign(b.dataset.czTpl)) return lockSheet("This design", tierFor("design", b.dataset.czTpl)); G.template = b.dataset.czTpl; }
+    if (b.dataset.czTpl) { if (!allowedDesign(b.dataset.czTpl)) return lockSheet(DESIGN_NAME[b.dataset.czTpl] || "This design", tierFor("design", b.dataset.czTpl)); G.template = b.dataset.czTpl; }
     if (b.dataset.czColor) G.brand = b.dataset.czColor;
     persist(); render(); const sc = $(".drawer-body", layer).scrollTop; openCustomise(type); $(".drawer-body", $("#layer")).scrollTop = sc;
   };
