@@ -1,4 +1,4 @@
-// Aurum: sends the emails waiting in the mail_queue table (plan ending, could not renew, plan ended; plan/07, part J).
+// Aurum: sends the emails waiting in the mail_queue table (plan notices and client reminders).
 // The database's daily job calls this. It sends through a Gmail account (an app password), over SMTP.
 //
 // Secrets (Supabase, Edge Functions, Secrets):
@@ -31,11 +31,14 @@ Deno.serve(async (req: Request) => {
   const user = Deno.env.get("GMAIL_USER"), pass = Deno.env.get("GMAIL_APP_PASSWORD");
   if (!user || !pass) return json({ ok: false, reason: "not_configured" });       // nothing is taken from the queue until mail is set up
   const transport = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } });
-  const rows: { id: number; to_email: string; subject: string; body: string }[] = (await rpc("mail_take", { p_limit: 20 })) || [];
+  const rows: { id: number; to_email: string; subject: string; body: string; from_name?: string | null; reply_to?: string | null }[] = (await rpc("mail_take", { p_limit: 20 })) || [];
   let sent = 0, failed = 0;
+  const clean = (s: string) => s.replace(/[
+"<>]/g, " ").trim().slice(0, 80);
   for (const m of rows) {
     try {
-      await transport.sendMail({ from: `"${Deno.env.get("MAIL_FROM_NAME") || "Aurum Invoice Studio"}" <${user}>`, to: m.to_email, subject: m.subject, text: m.body });
+      const name = m.from_name ? clean(m.from_name) : (Deno.env.get("MAIL_FROM_NAME") || "Aurum Invoice Studio");
+      await transport.sendMail({ from: `"${name}" <${user}>`, to: m.to_email, subject: m.subject, text: m.body, ...(m.reply_to ? { replyTo: m.reply_to } : {}) });
       await rpc("mail_done", { p_id: m.id }); sent++;
     } catch (e) { await rpc("mail_done", { p_id: m.id, p_error: String((e as Error).message || e).slice(0, 200) }); failed++; }
   }

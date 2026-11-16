@@ -8,3 +8,8 @@
   Cache-Control: public, max-age=604800
 /downloads/*
   Cache-Control: public, max-age=86400
+/store.html
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: public, max-age=300
+/s/*
+  X-Robots-Tag: noindex, nofollow

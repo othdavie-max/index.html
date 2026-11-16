@@ -5,7 +5,7 @@
   if (!bar) return;
   const links = [
     ["/", "Home", ""], ["/#see", "How it feels", "What your client sees"], ["/#designs", "Designs", "Fifteen looks for every document"],
-    ["/pricing/", "Pricing", "Free, Starter and Pro in detail"], ["/guides/", "Guides", "Invoice tips and free templates"], ["/free-invoice-generator/", "Free invoice generator", "Try it without signing up"],
+    ["/pricing/", "Pricing", "Free, Starter and Pro in detail"], ["/guides/", "Guides", "Invoice tips and free templates"], ["/tools/", "Free tools", "VAT, amount in words, reminders"], ["/free-invoice-generator/", "Free invoice generator", "Try it without signing up"],
     ["/reviews/", "Reviews", "What owners say"], ["/#faq", "Questions", "Quick answers"], ["/about/", "About", ""],
   ];
   const btn = document.createElement("button"); btn.type = "button"; btn.className = "mn-btn"; btn.setAttribute("aria-label", "Menu"); btn.setAttribute("aria-expanded", "false"); btn.innerHTML = "<span></span><span></span><span></span>";

@@ -83,7 +83,7 @@ const FAQ_GEN = [ // plan/03 section 3 with part K
 
 /* ---------------------------------------------------------------- 1. the SEO pages */
 function walk(d, out = []) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) { if (!/^(downloads|og|app|icons|landing)$/.test(e.name)) walk(p, out); } else if (/\.(html|txt)$/.test(e.name)) out.push(path.relative(OUT, p).split(path.sep).join("/")); } return out; }
-const seoFiles = walk(OUT).filter((f) => /\.html$/.test(f) && f !== "index.html" && f !== "admin.html" && f !== "policies.html" && !/^google/.test(f));
+const seoFiles = walk(OUT).filter((f) => /\.html$/.test(f) && f !== "index.html" && f !== "admin.html" && f !== "store.html" && f !== "policies.html" && !/^google/.test(f));
 const STICKY = '<div class="sticky" role="complementary" aria-label="Start free"><a class="btn" href="/pricing/" data-cta="plans" data-where="sticky">See plans</a><a class="btn primary" href="/app/" data-cta="signup" data-where="sticky">Start free</a></div>';
 const IN_BRIEF = '<section id="aurum-in-brief"><h2>Aurum in brief</h2><table><tbody>' + [
   ["Name", "Aurum Invoice Studio"], ["What it is", "Invoice, receipt and quotation app for Nigerian businesses"],
@@ -471,7 +471,7 @@ for (const [p, ti, de, h1, lead, body, faq, cn, opts] of newPages) { must(ti.len
     STYLES.map(([id, n, d], i) => '<figure class="glass step"><div class="phone"><img decoding="async" src="landing/phones/client-' + id + '.webp" alt="The ' + n + ' client page" loading="lazy" width="600" height="1298"></div><figcaption><h3><span class="n">' + ["i", "ii", "iii", "iv"][i] + "</span>" + n + "</h3><p>" + d + "</p></figcaption></figure>").join("") +
     "</div>\n  </div></section>";
   const whyHTML = '<section class="sec" id="why"><div class="wrap">\n    <div class="sec-head center"><span class="eyebrow">Why Aurum</span><h2>Look expensive. <em>Get paid faster.</em></h2></div>\n    <div class="why-grid">' + WHY.map(([n, h, p]) => '<div class="why-card"><i>' + n + "</i><h3>" + h + "</h3><p>" + p + "</p></div>").join("") + "</div>\n  </div></section>";
-  const pages = [...new Set(walk(OUT).concat(["index.html"]))].filter((f) => /\.html$/.test(f) && f !== "admin.html" && !/^app[\\/]/.test(f));
+  const pages = [...new Set(walk(OUT).concat(["index.html"]))].filter((f) => /\.html$/.test(f) && f !== "admin.html" && f !== "store.html" && !/^app[\\/]/.test(f));
   for (const f of pages) {
     let t = rd(f);
     // the new Aurum logo everywhere
@@ -495,6 +495,8 @@ for (const [p, ti, de, h1, lead, body, faq, cn, opts] of newPages) { must(ti.len
       t = t.replace('<section class="sec light-sec docs" id="docs">', stylesHTML + "\n\n  " + designsHTML + "\n\n  " + whyHTML + '\n\n  <section class="sec light-sec docs" id="docs" hidden style="display:none">');
       t = t.replace('<div class="after-price">', '<p class="see-all"><a href="pricing/">See the full plan comparison →</a></p>\n    <div class="after-price">');
     }
+    // a footer column for the tools and makers on every SEO page
+    if (t.includes('<div class="wrap fine">') && !t.includes("Tools &amp; makers")) t = t.replace('\n</div><div class="wrap fine">', '\n  <div><h4>Tools &amp; makers</h4><ul><li><a href="/tools/">Free tools</a></li><li><a href="/tools/vat-calculator-nigeria/">VAT calculator</a></li><li><a href="/tools/amount-in-words-naira/">Amount in words</a></li><li><a href="/tools/payment-reminder-message-generator/">Reminder generator</a></li><li><a href="/proforma-invoice-maker/">Proforma invoice maker</a></li><li><a href="/delivery-note-maker/">Waybill maker</a></li><li><a href="/purchase-order-maker/">LPO maker</a></li><li><a href="/pricing/">Pricing</a></li></ul></div>\n</div><div class="wrap fine">');
     wr(f, t);
   }
 }
@@ -504,7 +506,7 @@ for (const [p, ti, de, h1, lead, body, faq, cn, opts] of newPages) { must(ti.len
   const left = /(pay once|one-time|one time payment|no monthly|licence key|licence|lifetime|selar|black friday|get aurum|free demo|try the demo|\bsignature\b plan|\bprestige\b)/i;
   const files = walk(OUT).concat(["index.html"]);
   for (const f of [...new Set(files)]) {
-    if (f === "admin.html") continue; // the owner's own dashboard: internal labels only
+    if (f === "admin.html" || f === "store.html") continue; // the owner's own dashboard: internal labels only
     const t = rd(f); const hits = new Set();
     for (const piece of t.split(/(?<=[.!?])\s+|\n|<\/?(?:p|li|h1|h2|h3|summary|a|button|span|title|td|th|b)[^>]*>/)) { const s = piece.trim(); if (s.length > 3 && left.test(s) && !/data-buy|Black Friday bar|"prestige" : "signature"/.test(s)) hits.add(s.slice(0, 140)); }
     for (const h of hits) console.log("LEFT [" + f + "] " + h);
